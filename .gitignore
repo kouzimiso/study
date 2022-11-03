@@ -18,14 +18,22 @@
 !.vscode/extensions.json
 !.vscode/*.code-snippets
 
+Test/buildozer/
+Test/android-ndk-r23b-linux/
+Test/android-ndk-r25b-linux/
+Test/bin/
+Test/commandlinetools-linux-8512546_latest/
+Test/*.zip
+
+.buildozer/
+.android-ndk-r23b-linux/
+.android-ndk-r25b-linux/
+.bin/
+.commandlinetools-linux-8512546_latest/
+.*.zip
+
 # Local History for Visual Studio Code
 .history/
 # Built Visual Studio Code Extensions
 *.vsix
 
-!.Test/buildozer/
-!.Test/android-ndk-r23b-linux/
-!.Test/android-ndk-r25b-linux/
-!.Test/bin/
-!.Test/commandlinetools-linux-8512546_latest/
-!.Test/*.zip
