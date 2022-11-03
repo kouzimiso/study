@@ -1,0 +1,31 @@
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+!.vscode/*.code-snippets
+
+# Local History for Visual Studio Code
+.history/
+
+# Built Visual Studio Code Extensions
+*.vsix
+
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+!.vscode/*.code-snippets
+
+# Local History for Visual Studio Code
+.history/
+# Built Visual Studio Code Extensions
+*.vsix
+
+!.Test/buildozer/
+!.Test/android-ndk-r23b-linux/
+!.Test/android-ndk-r25b-linux/
+!.Test/bin/
+!.Test/commandlinetools-linux-8512546_latest/
+!.Test/*.zip
