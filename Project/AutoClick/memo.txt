@@ -1,0 +1,128 @@
+python -m pip install -U pip
+python -m pip install --upgrade pip
+
+python -m pip install pyautogui
+python -m pip install Pillow
+python -m pip install pynput
+
+python -m pip install pyocr
+
+python -m pip install xmltodict
+python -m pip install dicttoxml
+
+python -m pip install dicttoxml
+
+python -m pip install opencv-python
+https://github.com/UB-Mannheim/tesseract/wiki
+※Japaneseのチェックを入れる事。Javanese(ジャワ語に注意)
+
+
+#TKinter
+python -m pip install pytk
+
+#kivy
+python -m pip install --upgrade pip wheel setuptools
+python -m pip install docutils pygments pypiwin32 kivy.deps.glew
+python -m pip install kivy.deps.gstreamer
+python -m pip install kivy
+python -m pip install japanize-kivy
+python -m pip install watchdog
+
+
+※kivy.deps.sd12のinstallが書かれていることが有る。
+
+python -m pip install pyperclip
+
+#dotnet、DLLを使用する
+python -m pip install pythonnet
+※macの場合はpython3 -m pip
+
+・BluestackやNoxをDownloadしてPCで放置少女をプレイできるようにします。
+  https://www.bluestacks.com/tw/bluestacks-5.html
+  10はデスクトップショートカットの作り方がよくわからんかった。
+
+・WinPythonの末尾がdotのFile（最小限環境）をdownloadし、解凍する。
+  https://sourceforge.net/projects/winpython/files/
+
+・WinPython Command Prompt.exe起動
+・python -m pip install pyautoguiのCommandでLibraryをDownload
+・python -m pip install opencv-pythonのCommandでLibraryをDownload
+・python -m pip install Pillow
+
+・メモ帳を開いて、下記のProgramをcopy。名前をauto.pyで保存します（拡張子は気を付けてください。）
+・auto.pyと同じフォルダにimageフォルダを作り、クリックしたい画像を保存します。
+・IDLE (Python GUI).exeを実行し、File→Open→auto.pyのFileを開く
+・F5(又はRun→Run Module)でProgramを実行。
+・停止はIDLEを選択した状態でCtrl+Cすると、メモ帳が開いて認識した画像のログが見れます。誤認識した画像を探して修正に使ってください。
+
+<Mac　Android kivyでの開発>
+
+　sudo pip install buildozer
+　（sudo pip install git+http://github.com/kivy/buildozerの方がいい説も）
+　https://www.crystax.net/en/downloadから crystax-ndk-10.3.2-darwin-x86_64.tar.xz をダウンロード。
+　/usr/libexec/java_home -V
+
+　プログラムフォルダで下記を実行
+　buildozer init
+
+
+<Mac ipone kivyでの開発>
+https://qiita.com/sobassy/items/b06e76cf23046a78ba05
+
+kivy-iosを動かすための依存パッケージをインストールしてきます。
+
+
+xcode-select --install
+brew install autoconf automake libtool pkg-config
+brew link libtool
+pip3 install cython==0.28.1
+
+
+https://github.com/kivy/kivy-iosでクローンしてきたディレクトリ内で、
+pip3 install -r requirements.txt
+
+※VScodeでGitリポジトリのクローンで下記アドレスを使うのが楽。
+　https://github.com/kivy/kivy-ios.git
+
+環境によって下記が足りない。
+pip3 install pbxproj
+Xcodeをインストール
+1. Xcodeを起動する
+2. メニューバー > Xcode > Preferenceをクリックする
+3. Componentsタブを開く
+4. 必要なiOSバージョンをクリックしてインストールする
+python3 toolchain.py build python3 kivy
+
+sudo xcode-select --switch /Applications/Xcode.app/Contents/Developer/
+
+pip3 install --upgrade pip wheel setuptools
+pip3 install docutils pygments pypiwin32
+pip3 install kivy
+pip3 install japanize-kivy
+pip3 install cookiecutter
+
+Kivy-iosとソースフォルダが同じフォルダに並んでいる場合
+python3 kivy-ios/toolchain.py create StopWatch test
+
+もしも、下記のエラーが出た場合はpython3 toolchain.py build python3 kivyを実行。
+
+[ERROR   ] No python recipes compiled!
+[ERROR   ] You must have compiled at least python2 or
+[ERROR   ] python3 recipes to be able to create a project.
+
+
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
+brew install --cask temurin
+
+
+<放置少女育成>
+・PCにNOXをインストール。
+・C:\Program Files (x86)\Nox\binにPathを通す。
+・システム環境変数のPATHにpythonのscript pathを追加
+・スマホのUSBデバッグを有効にする。
+・PCにUSBでスマホを接続。
+・houchi_auto_ikusei-1.5\tmpにパラメータの画像が保存される。位置ずれ確認し、ズレてたら座標編集必要。
+
+・tesseractのインストール
+　brew install tesseract

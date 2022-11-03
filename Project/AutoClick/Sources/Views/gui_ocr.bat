@@ -1,0 +1,1 @@
+python -m kivy.tools.kviewer ./gui_ocr.kv

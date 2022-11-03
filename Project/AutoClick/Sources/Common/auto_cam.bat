@@ -1,0 +1,1 @@
+start D:\ProgramFiles\Coding\WPy64-3980\python-3.9.8.amd64\python.exe C:\Users\KOUZIMISO\Dropbox\Works_Shibaura\Nowworks\Auto\AutoClick\auto_cam.py

@@ -1,0 +1,65 @@
+OCRWidget:
+
+<OCRWidget>:
+	BoxLayout:
+		orientation: "vertical"
+		size: root.size
+		
+
+		Image:
+			source: root.file_path
+			nocache: True
+		ScrollView:
+			Label:
+				id: Label1
+				font_size: 18
+				font_name: '../../fonts/mplus-2c-regular.ttf'
+				text: root.ocr_text
+		TextInput:
+			id: text_input_filepath
+			size_hint_x: 70
+			font_size: 14
+			focus: True
+			text:root.file_path
+			on_text_validate: root.on_text_validate_filepath(self.value)
+		BoxLayout:
+			#orientation: "horizontal"
+			BoxLayout:
+				orientation: "vertical"
+				size: root.size
+
+	            TextInput:
+					id: text_input_width
+					size_hint_x: 70
+					font_size: 14
+					focus: True
+					text:root.capture_width
+					on_text_validate:root.on_text_validate_capture_width(self.value)
+
+	            TextInput:
+					id: text_input_height
+					size_hint_x: 70
+					font_size: 14
+					focus: True
+					text:root.capture_height
+					on_text_validate:on_text_validate_capture_height(self.value)
+
+
+			Button:
+				id:button_capture
+				font_size:18
+				text: "Capture"
+				on_release: root.capture_clicked()  # ボタンをクリックした時
+
+			Button:
+				id:button_ocr
+				font_size:18
+				text: "OCR"
+				on_release: root.ocr_clicked()  # ボタンをクリックした時
+			
+			Button:
+				id:Exit
+                text: 'Exit'
+                font_size: 18
+                on_press : app.stop()
+			
