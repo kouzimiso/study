@@ -1,0 +1,61 @@
+① Dockerをインストール
+https://docs.docker.com/engine/install/
+上記のSiteでDownloadして、Installする。
+
+②下記Commandを実行して挙動確認。
+Mac:ターミナル起動
+Windows:Command promptを起動
+
+docker --version
+docker run hello-world
+③kivy/buildozerをcloneする。
+
+docker pull kivy/buildozer
+④buildozerのBuild
+
+動画おすすめコマンド(Mac):
+docker run -it --name buildozer -v "$PWD":/home/user/hostcwd --entrypoint /bin/bash kivy/buildozer
+動画おすすめコマンド(Windows):
+docker run -it --name buildozer -v ${PWD}:/home/user/hostcwd --entrypoint /bin/bash kivy/buildozer
+
+docker rm buildozer
+
+buildozer.specの作成
+cd (アプリケーションフォルダpath)
+buildozer init
+buildozer.specがApplication Folderに作成されますので中身を編集します。(下記は色々対策した後の現状の設定です。)
+
+buildozer.spec編集箇所（抜粋）
+# (str) Title of your application
+title = My Application
+
+# (str) Package name
+package.name = myapp
+
+# (str) Package domain (needed for android/ios packaging)
+package.domain = org.test
+
+# (int) Target Android API, should be as high as possible.
+android.api = 26
+
+# (int) Minimum API your APK will support.
+#android.minapi = 21
+
+# (str) Android NDK directory (if empty, it will be automatically downloaded.)
+android.ndk_path =./android-ndk-r25b-linux/android-ndk-r25b/
+
+# (str) Android SDK directory (if empty, it will be automatically downloaded.)
+android.sdk_path =./commandlinetools-linux-8512546_latest/
+
+buildozer android debug
+
+
+
+
+
+
+./.buildozer/android/platform/build-armeabi-v7a/build\other_builds/libffi/armeabi-v7a__ndk_target_21/libffi/config.log
+
+
+
+
