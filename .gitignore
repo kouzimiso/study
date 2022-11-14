@@ -31,3 +31,4 @@ Test/*.zip
 # Built Visual Studio Code Extensions
 *.vsix
 
+houchi_auto_ikusei/tmp/*.png
