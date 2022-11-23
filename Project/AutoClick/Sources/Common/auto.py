@@ -15,7 +15,7 @@ from enum import Enum
 sys.path.append("../Common")
 import rename
 import log
-
+import json_control
 
 class END_ACTION(Enum):
     BREAK = 0
@@ -52,9 +52,7 @@ enum_dictionary={
 
 # log関係
 message_list = []
-logfile_path = './log_auto.txt'
-
-# 画像認識情報定義
+logfile_path = os.path.dirname(__file__)+'/../../Log/log_auto.txt'
 
 
 class RecognitionInfomation:
@@ -84,35 +82,35 @@ class RecognitionInfomation:
         
         self.setting_dictionary={
             "action":"",
-            "end_condition": self.set_string_data(end_condition,DATA_TYPE.ENUM),
-            "execute_number" : self.set_string_data(execute_number,DATA_TYPE.NUMBER),
-            "retry_number":self.set_string_data(retry_number,DATA_TYPE.NUMBER),
-            "end_action":self.set_string_data(end_action,DATA_TYPE.ENUM),
-            "image_path": self.set_string_data(image_path,DATA_TYPE.STRING),
-            "interval_time":self.set_string_data(interval_time,DATA_TYPE.NUMBER),
-            "recognition_confidence":self.set_string_data(recognition_confidence,DATA_TYPE.FLOAT),
-            "recognition_grayscale":self.set_string_data(recognition_grayscale,DATA_TYPE.FLOAT)
+            "end_condition": self.Set_StringData(end_condition,DATA_TYPE.ENUM),
+            "execute_number" : self.Set_StringData(execute_number,DATA_TYPE.NUMBER),
+            "retry_number":self.Set_StringData(retry_number,DATA_TYPE.NUMBER),
+            "end_action":self.Set_StringData(end_action,DATA_TYPE.ENUM),
+            "image_path": self.Set_StringData(image_path,DATA_TYPE.STRING),
+            "interval_time":self.Set_StringData(interval_time,DATA_TYPE.NUMBER),
+            "recognition_confidence":self.Set_StringData(recognition_confidence,DATA_TYPE.FLOAT),
+            "recognition_grayscale":self.Set_StringData(recognition_grayscale,DATA_TYPE.FLOAT)
             }
         print("setting_dictionary")
         print(self.setting_dictionary)
         self.setting_initial_dictionary={}
 
-    def set_setting_dictionary(self,input_dictionary):
+    def Set_SettingDictionary(self,input_dictionary):
         self.setting_dictionary=input_dictionary
         
-        end_condition= self.get_data("end_condition",DATA_TYPE.ENUM)
-        execute_number= self.get_data("execute_number",DATA_TYPE.NUMBER)
-        retry_number= self.get_data("retry_number",DATA_TYPE.NUMBER)
-        end_action=self.get_self.data("end_action",DATA_TYPE.ENUM)
-        image_path=self.get_data("image_path",DATA_TYPE.STRING)
-        interval_time=self.get_data("interval_time",DATA_TYPE.NUMBER)
-        recognition_confidence=self.get_data("recognition_confidence",DATA_TYPE.FLOAT)
-        recognition_grayscale=self.get_data("recognition_grayscale",DATA_TYPE.FLOAT)
+        end_condition= self.Get_Data("end_condition",DATA_TYPE.ENUM)
+        execute_number= self.Get_Data("execute_number",DATA_TYPE.NUMBER)
+        retry_number= self.Get_Data("retry_number",DATA_TYPE.NUMBER)
+        end_action=self.Get_Data("end_action",DATA_TYPE.ENUM)
+        image_path=self.Get_Data("image_path",DATA_TYPE.STRING)
+        interval_time=self.Get_Data("interval_time",DATA_TYPE.NUMBER)
+        recognition_confidence=self.Get_Data("recognition_confidence",DATA_TYPE.FLOAT)
+        recognition_grayscale=self.Get_Data("recognition_grayscale",DATA_TYPE.FLOAT)
 
-    def get_setting_dictionary():
-        return setting_dictionary
+    def Get_SettingDictionary(self):
+        return self.setting_dictionary
     
-    def get_data(self,data_name,data_type=DATA_TYPE.ENUM):
+    def Get_Data(self,data_name,data_type=DATA_TYPE.ENUM):
         if data_type == DATA_TYPE.ENUM:
             print("data_name:"+data_name)#"end_condition"のような文字Data
             parameter_name = self.setting_dictionary[data_name]
@@ -127,7 +125,7 @@ class RecognitionInfomation:
         else:
             return str(self.setting_dictionary[data_name])
 
-    def set_string_data(self,data,data_type=DATA_TYPE.ENUM):
+    def Set_StringData(self,data,data_type=DATA_TYPE.ENUM):
         if data_type == DATA_TYPE.ENUM:
             return data.name
             #return END_ACTION(data).name
@@ -141,43 +139,52 @@ class RecognitionInfomation:
             return  str(data) 
 
 def Image_SearchAndXY(image_path, recognition_grayscale, recognition_confidence):
-    x, y = pyautogui.locateCenterOnScreen(
-        image_path, grayscale=recognition_grayscale, confidence=recognition_confidence)
+    result = pyautogui.locateCenterOnScreen(image_path, grayscale=recognition_grayscale, confidence=recognition_confidence)
+    x, y = result
     return x, y
 
 # Imageを探してMouse pointerを移動させる
-
-
 def Image_SearchAndMove(image_path, x_offset_dictionary, y_offset_dictionary, recognition_grayscale, recognition_confidence):
     try:
-        x, y = pyautogui.locateCenterOnScreen(
-            image_path, grayscale=recognition_grayscale, confidence=recognition_confidence)
-        # x,y=pyautogui.locateCenterOnScreen(image_path)
-        if image_path in x_offset_dictionary:
-            x_offset = int(x_offset_dictionary[image_path])
-            x = x + x_offset
-            print(image_path + "offset_x:" + str(x_offset))
-        if image_path in y_offset_dictionary:
-            y_offset = int(y_offset_dictionary[image_path])
-            print(image_path + "offset_y:" + str(y_offset))
-            y = y + y_offset
-        pyautogui.moveTo(x, y)
-        # Logを貯めて強制終了時にFileを書き込む。
-        log.Log_MessageAdd(
-            message_list, "ImageSearchAndMove(" + image_path + ")" + str(x)+","+str(y))
-        # 毎回LogをFileni書き込む記述（遅いので没）
-        #Write_Message(logfile_path , Log_MessageFormat(message))
-        return True
+        result = pyautogui.locateCenterOnScreen(image_path, grayscale=recognition_grayscale, confidence=recognition_confidence)
+        if result is not None:
+            x,y=result
+            if image_path in x_offset_dictionary:
+                x_offset = int(x_offset_dictionary[image_path])
+                x = x + x_offset
+                print(image_path + "offset_x:" + str(x_offset))
+            if image_path in y_offset_dictionary:
+                y_offset = int(y_offset_dictionary[image_path])
+                print(image_path + "offset_y:" + str(y_offset))
+                y = y + y_offset
+            pyautogui.moveTo(x, y)
+            # Logを貯めて強制終了時にFileを書き込む。
+            log.Log_MessageAdd(message_list, "ImageSearchAndMove(" + image_path + ")" + str(x)+","+str(y))
+            # 毎回LogをFileni書き込む記述（遅いので没）
+            #Write_Message(logfile_path , Log_MessageFormat(message))
+            return True
+        else:
+            import traceback
+            traceback.print_exc()
+            print("error:can not find image on screen " + image_path)
+            return False
     except:
         import traceback
         traceback.print_exc()
-        print("error:can not find image " + image_path)
+        log.Log_MessageAdd(message_list, "unexplained error:ImageSearchAndMove(" + image_path + ")")
+        print("x_offset_dictionary")
+        print(x_offset_dictionary)
+        print("y_offset_dictionary")
+        print(y_offset_dictionary)
+        print("recognition_grayscale")
+        print(recognition_grayscale)
+        print("recognition_confidence")
+        print(recognition_confidence)
+
         return False
         exit
 
 # Mouse Action
-
-
 def Action_Execute(action):
     if action == ACTION.CLICK:
         pyautogui.click()
@@ -187,8 +194,6 @@ def Action_Execute(action):
         pyautogui.mouseUp()
 
 # 条件判断回路
-
-
 def Condition_Judge(condition, result):
     # 条件と結果が同じならOK
     if condition == result:
@@ -206,37 +211,76 @@ def Condition_Judge(condition, result):
                            RESULT(condition).name+","+RESULT(result).name+"):NG")
         return False
 
+Images_Action_Result = {}
+def Images_Action_ResultInit(dictionary , detect = 0 , undetect = 0 , total_detect = 0 , total_undetect = 0):
+    for dictionary_key in dictionary.keys():
+        dictionary[dictionary_key]["detect"]  = detect
+        dictionary[dictionary_key]["undetect"] = undetect
+        print("Images_Action_ResultInit:"+dictionary_key)
+        if dictionary_key not in dictionary:
+            dictionary[dictionary_key]["total_detect"] = total_detect
+            dictionary[dictionary_key]["total_undetect"] = total_undetect
+    print(dictionary)
+    return dictionary
+
+def Images_Action_ResultSet(dictionary,dictionary_key,detect,undetect):
+    if dictionary_key in dictionary:
+        dictionary[dictionary_key]["detect"]  += detect
+        dictionary[dictionary_key]["undetect"] += undetect
+        dictionary[dictionary_key]["total_detect"]  += detect
+        dictionary[dictionary_key]["total_undetect"] += undetect
+    else:
+        dictionary[dictionary_key] = {
+            "detect" : detect,
+            "undetect" : undetect,
+            "total_detect" :detect,
+            "total_undetect" : undetect
+        }
+    return dictionary
+
+def InfomationToString():
+    global Images_Action_Result
+    if Images_Action_Result is None:
+        return ""
+    else:
+        return str(Images_Action_Result).decode("string-escape")
+    
+def WriteInfomationToJson(file_path):
+    global Images_Action_Result    
+    json_control.WriteDictionary(file_path,Images_Action_Result)
+
+def ReadInfomationFromJson(file_path):
+    global Images_Action_Result 
+    return json_control.ReadDictionary(file_path,Images_Action_Result)
+
+
 # Folder内のImageを探してMouse pointerを移動し、行動する
-
-
 def Images_Action(action, end_action, end_condition, images_path, x_offset_dictionary, y_offset_dictionary, recognition_grayscale, recognition_confidence, interval_time):
     all_ok = True
     all_ng = True
     result = False
-    print("Images_Action")
+    global Images_Action_Result
+
     for image_path in glob.glob(images_path):
         # 画像検索とPointer移動
-        end_result = Image_SearchAndMove(
-            image_path, x_offset_dictionary, y_offset_dictionary, recognition_grayscale, recognition_confidence)
-
+        end_result = Image_SearchAndMove(image_path, x_offset_dictionary, y_offset_dictionary, recognition_grayscale, recognition_confidence)
         if end_result:
+            Images_Action_Result=Images_Action_ResultSet(Images_Action_Result,image_path,1,0)        
             all_ng = False
             Action_Execute(action)
             time.sleep(interval_time)
 
             # 条件成立での中止処理
             if end_action == END_ACTION.BREAK and end_condition == RESULT.OK:
-                log.Log_MessageAdd(
-                    message_list, "Images_Action:Result_OK Break(" + str(action) + ")")
+                log.Log_MessageAdd(message_list, "Images_Action:Result_OK Break(" + str(action) + ")")
                 return RESULT.OK
         else:
+            Images_Action_Result=Images_Action_ResultSet(Images_Action_Result,image_path,0,1)        
             all_ok = False
             # 条件成立での中止処理
             if end_action == END_ACTION.BREAK and end_condition == RESULT.NG:
-                log.Log_MessageAdd(
-                    message_list, "Images_Action:Result_NG Break(" + str(action) + ")")
+                log.Log_MessageAdd(message_list, "Images_Action:Result_NG Break(" + str(action) + ")")
                 return RESULT.NG
-
     if all_ok == True:
         return RESULT.ALL_OK
     elif all_ng == True:
@@ -245,8 +289,6 @@ def Images_Action(action, end_action, end_condition, images_path, x_offset_dicti
         return RESULT.OK
 
 # Images_Actionを繰り返し実行する。
-
-
 def Images_Action_ByInformation(recognition_information, x_offset_dictionary, y_offset_dictionary):
     all_ok = True
     all_ng = True
@@ -255,38 +297,36 @@ def Images_Action_ByInformation(recognition_information, x_offset_dictionary, y_
 
     continue_flag = True
     loop01 = 0
+
     while continue_flag == True:
         print("loop"+str(loop01))
         # 指定回数実行する。
         for loop02 in range(recognition_information.execute_number):
             log.Log_MessageAdd(message_list, "Execute_Number:"+str(loop02))
-            end_result = Images_Action(recognition_information.action, recognition_information.end_action, recognition_information.end_condition, recognition_information.image_path,
-                                       x_offset_dictionary, y_offset_dictionary, recognition_information.recognition_grayscale, recognition_information.recognition_confidence, recognition_information.interval_time)
+            end_result = Images_Action(recognition_information.action, recognition_information.end_action, recognition_information.end_condition, recognition_information.image_path,x_offset_dictionary, y_offset_dictionary, recognition_information.recognition_grayscale, recognition_information.recognition_confidence, recognition_information.interval_time)
             if end_result != RESULT.NG:
                 all_ng = False
-                print("Continue:loop" + RESULT(end_result).name +
-                      "/"+str(recognition_information.execute_number))
+                print("Continue:loop" + RESULT(end_result).name + "/"+str(recognition_information.execute_number))
             else:
                 all_ok = False
-                print("RESULT.NG:loop" + str(loop02) + "/" +
-                      str(recognition_information.execute_number))
+                print("RESULT.NG:loop" + str(loop02) + "/" + str(recognition_information.execute_number))
             # 条件成立での中止処理
             if recognition_information.end_action == END_ACTION.BREAK and recognition_information.end_condition == end_result:
                 log.Log_MessageAdd(message_list, "BREAK:retry"+str(loop01))
                 break
             # 条件成立での中止処理
             if recognition_information.end_action == END_ACTION.FOLDER_END_BREAK and recognition_information.end_condition == end_result:
-                log.Log_MessageAdd(
-                    message_list, "FOLDER_END_BREAK:retry"+str(loop01))
+                log.Log_MessageAdd(message_list, "FOLDER_END_BREAK:retry"+str(loop01))
                 break
         if Condition_Judge(recognition_information.end_condition, end_result) == False and loop01 < recognition_information.retry_number:
-            log.Log_MessageAdd(
-                message_list, "False and retry:retry"+str(loop01))
+            log.Log_MessageAdd(message_list, "False and retry:retry"+str(loop01))
             continue_flag = True
         else:
             log.Log_MessageAdd(message_list, "Break:retry"+str(loop01))
             continue_flag = False
         loop01 = loop01 + 1
+    log.Write_MessageList(logfile_path, message_list)
+    message_list.clear()
     if all_ok == True:
         return RESULT.ALL_OK
     elif all_ng == True:
@@ -295,8 +335,6 @@ def Images_Action_ByInformation(recognition_information, x_offset_dictionary, y_
         return RESULT.OK
 
 # 条件が成立した時に繰り返し実行する。
-
-
 def Images_ConditionCheckAndAction(name, condition, action_recognition_information, x_offset_dictionary, y_offset_dictionary):
     action_result = RESULT.NG
     # 条件を比較
@@ -308,18 +346,15 @@ def Images_ConditionCheckAndAction(name, condition, action_recognition_informati
             action_condition = True
     # 条件を比較して成立したら実行
     if action_condition == True:
-        log.Log_MessageAdd(
-            message_list, "Images_ConditionCheckAndAction:実行条件成立:" + name)
-        action_result = Images_Action_ByInformation(
-            action_recognition_information, x_offset_dictionary, y_offset_dictionary)
+        log.Log_MessageAdd(message_list, "Images_ConditionCheckAndAction:実行条件成立:" + name)
+        action_result = Images_Action_ByInformation(action_recognition_information, x_offset_dictionary, y_offset_dictionary)
     return action_result
 
 
 def Image_AroundMouse(file_path, flag_overwrite=True, wide=0, height=0, dupplicate_format="{}({:0=3}){}"):
     x, y = pyautogui.position()
 
-    Image_AroundPoint(file_path, flag_overwrite, x, y,
-                      wide, height, dupplicate_format)
+    Image_AroundPoint(file_path, flag_overwrite, x, y, wide, height, dupplicate_format)
 
 
 def Image_AroundPoint(file_path, flag_overwrite=True, x=0, y=0, wide=0, height=0, dupplicate_format="{}({:0=3}){}"):

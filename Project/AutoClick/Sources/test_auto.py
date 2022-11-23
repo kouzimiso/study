@@ -9,6 +9,7 @@ import json
 import clr
 import PIL
 import unittest
+import socket
 
 sys.path.append("./Common")
 sys.path.append("./Models")
@@ -23,10 +24,11 @@ import weekday
 import xml_control
 import xml.dom.minidom
 import image_delete
+import json_control
 
 #log関係
 message_list=[]
-logfile_path='./log_test_auto.txt'
+logfile_path='../Log/log_test_auto.txt'
 
 class Test(unittest.TestCase):
 
@@ -320,6 +322,11 @@ class Test(unittest.TestCase):
         json.dump(information1,file,ensure_ascii = False,indent=4,separators=(',',':'))        
         file.close()
 
+        information1 = {"file_path1":{"detect":1,"undetect":2},"file_path":{"detect":1,"undetect":2}}        
+        json_control.WriteDictionary("test2.json",information1)
+        json_control.ReadDictionary("test2.json",information1)
+        print(information1)
+
         
     def test_xml(self):
         function_name=sys._getframe().f_code.co_name
@@ -381,8 +388,9 @@ class Test(unittest.TestCase):
         x_offset_dictionary= {'../Images/Test/test_Auto_Blank' : "0"}
         y_offset_dictionary= {'../Images/Test/test_Auto_Blank' : "30"}
         recognition_information=auto.RecognitionInfomation(auto.ACTION.DOUBLE_CLICK ,auto.RESULT.OK, auto.END_ACTION.BREAK , 2 , 5 ,'./Test/*.png' , 1.8 , 0.8 , True)
-
         actual=auto.Images_ConditionCheckAndAction("test1",auto.RESULT.OK,recognition_information,x_offset_dictionary,y_offset_dictionary)
+        auto.WriteInfomationToJson("test3.json")
+        
         expected =auto.RESULT.ALL_OK
         self.assertEqual(expected,actual)
 
@@ -416,7 +424,11 @@ class Test(unittest.TestCase):
         Application.SetCompatibleTextRenderingDefault(False)
         Application.Run(Form())
   
-    
+    def test_get_PC_name(self):
+
+        # ホスト名を取得
+        host = socket.gethostname()
+        print(host)    
 
 #Main Program実行部
 def main():

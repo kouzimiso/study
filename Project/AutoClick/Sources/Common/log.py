@@ -3,13 +3,15 @@
 import datetime
 import os
 from enum import Enum
+import FileControl
 
-class END_ACTION(Enum):
-    BREAK = 0
-    FOLDER_END_BREAK = 1
-    CONTINUE = 2
+#class END_ACTION(Enum):
+#    BREAK = 0
+#    FOLDER_END_BREAK = 1
+#    CONTINUE = 2
 
-        
+
+
 def Log_MessageFormat(message):
     log_message='[' + str(datetime.datetime.now())+']' + message +'\n'
     return log_message
@@ -30,6 +32,7 @@ def Clear_MessageList(message_list):
 
 #Message ListをFileに書き込む
 def Write_MessageList(file_path,message_list):
+    FileControl.Manage_File(file_path)
     file = open(file_path,'a')
     file.writelines(message_list)
     file.close()

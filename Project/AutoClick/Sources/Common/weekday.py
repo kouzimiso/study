@@ -64,14 +64,14 @@ class DayOfTheWeek:
         else:
             flag_include_today2 = False
         day_after=self.Get_DayAfterWeekDay(date_time_time2,day_of_weekday2,flag_include_today2)
-        message = "[比較日時]" + date_time.strftime ( '%Y/%m/%d(%A) %H:%M' ) 
+        message = "[確認日時]" + date_time.strftime ( '%Y/%m/%d(%A) %H:%M' ) 
         log.Log_MessageAdd(self.message_list,message)
         
         day_of_weekday1_string=self.Get_DayOfTheWeek_String(day_of_weekday1)
         day_of_weekday2_string=self.Get_DayOfTheWeek_String(day_of_weekday2)
-        message = "[比較区間]" + day_of_weekday1_string + time1.strftime ( '%H:%M' ) +"～"+ day_of_weekday2_string +time2.strftime ( '%H:%M' ) 
+        message = "[設定曜日区間]" + day_of_weekday1_string + time1.strftime ( '%H:%M' ) +"～"+ day_of_weekday2_string +time2.strftime ( '%H:%M' ) 
         log.Log_MessageAdd(self.message_list,message)     
-        message = "[前週～後週区間]" + day_before.strftime ( '%Y/%m/%d(%A) %H:%M' ) +"～"+day_after.strftime ( '%Y/%m/%d(%A) %H:%M' ) 
+        message = "[日時区間]" + day_before.strftime ( '%Y/%m/%d(%A) %H:%M' ) +"～"+day_after.strftime ( '%Y/%m/%d(%A) %H:%M' ) 
         log.Log_MessageAdd(self.message_list,message)     
         #前と後の時間が7日間以内ならTrue,そうでないならFaultを返す。
         time_delta = day_after - day_before

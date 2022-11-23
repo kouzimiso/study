@@ -1,5 +1,6 @@
 import os
 import shutil
+import datetime
 
 def duplicate_rename(file_path,dupplicate_format="{}({:0=3}){}"):
     if os.path.exists(file_path):
@@ -13,4 +14,12 @@ def duplicate_rename(file_path,dupplicate_format="{}({:0=3}){}"):
             i += 1
     else:
         return file_path
+
+def Name_AddDays(file_path):
+    date_now = datetime.datetime.now()
+    file_name, file_ext = os.path.splitext(file_path)
+    #os.rename(file_name, date_now.strftime("%Y%m%d %H%M%S") + file_ext)
+    
+    return file_name +"_"+ date_now.strftime("%Y%m%d_%H%M%S") + file_ext
+
 

@@ -1,0 +1,89 @@
+#:import hex_color kivy.utils.get_color_from_hex
+
+<ColorButton>:
+    background_normal: 'color_button_normal.png'
+    background_down: 'color_button_down.png'
+    group: 'color'
+    border: (5, 5, 5, 5)
+    on_release: app.painter.ids['paint_area'].set_color(self.background_color)
+    #on_release: app.painter.paint_id.set_color(self.background_color) # set_corlor
+<MyCanvasWidget>:
+    paint_id:paint_area
+    id: canvas_area
+
+    test:button1
+    Button:
+        text: 'save'
+        color: 1, 1, 1 , 1
+        font_size: 20
+        on_release: app.save_canvas()
+        border: (2, 2, 2, 2)
+        x: 0
+        top: root.top
+        width: 80
+        height: 40
+
+    BoxLayout:
+        orientation: 'vertical'
+        height: root.height
+
+        width: root.width
+        MyPaintWidget:
+            id: paint_area
+            size_hint_y: 0.8
+
+        BoxLayout:
+            orientation: 'horizontal'
+            size_hint_y: 0.1
+            Label:
+                size_hint_x: 0.1
+                text: 'Line width %s' % int(s1.value) if s1.value else 'Line width not set'
+                color: 0,0,0,1
+            Slider:
+                id: s1
+                size_hint_x: 0.9
+                value: 3
+                range: (1,100)
+                step: 1
+                on_touch_down:app.painter.ids['paint_area'].set_line_width(self.value)
+
+        BoxLayout:
+            orientation: 'horizontal'
+            size_hint_y: 0.1
+            clear_btn:button1
+            Button:
+                id: button1
+                text: "Clear"
+                ont_size: 30
+                on_release: app.clear_canvas()
+            
+            
+            ColorButton:
+                text: "white "
+                color: 0, 0, 0 , 1
+                background_color: hex_color('#ffffff')
+
+            ColorButton:
+                text: "black "
+                state: 'down'
+                background_color: hex_color('#000000')
+
+            ColorButton:
+                text: "red "
+                background_color: hex_color('#ff0000')
+                
+            ColorButton:
+                text: "biue "
+                background_color: hex_color('#0000ff')
+
+            ColorButton:
+                text: "green "
+                background_color: hex_color('#008000')
+                
+            ColorButton:
+                text: "orange"
+                background_color: hex_color('#ff4500')
+                
+            ColorButton:
+                text: "purple"
+                background_color: hex_color('#800080')
