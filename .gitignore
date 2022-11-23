@@ -38,3 +38,7 @@ Project/AutoClick/Sources/Views/pdf_files/*.pdf
 Project/AutoClick/Test/*.png
 Project/Test/*.png
 Project/AutoClick/Sources/Views/dist/*.notanexecutable
+Project/AutoClick/Sources/*.json
+Project/AutoClick/Sources/*.xml
+Project/AutoClick/Sources/__pycache__/
+Project/AutoClick/Sources/Common/__pycache__/
