@@ -32,3 +32,8 @@ Test/*.zip
 *.vsix
 
 houchi_auto_ikusei/tmp/*.png
+Project/AutoClick/Images/Test/*.png
+Project/AutoClick/Log/log*.txt
+Project/AutoClick/Sources/Views/pdf_files/*.pdf
+Project/AutoClick/Test/*.png
+Project/Test/*.png
