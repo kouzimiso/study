@@ -42,3 +42,7 @@ Project/AutoClick/Sources/*.json
 Project/AutoClick/Sources/*.xml
 Project/AutoClick/Sources/__pycache__/
 Project/AutoClick/Sources/Common/__pycache__/
+Project/AutoClick/Sources/Test/*.png
+Project/AutoClick/Sources/Test/Kivy_paint_expansion-master/*.png
+*.pyc
+Project/AutoClick/Sources/old/

@@ -118,6 +118,12 @@ action_sequence_waiting = RecognitionInfomation(
 action_sequence_start = RecognitionInfomation(
     ACTION.CLICK, RESULT.OK, END_ACTION.CONTINUE, 3, 0, '../Images/image_start/*.png', 1.8, 0.93, True)
 
+action_sequence_event = RecognitionInfomation(
+    ACTION.CLICK, RESULT.OK, END_ACTION.CONTINUE, 3, 0, '../Images/image_event/*.png', 0.5, 0.93, True)
+action_sequence_event2 = RecognitionInfomation(
+    ACTION.CLICK, RESULT.OK, END_ACTION.CONTINUE, 2, 2, '../Images/image_event2/*.png', 0.8, 0.93, True)
+action_sequence_ikusei = RecognitionInfomation(
+    ACTION.CLICK, RESULT.OK, END_ACTION.CONTINUE, 3, 1, '../Images/image_ikusei/*.png', 1.8, 0.93, True)
 
 
 action_sequence_end = RecognitionInfomation(
@@ -434,56 +440,6 @@ def highspeed():
         sequence_highspeed=RecognitionInfomation(ACTION.CLICK ,RESULT.OK, END_ACTION.CONTINUE ,1, 0 ,file_path , 0.8 , 0.93 , True)
         result_action = Images_Action_ByInformation(sequence_highspeed,x_offset_dictionary,y_offset_dictionary)
 
-def chokyo_all():
-    #放置少女調教時間チェック
-
-    #19:40-21:45
-    if datetime.time(12,30,0) <= datetime.datetime.now().time() and  datetime.datetime.now().time() <= datetime.time(13,45,0):
-        check1 = True
-    else:
-        check1 = False
-        print("check1 false")
-
-    #19:40-21:45
-    if datetime.time(19,30,0) <= datetime.datetime.now().time() and  datetime.datetime.now().time() <=  datetime.time(21,45,0):
-        check2 = True 
-    else:
-        check2 = False
-        print("check2 false")
-    if check1:
-        print("result check1")        
-    if check2:
-        print("result check2")
-    if check1 or check2:
-        #Sub searver周回
-        print("check2")
-        flag_timecheck = False
-        for sequence in search_icon1_sequence:
-            for server_sequence in select_server1_sequence:
-                chokyo(sequence, server_sequence, flag_timecheck)
-                log.Write_MessageList(logfile_path, message_list)
-                message_list.clear()
-        #Main searver周回
-        flag_timecheck = True
-        for sequence in search_icon2_sequence:
-            for server_sequence in select_server2_sequence:
-                chokyo(sequence, server_sequence, flag_timecheck)
-                log.Write_MessageList(logfile_path, message_list)
-                message_list.clear()
-
-
-def chokyo(sequence, server_sequence, flag_timecheck):
-    Images_Action_ByInformation(action_sequence_end, x_offset_dictionary, y_offset_dictionary)  # "終了処理", RESULT.OK
-    result_file_click = Images_Action_ByInformation(sequence, x_offset_dictionary, y_offset_dictionary)  # "File選択", RESULT.OK ,
-    if Condition_Judge(RESULT.OK, result_file_click):
-        result_waiting = Images_Action_ByInformation(action_sequence_waiting, x_offset_dictionary, y_offset_dictionary)  # "待ち動作", result_file_click ,
-        result_server = Images_Action_ByInformation(server_sequence, x_offset_dictionary, y_offset_dictionary)  # "Server選択動作", result_file_click
-        result_start = Images_Action_ByInformation(action_sequence_start, x_offset_dictionary, y_offset_dictionary)  # "プロセス実行", result_waiting
-        action_kyoudou1=RecognitionInfomation(ACTION.CLICK ,RESULT.OK, END_ACTION.CONTINUE ,3, 5 ,'../Images/image_kyoudou1/*.png' , 0.8 , 0.93 , True)
-        result_action = Images_Action_ByInformation(action_kyoudou1,x_offset_dictionary,y_offset_dictionary)
-        if result_action:
-            action_kyoudou2=RecognitionInfomation(ACTION.CLICK ,RESULT.NG, END_ACTION.FOLDER_END_BREAK, 20,100,'../Images/image_kyoudou2/*.png' , 0.3 , 0.93 , True)
-            result_action = Images_Action_ByInformation(action_kyoudou2,x_offset_dictionary,y_offset_dictionary)
         
     
 
@@ -593,8 +549,7 @@ def ocr_sequence():
 def main():
     signal.signal(signal.SIGTERM, Signal_Handler)
     try:
-        while 1:
-            chokyo_all()
+        #while 1:
             #action_mementomori = RecognitionInfomation(ACTION.DOUBLE_CLICK, RESULT.OK, END_ACTION.CONTINUE,1, 3, '../Images/mementomori/Click00*.png', 1.8, 0.95, True)
             #result_action = Images_Action_ByInformation(action_mementomori,x_offset_dictionary,y_offset_dictionary)
             #if result_action:
@@ -604,8 +559,8 @@ def main():
             #
             #    action_mementomori = RecognitionInfomation(ACTION.CLICK, RESULT.NG, END_ACTION.CONTINUE, 50, 3, '../Images/mementomori/Click1*.png', 1.8, 0.95, True)
             #    result_action = Images_Action_ByInformation(action_mementomori,x_offset_dictionary,y_offset_dictionary)
-
-
+        
+        
         log.Log_MessageAdd(message_list,"OCR start")
         ocr_sequence()
         #action_kyoudou1=RecognitionInfomation(ACTION.CLICK ,RESULT.OK, END_ACTION.CONTINUE ,10, 0 ,'../Images/image_kyoudou1/*.png' , 0.8 , 0.93 , True)
@@ -613,9 +568,10 @@ def main():
         #if result_action:
         #    action_kyoudou2=RecognitionInfomation(ACTION.CLICK ,RESULT.NG, END_ACTION.FOLDER_END_BREAK, 300,0,'../Images/image_kyoudou2/*.png' , 0.3 , 0.93 , True)
         #    result_action = Images_Action_ByInformation(action_kyoudou2,x_offset_dictionary,y_offset_dictionary)
-
-        
+        result_action = Images_Action_ByInformation(action_sequence_event, x_offset_dictionary, y_offset_dictionary)  # "プロセス実行", result_waiting
+        result_action = Images_Action_ByInformation(action_sequence_ikusei, x_offset_dictionary, y_offset_dictionary)  # "プロセス実行", result_waiting
         highspeed()
+
         log.Log_MessageAdd(message_list,"Event2 start")
         action_sequence_event2=RecognitionInfomation(ACTION.CLICK ,RESULT.OK, END_ACTION.CONTINUE ,10, 0 ,'../Images/image_event2/*.png' , 0.8 , 0.93 , True)
         result_action = Images_Action_ByInformation(action_sequence_event2,x_offset_dictionary,y_offset_dictionary)
