@@ -46,3 +46,6 @@ Project/AutoClick/Sources/Test/*.png
 Project/AutoClick/Sources/Test/Kivy_paint_expansion-master/*.png
 *.pyc
 Project/AutoClick/Sources/old/
+Project/AutoClick/Sources/Test/Kivy_paint_expansion-master/
+Project/AutoClick/Sources/Test/Kivy_paint_expansion-master/*.kv
+Project/AutoClick/Images/image_information/*.png

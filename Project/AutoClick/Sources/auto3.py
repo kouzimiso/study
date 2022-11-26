@@ -368,7 +368,7 @@ def chokyo_time_check():
         return False
 
 def chokyo_all():
-    if chokyo_time_check():
+    while chokyo_time_check():
         #Sub searver周回
         print("check2")
         flag_timecheck = False
@@ -394,7 +394,7 @@ def chokyo(sequence, server_sequence, flag_timecheck):
         result_waiting = auto.Images_Action_ByInformation(action_sequence_waiting, x_offset_dictionary, y_offset_dictionary)  # "待ち動作", result_file_click ,
         result_server = auto.Images_Action_ByInformation(server_sequence, x_offset_dictionary, y_offset_dictionary)  # "Server選択動作", result_file_click
         result_start = auto.Images_Action_ByInformation(action_sequence_start, x_offset_dictionary, y_offset_dictionary)  # "プロセス実行", result_waiting
-        action_kyoudou1=auto.RecognitionInfomation(auto.ACTION.CLICK ,auto.RESULT.OK, auto.END_ACTION.CONTINUE ,3, 5 ,'../Images/image_kyoudou1/*.png' , 0.8 , 0.93 , True)
+        action_kyoudou1=auto.RecognitionInfomation(auto.ACTION.CLICK ,auto.RESULT.OK, auto.END_ACTION.CONTINUE ,3, 3 ,'../Images/image_kyoudou1/*.png' , 0.8 , 0.93 , True)
         result_action = auto.Images_Action_ByInformation(action_kyoudou1,x_offset_dictionary,y_offset_dictionary)
         if auto.Condition_Judge(auto.RESULT.OK, result_action):
             action_kyoudou2=auto.RecognitionInfomation(auto.ACTION.CLICK ,auto.RESULT.NG, auto.END_ACTION.FOLDER_END_BREAK, 5,3,'../Images/image_kyoudou2/*.png' , 0.3 , 0.93 , True)
@@ -454,7 +454,7 @@ def main_process(sequence, server_sequence, flag_timecheck):
                 action_kyoudou1=auto.RecognitionInfomation(auto.ACTION.CLICK ,auto.RESULT.OK, auto.END_ACTION.CONTINUE ,10, 0 ,'../Images/image_kyoudou1/*.png' , 0.8 , 0.93 , True)
                 result_action = auto.Images_Action_ByInformation(action_kyoudou1,x_offset_dictionary,y_offset_dictionary)
                 if result_action:
-                    action_kyoudou2=auto.RecognitionInfomation(auto.ACTION.CLICK ,auto.RESULT.NG, auto.END_ACTION.FOLDER_END_BREAK, 3,10,'../Images/image_kyoudou2/*.png' , 0.3 , 0.93 , True)
+                    action_kyoudou2=auto.RecognitionInfomation(auto.ACTION.CLICK ,auto.RESULT.NG, auto.END_ACTION.FOLDER_END_BREAK, 3,4,'../Images/image_kyoudou2/*.png' , 0.3 , 0.93 , True)
                     result_action = auto.Images_Action_ByInformation(action_kyoudou2,x_offset_dictionary,y_offset_dictionary)
                 event2(flag_timecheck)
             highspeed()

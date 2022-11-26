@@ -56,10 +56,14 @@ logfile_path = os.path.dirname(__file__)+'/../../Log/log_auto.txt'
 
 
 class RecognitionInfomation:
-
-
-
     def __init__(self, action, end_condition, end_action, execute_number, retry_number, image_path, interval_time, recognition_confidence, recognition_grayscale):
+        self.Set_Setting(action, end_condition, end_action, execute_number, retry_number, image_path, interval_time, recognition_confidence, recognition_grayscale)
+        
+        print("setting_dictionary")
+        print(self.setting_dictionary)
+        self.setting_initial_dictionary={}
+
+    def Set_Setting(self, action, end_condition, end_action, execute_number, retry_number, image_path, interval_time, recognition_confidence, recognition_grayscale):
         # 処理
         self.action = action
         # 終了条件
@@ -79,36 +83,34 @@ class RecognitionInfomation:
         # GrayScale設定(高速化)
         self.recognition_grayscale = recognition_grayscale
         # dictionary_setting
+        self.setting_dictionary=self.Get_SettingDictionary()
         
+
+    def Get_SettingDictionary(self):
         self.setting_dictionary={
             "action":"",
-            "end_condition": self.Set_StringData(end_condition,DATA_TYPE.ENUM),
-            "execute_number" : self.Set_StringData(execute_number,DATA_TYPE.NUMBER),
-            "retry_number":self.Set_StringData(retry_number,DATA_TYPE.NUMBER),
-            "end_action":self.Set_StringData(end_action,DATA_TYPE.ENUM),
-            "image_path": self.Set_StringData(image_path,DATA_TYPE.STRING),
-            "interval_time":self.Set_StringData(interval_time,DATA_TYPE.NUMBER),
-            "recognition_confidence":self.Set_StringData(recognition_confidence,DATA_TYPE.FLOAT),
-            "recognition_grayscale":self.Set_StringData(recognition_grayscale,DATA_TYPE.FLOAT)
+            "end_condition": self.Set_StringData(self.end_condition,DATA_TYPE.ENUM),
+            "execute_number" : self.Set_StringData(self.execute_number,DATA_TYPE.NUMBER),
+            "retry_number":self.Set_StringData(self.retry_number,DATA_TYPE.NUMBER),
+            "end_action":self.Set_StringData(self.end_action,DATA_TYPE.ENUM),
+            "image_path": self.Set_StringData(self.image_path,DATA_TYPE.STRING),
+            "interval_time":self.Set_StringData(self.interval_time,DATA_TYPE.NUMBER),
+            "recognition_confidence":self.Set_StringData(self.recognition_confidence,DATA_TYPE.FLOAT),
+            "recognition_grayscale":self.Set_StringData(self.recognition_grayscale,DATA_TYPE.FLOAT)
             }
-        print("setting_dictionary")
-        print(self.setting_dictionary)
-        self.setting_initial_dictionary={}
+        return self.setting_dictionary
 
     def Set_SettingDictionary(self,input_dictionary):
         self.setting_dictionary=input_dictionary
         
-        end_condition= self.Get_Data("end_condition",DATA_TYPE.ENUM)
-        execute_number= self.Get_Data("execute_number",DATA_TYPE.NUMBER)
-        retry_number= self.Get_Data("retry_number",DATA_TYPE.NUMBER)
-        end_action=self.Get_Data("end_action",DATA_TYPE.ENUM)
-        image_path=self.Get_Data("image_path",DATA_TYPE.STRING)
-        interval_time=self.Get_Data("interval_time",DATA_TYPE.NUMBER)
-        recognition_confidence=self.Get_Data("recognition_confidence",DATA_TYPE.FLOAT)
-        recognition_grayscale=self.Get_Data("recognition_grayscale",DATA_TYPE.FLOAT)
-
-    def Get_SettingDictionary(self):
-        return self.setting_dictionary
+        self.end_condition= self.Get_Data("end_condition",DATA_TYPE.ENUM)
+        self.execute_number= self.Get_Data("execute_number",DATA_TYPE.NUMBER)
+        self.retry_number= self.Get_Data("retry_number",DATA_TYPE.NUMBER)
+        self.end_action=self.Get_Data("end_action",DATA_TYPE.ENUM)
+        self.image_path=self.Get_Data("image_path",DATA_TYPE.STRING)
+        self.interval_time=self.Get_Data("interval_time",DATA_TYPE.NUMBER)
+        self.recognition_confidence=self.Get_Data("recognition_confidence",DATA_TYPE.FLOAT)
+        self.recognition_grayscale=self.Get_Data("recognition_grayscale",DATA_TYPE.FLOAT)
     
     def Get_Data(self,data_name,data_type=DATA_TYPE.ENUM):
         if data_type == DATA_TYPE.ENUM:
@@ -223,18 +225,31 @@ def Images_Action_ResultInit(dictionary , detect = 0 , undetect = 0 , total_dete
     print(dictionary)
     return dictionary
 
+def rate(value,*args):
+    total=value+sum(args)
+    if 0 != total:
+        return float(value)/float(total)
+    else:
+        return 0 
+    
 def Images_Action_ResultSet(dictionary,dictionary_key,detect,undetect):
     if dictionary_key in dictionary:
         dictionary[dictionary_key]["detect"]  += detect
         dictionary[dictionary_key]["undetect"] += undetect
         dictionary[dictionary_key]["total_detect"]  += detect
         dictionary[dictionary_key]["total_undetect"] += undetect
+        
+        dictionary[dictionary_key]["detect_rate"] = rate(dictionary[dictionary_key]["detect"] , dictionary[dictionary_key]["undetect"])        
+
+        dictionary[dictionary_key]["total_detect_rate"] = rate(dictionary[dictionary_key]["total_detect"] , dictionary[dictionary_key]["total_undetect"])
     else:
         dictionary[dictionary_key] = {
             "detect" : detect,
             "undetect" : undetect,
+            "detect_rate" : rate(detect,undetect),            
             "total_detect" :detect,
-            "total_undetect" : undetect
+            "total_undetect" : undetect,
+            "total_detect_rate" :  rate(detect,undetect)   
         }
     return dictionary
 
@@ -243,7 +258,7 @@ def InfomationToString():
     if Images_Action_Result is None:
         return ""
     else:
-        return str(Images_Action_Result).decode("string-escape")
+        return str(Images_Action_Result).encode().decode("string-escape")
     
 def WriteInfomationToJson(file_path):
     global Images_Action_Result    
@@ -266,6 +281,7 @@ def Images_Action(action, end_action, end_condition, images_path, x_offset_dicti
         end_result = Image_SearchAndMove(image_path, x_offset_dictionary, y_offset_dictionary, recognition_grayscale, recognition_confidence)
         if end_result:
             Images_Action_Result=Images_Action_ResultSet(Images_Action_Result,image_path,1,0)        
+            Images_Action_Result=Images_Action_ResultSet(Images_Action_Result,"all_image",1,0)        
             all_ng = False
             Action_Execute(action)
             time.sleep(interval_time)
@@ -276,6 +292,7 @@ def Images_Action(action, end_action, end_condition, images_path, x_offset_dicti
                 return RESULT.OK
         else:
             Images_Action_Result=Images_Action_ResultSet(Images_Action_Result,image_path,0,1)        
+            Images_Action_Result=Images_Action_ResultSet(Images_Action_Result,"all_image",0,1)        
             all_ok = False
             # 条件成立での中止処理
             if end_action == END_ACTION.BREAK and end_condition == RESULT.NG:
