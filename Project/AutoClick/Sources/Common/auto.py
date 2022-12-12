@@ -199,18 +199,15 @@ def Action_Execute(action):
 def Condition_Judge(condition, result):
     # 条件と結果が同じならOK
     if condition == result:
-        log.Log_MessageAdd(message_list, "Condition_Judge(" +
-                           RESULT(condition).name+","+RESULT(result).name+"):OK")
+        log.Log_MessageAdd(message_list, "Condition_Judge(" + RESULT(condition).name+","+RESULT(result).name+"):OK")
         return True
     # 条件がOKで結果がALL_OKならOK
     elif condition == RESULT.OK and result == RESULT.ALL_OK:
-        log.Log_MessageAdd(message_list, "Condition_Judge("+RESULT(condition).name +
-                           ","+RESULT(result).name+"):OK(condition:ok,result:ALL_OK)")
+        log.Log_MessageAdd(message_list, "Condition_Judge("+RESULT(condition).name + ","+RESULT(result).name+"):OK(condition:ok,result:ALL_OK)")
         return True
     # それ以外はFalse
     else:
-        log.Log_MessageAdd(message_list, "Condition_Judge(" +
-                           RESULT(condition).name+","+RESULT(result).name+"):NG")
+        log.Log_MessageAdd(message_list, "Condition_Judge(" + RESULT(condition).name + ","+RESULT(result).name+"):NG")
         return False
 
 Images_Action_Result = {}
@@ -218,12 +215,13 @@ def Images_Action_ResultInit(dictionary , detect = 0 , undetect = 0 , total_dete
     for dictionary_key in dictionary.keys():
         dictionary[dictionary_key]["detect"]  = detect
         dictionary[dictionary_key]["undetect"] = undetect
-        print("Images_Action_ResultInit:"+dictionary_key)
+        #print("Images_Action_ResultInit:"+dictionary_key)
         if dictionary_key not in dictionary:
             dictionary[dictionary_key]["total_detect"] = total_detect
             dictionary[dictionary_key]["total_undetect"] = total_undetect
-    print(dictionary)
+    #print(dictionary)
     return dictionary
+
 
 def rate(value,*args):
     total=value+sum(args)
@@ -240,7 +238,7 @@ def Images_Action_ResultSet(dictionary,dictionary_key,detect,undetect):
         dictionary[dictionary_key]["total_undetect"] += undetect
         
         dictionary[dictionary_key]["detect_rate"] = rate(dictionary[dictionary_key]["detect"] , dictionary[dictionary_key]["undetect"])        
-
+        
         dictionary[dictionary_key]["total_detect_rate"] = rate(dictionary[dictionary_key]["total_detect"] , dictionary[dictionary_key]["total_undetect"])
     else:
         dictionary[dictionary_key] = {

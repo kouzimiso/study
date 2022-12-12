@@ -42,19 +42,25 @@ print(len(train_labels))
 print(train_labels)
 
 
-plt.figure()
+plt_figure=plt.figure()
+plt_figure_subplot=plt_figure.add_subplot()
+plt_figure_subplot.set_title("train_images[0]")
 plt.imshow(train_images[0])
 plt.colorbar()
 plt.grid(False)
 plt.show()
 
-plt.figure()
+plt_figure=plt.figure()
+plt_figure_subplot=plt_figure.add_subplot()
+plt_figure_subplot.set_title("train_images[1]")
 plt.imshow(train_images[1])
 plt.colorbar()
 plt.grid(False)
 plt.show()
 
-plt.figure()
+plt_figure=plt.figure()
+plt_figure_subplot=plt_figure.add_subplot()
+plt_figure_subplot.set_title("train_images[2]")
 plt.imshow(train_images[2])
 plt.colorbar()
 plt.grid(False)
@@ -66,6 +72,7 @@ test_images = test_images / 255.0
 
 plt.figure(figsize=(10,10))
 for i in range(25):
+    plt.title("train images")
     plt.subplot(5,5,i+1)
     plt.xticks([])
     plt.yticks([])

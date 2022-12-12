@@ -29,7 +29,7 @@ logfile_path = '../Log/log.txt'
 
 print("Images_Action_ResultInit 起動前")
 auto.Images_Action_Result=auto.ReadInfomationFromJson("../Log/houchi.json")
-auto.Images_Action_Result=auto.Images_Action_ResultInit(auto.Images_Action_Result)    
+auto.Images_Action_Result=auto.Images_Action_ResultInit(auto.Images_Action_Result)
 
 # 画像認識動作設定
 search_icon1_sequence = []
@@ -60,7 +60,7 @@ select_server2_sequence.append(auto.RecognitionInfomation(auto.ACTION.DOUBLE_CLI
 
 
 action_sequence_waiting = auto.RecognitionInfomation(auto.ACTION.CLICK, auto.RESULT.NG, auto.END_ACTION.CONTINUE, 4, 20, '../Images/image_waiting/*.png', 4, 0.99, False)
-action_sequence_start = auto.RecognitionInfomation(auto.ACTION.CLICK, auto.RESULT.OK, auto.END_ACTION.CONTINUE, 2, 0, '../Images/image_start/Click0*.png', 1.8, 0.93, True)
+action_sequence_start = auto.RecognitionInfomation(auto.ACTION.CLICK, auto.RESULT.NG, auto.END_ACTION.CONTINUE, 2, 3, '../Images/image_start/Click0*.png', 1.8, 0.93, True)
 action_sequence_start2 = auto.RecognitionInfomation(auto.ACTION.CLICK, auto.RESULT.OK, auto.END_ACTION.CONTINUE, 1, 0, '../Images/image_start/*.png', 1.8, 0.93, True)
 action_sequence_main = auto.RecognitionInfomation(auto.ACTION.CLICK, auto.RESULT.OK, auto.END_ACTION.CONTINUE, 4, 0, '../Images/image/*.png', 0.5, 0.93, True)
 action_sequence_main2 = auto.RecognitionInfomation(auto.ACTION.CLICK, auto.RESULT.NG, auto.END_ACTION.CONTINUE, 3, 100, '../Images/image/Click02*.png', 0.5, 0.93, True)
@@ -406,6 +406,24 @@ def event2( flag_timecheck):
         result_action = auto.Images_Action_ByInformation(action_sequence_event3, x_offset_dictionary, y_offset_dictionary)
     else:
         result_action = auto.Images_Action_ByInformation(action_sequence_event2, x_offset_dictionary, y_offset_dictionary)
+
+def UnderWare():
+    for i in range(2):
+        action_underware = RecognitionInfomation(ACTION.CLICK, RESULT.OK, END_ACTION.CONTINUE,3, 0, '../Images/UnderWare/Click00*.png', 0, 0.93, True)
+        result_action = Images_Action_ByInformation(action_underware,x_offset_dictionary,y_offset_dictionary)
+        for i in range(10):
+            action_underware = RecognitionInfomation(ACTION.CLICK, RESULT.OK, END_ACTION.CONTINUE ,2, 2, '../Images/UnderWare/Click010*.png', 0, 0.93, True)
+            result_action = Images_Action_ByInformation(action_underware,x_offset_dictionary,y_offset_dictionary)
+            action_underware = RecognitionInfomation(ACTION.CLICK, RESULT.OK, END_ACTION.BREAK ,3, 2, '../Images/UnderWare/Click011*.png', 0, 0.97, True)
+            result_action = Images_Action_ByInformation(action_underware,x_offset_dictionary,y_offset_dictionary)
+            #action_underware = RecognitionInfomation(ACTION.CLICK, RESULT.OK, END_ACTION.BREAK ,1, 20, '../Images/UnderWare/Click012*.png', 0, 0.85, True)
+            #result_action = Images_Action_ByInformation(action_underware,x_offset_dictionary,y_offset_dictionary)
+            #action_underware = RecognitionInfomation(ACTION.CLICK, RESULT.OK, END_ACTION.BREAK ,1, 20, '../Images/UnderWare/Click013*.png', 0, 0.85, True)
+            #result_action = Images_Action_ByInformation(action_underware,x_offset_dictionary,y_offset_dictionary)
+            action_underware = RecognitionInfomation(ACTION.CLICK, RESULT.ALL_OK, END_ACTION.FOLDER_END_BREAK ,1, 0, '../Images/UnderWare/Click014*.png', 0, 0.93, True)
+            result_action = Images_Action_ByInformation(action_underware,x_offset_dictionary,y_offset_dictionary)
+        action_underware = RecognitionInfomation(ACTION.CLICK, RESULT.OK, END_ACTION.CONTINUE, 7, 2, '../Images/UnderWare/Click02*.png', 0, 0.93, True)
+        result_action = Images_Action_ByInformation(action_underware,x_offset_dictionary,y_offset_dictionary)
             
 def main_process(sequence, server_sequence, flag_timecheck):
     auto.Images_Action_ByInformation(action_sequence_end, x_offset_dictionary, y_offset_dictionary)  # "終了処理", auto.RESULT.OK
@@ -458,6 +476,7 @@ def main_process(sequence, server_sequence, flag_timecheck):
                     result_action = auto.Images_Action_ByInformation(action_kyoudou2,x_offset_dictionary,y_offset_dictionary)
                 event2(flag_timecheck)
             highspeed()
+            UnderWare()
         #調教割り込み
         chokyo_all()
 
