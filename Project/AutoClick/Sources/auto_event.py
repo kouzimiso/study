@@ -331,7 +331,19 @@ def UnderWare():
 #Main Program実行部
 def main():
     signal.signal(signal.SIGTERM, Signal_Handler)
+
+    action_sequence_waiting = auto.RecognitionInfomation(auto.ACTION.CLICK, auto.RESULT.NG, auto.END_ACTION.CONTINUE, 4, 20, '../Images/image_waiting/*.png', 4, 0.99, False)
+    action_sequence_start = auto.RecognitionInfomation(auto.ACTION.CLICK, auto.RESULT.OK, auto.END_ACTION.CONTINUE, 1, 0, '../Images/image_start/*.png', 1.8, 0.93, True)
+    action_sequence_main = auto.RecognitionInfomation(auto.ACTION.CLICK, auto.RESULT.OK, auto.END_ACTION.CONTINUE, 4, 0, '../Images/image/*.png', 0.5, 0.93, True)
+    action_sequence_event = auto.RecognitionInfomation(auto.ACTION.CLICK, auto.RESULT.OK, auto.END_ACTION.CONTINUE, 3, 0, '../Images/image_event/*.png', 0.5, 0.93, True)
+    action_sequence_event2 = auto.RecognitionInfomation(auto.ACTION.CLICK, auto.RESULT.OK, auto.END_ACTION.CONTINUE, 2, 2, '../Images/image_event2/*.png', 0.8, 0.93, True)
+    #result = auto.Images_Action_ByInformation(action_sequence_waiting, x_offset_dictionary, y_offset_dictionary)
+    #result = auto.Images_Action_ByInformation(action_sequence_start, x_offset_dictionary, y_offset_dictionary)
+    #result = auto.Images_Action_ByInformation(action_sequence_main, x_offset_dictionary, y_offset_dictionary)
+    result = auto.Images_Action_ByInformation(action_sequence_event, x_offset_dictionary, y_offset_dictionary)
+    result = auto.Images_Action_ByInformation(action_sequence_event2, x_offset_dictionary, y_offset_dictionary)
     try:
+
         #UnderWare()
         highspeed()
             
@@ -361,7 +373,7 @@ def main():
         highspeed()
 
         log.Log_MessageAdd(message_list,"Event2 start")
-        action_sequence_event2=auto.RecognitionInfomation(auto.ACTION.CLICK ,auto.RESULT.OK, auto.END_ACTION.CONTINUE ,10, 0 ,'../Images/image_event2/*.png' , 0.8 , 0.93 , True)
+        action_sequence_event2 = auto.RecognitionInfomation(auto.ACTION.CLICK ,auto.RESULT.OK, auto.END_ACTION.CONTINUE ,10, 0 ,'../Images/image_event2/*.png' , 0.8 , 0.93 , True)
         result_action = auto.Images_Action_ByInformation(action_sequence_event2,x_offset_dictionary,y_offset_dictionary)
         Write_MessageList(logfile_path , message_list)
         message_list.clear()

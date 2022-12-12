@@ -371,6 +371,15 @@ class Test(unittest.TestCase):
         print(xml_document)
         xml_control.XML_Write("./text_xml_write.xml",xml_document)
 
+    def test_rate(self):
+        expected=0.1
+        actual=auto.rate(1,2,3,4)
+        self.assertEqual(expected,actual)
+
+        expected=0
+        actual=auto.rate(1,-1)
+        self.assertEqual(expected,actual)
+        
     def test_Auto4_FileControl(self):
         folder_path="../Images/Test"
         folder_maxsize=1000
@@ -396,9 +405,13 @@ class Test(unittest.TestCase):
         #画像を探してずらした位置をクリックする設定。{画像Path:ずらす位置}の形式で記述する。
         x_offset_dictionary= {'../Images/Test/test_Auto_Blank' : "0"}
         y_offset_dictionary= {'../Images/Test/test_Auto_Blank' : "30"}
+        auto.Images_Action_Result=auto.ReadInfomationFromJson("../Log/test_auto.json")
+        auto.Images_Action_Result=auto.Images_Action_ResultInit(auto.Images_Action_Result)
+        
         recognition_information=auto.RecognitionInfomation(auto.ACTION.DOUBLE_CLICK ,auto.RESULT.OK, auto.END_ACTION.BREAK , 2 , 5 ,'./Test/*.png' , 1.8 , 0.8 , True)
         actual=auto.Images_ConditionCheckAndAction("test1",auto.RESULT.OK,recognition_information,x_offset_dictionary,y_offset_dictionary)
-
+        auto.WriteInfomationToJson("../Log/test_auto.json")
+        
         print("test_Auto3_ConditionCheckAndAction1")
         expected =auto.RESULT.ALL_OK
         #self.assertEqual(expected,actual)
@@ -414,7 +427,7 @@ class Test(unittest.TestCase):
         expected =auto.RESULT.NG
         #self.assertEqual(expected,actual)
         print("test_Auto3_ConditionCheckAndAction3")
-        auto.WriteInfomationToJson("test3.json")      
+        auto.WriteInfomationToJson("../Log/test_auto.json")      
 
     def test_Auto4_dictionarytodata(self):
         recognition_information=auto.RecognitionInfomation(auto.ACTION.DOUBLE_CLICK ,auto.RESULT.OK, auto.END_ACTION.BREAK , 2 , 5 ,'./Test/*.png' , 1.8 , 0.8 , True)
@@ -455,6 +468,7 @@ class FormWindows(threading.Thread):
 
 #Main Program実行部
 def main():
+
     log.Log_MessageAdd(message_list,"Log動作test1")
     log.Log_MessageAdd(message_list,"Log動作test2")
     log.Write_MessageList(logfile_path,message_list)

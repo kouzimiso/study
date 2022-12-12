@@ -54,13 +54,14 @@ search_icon2_sequence.append(auto.RecognitionInfomation(auto.ACTION.DOUBLE_CLICK
 search_icon2_sequence.append(auto.RecognitionInfomation(auto.ACTION.DOUBLE_CLICK, auto.RESULT.OK, auto.END_ACTION.BREAK, 2, 0, '../Images/image03/*.png', 10, 0.99, True))
 search_icon2_sequence.append(auto.RecognitionInfomation(auto.ACTION.DOUBLE_CLICK, auto.RESULT.OK, auto.END_ACTION.BREAK, 2, 0, '../Images/image04/*.png', 10, 0.99, True))
 search_icon2_sequence.append(auto.RecognitionInfomation(auto.ACTION.DOUBLE_CLICK, auto.RESULT.OK, auto.END_ACTION.BREAK, 2, 0, '../Images/image05/*.png', 10, 0.99, True))
+search_icon2_sequence.append(auto.RecognitionInfomation(auto.ACTION.DOUBLE_CLICK, auto.RESULT.OK, auto.END_ACTION.BREAK, 2, 0, '../Images/image06/*.png', 10, 0.99, True))
 
 select_server2_sequence = []
 select_server2_sequence.append(auto.RecognitionInfomation(auto.ACTION.DOUBLE_CLICK, auto.RESULT.OK, auto.END_ACTION.BREAK, 2, 5, '../Images/image_SelectServer09/*.png', 1.8, 0.8, True))
 
 
 action_sequence_waiting = auto.RecognitionInfomation(auto.ACTION.CLICK, auto.RESULT.NG, auto.END_ACTION.CONTINUE, 4, 20, '../Images/image_waiting/*.png', 4, 0.99, False)
-action_sequence_start = auto.RecognitionInfomation(auto.ACTION.CLICK, auto.RESULT.NG, auto.END_ACTION.CONTINUE, 2, 3, '../Images/image_start/Click0*.png', 1.8, 0.93, True)
+action_sequence_start = auto.RecognitionInfomation(auto.ACTION.CLICK, auto.RESULT.OK, auto.END_ACTION.CONTINUE, 2, 0, '../Images/image_start/Click0*.png', 1.8, 0.93, True)
 action_sequence_start2 = auto.RecognitionInfomation(auto.ACTION.CLICK, auto.RESULT.OK, auto.END_ACTION.CONTINUE, 1, 0, '../Images/image_start/*.png', 1.8, 0.93, True)
 action_sequence_main = auto.RecognitionInfomation(auto.ACTION.CLICK, auto.RESULT.OK, auto.END_ACTION.CONTINUE, 4, 0, '../Images/image/*.png', 0.5, 0.93, True)
 action_sequence_main2 = auto.RecognitionInfomation(auto.ACTION.CLICK, auto.RESULT.NG, auto.END_ACTION.CONTINUE, 3, 100, '../Images/image/Click02*.png', 0.5, 0.93, True)
@@ -198,7 +199,7 @@ def timecheck_login():
 
 
 def timecheck_afternoon():
-    # 19:40-21:45
+    # 12:30-13:45
     if datetime.time(12, 30, 0) <= datetime.datetime.now().time() and datetime.datetime.now().time() <= datetime.time(13, 45, 0):
         return True #通常時
     else:
@@ -206,8 +207,8 @@ def timecheck_afternoon():
 
 
 def timecheck_evening():
-    # 19:40-21:45
-    if datetime.time(19, 40, 0) <= datetime.datetime.now().time() and datetime.datetime.now().time() <= datetime.time(21, 45, 0):
+    # 19:40-22:45
+    if datetime.time(19, 40, 0) <= datetime.datetime.now().time() and datetime.datetime.now().time() <= datetime.time(22, 45, 0):
         return True 
     else:
         return False
@@ -341,6 +342,10 @@ def highspeed():
         file_path = '../Images/image_highspeed/*.png'
         sequence_highspeed=auto.RecognitionInfomation(auto.ACTION.CLICK ,auto.RESULT.OK, auto.END_ACTION.CONTINUE ,1, 0 ,file_path , 0.8 , 0.93 , True)
         result_action = auto.Images_Action_ByInformation(sequence_highspeed,x_offset_dictionary,y_offset_dictionary)
+
+        file_path = '../Images/image_item/*.png'
+        sequence_item = auto.RecognitionInfomation(auto.ACTION.CLICK, auto.RESULT.OK, auto.END_ACTION.CONTINUE, 1, 0, file_path, 0.8, 0.93, False)
+        result_action = auto.Images_Action_ByInformation(sequence_item, x_offset_dictionary, y_offset_dictionary)
         
         result_start = auto.Images_Action_ByInformation(action_sequence_start, x_offset_dictionary, y_offset_dictionary)  # "プロセス実行", result_waiting
 
@@ -394,10 +399,10 @@ def chokyo(sequence, server_sequence, flag_timecheck):
         result_waiting = auto.Images_Action_ByInformation(action_sequence_waiting, x_offset_dictionary, y_offset_dictionary)  # "待ち動作", result_file_click ,
         result_server = auto.Images_Action_ByInformation(server_sequence, x_offset_dictionary, y_offset_dictionary)  # "Server選択動作", result_file_click
         result_start = auto.Images_Action_ByInformation(action_sequence_start, x_offset_dictionary, y_offset_dictionary)  # "プロセス実行", result_waiting
-        action_kyoudou1=auto.RecognitionInfomation(auto.ACTION.CLICK ,auto.RESULT.OK, auto.END_ACTION.CONTINUE ,3, 3 ,'../Images/image_kyoudou1/*.png' , 0.8 , 0.93 , True)
+        action_kyoudou1=auto.RecognitionInfomation(auto.ACTION.CLICK ,auto.RESULT.OK, auto.END_ACTION.CONTINUE ,3, 2 ,'../Images/image_kyoudou1/*.png' , 0.8 , 0.93 , True)
         result_action = auto.Images_Action_ByInformation(action_kyoudou1,x_offset_dictionary,y_offset_dictionary)
         if auto.Condition_Judge(auto.RESULT.OK, result_action):
-            action_kyoudou2=auto.RecognitionInfomation(auto.ACTION.CLICK ,auto.RESULT.NG, auto.END_ACTION.FOLDER_END_BREAK, 5,3,'../Images/image_kyoudou2/*.png' , 0.3 , 0.93 , True)
+            action_kyoudou2=auto.RecognitionInfomation(auto.ACTION.CLICK ,auto.RESULT.NG, auto.END_ACTION.FOLDER_END_BREAK, 5,2,'../Images/image_kyoudou2/*.png' , 0.3 , 0.93 , True)
             result_action = auto.Images_Action_ByInformation(action_kyoudou2,x_offset_dictionary,y_offset_dictionary)
 
 def event2( flag_timecheck):
@@ -409,21 +414,21 @@ def event2( flag_timecheck):
 
 def UnderWare():
     for i in range(2):
-        action_underware = RecognitionInfomation(ACTION.CLICK, RESULT.OK, END_ACTION.CONTINUE,3, 0, '../Images/UnderWare/Click00*.png', 0, 0.93, True)
-        result_action = Images_Action_ByInformation(action_underware,x_offset_dictionary,y_offset_dictionary)
+        action_underware = auto.RecognitionInfomation(auto.ACTION.CLICK, auto.RESULT.OK, auto.END_ACTION.CONTINUE,3, 0, '../Images/UnderWare/Click00*.png', 0, 0.93, True)
+        result_action = auto.Images_Action_ByInformation(action_underware,x_offset_dictionary,y_offset_dictionary)
         for i in range(10):
-            action_underware = RecognitionInfomation(ACTION.CLICK, RESULT.OK, END_ACTION.CONTINUE ,2, 2, '../Images/UnderWare/Click010*.png', 0, 0.93, True)
-            result_action = Images_Action_ByInformation(action_underware,x_offset_dictionary,y_offset_dictionary)
-            action_underware = RecognitionInfomation(ACTION.CLICK, RESULT.OK, END_ACTION.BREAK ,3, 2, '../Images/UnderWare/Click011*.png', 0, 0.97, True)
-            result_action = Images_Action_ByInformation(action_underware,x_offset_dictionary,y_offset_dictionary)
+            action_underware = auto.RecognitionInfomation(auto.ACTION.CLICK, auto.RESULT.OK, auto.END_ACTION.CONTINUE ,2, 2, '../Images/UnderWare/Click010*.png', 0, 0.93, True)
+            result_action = auto.Images_Action_ByInformation(action_underware,x_offset_dictionary,y_offset_dictionary)
+            action_underware = auto.RecognitionInfomation(auto.ACTION.CLICK, auto.RESULT.OK, auto.END_ACTION.BREAK ,3, 2, '../Images/UnderWare/Click011*.png', 0, 0.97, True)
+            result_action = auto.Images_Action_ByInformation(action_underware,x_offset_dictionary,y_offset_dictionary)
             #action_underware = RecognitionInfomation(ACTION.CLICK, RESULT.OK, END_ACTION.BREAK ,1, 20, '../Images/UnderWare/Click012*.png', 0, 0.85, True)
             #result_action = Images_Action_ByInformation(action_underware,x_offset_dictionary,y_offset_dictionary)
             #action_underware = RecognitionInfomation(ACTION.CLICK, RESULT.OK, END_ACTION.BREAK ,1, 20, '../Images/UnderWare/Click013*.png', 0, 0.85, True)
             #result_action = Images_Action_ByInformation(action_underware,x_offset_dictionary,y_offset_dictionary)
-            action_underware = RecognitionInfomation(ACTION.CLICK, RESULT.ALL_OK, END_ACTION.FOLDER_END_BREAK ,1, 0, '../Images/UnderWare/Click014*.png', 0, 0.93, True)
-            result_action = Images_Action_ByInformation(action_underware,x_offset_dictionary,y_offset_dictionary)
-        action_underware = RecognitionInfomation(ACTION.CLICK, RESULT.OK, END_ACTION.CONTINUE, 7, 2, '../Images/UnderWare/Click02*.png', 0, 0.93, True)
-        result_action = Images_Action_ByInformation(action_underware,x_offset_dictionary,y_offset_dictionary)
+            action_underware = auto.RecognitionInfomation(auto.ACTION.CLICK, auto.RESULT.ALL_OK, auto.END_ACTION.FOLDER_END_BREAK ,1, 0, '../Images/UnderWare/Click014*.png', 0, 0.93, True)
+            result_action = auto.Images_Action_ByInformation(action_underware,x_offset_dictionary,y_offset_dictionary)
+        action_underware = auto.RecognitionInfomation(auto.ACTION.CLICK, auto.RESULT.OK, auto.END_ACTION.CONTINUE, 7, 2, '../Images/UnderWare/Click02*.png', 0, 0.93, True)
+        result_action = auto.Images_Action_ByInformation(action_underware,x_offset_dictionary,y_offset_dictionary)
             
 def main_process(sequence, server_sequence, flag_timecheck):
     auto.Images_Action_ByInformation(action_sequence_end, x_offset_dictionary, y_offset_dictionary)  # "終了処理", auto.RESULT.OK
@@ -469,11 +474,11 @@ def main_process(sequence, server_sequence, flag_timecheck):
                 result_action = auto.Images_Action_ByInformation(action_sequence_ikusei, x_offset_dictionary, y_offset_dictionary)  # "プロセス実行", result_waiting
                 
             if flag_login or flag_execute:
-                action_kyoudou1=auto.RecognitionInfomation(auto.ACTION.CLICK ,auto.RESULT.OK, auto.END_ACTION.CONTINUE ,10, 0 ,'../Images/image_kyoudou1/*.png' , 0.8 , 0.93 , True)
-                result_action = auto.Images_Action_ByInformation(action_kyoudou1,x_offset_dictionary,y_offset_dictionary)
-                if result_action:
-                    action_kyoudou2=auto.RecognitionInfomation(auto.ACTION.CLICK ,auto.RESULT.NG, auto.END_ACTION.FOLDER_END_BREAK, 3,4,'../Images/image_kyoudou2/*.png' , 0.3 , 0.93 , True)
-                    result_action = auto.Images_Action_ByInformation(action_kyoudou2,x_offset_dictionary,y_offset_dictionary)
+                #action_kyoudou1=auto.RecognitionInfomation(auto.ACTION.CLICK ,auto.RESULT.OK, auto.END_ACTION.CONTINUE ,10, 0 ,'../Images/image_kyoudou1/*.png' , 0.8 , 0.93 , True)
+                #result_action = auto.Images_Action_ByInformation(action_kyoudou1,x_offset_dictionary,y_offset_dictionary)
+                #if result_action:
+                #    action_kyoudou2=auto.RecognitionInfomation(auto.ACTION.CLICK ,auto.RESULT.NG, auto.END_ACTION.FOLDER_END_BREAK, 3,4,'../Images/image_kyoudou2/*.png' , 0.3 , 0.93 , True)
+                #    result_action = auto.Images_Action_ByInformation(action_kyoudou2,x_offset_dictionary,y_offset_dictionary)
                 event2(flag_timecheck)
             highspeed()
             UnderWare()

@@ -11,6 +11,7 @@ import glob
 import subprocess
 import signal
 from enum import Enum
+import datetime
 
 sys.path.append("../Common")
 import rename
@@ -240,6 +241,7 @@ def Images_Action_ResultSet(dictionary,dictionary_key,detect,undetect):
         dictionary[dictionary_key]["detect_rate"] = rate(dictionary[dictionary_key]["detect"] , dictionary[dictionary_key]["undetect"])        
         
         dictionary[dictionary_key]["total_detect_rate"] = rate(dictionary[dictionary_key]["total_detect"] , dictionary[dictionary_key]["total_undetect"])
+        dictionary[dictionary_key]["date"] = datetime.datetime.now().strftime ( '%Y/%m/%d(%A) %H:%M' )
     else:
         dictionary[dictionary_key] = {
             "detect" : detect,
@@ -256,16 +258,21 @@ def InfomationToString():
     if Images_Action_Result is None:
         return ""
     else:
-        return str(Images_Action_Result).encode().decode("string-escape")
+        return str(Images_Action_Result).encode().decode("unicode-escape")
+        #return str(Images_Action_Result).encode().decode("string-escape")
     
 def WriteInfomationToJson(file_path):
     global Images_Action_Result    
     json_control.WriteDictionary(file_path,Images_Action_Result)
 
 def ReadInfomationFromJson(file_path):
-    global Images_Action_Result 
-    return json_control.ReadDictionary(file_path,Images_Action_Result)
-
+    global Images_Action_Result
+    try:
+        Images_Action_Result = json_control.ReadDictionary(file_path,Images_Action_Result)
+    except:
+        Images_Action_Result={}
+        log.Log_MessageAdd(message_list, "[ERROR]ReadInfomationFromJson:Json Read Error")
+    return Images_Action_Result
 
 # Folder内のImageを探してMouse pointerを移動し、行動する
 def Images_Action(action, end_action, end_condition, images_path, x_offset_dictionary, y_offset_dictionary, recognition_grayscale, recognition_confidence, interval_time):
@@ -337,7 +344,7 @@ def Images_Action_ByInformation(recognition_information, x_offset_dictionary, y_
             log.Log_MessageAdd(message_list, "False and retry:retry"+str(loop01))
             continue_flag = True
         else:
-            log.Log_MessageAdd(message_list, "Break:retry"+str(loop01))
+            log.Log_MessageAdd(message_list, "EndResult:retry"+str(loop01))
             continue_flag = False
         loop01 = loop01 + 1
     log.Write_MessageList(logfile_path, message_list)

@@ -67,7 +67,7 @@ def Delete_OldFiles(folder_path,  folder_maxsize , files_maxnumber):
             folder.rmdir()  # フォルダを削除。 
             print("The empty folder {} has been removed.".format(folder.name))
 
-def Manage_File(file_path , file_maxsize = 65536, archivefolder_path ="" , folder_maxsize = 1048576, files_maxnumber =100):
+def Manage_File(file_path , file_maxsize = 65536, archivefolder_path ="" , folder_maxsize = 262144, files_maxnumber =100):
     Archive_SizeOverFile(file_path ,  file_maxsize)
 
     if os.path.exists(archivefolder_path):
