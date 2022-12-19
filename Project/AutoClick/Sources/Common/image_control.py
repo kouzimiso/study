@@ -2,6 +2,8 @@ import sys
 from PIL import ImageGrab
 from enum import Enum
 import PIL
+import cv2
+
 
 class VIRTICAL_ALIGN(Enum):
     UNKNOWN=0
@@ -14,6 +16,22 @@ class HOLIZONTAL_ALIGN(Enum):
     LEFT= 1
     CENTER= 2
     RIGHT = 3
+    
+def CVImageCrop_ByList(image_source,list_image_file_path,list_image_position):
+    loop=0
+    for file_path in list_image_file_path:
+        #imageのtrimming(img[top : bottom, left : right])
+        #ScreenShootのData部分を画像に保存する
+        if list_image_position[loop] is not None:
+            image_position = list_image_position[loop]
+            top=image_position[1]
+            bottom=image_position[3]
+            left=image_position[0]
+            right=image_position[2]
+            print("top:"+ str(top) +" bottom:"+ str(bottom) +" left:" + str(left) + " right:" + str(right) )
+            image_crop=image_source[top:bottom,left:right]
+            cv2.imwrite(file_path, image_crop)
+        loop = loop + 1
 
 def CropAndAlign_ByFilePath(image_file_path,
                 x,

@@ -432,30 +432,35 @@ def UnderWare():
             
 def main_process(sequence, server_sequence, flag_timecheck):
     auto.Images_Action_ByInformation(action_sequence_end, x_offset_dictionary, y_offset_dictionary)  # "終了処理", auto.RESULT.OK
-    result_file_click = auto.Images_Action_ByInformation(sequence, x_offset_dictionary, y_offset_dictionary)  # "File選択", auto.RESULT.OK ,
+    if flag_timecheck == False:
+        flag_login = True
+        flag_execute = timecheck_ikusei()
+        #flag_execute = True   #Event時 自動回し優先
+    elif timecheck_afternoon():
+        flag_login = False   #通常時
+        flag_execute = False
+        #flag_login = True    #Event時 自動回し優先
+        #flag_execute = True
+        log.Log_MessageAdd(message_list, "time_check：正午")
+    elif timecheck_evening():
+        flag_login = False   #通常時
+        flag_execute = False
+        #flag_login = True    #Event時 自動回し優先
+        #flag_execute = True
+        log.Log_MessageAdd(message_list, "time_check：夜")
+    else:
+        flag_login = timecheck_login()
+        flag_execute = timecheck_ikusei()
+
+    if flag_login or flag_execute:
+        result_file_click = auto.Images_Action_ByInformation(sequence, x_offset_dictionary, y_offset_dictionary)  # "File選択", auto.RESULT.OK ,
+    else:
+        result_file_click = auto.RESULT.NG
+    
     if auto.Condition_Judge(auto.RESULT.OK, result_file_click):
         result_waiting = auto.Images_Action_ByInformation(action_sequence_waiting, x_offset_dictionary, y_offset_dictionary)  # "待ち動作", result_file_click ,
         result_server = auto.Images_Action_ByInformation(server_sequence, x_offset_dictionary, y_offset_dictionary)  # "Server選択動作", result_file_click
-        if flag_timecheck == False:
-            flag_login = True
-            flag_execute = timecheck_ikusei()
-            #flag_execute = True   #Event時 自動回し優先
-
-        elif timecheck_afternoon():
-            flag_login = False   #通常時
-            flag_execute = False
-            #flag_login = True    #Event時 自動回し優先
-            #flag_execute = True
-            log.Log_MessageAdd(message_list, "time_check：正午")
-        elif timecheck_evening():
-            flag_login = False   #通常時
-            flag_execute = False
-            #flag_login = True    #Event時 自動回し優先
-            #flag_execute = True
-            log.Log_MessageAdd(message_list, "time_check：夜")
-        else:
-            flag_login = timecheck_login()
-            flag_execute = timecheck_ikusei()
+ 
         if auto.Condition_Judge(auto.RESULT.OK, result_server):
             if flag_login or flag_execute:
                 result_start = auto.Images_Action_ByInformation(action_sequence_start, x_offset_dictionary, y_offset_dictionary)  # "プロセス実行", result_waiting

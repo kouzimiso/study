@@ -431,8 +431,20 @@ class Test(unittest.TestCase):
 
     def test_Auto4_dictionarytodata(self):
         recognition_information=auto.RecognitionInfomation(auto.ACTION.DOUBLE_CLICK ,auto.RESULT.OK, auto.END_ACTION.BREAK , 2 , 5 ,'./Test/*.png' , 1.8 , 0.8 , True)
-        setting_dictionary = recognition_information.Get_SettingDictionary()
-        recognition_information.Set_SettingDictionary(setting_dictionary)
+        setting={
+        "action" : "ACTION.CLICK" ,
+        "end_condition" : "RESULT.OK",
+        "execute_number" : "1",
+        "retry_number" : "1",
+        "end_action" : "RESULT.OK",
+        "image_path" : "test.png",
+        "interval_time" : "1",
+        "recognition_confidence" : "0.1",
+        "recognition_grayscale" : "0.8"
+        }
+        recognition_setting=auto.RecognitionSetting(setting)
+        setting_dictionary = recognition_setting.Get_SettingDictionary()
+        setting_dictionary.Set_SettingDictionary(setting_dictionary)
         
     def test_pythonnet(self):
         print(".netのdll読込")

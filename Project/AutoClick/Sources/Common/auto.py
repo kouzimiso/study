@@ -57,11 +57,20 @@ logfile_path = os.path.dirname(__file__)+'/../../Log/log_auto.txt'
 
 
 class RecognitionInfomation:
-    def __init__(self, action, end_condition, end_action, execute_number, retry_number, image_path, interval_time, recognition_confidence, recognition_grayscale):
+    def __init__(
+        self,
+        action=ACTION.NONE , 
+        end_condition=RESULT.NG ,
+        end_action = END_ACTION.CONTINUE,
+        execute_number = 0,
+        retry_number = 0, 
+        image_path = "",
+        interval_time = 0.1,
+        recognition_confidence =1.0, 
+        recognition_grayscale = 0
+        ):
         self.Set_Setting(action, end_condition, end_action, execute_number, retry_number, image_path, interval_time, recognition_confidence, recognition_grayscale)
         
-        print("setting_dictionary")
-        print(self.setting_dictionary)
         self.setting_initial_dictionary={}
 
     def Set_Setting(self, action, end_condition, end_action, execute_number, retry_number, image_path, interval_time, recognition_confidence, recognition_grayscale):
@@ -84,11 +93,13 @@ class RecognitionInfomation:
         # GrayScale設定(高速化)
         self.recognition_grayscale = recognition_grayscale
         # dictionary_setting
-        self.setting_dictionary=self.Get_SettingDictionary()
-        
 
+class RecognitionSetting:
+    def __init__(self, input_dictionary={}):
+        self.setting=self.Set_SettingDictionary(input_dictionary)
+      
     def Get_SettingDictionary(self):
-        self.setting_dictionary={
+        setting_dictionary={
             "action":"",
             "end_condition": self.Set_StringData(self.end_condition,DATA_TYPE.ENUM),
             "execute_number" : self.Set_StringData(self.execute_number,DATA_TYPE.NUMBER),
@@ -99,20 +110,21 @@ class RecognitionInfomation:
             "recognition_confidence":self.Set_StringData(self.recognition_confidence,DATA_TYPE.FLOAT),
             "recognition_grayscale":self.Set_StringData(self.recognition_grayscale,DATA_TYPE.FLOAT)
             }
-        return self.setting_dictionary
+        return setting_dictionary
 
     def Set_SettingDictionary(self,input_dictionary):
-        self.setting_dictionary=input_dictionary
-        
-        self.end_condition= self.Get_Data("end_condition",DATA_TYPE.ENUM)
-        self.execute_number= self.Get_Data("execute_number",DATA_TYPE.NUMBER)
-        self.retry_number= self.Get_Data("retry_number",DATA_TYPE.NUMBER)
-        self.end_action=self.Get_Data("end_action",DATA_TYPE.ENUM)
-        self.image_path=self.Get_Data("image_path",DATA_TYPE.STRING)
-        self.interval_time=self.Get_Data("interval_time",DATA_TYPE.NUMBER)
-        self.recognition_confidence=self.Get_Data("recognition_confidence",DATA_TYPE.FLOAT)
-        self.recognition_grayscale=self.Get_Data("recognition_grayscale",DATA_TYPE.FLOAT)
-    
+        action = self.Get_Data("action",DATA_TYPE.ENUM)
+        end_condition= self.Get_Data("end_condition",DATA_TYPE.ENUM)
+        execute_number= self.Get_Data("execute_number",DATA_TYPE.NUMBER)
+        retry_number= self.Get_Data("retry_number",DATA_TYPE.NUMBER)
+        end_action=self.Get_Data("end_action",DATA_TYPE.ENUM)
+        image_path=self.Get_Data("image_path",DATA_TYPE.STRING)
+        interval_time=self.Get_Data("interval_time",DATA_TYPE.NUMBER)
+        recognition_confidence=self.Get_Data("recognition_confidence",DATA_TYPE.FLOAT)
+        recognition_grayscale=self.Get_Data("recognition_grayscale",DATA_TYPE.FLOAT)
+        setting = RecognitionInfomation(action, end_condition, end_action, execute_number, retry_number, image_path, interval_time, recognition_confidence, recognition_grayscale)
+        return setting
+
     def Get_Data(self,data_name,data_type=DATA_TYPE.ENUM):
         if data_type == DATA_TYPE.ENUM:
             print("data_name:"+data_name)#"end_condition"のような文字Data
@@ -355,6 +367,12 @@ def Images_Action_ByInformation(recognition_information, x_offset_dictionary, y_
         return RESULT.NG
     else:
         return RESULT.OK
+
+def Images_Action_BySettingDictionary(setting = {}):
+    setting=RecognitionInfomation()
+    if setting == {} :
+        setting.Get_SettingDictionary(setting)
+
 
 # 条件が成立した時に繰り返し実行する。
 def Images_ConditionCheckAndAction(name, condition, action_recognition_information, x_offset_dictionary, y_offset_dictionary):

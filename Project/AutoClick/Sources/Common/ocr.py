@@ -26,6 +26,13 @@ class OCR:
         image=PIL.Image.open(file_path)
         text=self.Recognition(image,language)
         return text
+    
+    def Recognition_ByFilePathList(self,list_file_path,language="jpn"):
+        list_value = list()
+        for file_path in list_file_path:
+            text = self.Recognition_ByFilePath(file_path,language)
+            list_value.append(text)
+        return list_value
 
     def Recognition(self,image,language="jpn"):
         text=self.tool.image_to_string(
@@ -34,3 +41,4 @@ class OCR:
                 builder=self.builder
                 )#.replace(".", "")
         return text
+
