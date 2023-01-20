@@ -22,18 +22,24 @@ import ocr
 import calculation
 
 #画像保存Folder
+message_list = []
+logfile_path = '../../Log/log.txt'
 
 device_address = "0.0.0.0"
 MAX_OCR_RETRY=3
-
-#育成前のstatusの座標(x1, y1, x2, y2)
-data1_xy = [] 
-#育成後のstatusの座標(x1, y1, x2, y2)
-data2_xy = []
+IMAGE_WAITING=1
+IMAGE_WAITING2=0
+#育成前のstatusの座標(x, y, w, h)
+data1_position = [] 
+#育成後のstatusの座標(x, y, w, h)
+data2_position = []
 #C級育成、B級育成ボタンの座標
+#offset=90
+offset=90
+
 tapxy=[
-        [400 , 1480],     #c級/cancel x,y
-        [760 , 1480]      #b級/accept x,y
+        [400 , 1480 + offset],     #c級/cancel x,y
+        [760 , 1480 + offset]      #b級/accept x,y
 ]
 screenshot_file="tmp\screen_1.png"
 pre_ss_files=["tmp\pre_status0.png","tmp\pre_status1.png","tmp\pre_status2.png","tmp\pre_status3.png"]
@@ -49,30 +55,27 @@ def main(args):
     print("init")
     init(args)
     exec_input()
-    print("execute")
     exec_ikusei(nurture_rank,data_rate,loop_number)
-    print("result")
     show_result()
     os.system("pause")
 
 def init(args):
     global nurture_rank
     global data_rate
-    global data1_xy
-    global data2_xy
-    
+    global loop_number
+    global data1_position
+    global data2_position
     print("---Initial Setting---")
-    print("引数:{b/c育成丹 筋 敏 知 体 回数")
     if 6 <= len(args):
         #args=["c",1,1,1,1,1]
-        nurture_rank=args[0]
-        data_rate[0]=args[1]
-        data_rate[1]=args[2]
-        data_rate[2]=args[3]
-        data_rate[3]=args[4]
-        loop_number=args[5]
-    data1_xy=set_data_xy(270,890,126,60)
-    data2_xy=set_data_xy(696,890,126,60)
+        nurture_rank=args[1]
+        data_rate[0]=float(args[2])
+        data_rate[1]=float(args[3])
+        data_rate[2]=float(args[4])
+        data_rate[3]=float(args[5])
+        loop_number=int(args[6])
+    data1_position=set_data_position(270,890+offset,126,60)
+    data2_position=set_data_position(700,890+offset,126,60)
 
 def exec_input():
     global param_zero
@@ -86,21 +89,15 @@ def exec_input():
         calcStatus.preParam.append(parameter)
 
 def exec_ikusei(nurture_rank,data_rate,loop_number):
-    print("---script start---")
-    
     for loop in range(loop_number):
         print("%d/%d" %(loop+1,int(loop_number)))
-
         if(nurture_rank == 'c'):
                 tap(0)
         else:
                 tap(1)
-        
         calcStatus.ocr_failure_cnt = 0
-        capture_data()
+        capture_data()       
         calcStatus(float(data_rate[0]),float(data_rate[1]),float(data_rate[2]),float(data_rate[3]))
-        print("-----\n")
-    print("---script end---")
 
 def show_result():
     capture_data()
@@ -111,9 +108,9 @@ def show_result():
                                                                 int(param_end[1]) - int(param_zero[1]),
                                                                 int(param_end[2]) - int(param_zero[2]),
                                                                 int(param_end[3]) - int(param_zero[3])))
-def set_data_xy(data_x=130,
+def set_data_position(data_x=130,
                 data_y=500, width=60, height=30):
-    data_xy=[
+    data_position=[
         [0,0,0,0],
         [0,0,0,0],
         [0,0,0,0],
@@ -122,16 +119,16 @@ def set_data_xy(data_x=130,
         
     for loop in range(4):
         if loop ==0:
-            data_xy[loop][0] = int(data_x)
-            data_xy[loop][1] = int(data_y)
-            data_xy[loop][2] = int(data_x + width)
-            data_xy[loop][3] = int(data_y + height)
+            data_position[loop][0] = int(data_x)
+            data_position[loop][1] = int(data_y)
+            data_position[loop][2] = int(data_x + width)
+            data_position[loop][3] = int(data_y + height)
         else:
-            data_xy[loop][0] = data_xy[loop-1][0]
-            data_xy[loop][1] = data_xy[loop-1][1]+ height
-            data_xy[loop][2] = data_xy[loop-1][2]
-            data_xy[loop][3] = data_xy[loop-1][3]+ height
-    return data_xy
+            data_position[loop][0] = data_position[loop-1][0]
+            data_position[loop][1] = data_position[loop-1][1]+ height
+            data_position[loop][2] = data_position[loop-1][2]
+            data_position[loop][3] = data_position[loop-1][3]+ height
+    return data_position
 
 def tap(n):
     #pyautogui.click(tapxy[n][0], tapxy[n][1])
@@ -139,29 +136,30 @@ def tap(n):
 
 def capture_data():
     global device_address
-    message_list=[]
+    global message_list
     #image_control.Image_Capture(screenshot_file)
     #画像をscreen captureする
     device_address = adb.Get_DeviceAddress()
-    screen_size = adb.Get_ScreenSize(device_address)
-    log.Log_MessageAdd(message_list,str(screen_size))
+    #screen_size = adb.Get_ScreenSize(device_address)
+    #log.Log_MessageAdd(message_list,str(screen_size))
     adb.ScreenCapture(device_address,screenshot_file)
     #画像をimgに読み込む
+    time.sleep(IMAGE_WAITING)
     img = cv2.imread(screenshot_file)
     #cvtColorでグレースケール画像化し、thresholdで2値化する。
     ret, img_gray = cv2.threshold(cv2.cvtColor(img, cv2.COLOR_BGR2GRAY), 160, 255, cv2.THRESH_BINARY)
     #ret, img_gray = cv2.threshold(img, 100, 255, cv2.THRESH_BINARY)
-
     #imageのtrimming(img[top : bottom, left : right])
-    #ScreenShootのData部分を画像に保存する    
-    image_control.CVImageCrop_ByList(img_gray,pre_ss_files,data1_xy)
-    image_control.CVImageCrop_ByList(img_gray,ss_files,data2_xy)
-
-
+    #ScreenShootのData部分を画像に保存する
+    image_control.CVImageCrop_ByList(img_gray,pre_ss_files,data1_position)
+    image_control.CVImageCrop_ByList(img_gray,ss_files,data2_position)
+    time.sleep(IMAGE_WAITING2)
 
 def calcStatus(a,b,c,d):
+    global message_list
     ocr_instance = ocr.OCR()
     ocr_instance.Setting_BuilderDigits()
+    count=0
     while(1):
         #画像FileListのOCR結果Listを取得
         param = ocr_instance.Recognition_ByFilePathList(ss_files, "eng")
@@ -175,13 +173,19 @@ def calcStatus(a,b,c,d):
             print("warn: 育成ステータスが読み込めません")
             #img = cv2.imread(r"%s\screen_1.png" %(ss_dir))
             img = cv2.imread(screenshot_file)
-            
-            img_bgr = img[tapxy[0][1], tapxy[0][0], 2]
-            if img_bgr > 150:
+            if count< 2:
                 capture_data()
+                count =count +1
                 continue
             else:
                 return
+        
+            #img_bgr = img[tapxy[0][1], tapxy[0][0], 2]
+            #if img_bgr > 150:
+            #    continue
+            #else:
+            #    return
+        count=0
         print("筋力：{:+}、敏捷：{:+}、知力：{:+}、体力：{:+}". format(int(param[0]) - int(param_zero[0]),
                                                                 int(param[1]) - int(param_zero[1]),
                                                                 int(param[2]) - int(param_zero[2]),

@@ -1,16 +1,13 @@
-## $python 画像自動Click ##
-#設定したフォルダ内の画像を順番に画面表示から探し、クリックする。
+## $python ##
 import datetime
 import os
-from enum import Enum
 import FileControl
+
 
 #class END_ACTION(Enum):
 #    BREAK = 0
 #    FOLDER_END_BREAK = 1
 #    CONTINUE = 2
-
-
 
 def Log_MessageFormat(message):
     log_message='[' + str(datetime.datetime.now())+']' + message +'\n'
@@ -36,3 +33,6 @@ def Write_MessageList(file_path,message_list):
     file = open(file_path,'a')
     file.writelines(message_list)
     file.close()
+
+
+

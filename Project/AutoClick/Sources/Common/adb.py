@@ -17,3 +17,7 @@ def ScreenCapture(device_address,file_path):
     #スマホの画像をscreen captureする
     subprocess.call("nox_adb -s %s exec-out screencap -p > %s" % (device_address,file_path), shell=True)
     #subprocess.call("nox_adb %s exec-out screencap -p > %s" % (device_address,flle_img_screenshot), shell=True, cwd=img_dir)
+
+def Tap(device_address, x, y):
+    subprocess.call("nox_adb -s %s shell input touchscreen tap %d %d" % (device_address, x, y), \
+        shell=True)

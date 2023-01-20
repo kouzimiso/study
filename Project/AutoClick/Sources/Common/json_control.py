@@ -9,6 +9,8 @@ def WriteDictionary(file_path,data_dictionary):
 def ReadDictionary(file_path,data_dictionary={}):
     if os.path.isfile(file_path):
         file = open(file_path,'r', encoding='utf-8')
-        data_dictionary = json.load(file)
+        temp_dictionary= json.load(file)
+        data_dictionary.update(temp_dictionary)
         file.close()
     return data_dictionary
+

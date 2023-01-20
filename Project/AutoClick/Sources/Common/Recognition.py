@@ -10,7 +10,6 @@ import cv2
 import glob
 import subprocess
 import signal
-import enum
 import datetime
 import dataclasses
 
@@ -19,53 +18,7 @@ sys.path.append("../../Common")
 import rename
 import log
 import json_control
-
-class END_ACTION(enum.Enum):
-    BREAK = 0
-    FOLDER_END_BREAK = 1
-    CONTINUE = 2
-
-class RESULT(enum.Enum):
-    NG = 0
-    OK = 1
-    ALL_OK = 2
-
-class ACTION(enum.Enum):
-    NONE = 0
-    CLICK = 1
-    DOUBLE_CLICK = 2
-
-class DATA_TYPE(enum.Enum):
-    ENUM = 0
-    NUMBER = 1
-    FLOAT = 2
-    STRING = 3
-
-class RUN_STATUS(enum.Enum):
-    INITIAL = 0
-    RUN = 1
-    SETUP = 2
-    CYCLE_STOP = 3
-    STOP = 4
-    PAUSE = 5
-
-enum_dictionary={
-    "END_ACTION.BREAK":END_ACTION.BREAK,
-    "END_ACTION.FOLDER_END_BREAK":END_ACTION.FOLDER_END_BREAK,
-    "END_ACTION.CONTINUE": END_ACTION.CONTINUE,
-    "RESULT.NG":RESULT.NG,
-    "RESULT.OK":RESULT.OK,
-    "RESULT.ALL_OK": RESULT.ALL_OK,
-    "ACTION.NONE":ACTION.NONE,
-    "ACTION.CLICK":ACTION.CLICK,
-    "ACTION.DOUBLE_CLICK":ACTION.DOUBLE_CLICK,
-    "RUN_STATUS.INITIAL":RUN_STATUS.INITIAL,
-    "RUN_STATUS.RUN":RUN_STATUS.RUN,
-    "RUN_STATUS.SETUP":RUN_STATUS.SETUP,
-    "RUN_STATUS.CYCLE_STOP":RUN_STATUS.CYCLE_STOP,
-    "RUN_STATUS.STOP":RUN_STATUS.STOP,
-    "RUN_STATUS.PAUSE":RUN_STATUS.PAUSE
-    }
+import auto
 
 # log関係
 message_list = []
@@ -73,9 +26,9 @@ logfile_path = os.path.dirname(__file__)+'/../../Log/log_auto.txt'
 
 @dataclasses.dataclass
 class RecognitionInfomation:
-    action : ACTION 
-    end_condition : RESULT 
-    end_action : END_ACTION
+    action : auto.ACTION 
+    end_condition : auto.RESULT 
+    end_action : auto.END_ACTION
     execute_number : int =0
     retry_number : int =0 
     image_path : str = ""
@@ -86,9 +39,9 @@ class RecognitionInfomation:
     y_offset_dictionary : dict = None
     def __init__(
         self,
-        action=ACTION.NONE , 
-        end_condition=RESULT.OK ,
-        end_action = END_ACTION.CONTINUE,
+        action = auto.ACTION.NONE , 
+        end_condition = auto.RESULT.OK ,
+        end_action = auto.END_ACTION.CONTINUE,
         execute_number = 0,
         retry_number = 0, 
         image_path = "",
@@ -122,7 +75,6 @@ class RecognitionInfomation:
         # dictionary_setting
 
 #Dictionaryで設定したい時と個別設定値で設定したい場合がある。
-@dataclasses.dataclass
 class Recognition:
     setting:RecognitionInfomation
     #setting_dictionary : dict={}
@@ -144,60 +96,59 @@ class Recognition:
         #ENUMがDictionaryで使えないのでasdictは使えない。
         #setting_dictionary = dataclasses.asdict(data)
         setting_dictionary={
-            "action" : self.Set_StringData(data.action,DATA_TYPE.STRING),
-            "end_condition" : self.Set_StringData(data.end_condition,DATA_TYPE.ENUM),
+            "action":self.Set_StringData(data.action,auto.DATA_TYPE.STRING),
+            "end_condition": self.Set_StringData(data.end_condition,auto.DATA_TYPE.ENUM),
             "execute_number" : int(data.execute_number),
-            "retry_number": int(data.retry_number),
-            "end_action" : self.Set_StringData(data.end_action,DATA_TYPE.ENUM),
-            "image_path" : self.Set_StringData(data.image_path,DATA_TYPE.STRING),
-            "interval_time" : float(data.interval_time),
-            "recognition_confidence" : float(data.recognition_confidence),
-            "recognition_grayscale" : float(data.recognition_grayscale)
+            "retry_number":int(data.retry_number),
+            "end_action":self.Set_StringData(data.end_action,auto.DATA_TYPE.ENUM),
+            "image_path": self.Set_StringData(data.image_path,auto.DATA_TYPE.STRING),
+            "interval_time":float(data.interval_time),
+            "recognition_confidence":float(data.recognition_confidence),
+            "recognition_grayscale":float(data.recognition_grayscale)
             }
         return setting_dictionary
 
     def Set_BySettingDictionary(self,input_dictionary):
-        action = self.Get_Data("action",DATA_TYPE.ENUM,input_dictionary)
-        end_condition = self.Get_Data("end_condition",DATA_TYPE.ENUM,input_dictionary)
-        execute_number = self.Get_Data("execute_number",DATA_TYPE.NUMBER,input_dictionary)
-        retry_number = self.Get_Data("retry_number",DATA_TYPE.NUMBER,input_dictionary)
-        end_action = self.Get_Data("end_action",DATA_TYPE.ENUM,input_dictionary)
-        image_path = self.Get_Data("image_path",DATA_TYPE.STRING,input_dictionary)
-        interval_time = self.Get_Data("interval_time",DATA_TYPE.NUMBER,input_dictionary)
-        recognition_confidence = self.Get_Data("recognition_confidence",DATA_TYPE.FLOAT,input_dictionary)
-        recognition_grayscale = self.Get_Data("recognition_grayscale",DATA_TYPE.FLOAT,input_dictionary)
+        action = self.Get_Data("action",auto.DATA_TYPE.ENUM,input_dictionary)
+        end_condition= self.Get_Data("end_condition",auto.DATA_TYPE.ENUM,input_dictionary)
+        execute_number= self.Get_Data("execute_number",auto.DATA_TYPE.NUMBER,input_dictionary)
+        retry_number= self.Get_Data("retry_number",auto.DATA_TYPE.NUMBER,input_dictionary)
+        end_action=self.Get_Data("end_action",auto.DATA_TYPE.ENUM,input_dictionary)
+        image_path=self.Get_Data("image_path",auto.DATA_TYPE.STRING,input_dictionary)
+        interval_time=self.Get_Data("interval_time",auto.DATA_TYPE.NUMBER,input_dictionary)
+        recognition_confidence=self.Get_Data("recognition_confidence",auto.DATA_TYPE.FLOAT,input_dictionary)
+        recognition_grayscale=self.Get_Data("recognition_grayscale",auto.DATA_TYPE.FLOAT,input_dictionary)
         self.setting = RecognitionInfomation(action, end_condition, end_action, execute_number, retry_number, image_path, interval_time, recognition_confidence, recognition_grayscale)
 
-    def Get_Data(self,data_name,data_type=DATA_TYPE.ENUM,data_dictionary =None ):
+    def Get_Data(self,data_name,data_type=auto.DATA_TYPE.ENUM,data_dictionary =None ):
         if data_dictionary is None :
             data_dictionary = self.Get_SettingDictionary()
-        if data_type == DATA_TYPE.ENUM:
+        if data_type == auto.DATA_TYPE.ENUM:
             print("data_name:"+data_name)#"end_condition"のような文字Data
             parameter_name = data_dictionary[data_name]
             print("parameter_name:"+parameter_name)
-            return enum_dictionary[parameter_name]
-        elif data_type == DATA_TYPE.NUMBER:
+            return auto.enum_dictionary[parameter_name]
+        elif data_type == auto.DATA_TYPE.NUMBER:
             return int(data_dictionary[data_name])
-        elif data_type == DATA_TYPE.FLOAT:
+        elif data_type == auto.DATA_TYPE.FLOAT:
             return float(data_dictionary[data_name])
-        elif data_type == DATA_TYPE.STRING:
-            return str(data_dictionary[data_name])
+        elif data_type == auto.DATA_TYPE.STRING:
+            return str(data_dictionary[data_name])            
         else:
             return str(data_dictionary[data_name])
 
     def Set_StringData(self,data,data_type=""):
-        if data_type == DATA_TYPE.ENUM:
-            #return data.name#子要素しか返さなかった。
+        if data_type == auto.DATA_TYPE.ENUM:
             return str(data)
-            #return END_ACTION(data).name
-        elif data_type == DATA_TYPE.NUMBER:
+            #return auto.END_ACTION(data).name
+        elif data_type == auto.DATA_TYPE.NUMBER:
             return str(data)
-        elif data_type == DATA_TYPE.FLOAT:
+        elif data_type == auto.DATA_TYPE.FLOAT:
             return str(data)
-        elif data_type == DATA_TYPE.STRING:
-            return  str(data)
+        elif data_type == auto.DATA_TYPE.STRING:
+            return  str(data)            
         else:
-            return  str(data)
+            return  str(data) 
 
     def CheckSettingDictionary(self,input_dictionary):
         result={}
@@ -229,9 +180,9 @@ class Recognition:
         result["recognition_grayscale"]=type(recognition_information.recognition_grayscale)
         print(result)
         return result
-    action : ACTION 
-    end_condition : RESULT 
-    end_action : END_ACTION
+    action : auto.ACTION 
+    end_condition : auto.RESULT 
+    end_action : auto.END_ACTION
     execute_number : int =0
     retry_number : int =0 
     image_path : str = ""
@@ -243,7 +194,21 @@ class Recognition:
             
 
     def Execute(self):
-        Images_Action_ByInformation(self.setting)
+        result={}
+        result_action = Images_Action_ByInformation(self.setting)
+        #Step:Set the result to the data.
+        if Condition_Judge(result_action,auto.RESULT.NG):
+            result["result"]=False
+        else:
+            result["result"]=True
+
+        result_detail={}
+        result_detail["detail"]=str(result_action)
+        result["detail"]=result_detail
+
+        result_error={}
+        result["error"]=result_error
+        return result
 
 
 def Image_SearchAndXY(image_path, recognition_grayscale, recognition_confidence):
@@ -296,10 +261,10 @@ def Image_SearchAndMove(image_path, x_offset_dictionary, y_offset_dictionary, re
 
 # Mouse Action
 def Action_Execute(action):
-    if action == ACTION.CLICK:
+    if action == auto.ACTION.CLICK:
         pyautogui.click()
         pyautogui.mouseUp()
-    elif action == ACTION.DOUBLE_CLICK:
+    elif action == auto.ACTION.DOUBLE_CLICK:
         pyautogui.doubleClick()
         pyautogui.mouseUp()
 
@@ -307,11 +272,11 @@ def Action_Execute(action):
 def Condition_Judge(condition, result):
     # 条件と結果が同じならOK
     if condition == result:
-        log.Log_MessageAdd(message_list, "Condition_Judge(" + RESULT(condition).name+","+RESULT(result).name+"):OK")
+        log.Log_MessageAdd(message_list, "Condition_Judge(" + auto.RESULT(condition).name+","+ auto.RESULT(result).name+"):OK")
         return True
     # 条件がOKで結果がALL_OKならOK
-    elif condition == RESULT.OK and result == RESULT.ALL_OK:
-        log.Log_MessageAdd(message_list, "Condition_Judge("+RESULT(condition).name + ","+RESULT(result).name+"):OK(condition:ok,result:ALL_OK)")
+    elif condition == auto.RESULT.OK and result == auto.RESULT.ALL_OK:
+        log.Log_MessageAdd(message_list, "Condition_Judge("+ auto.RESULT(condition).name + "," + auto.RESULT(result).name + "):OK(condition:ok,result:ALL_OK)")
         return True
     # それ以外はFalse
     else:
@@ -320,7 +285,7 @@ def Condition_Judge(condition, result):
         print(result)
         print(type(condition))
         print(condition)
-        log.Log_MessageAdd(message_list, "Condition_Judge(" + RESULT(condition).name + ","+RESULT(result).name+"):NG")
+        log.Log_MessageAdd(message_list, "Condition_Judge(" + auto.RESULT(condition).name + ","+auto.RESULT(result).name+"):NG")
         return False
 
 Images_Action_Result = {}
@@ -404,30 +369,30 @@ def Images_Action(action, end_action, end_condition, images_path, x_offset_dicti
             time.sleep(interval_time)
 
             # 条件成立での中止処理
-            if end_action == END_ACTION.BREAK and end_condition == RESULT.OK:
+            if end_action == auto.END_ACTION.BREAK and end_condition == auto.RESULT.OK:
                 log.Log_MessageAdd(message_list, "Images_Action:Result_OK Break(" + str(action) + ")")
-                return RESULT.OK
+                return auto.RESULT.OK
         else:
             Images_Action_Result=Images_Action_ResultSet(Images_Action_Result,image_path,0,1)        
             Images_Action_Result=Images_Action_ResultSet(Images_Action_Result,"all_image",0,1)        
             all_ok = False
             # 条件成立での中止処理
-            if end_action == END_ACTION.BREAK and end_condition == RESULT.NG:
+            if end_action == auto.END_ACTION.BREAK and end_condition == auto.RESULT.NG:
                 log.Log_MessageAdd(message_list, "Images_Action:Result_NG Break(" + str(action) + ")")
-                return RESULT.NG
+                return auto.RESULT.NG
     if all_ok == True:
-        return RESULT.ALL_OK
+        return auto.RESULT.ALL_OK
     elif all_ng == True:
-        return RESULT.NG
+        return auto.RESULT.NG
     else:
-        return RESULT.OK
+        return auto.RESULT.OK
 
 # Images_Actionを繰り返し実行する。
 def Images_Action_ByInformation(recognition_information, x_offset_dictionary=None, y_offset_dictionary=None):
     all_ok = True
     all_ng = True
-    end_condition = RESULT.NG
-    end_condition_memory = RESULT.NG
+    end_condition = auto.RESULT.NG
+    end_condition_memory = auto.RESULT.NG
     if x_offset_dictionary is None:
          x_offset_dictionary = recognition_information.x_offset_dictionary 
     if y_offset_dictionary is None:
@@ -444,18 +409,18 @@ def Images_Action_ByInformation(recognition_information, x_offset_dictionary=Non
         for loop02 in range(recognition_information.execute_number):
             log.Log_MessageAdd(message_list, "Execute_Number:"+str(loop02))
             end_result = Images_Action(recognition_information.action, recognition_information.end_action, recognition_information.end_condition, recognition_information.image_path,x_offset_dictionary, y_offset_dictionary, recognition_information.recognition_grayscale, recognition_information.recognition_confidence, recognition_information.interval_time)
-            if end_result != RESULT.NG:
+            if end_result != auto.RESULT.NG:
                 all_ng = False
-                print("Continue:loop" + RESULT(end_result).name + "/"+str(recognition_information.execute_number))
+                print("Continue:loop" + auto.RESULT(end_result).name + "/"+str(recognition_information.execute_number))
             else:
                 all_ok = False
                 print("RESULT.NG:loop" + str(loop02) + "/" + str(recognition_information.execute_number))
             # 条件成立での中止処理
-            if recognition_information.end_action == END_ACTION.BREAK and recognition_information.end_condition == end_result:
+            if recognition_information.end_action == auto.END_ACTION.BREAK and recognition_information.end_condition == end_result:
                 log.Log_MessageAdd(message_list, "BREAK:retry"+str(loop01))
                 break
             # 条件成立での中止処理
-            if recognition_information.end_action == END_ACTION.FOLDER_END_BREAK and recognition_information.end_condition == end_result:
+            if recognition_information.end_action == auto.END_ACTION.FOLDER_END_BREAK and recognition_information.end_condition == end_result:
                 log.Log_MessageAdd(message_list, "FOLDER_END_BREAK:retry"+str(loop01))
                 break
         if Condition_Judge(recognition_information.end_condition, end_result) == False and loop01 < recognition_information.retry_number:
@@ -468,11 +433,11 @@ def Images_Action_ByInformation(recognition_information, x_offset_dictionary=Non
     log.Write_MessageList(logfile_path, message_list)
     message_list.clear()
     if all_ok == True:
-        return RESULT.ALL_OK
+        return auto.RESULT.ALL_OK
     elif all_ng == True:
-        return RESULT.NG
+        return auto.RESULT.NG
     else:
-        return RESULT.OK
+        return auto.RESULT.OK
 
 def Images_Action_BySettingDictionary(setting = {}):
     setting=RecognitionInfomation()
@@ -482,13 +447,13 @@ def Images_Action_BySettingDictionary(setting = {}):
 
 # 条件が成立した時に繰り返し実行する。
 def Images_ConditionCheckAndAction(name, condition, action_recognition_information, x_offset_dictionary, y_offset_dictionary):
-    action_result = RESULT.NG
+    action_result = auto.RESULT.NG
     # 条件を比較
     action_condition = False
     if action_recognition_information.end_condition == condition:
         action_condition = True
-    elif action_recognition_information.end_condition == RESULT.ALL_OK:
-        if condition == RESULT.OK:
+    elif action_recognition_information.end_condition == auto.RESULT.ALL_OK:
+        if condition == auto.RESULT.OK:
             action_condition = True
     # 条件を比較して成立したら実行
     if action_condition == True:

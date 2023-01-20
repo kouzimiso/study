@@ -3,6 +3,7 @@ from PIL import ImageGrab
 from enum import Enum
 import PIL
 import cv2
+import pyautogui
 
 
 class VIRTICAL_ALIGN(Enum):
@@ -16,7 +17,11 @@ class HOLIZONTAL_ALIGN(Enum):
     LEFT= 1
     CENTER= 2
     RIGHT = 3
+
+def open(image_file_path):
+    return PIL.Image.open(image_file_path)
     
+
 def CVImageCrop_ByList(image_source,list_image_file_path,list_image_position):
     loop=0
     for file_path in list_image_file_path:
@@ -28,7 +33,7 @@ def CVImageCrop_ByList(image_source,list_image_file_path,list_image_position):
             bottom=image_position[3]
             left=image_position[0]
             right=image_position[2]
-            print("top:"+ str(top) +" bottom:"+ str(bottom) +" left:" + str(left) + " right:" + str(right) )
+            #print("top:"+ str(top) +" bottom:"+ str(bottom) +" left:" + str(left) + " right:" + str(right) )
             image_crop=image_source[top:bottom,left:right]
             cv2.imwrite(file_path, image_crop)
         loop = loop + 1
@@ -143,8 +148,8 @@ def Image_AroundMouse(file_path, flag_overwrite=True, wide=0, height=0, dupplica
 
 
 def Image_AroundPoint(file_path, flag_overwrite=True, x=0, y=0, wide=0, height=0, dupplicate_format="{}({:0=3}){}"):
-    x = max(0, x - bbox_w/2)
-    y = max(0, y - bbox_h/2)
+    x = max(0, x - wide/2)
+    y = max(0, y - height/2)
     Image_Capture(file_path, flag_overwrite, x, y, wide, height, dupplicate_format)
     
 def point2ToXYWH(x1, y1, x2=0, y2=0):

@@ -9,7 +9,6 @@ import cv2
 import glob
 import signal
 import subprocess
-from enum import Enum
 import PIL
 
 sys.path.append("./Common")
@@ -60,7 +59,7 @@ select_server2_sequence = []
 select_server2_sequence.append(auto.RecognitionInfomation(auto.ACTION.DOUBLE_CLICK, auto.RESULT.OK, auto.END_ACTION.BREAK, 2, 5, '../Images/image_SelectServer09/*.png', 1.8, 0.8, True))
 
 
-action_sequence_waiting = auto.RecognitionInfomation(auto.ACTION.CLICK, auto.RESULT.NG, auto.END_ACTION.CONTINUE, 4, 20, '../Images/image_waiting/*.png', 4, 0.99, False)
+action_sequence_waiting = auto.RecognitionInfomation(auto.ACTION.CLICK, auto.RESULT.NG, auto.END_ACTION.CONTINUE, 3, 20, '../Images/image_waiting/*.png', 4, 0.99, False)
 action_sequence_start = auto.RecognitionInfomation(auto.ACTION.CLICK, auto.RESULT.OK, auto.END_ACTION.CONTINUE, 2, 0, '../Images/image_start/Click0*.png', 1.8, 0.93, True)
 action_sequence_start2 = auto.RecognitionInfomation(auto.ACTION.CLICK, auto.RESULT.OK, auto.END_ACTION.CONTINUE, 1, 0, '../Images/image_start/*.png', 1.8, 0.93, True)
 action_sequence_main = auto.RecognitionInfomation(auto.ACTION.CLICK, auto.RESULT.OK, auto.END_ACTION.CONTINUE, 4, 0, '../Images/image/*.png', 0.5, 0.93, True)

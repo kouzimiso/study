@@ -54,11 +54,14 @@ def Delete_OldFiles(folder_path,  folder_maxsize , files_maxnumber):
         folder_size=Get_FolderSize(folder_path)
         files_number=Get_FilesNumber(folder_path)
         print("folder size:"+str(folder_size)+"/"+str(folder_maxsize))
-        print("file number:"+str(files_number)+"/"+str(files_maxnumber))
+        print("file nuzmber:"+str(files_number)+"/"+str(files_maxnumber))
         # 規定の空き容量、File数を超えた場合
-        if folder_maxsize <folder_size or files_maxnumber < files_number :
+        if folder_maxsize <folder_size :
             os.remove(file)  # ファイルを削除。
-            print("The oldest file {} has been removed.".format(file.name))
+            print("Size Over the oldest file {} has been removed.".format(file.name))
+        elif files_maxnumber < files_number :
+            os.remove(file)  # ファイルを削除。
+            print("File Number Over.The oldest file {} has been removed.".format(file.name))            
         else:  # 空き容量が確保出来ていた時はループを出る。
             break 
     folders.sort(key=lambda x: len(x.parents), reverse=True)  # 階層が深い降順に並べる。
