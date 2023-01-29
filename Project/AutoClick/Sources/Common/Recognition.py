@@ -201,7 +201,7 @@ class Recognition:
         if Condition_Judge(result_action,auto.RESULT.NG):
             result_dictionary["result"]=False
         else:
-            result["result"]=True
+            result_dictionary["result"]=True
 
         result_detail={}
         result_detail["detail"]=str(result_action)

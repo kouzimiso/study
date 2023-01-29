@@ -40,6 +40,278 @@ import Parser
 message_list=[]
 logfile_path='../Log/log_test_auto.txt'#準備必要問題:Folder
 
+check_planlist={
+	"Start": 
+	[
+		{
+			"name" : "StartTask",
+		 	"type" : "RunPlanLists",
+		 	"setting" : {
+				"FilePath" : "",
+				"RunPlanLists" : [
+					"HotSpotON",
+			 		"Mementomori",
+ 					"Houchi",
+					"ShutDown"
+				]
+			}
+		}
+	],
+	"Mementomori" : 
+	[
+		{
+			"name" : "StartTask",
+			"type" : "RunPlanLists",
+	 		"setting" : {
+		 		"FilePath" : "",
+		 		"RunPlanLists" : [
+					"CloseWindow",
+					"MementomoriClick01",
+		 			"MementomoriClick02"
+				]
+			}
+		}
+	],
+	"Houchi" : 
+	[
+		{
+	 		"name" : "StartTask",
+			"type" : "RunPlanLists",
+			"setting" : {
+				"FilePath" : "",
+ 		 		"RunPlanLists" : [
+					"CloseWindow",
+		 			"HouchClick01",
+					"HouchClick02"
+				]
+			}
+		}
+	],
+
+	"HotSpotON":
+	[
+		{
+			"name" : "HotSpotON",
+			"type" : "Recognition",
+			"setting" : {
+				"action" : "ACTION.CLICK",
+				"end_condition" : "RESULT.OK",
+				"end_action" : "END_ACTION.FOLDER_END_BREAK",
+				"execute_number" : 2,
+				"retry_number" : 2,
+				"image_path" : "../Images/hotspot/*.png",
+				"interval_time" : 1.8,
+				"recognition_confidence" : 0.95,
+				"recognition_grayscale" : True
+			}
+		}
+	],
+
+	"CloseWindow":
+	[
+		{
+			"name" : "CloseWindow",
+			"type" : "Recognition",
+			"setting" : {
+				"action" : "ACTION.CLICK",
+				"end_condition" : "RESULT.OK",
+				"end_action" : "END_ACTION.CONTINUE",
+				"execute_number" : 2,
+				"retry_number" : 2,
+				"image_path" : "../Images/image_end/*.png",
+				"interval_time" : 1.8,
+				"recognition_confidence" : 0.95,
+				"recognition_grayscale" : True
+			}
+		}
+	],
+
+	"MementomoriClick01":
+	[
+		{
+			"name" : "MementomoryRun01",
+			"type" : "Recognition",
+			"setting" : {
+				"action" : "ACTION.DOUBLE_CLICK",
+				"end_condition" : "RESULT.OK",
+				"end_action" : "END_ACTION.BREAK",
+				"execute_number" : 1,
+				"retry_number" : 3,
+				"image_path" : "../Images/mementomori/Click00*.png",
+				"interval_time" : 1.8,
+				"recognition_confidence" : 0.95,
+				"recognition_grayscale" : True
+			}
+		},
+		{
+			"name" : "MementomoryRun02",
+			"type" : "Recognition",
+			"condition" : ["Result.MementomoryRun01=True"],
+			"setting" : {
+				"action" : "ACTION.DOUBLE_CLICK",
+				"end_condition" : "RESULT.NG",
+				"end_action" : "END_ACTION.CONTINUE",
+				"execute_number" : 25,
+				"retry_number" : 100,
+				"image_path" : "../Images/mementomori/Click00*.png",
+				"interval_time" : 5,
+				"recognition_confidence" : 0.95,
+				"recognition_grayscale" : True
+			}
+		},
+		{
+			"name" : "MementomoryRun03",
+			"type" : "Recognition",
+			"condition" : ["Result.MementomoryRun02=True"],
+			"setting" : {
+				"action" : "ACTION.CLICK",
+				"end_condition" : "RESULT.NG",
+				"end_action" : "END_ACTION.CONTINUE",
+				"execute_number" : 25,
+				"retry_number" : 100,
+				"image_path" : "../Images/mementomori/Click00*.png",
+				"interval_time" : 5,
+				"recognition_confidence" : 0.95,
+				"recognition_grayscale" : True
+			}
+		},
+		{
+		 	"name" : "Information_Calc" ,
+			"type" : "Information_Calc" ,
+			"setting" : {
+				"expression" : "Result.MementomoryRun01 + Result.MementomoryRun02 + Result.MementomoryRun03",
+				"target_item_list" : [],
+				"target_item_calc_list" : ["detect_rate=detect/(detect+undetect)"],
+				"target_ignore_item_list" : ["total.+"]
+			}
+		},
+		{
+			"name" : "Information_Reset",
+			"type" : "Information_Reset",
+			"setting" : {
+				"expression" : "",
+				"target_item_calc_list" : ["detect_rate=detect/(detect+undetect)"],
+				"target_ignore_item_list" : []
+			}
+		}
+	],
+	"HouchClick01":
+	[
+		{
+			"name": "HouchRun01",
+			"type": "Recognition",
+			"setting": {
+				"action": "ACTION.DOUBLE_CLICK",
+				"end_condition": "RESULT.OK",
+				"end_action": "END_ACTION.BREAK",
+				"execute_number": 2,
+				"retry_number": 0,
+				"image_path": "../Images/image00/*.png",
+				"interval_time": 10,
+				"recognition_confidence": 0.99,
+				"recognition_grayscale": True
+			}
+		}
+	],
+	"HouchClick02":
+	[
+		{
+			"name": "HouchRun02",
+			"type": "Recognition",
+			"setting": {
+				"action": "ACTION.DOUBLE_CLICK",
+				"end_condition": "RESULT.OK",
+				"end_action": "END_ACTION.BREAK",
+				"execute_number": 2,
+				"retry_number": 0,
+				"image_path": "../Images/image02/*.png",
+				"interval_time": 10,
+				"recognition_confidence": 0.99,
+				"recognition_grayscale": True
+			}
+		}
+	],
+	"HouchClick03":
+	[
+		{
+			"name": "HouchRun03",
+			"type": "Recognition",
+			"setting": {
+				"action": "ACTION.DOUBLE_CLICK",
+				"end_condition": "RESULT.OK",
+				"end_action": "END_ACTION.BREAK",
+				"execute_number": 2,
+				"retry_number": 0,
+				"image_path": "../Images/image03/*.png",
+				"interval_time": 10,
+				"recognition_confidence": 0.99,
+				"recognition_grayscale": True
+			}
+		}
+	],
+	"HouchClick04":
+	[
+		{
+			"name": "HouchRun04",
+			"type": "Recognition",
+			"setting": {
+				"action": "ACTION.DOUBLE_CLICK",
+				"end_condition": "RESULT.OK",
+				"end_action": "END_ACTION.BREAK",
+				"execute_number": 2,
+				"retry_number": 0,
+				"image_path": "../Images/image04/*.png",
+				"interval_time": 10,
+				"recognition_confidence": 0.99,
+				"recognition_grayscale": True
+			}
+		}
+	],
+	"HouchClick05":
+	[
+		{
+			"name": "HouchRun05",
+			"type": "Recognition",
+			"setting": {
+				"action": "ACTION.DOUBLE_CLICK",
+				"end_condition": "RESULT.OK",
+				"end_action": "END_ACTION.BREAK",
+				"execute_number": 2,
+				"retry_number": 0,
+				"image_path": "../Images/image05/*.png",
+				"interval_time": 10,
+				"recognition_confidence": 0.99,
+				"recognition_grayscale": True
+			}
+		}
+	],
+	"HouchClick06":
+	[
+		{
+			"name": "HouchRun06",
+			"type": "Recognition",
+			"setting": {
+				"action": "ACTION.DOUBLE_CLICK",
+				"end_condition": "RESULT.OK",
+				"end_action": "END_ACTION.BREAK",
+				"execute_number": 2,
+				"retry_number": 0,
+				"image_path": "../Images/image06/*.png",
+				"interval_time": 10,
+				"recognition_confidence": 0.99,
+				"recognition_grayscale": True
+			}
+		}
+	],
+	"ShutDown":
+	[
+		{
+			"name": "ShutDown",
+			"type": "ShutDown",
+			"setting": {}
+		}
+	]	
+}
 
 
 class Test(unittest.TestCase):
@@ -131,7 +403,7 @@ class Test(unittest.TestCase):
                     "type":"RunPlanLists",
                     "setting" :
                     {
-                        "FilePath":"PlanLists.txt",
+                        "FilePath":"PlanLists.json",
                         "RunPlanLists":[
                             "test2-1" ,
                             "test2-2"
@@ -201,9 +473,9 @@ class Test(unittest.TestCase):
             ]
 
         }
-        json_control.WriteDictionary("RunPlayLists_Test.txt",plan_lists_dictionary)
-        
-        task = Task.Task("RunPlayLists_Test.txt")
+        json_control.WriteDictionary("RunPlanLists_Test.json" , plan_lists_dictionary)
+        json_control.WriteDictionary("PlanLists_CheckTest.json" , check_planlist)
+        task = Task.Task("RunPlanLists_Test.json")
         print("task.Run( test1, , plan_lists_dictionary)")
         task.Run( "test1","" , plan_lists_dictionary)
         print("task.Run( test2, , plan_lists_dictionary)")

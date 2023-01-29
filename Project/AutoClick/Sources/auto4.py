@@ -9,7 +9,7 @@ import Scheduler
 
 # Main Program実行部
 def main():
-    Scheduler.StartUp("Start","RunGame.txt")
+    Scheduler.StartUp("Start","RunGame.json")
 
 if __name__ == "__main__":
     sys.exit(main())
