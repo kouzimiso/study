@@ -71,8 +71,8 @@ def init(args):
         data_rate[2]=args[3]
         data_rate[3]=args[4]
         loop_number=args[5]
-    data1_xy=set_data_xy(270,890,126,60)
-    data2_xy=set_data_xy(696,890,126,60)
+    data1_xy=set_data_xy(270,890,126,60)#(x1, y1, x2, y2)
+    data2_xy=set_data_xy(696,890,126,60)#(x1, y1, x2, y2)
 
 def exec_input():
     global param_zero

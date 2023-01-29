@@ -173,7 +173,7 @@ def calcStatus(a,b,c,d):
             print("warn: 育成ステータスが読み込めません")
             #img = cv2.imread(r"%s\screen_1.png" %(ss_dir))
             img = cv2.imread(screenshot_file)
-            if count< 2:
+            if count<= 1:
                 capture_data()
                 count =count +1
                 continue

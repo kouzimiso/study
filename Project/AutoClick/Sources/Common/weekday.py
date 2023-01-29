@@ -3,7 +3,7 @@
 import datetime
 import os
 import log
-
+import Parser
 class DayOfTheWeek:
     message_list=[]
     def __init__(self , set_monday=0 , flag_sunday_start=False):
@@ -17,10 +17,44 @@ class DayOfTheWeek:
             self.SunDay = set_monday-1
         else:
             self.SunDay = set_monday+6
+
+    def SetNowInformation(self):
+        Information = {}
+        Information["Now"] = datetime.datetime.now()
+        Information["今"] = datetime.datetime.now()
+        return Information
+
+    def SetDayInformation(self):
+        Information = {}
+        if  Information.get("月曜日") != self.MonDay:
+            Information["月曜日"] = self.MonDay
+            Information["火曜日"] = self.TuesDay
+            Information["水曜日"] = self.WednesDay
+            Information["木曜日"] = self.ThursDay
+            Information["金曜日"] = self.FriDay
+            Information["土曜日"] = self.SaturDay
+            Information["月曜"] = self.MonDay
+            Information["火曜"] = self.TuesDay
+            Information["水曜"] = self.WednesDay
+            Information["木曜"] = self.ThursDay
+            Information["金曜"] = self.FriDay
+            Information["土曜"] = self.SaturDay
+            Information["MonDay"] = self.MonDay
+            Information["TuesDay"] = self.TuesDay
+            Information["WednesDay"] = self.WednesDay
+            Information["ThursDay"] = self.ThursDay
+            Information["FriDay"] = self.FriDay
+            Information["SaturDay"] = self.SaturDay
             
+        if  Information.get("日曜日") != self.SunDay:
+            Information["日曜日"] = self.SunDay
+            Information["日曜"] = self.SunDay
+            Information["SunDay"] = self.SunDay
+        return Information
+    
     def Get_DayOfTheWeek(self,date_time):
         return date_time.weekday() + self.MonDay
-
+    
     def Get_DayOfTheWeek_String(self,weekday):
         offset=weekday - self.MonDay
         #2022/4/18(Mon)
@@ -46,6 +80,65 @@ class DayOfTheWeek:
             if(self.Get_DayOfTheWeek(date_time_after) == day_of_weekday):
                 return date_time_after
         return -1
+    
+    def Check_Day(self, setting):
+        day1 = setting.get("day1")
+        day2 = setting.get("day2")
+        day3 = setting.get("day3")
+
+        print("######Check_Day#")
+        day_information = self.SetDayInformation()
+        now_information = self.SetNowInformation()
+        day1_information = self.StringToDay(day1,now_information,day_information)
+        day2_information = self.StringToDay(day2,now_information,day_information)
+        day3_information = self.StringToDay(day3,now_information,day_information)
+        result ={"result":False,"detail":{},"error":[]}
+        print(day1_information)
+        print(day2_information)
+        print(day3_information)
+        if day1_information["type"] == "WeekAndTime" and day2_information["type"] == "DateTime" and day3_information["type"] == "WeekAndTime":
+            print("######Check_WithinRangeDay Start#")
+            date_time =day2_information["date_time"]
+            time1 = day1_information["time"]
+            day_of_weekday1 = day1_information["day_of_weekday"]
+            time2 = day3_information["time"]
+            day_of_weekday2 = day3_information["day_of_weekday"]
+            result["result"] = self.Check_WithinRangeDay(date_time,time1, day_of_weekday1,time2,day_of_weekday2)
+         #Step:Set the result to the data.
+
+        result_detail={}
+        result["detail"]=""
+
+        result_error={}
+        result["error"]=""
+        return result
+
+    def StringToDay(self,day_string,now_information,day_information):
+        parser = Parser.Parser()
+        tokens = parser.SplitByDictionary(day_string,day_information)
+        results = {"type":"", "day_of_weekday":"","date_time":None ,"time":None }
+        for token in tokens:
+            value = day_information.get(token)
+            if value is not None:
+                results["day_of_weekday"] = value
+                results["type"] = "WeekAndTime" 
+            else:
+                value = now_information.get(token)
+                if value is not None:
+                    results["date_time"] = value
+                    results["type"] = "DateTime" 
+                else:
+                    try:
+                        results["date_time"] = datetime.date.fromisoformat(token)
+                        results["type"] = "DateTime" 
+                    except:
+                        try:
+                            results["date_time"] = None
+                            results["time"] = datetime.time.fromisoformat(token)
+                        except:
+                            results["type"] = "Error" 
+                            results["time"] = None
+        return results
 
     def Check_WithinRangeDay(self,date_time,time1, day_of_weekday1,time2,day_of_weekday2):
         #time1をdate_timeと同じ日のdatetime型(time1の日時)に変換する。

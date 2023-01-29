@@ -28,22 +28,15 @@ def init():
     settings = {"Plans":{},"Actions":{}}
     settings = json_control.ReadDictionary(file_path_setting,settings)
     plans=settings["plans"]
-    
 
-
-
-    
-
+def StartUp(plan_list_name,file_path):
+    task = Task.Task(file_path)
+    task.Run(plan_list_name)
         
-def ExecuteSchedule(name,file_path=""):
-    print("ExecuteTask"+ name)
-    task_threads={}
-    for plan in plans:
-        print(plan.name)
 
 def main():
-    init()
-    ExecuteSchedule(name,file_path="../../")
+    #init()
+    StartUp("Start","RunGame.txt")
 
 
 if __name__ == "__main__":

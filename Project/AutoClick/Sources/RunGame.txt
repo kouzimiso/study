@@ -1,0 +1,195 @@
+{
+	"Start": 
+	[
+        {
+			"name": "StartTask",
+			"type": "RunPlanLists",
+			"setting": {
+				"FilePath": "",
+				"RunPlanLists": [
+					"Mementomori",
+					"Houchi"
+				]
+			}
+		}
+	],
+	"Mementomori": 
+	[	
+		{
+			"name": "StartTask",
+			"type": "RunPlanLists",
+			"setting": {
+				"FilePath": "",
+				"RunPlanLists": [
+						"MementomoriClick01",
+						"MementomoriClick01"
+				]
+			}
+		}
+	],
+	"Houchi": 
+	[
+		{
+			"name": "StartTask",
+			"type": "RunPlanLists",
+			"setting": {
+				"FilePath": "",
+				"RunPlanLists": [
+						"HouchClick01",
+						"HouchClick02"
+				]
+			}
+		}
+	],
+	"MementomoriClick01":
+	[
+		{
+			"name": "MementomoryRun01",
+			"type": "Recognition",
+			"setting": {
+				"action": "ACTION.DOUBLE_CLICK",
+				"end_condition": "RESULT.OK",
+				"end_action": "END_ACTION.BREAK",
+				"execute_number": 2,
+				"retry_number": 0,
+				"image_path": "../Images/mementomori/Click00*.png",
+				"interval_time": 10,
+				"recognition_confidence": 0.99,
+				"recognition_grayscale" : true
+			}
+		},		
+		{
+			"name": "MementomoryRun02",
+			"type": "Recognition",
+			"condition": ["Result.MementomoryRun01=True"],
+			"setting": {
+				"action": "ACTION.DOUBLE_CLICK",
+				"end_condition": "RESULT.OK",
+				"end_action": "END_ACTION.BREAK",
+				"execute_number": 2,
+				"retry_number": 0,
+				"image_path": "../Images/mementomori/Click00*.png",
+				"interval_time": 10,
+				"recognition_confidence": 0.99,
+				"recognition_grayscale" : true
+			}
+		}
+
+	],
+	"HouchClick01":
+	[
+		{
+			"name": "HouchRun01",
+			"type": "Recognition",
+			"setting": {
+				"action": "ACTION.DOUBLE_CLICK",
+				"end_condition": "RESULT.OK",
+				"end_action": "END_ACTION.BREAK",
+				"execute_number": 2,
+				"retry_number": 0,
+				"image_path": "../Images/image00/*.png",
+				"interval_time": 10,
+				"recognition_confidence": 0.99,
+				"recognition_grayscale": true
+			}
+		}
+	],
+	"HouchClick02":
+	[
+		{
+			"name": "HouchRun02",
+			"type": "Recognition",
+			"setting": {
+				"action": "ACTION.DOUBLE_CLICK",
+				"end_condition": "RESULT.OK",
+				"end_action": "END_ACTION.BREAK",
+				"execute_number": 2,
+				"retry_number": 0,
+				"image_path": "../Images/image02/*.png",
+				"interval_time": 10,
+				"recognition_confidence": 0.99,
+				"recognition_grayscale": true
+			}
+		}
+	],
+	"HouchClick03":
+	[
+		{
+			"name": "HouchRun03",
+			"type": "Recognition",
+			"setting": {
+				"action": "ACTION.DOUBLE_CLICK",
+				"end_condition": "RESULT.OK",
+				"end_action": "END_ACTION.BREAK",
+				"execute_number": 2,
+				"retry_number": 0,
+				"image_path": "../Images/image03/*.png",
+				"interval_time": 10,
+				"recognition_confidence": 0.99,
+				"recognition_grayscale": true
+			}
+		}
+	],
+	"HouchClick04":
+	[
+		{
+			"name": "HouchRun04",
+			"type": "Recognition",
+			"setting": {
+				"action": "ACTION.DOUBLE_CLICK",
+				"end_condition": "RESULT.OK",
+				"end_action": "END_ACTION.BREAK",
+				"execute_number": 2,
+				"retry_number": 0,
+				"image_path": "../Images/image04/*.png",
+				"interval_time": 10,
+				"recognition_confidence": 0.99,
+				"recognition_grayscale": true
+			}
+		}
+	],
+	"HouchClick05":
+	[
+		{
+			"name": "HouchRun05",
+			"type": "Recognition",
+			"setting": {
+				"action": "ACTION.DOUBLE_CLICK",
+				"end_condition": "RESULT.OK",
+				"end_action": "END_ACTION.BREAK",
+				"execute_number": 2,
+				"retry_number": 0,
+				"image_path": "../Images/image05/*.png",
+				"interval_time": 10,
+				"recognition_confidence": 0.99,
+				"recognition_grayscale": true
+			}
+        }
+	],
+	"HouchClick06":
+	[
+		{
+			"name": "HouchRun06",
+			"type": "Recognition",
+			"setting": {
+				"action": "ACTION.DOUBLE_CLICK",
+				"end_condition": "RESULT.OK",
+				"end_action": "END_ACTION.BREAK",
+				"execute_number": 2,
+				"retry_number": 0,
+				"image_path": "../Images/image06/*.png",
+				"interval_time": 10,
+				"recognition_confidence": 0.99,
+				"recognition_grayscale": true
+			}
+        }
+	],
+	"ShutDown":
+	[
+		{
+			"name": "ShutDown",
+			"type": "ShutDown",
+			"setting": {}
+        }
+	]	
+}

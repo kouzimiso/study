@@ -96,16 +96,16 @@ class Recognition:
         #ENUMがDictionaryで使えないのでasdictは使えない。
         #setting_dictionary = dataclasses.asdict(data)
         setting_dictionary={
-            "action":self.Set_StringData(data.action,auto.DATA_TYPE.STRING),
-            "end_condition": self.Set_StringData(data.end_condition,auto.DATA_TYPE.ENUM),
+            "action" : self.Set_StringData(data.action,auto.DATA_TYPE.STRING),
+            "end_condition" : self.Set_StringData(data.end_condition,auto.DATA_TYPE.ENUM),
             "execute_number" : int(data.execute_number),
-            "retry_number":int(data.retry_number),
-            "end_action":self.Set_StringData(data.end_action,auto.DATA_TYPE.ENUM),
-            "image_path": self.Set_StringData(data.image_path,auto.DATA_TYPE.STRING),
-            "interval_time":float(data.interval_time),
-            "recognition_confidence":float(data.recognition_confidence),
-            "recognition_grayscale":float(data.recognition_grayscale)
-            }
+            "retry_number" : int(data.retry_number),
+            "end_action" : self.Set_StringData(data.end_action,auto.DATA_TYPE.ENUM),
+            "image_path" : self.Set_StringData(data.image_path,auto.DATA_TYPE.STRING),
+            "interval_time" : float(data.interval_time),
+            "recognition_confidence" : float(data.recognition_confidence),
+            "recognition_grayscale" : data.recognition_grayscale
+        }
         return setting_dictionary
 
     def Set_BySettingDictionary(self,input_dictionary):
@@ -117,7 +117,7 @@ class Recognition:
         image_path=self.Get_Data("image_path",auto.DATA_TYPE.STRING,input_dictionary)
         interval_time=self.Get_Data("interval_time",auto.DATA_TYPE.NUMBER,input_dictionary)
         recognition_confidence=self.Get_Data("recognition_confidence",auto.DATA_TYPE.FLOAT,input_dictionary)
-        recognition_grayscale=self.Get_Data("recognition_grayscale",auto.DATA_TYPE.FLOAT,input_dictionary)
+        recognition_grayscale=self.Get_Data("recognition_grayscale",auto.DATA_TYPE.BOOL,input_dictionary)
         self.setting = RecognitionInfomation(action, end_condition, end_action, execute_number, retry_number, image_path, interval_time, recognition_confidence, recognition_grayscale)
 
     def Get_Data(self,data_name,data_type=auto.DATA_TYPE.ENUM,data_dictionary =None ):
@@ -130,8 +130,10 @@ class Recognition:
             return auto.enum_dictionary[parameter_name]
         elif data_type == auto.DATA_TYPE.NUMBER:
             return int(data_dictionary[data_name])
-        elif data_type == auto.DATA_TYPE.FLOAT:
-            return float(data_dictionary[data_name])
+        elif data_type == auto.DATA_TYPE.NUMBER:
+            return int(data_dictionary[data_name])
+        elif data_type == auto.DATA_TYPE.BOOL:
+            return data_dictionary[data_name]
         elif data_type == auto.DATA_TYPE.STRING:
             return str(data_dictionary[data_name])            
         else:
@@ -151,40 +153,39 @@ class Recognition:
             return  str(data) 
 
     def CheckSettingDictionary(self,input_dictionary):
-        result={}
-        result["action"]=type(input_dictionary["action"])
-        result["end_condition"]=type(input_dictionary["end_condition"])
-        result["end_action"]=type(input_dictionary["end_action"])
-        result["execute_number"]=type(input_dictionary["execute_number"])
-        result["retry_number"]=type(input_dictionary["retry_number"])
-        result["image_path"]=type(input_dictionary["image_path"])
-        result["interval_time"]=type(input_dictionary["interval_time"])
-        result["recognition_confidence"]=type(input_dictionary["recognition_confidence"])
-        result["recognition_grayscale"]=type(input_dictionary["recognition_grayscale"])
-        print(result)
-        return result
-
-        
-    def CheckSetting(self,recognition_information=None):
-        result={}
+        result_type = {}
+        result_type["action"] = type(input_dictionary["action"])
+        result_type["end_condition"] = type(input_dictionary["end_condition"])
+        result_type["end_action"] = type(input_dictionary["end_action"])
+        result_type["execute_number"] = type(input_dictionary["execute_number"])
+        result_type["retry_number"] = type(input_dictionary["retry_number"])
+        result_type["image_path"] = type(input_dictionary["image_path"])
+        result_type["interval_time"] = type(input_dictionary["interval_time"])
+        result_type["recognition_confidence"] = type(input_dictionary["recognition_confidence"])
+        result_type["recognition_grayscale"] = type(input_dictionary["recognition_grayscale"])
+        print(result_type)
+        return result_type
+    
+    def CheckSetting(self,recognition_information = None):
+        result_type = {}
         if(recognition_information==None):
             recognition_information = self.setting
-        result["action"]=type(recognition_information.action)
-        result["end_condition"]=type(recognition_information.end_condition)
-        result["end_action"]=type(recognition_information.end_action)
-        result["execute_number"]=type(recognition_information.execute_number)
-        result["retry_number"]=type(recognition_information.retry_number)
-        result["image_path"]=type(recognition_information.image_path)
-        result["interval_time"]=type(recognition_information.interval_time)
-        result["recognition_confidence"]=type(recognition_information.recognition_confidence)
-        result["recognition_grayscale"]=type(recognition_information.recognition_grayscale)
-        print(result)
-        return result
+        result_type["action"] = type(recognition_information.action)
+        result_type["end_condition"] = type(recognition_information.end_condition)
+        result_type["end_action"] = type(recognition_information.end_action)
+        result_type["execute_number"] = type(recognition_information.execute_number)
+        result_type["retry_number"] = type(recognition_information.retry_number)
+        result_type["image_path"] = type(recognition_information.image_path)
+        result_type["interval_time"] = type(recognition_information.interval_time)
+        result_type["recognition_confidence"] = type(recognition_information.recognition_confidence)
+        result_type["recognition_grayscale"] = type(recognition_information.recognition_grayscale)
+        print(result_type)
+        return result_type
     action : auto.ACTION 
     end_condition : auto.RESULT 
     end_action : auto.END_ACTION
-    execute_number : int =0
-    retry_number : int =0 
+    execute_number : int = 0
+    retry_number : int = 0 
     image_path : str = ""
     interval_time : float = 0.1
     recognition_confidence : float = 1.0
@@ -194,21 +195,21 @@ class Recognition:
             
 
     def Execute(self):
-        result={}
+        result_dictionary={}
         result_action = Images_Action_ByInformation(self.setting)
         #Step:Set the result to the data.
         if Condition_Judge(result_action,auto.RESULT.NG):
-            result["result"]=False
+            result_dictionary["result"]=False
         else:
             result["result"]=True
 
         result_detail={}
         result_detail["detail"]=str(result_action)
-        result["detail"]=result_detail
+        result_dictionary["detail"]=result_detail
 
         result_error={}
-        result["error"]=result_error
-        return result
+        result_dictionary["error"]=result_error
+        return result_dictionary
 
 
 def Image_SearchAndXY(image_path, recognition_grayscale, recognition_confidence):
@@ -291,7 +292,7 @@ def Condition_Judge(condition, result):
 Images_Action_Result = {}
 def Images_Action_ResultInit(dictionary , detect = 0 , undetect = 0 , total_detect = 0 , total_undetect = 0):
     for dictionary_key in dictionary.keys():
-        dictionary[dictionary_key]["detect"]  = detect
+        dictionary[dictionary_key]["detect"] = detect
         dictionary[dictionary_key]["undetect"] = undetect
         #print("Images_Action_ResultInit:"+dictionary_key)
         if dictionary_key not in dictionary:
@@ -299,7 +300,6 @@ def Images_Action_ResultInit(dictionary , detect = 0 , undetect = 0 , total_dete
             dictionary[dictionary_key]["total_undetect"] = total_undetect
     #print(dictionary)
     return dictionary
-
 
 def rate(value,*args):
     total=value+sum(args)
@@ -310,9 +310,9 @@ def rate(value,*args):
     
 def Images_Action_ResultSet(dictionary,dictionary_key,detect,undetect):
     if dictionary_key in dictionary:
-        dictionary[dictionary_key]["detect"]  += detect
+        dictionary[dictionary_key]["detect"] += detect
         dictionary[dictionary_key]["undetect"] += undetect
-        dictionary[dictionary_key]["total_detect"]  += detect
+        dictionary[dictionary_key]["total_detect"] += detect
         dictionary[dictionary_key]["total_undetect"] += undetect
         
         dictionary[dictionary_key]["detect_rate"] = rate(dictionary[dictionary_key]["detect"] , dictionary[dictionary_key]["undetect"])        
@@ -324,9 +324,9 @@ def Images_Action_ResultSet(dictionary,dictionary_key,detect,undetect):
             "detect" : detect,
             "undetect" : undetect,
             "detect_rate" : rate(detect,undetect),            
-            "total_detect" :detect,
+            "total_detect" : detect,
             "total_undetect" : undetect,
-            "total_detect_rate" :  rate(detect,undetect)   
+            "total_detect_rate" : rate(detect,undetect)   
         }
     return dictionary
 
@@ -339,7 +339,7 @@ def InfomationToString():
         #return str(Images_Action_Result).encode().decode("string-escape")
     
 def WriteInfomationToJson(file_path):
-    global Images_Action_Result    
+    global Images_Action_Result
     json_control.WriteDictionary(file_path,Images_Action_Result)
 
 def ReadInfomationFromJson(file_path):
@@ -444,7 +444,6 @@ def Images_Action_BySettingDictionary(setting = {}):
     if setting == {} :
         setting.Get_SettingDictionary(setting)
 
-
 # 条件が成立した時に繰り返し実行する。
 def Images_ConditionCheckAndAction(name, condition, action_recognition_information, x_offset_dictionary, y_offset_dictionary):
     action_result = auto.RESULT.NG
@@ -461,12 +460,9 @@ def Images_ConditionCheckAndAction(name, condition, action_recognition_informati
         action_result = Images_Action_ByInformation(action_recognition_information, x_offset_dictionary, y_offset_dictionary)
     return action_result
 
-
 def Image_AroundMouse(file_path, flag_overwrite=True, wide=0, height=0, dupplicate_format="{}({:0=3}){}"):
     x, y = pyautogui.position()
-
     Image_AroundPoint(file_path, flag_overwrite, x, y, wide, height, dupplicate_format)
-
 
 def Image_AroundPoint(file_path, flag_overwrite=True, x=0, y=0, wide=0, height=0, dupplicate_format="{}({:0=3}){}"):
     if flag_overwrite == False:

@@ -37,9 +37,10 @@ class ACTION(enum.Enum):
 
 class DATA_TYPE(enum.Enum):
     ENUM = 0
-    NUMBER = 1
-    FLOAT = 2
-    STRING = 3
+    BOOL = 1
+    NUMBER = 2
+    FLOAT = 3
+    STRING = 4
 
 class RUN_STATUS(enum.Enum):
     INITIAL = 0
