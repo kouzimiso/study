@@ -33,11 +33,9 @@ def StartUp(plan_list_name,file_path):
     task = Task.Task(file_path)
     task.Run(plan_list_name)
         
-
 def main():
     #init()
     StartUp("Start","RunGame.json")
-
 
 if __name__ == "__main__":
     sys.exit(main())
