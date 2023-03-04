@@ -35,7 +35,7 @@ data1_position = []
 data2_position = []
 #C級育成、B級育成ボタンの座標
 #offset=90
-offset=90
+offset=0
 
 tapxy=[
         [400 , 1480 + offset],     #c級/cancel x,y

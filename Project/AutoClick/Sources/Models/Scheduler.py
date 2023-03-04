@@ -9,18 +9,18 @@ import Task
 
 
 
-file_path_setting="scheduler.json"
-
+file_path_setting="Scheduler.json"
 TaskThreads={}
+
 class Schedule:
     Name : str
     Plans : list
 
-    def AddPlan(plan):
-        Plans.append(plan)
+    def AddPlan(self , plan):
+        self.Plans.append(plan)
 
-    def Execute():       
-        for plan in Plans():
+    def Execute(self):       
+        for plan in self.Plans:
             print("plan.name")
 
 
@@ -36,7 +36,7 @@ def StartUp(plan_list_name,file_path):
 
 def main():
     #init()
-    StartUp("Start","RunGame.txt")
+    StartUp("Start","RunGame.json")
 
 
 if __name__ == "__main__":

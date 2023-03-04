@@ -154,7 +154,7 @@ class Recognition:
             "interval_time" : float(data.interval_time),
             "recognition_confidence" : float(data.recognition_confidence),
             "recognition_grayscale" : float(data.recognition_grayscale)
-            }
+        }
         return setting_dictionary
 
     def Set_BySettingDictionary(self,input_dictionary):
@@ -211,7 +211,6 @@ class Recognition:
         result["interval_time"]=type(input_dictionary["interval_time"])
         result["recognition_confidence"]=type(input_dictionary["recognition_confidence"])
         result["recognition_grayscale"]=type(input_dictionary["recognition_grayscale"])
-        print(result)
         return result
 
         
@@ -228,7 +227,6 @@ class Recognition:
         result["interval_time"]=type(recognition_information.interval_time)
         result["recognition_confidence"]=type(recognition_information.recognition_confidence)
         result["recognition_grayscale"]=type(recognition_information.recognition_grayscale)
-        print(result)
         return result
     action : ACTION 
     end_condition : RESULT 

@@ -6,7 +6,7 @@ import log
 import Parser
 class DayOfTheWeek:
     message_list=[]
-    def __init__(self , set_monday=0 , flag_sunday_start=False):
+    def __init__(self , set_monday=0 , flag_sunday_start=False,setting_dictionary={}):
         self.MonDay = set_monday+0
         self.TuesDay = set_monday+1
         self.WednesDay = set_monday+2
@@ -17,7 +17,9 @@ class DayOfTheWeek:
             self.SunDay = set_monday-1
         else:
             self.SunDay = set_monday+6
+        self.logger = log.Logs(setting_dictionary)
 
+    
     def SetNowInformation(self):
         Information = {}
         Information["Now"] = datetime.datetime.now()
@@ -86,18 +88,13 @@ class DayOfTheWeek:
         day2 = setting.get("day2")
         day3 = setting.get("day3")
 
-        print("######Check_Day#")
         day_information = self.SetDayInformation()
         now_information = self.SetNowInformation()
         day1_information = self.StringToDay(day1,now_information,day_information)
         day2_information = self.StringToDay(day2,now_information,day_information)
         day3_information = self.StringToDay(day3,now_information,day_information)
         result ={"result":False,"detail":{},"error":[]}
-        print(day1_information)
-        print(day2_information)
-        print(day3_information)
         if day1_information["type"] == "WeekAndTime" and day2_information["type"] == "DateTime" and day3_information["type"] == "WeekAndTime":
-            print("######Check_WithinRangeDay Start#")
             date_time =day2_information["date_time"]
             time1 = day1_information["time"]
             day_of_weekday1 = day1_information["day_of_weekday"]
@@ -105,13 +102,8 @@ class DayOfTheWeek:
             day_of_weekday2 = day3_information["day_of_weekday"]
             result["result"] = self.Check_WithinRangeDay(date_time,time1, day_of_weekday1,time2,day_of_weekday2)
          #Step:Set the result to the data.
-
-        result_detail={}
-        result["detail"]=""
-
-        result_error={}
-        result["error"]=""
-        return result
+        result_detail={"detail":""}
+        result_error={"error":""}
 
     def StringToDay(self,day_string,now_information,day_information):
         parser = Parser.Parser()
@@ -158,22 +150,21 @@ class DayOfTheWeek:
             flag_include_today2 = False
         day_after=self.Get_DayAfterWeekDay(date_time_time2,day_of_weekday2,flag_include_today2)
         message = "[確認日時]" + date_time.strftime ( '%Y/%m/%d(%A) %H:%M' ) 
-        log.Log_MessageAdd(self.message_list,message)
-        
+        self.logger.log(message)
         day_of_weekday1_string=self.Get_DayOfTheWeek_String(day_of_weekday1)
         day_of_weekday2_string=self.Get_DayOfTheWeek_String(day_of_weekday2)
         message = "[設定曜日区間]" + day_of_weekday1_string + time1.strftime ( '%H:%M' ) +"～"+ day_of_weekday2_string +time2.strftime ( '%H:%M' ) 
-        log.Log_MessageAdd(self.message_list,message)     
+        self.logger.log(message)     
         message = "[日時区間]" + day_before.strftime ( '%Y/%m/%d(%A) %H:%M' ) +"～"+day_after.strftime ( '%Y/%m/%d(%A) %H:%M' ) 
-        log.Log_MessageAdd(self.message_list,message)     
+        self.logger.log(message)     
         #前と後の時間が7日間以内ならTrue,そうでないならFaultを返す。
         time_delta = day_after - day_before
         time_delta_7day= datetime.timedelta(days=7)
         if time_delta < time_delta_7day:
             message = "[区間判定]" + str(time_delta )+"(期間内)" 
-            log.Log_MessageAdd(self.message_list,message)
+            self.logger.log(message)
             return True
         else:
             message = "[区間判定]" + str(time_delta )+"(期間外)" 
-            log.Log_MessageAdd(self.message_list,message)
+            self.logger.log(message)
             return False

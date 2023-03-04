@@ -34,11 +34,12 @@ import Scheduler
 import Task
 import Action
 import Parser
-
+import Judge
+import Recognition
 
 #log関係
 message_list=[]
-logfile_path='../Log/log_test_auto.txt'#準備必要問題:Folder
+logfile_path='../Log/log_test_auto.json'#準備必要問題:Folder
 
 check_planlist={
 	"Start": 
@@ -46,9 +47,9 @@ check_planlist={
 		{
 			"name" : "StartTask",
 		 	"type" : "RunPlanLists",
-		 	"setting" : {
-				"FilePath" : "",
-				"RunPlanLists" : [
+		 	"settings" : {
+				"file_path" : "",
+				"plan_lists" : [
 					"HotSpotON",
 			 		"Mementomori",
  					"Houchi",
@@ -57,258 +58,13 @@ check_planlist={
 			}
 		}
 	],
-	"Mementomori" : 
-	[
-		{
-			"name" : "StartTask",
-			"type" : "RunPlanLists",
-	 		"setting" : {
-		 		"FilePath" : "",
-		 		"RunPlanLists" : [
-					"CloseWindow",
-					"MementomoriClick01",
-		 			"MementomoriClick02"
-				]
-			}
-		}
-	],
-	"Houchi" : 
-	[
-		{
-	 		"name" : "StartTask",
-			"type" : "RunPlanLists",
-			"setting" : {
-				"FilePath" : "",
- 		 		"RunPlanLists" : [
-					"CloseWindow",
-		 			"HouchClick01",
-					"HouchClick02"
-				]
-			}
-		}
-	],
 
-	"HotSpotON":
-	[
-		{
-			"name" : "HotSpotON",
-			"type" : "Recognition",
-			"setting" : {
-				"action" : "ACTION.CLICK",
-				"end_condition" : "RESULT.OK",
-				"end_action" : "END_ACTION.FOLDER_END_BREAK",
-				"execute_number" : 2,
-				"retry_number" : 2,
-				"image_path" : "../Images/hotspot/*.png",
-				"interval_time" : 1.8,
-				"recognition_confidence" : 0.95,
-				"recognition_grayscale" : True
-			}
-		}
-	],
-
-	"CloseWindow":
-	[
-		{
-			"name" : "CloseWindow",
-			"type" : "Recognition",
-			"setting" : {
-				"action" : "ACTION.CLICK",
-				"end_condition" : "RESULT.OK",
-				"end_action" : "END_ACTION.CONTINUE",
-				"execute_number" : 2,
-				"retry_number" : 2,
-				"image_path" : "../Images/image_end/*.png",
-				"interval_time" : 1.8,
-				"recognition_confidence" : 0.95,
-				"recognition_grayscale" : True
-			}
-		}
-	],
-
-	"MementomoriClick01":
-	[
-		{
-			"name" : "MementomoryRun01",
-			"type" : "Recognition",
-			"setting" : {
-				"action" : "ACTION.DOUBLE_CLICK",
-				"end_condition" : "RESULT.OK",
-				"end_action" : "END_ACTION.BREAK",
-				"execute_number" : 1,
-				"retry_number" : 3,
-				"image_path" : "../Images/mementomori/Click00*.png",
-				"interval_time" : 1.8,
-				"recognition_confidence" : 0.95,
-				"recognition_grayscale" : True
-			}
-		},
-		{
-			"name" : "MementomoryRun02",
-			"type" : "Recognition",
-			"condition" : ["Result.MementomoryRun01=True"],
-			"setting" : {
-				"action" : "ACTION.DOUBLE_CLICK",
-				"end_condition" : "RESULT.NG",
-				"end_action" : "END_ACTION.CONTINUE",
-				"execute_number" : 25,
-				"retry_number" : 100,
-				"image_path" : "../Images/mementomori/Click00*.png",
-				"interval_time" : 5,
-				"recognition_confidence" : 0.95,
-				"recognition_grayscale" : True
-			}
-		},
-		{
-			"name" : "MementomoryRun03",
-			"type" : "Recognition",
-			"condition" : ["Result.MementomoryRun02=True"],
-			"setting" : {
-				"action" : "ACTION.CLICK",
-				"end_condition" : "RESULT.NG",
-				"end_action" : "END_ACTION.CONTINUE",
-				"execute_number" : 25,
-				"retry_number" : 100,
-				"image_path" : "../Images/mementomori/Click00*.png",
-				"interval_time" : 5,
-				"recognition_confidence" : 0.95,
-				"recognition_grayscale" : True
-			}
-		},
-		{
-		 	"name" : "Information_Calc" ,
-			"type" : "Information_Calc" ,
-			"setting" : {
-				"expression" : "Result.MementomoryRun01 + Result.MementomoryRun02 + Result.MementomoryRun03",
-				"target_item_list" : [],
-				"target_item_calc_list" : ["detect_rate=detect/(detect+undetect)"],
-				"target_ignore_item_list" : ["total.+"]
-			}
-		},
-		{
-			"name" : "Information_Reset",
-			"type" : "Information_Reset",
-			"setting" : {
-				"expression" : "",
-				"target_item_calc_list" : ["detect_rate=detect/(detect+undetect)"],
-				"target_ignore_item_list" : []
-			}
-		}
-	],
-	"HouchClick01":
-	[
-		{
-			"name": "HouchRun01",
-			"type": "Recognition",
-			"setting": {
-				"action": "ACTION.DOUBLE_CLICK",
-				"end_condition": "RESULT.OK",
-				"end_action": "END_ACTION.BREAK",
-				"execute_number": 2,
-				"retry_number": 0,
-				"image_path": "../Images/image00/*.png",
-				"interval_time": 10,
-				"recognition_confidence": 0.99,
-				"recognition_grayscale": True
-			}
-		}
-	],
-	"HouchClick02":
-	[
-		{
-			"name": "HouchRun02",
-			"type": "Recognition",
-			"setting": {
-				"action": "ACTION.DOUBLE_CLICK",
-				"end_condition": "RESULT.OK",
-				"end_action": "END_ACTION.BREAK",
-				"execute_number": 2,
-				"retry_number": 0,
-				"image_path": "../Images/image02/*.png",
-				"interval_time": 10,
-				"recognition_confidence": 0.99,
-				"recognition_grayscale": True
-			}
-		}
-	],
-	"HouchClick03":
-	[
-		{
-			"name": "HouchRun03",
-			"type": "Recognition",
-			"setting": {
-				"action": "ACTION.DOUBLE_CLICK",
-				"end_condition": "RESULT.OK",
-				"end_action": "END_ACTION.BREAK",
-				"execute_number": 2,
-				"retry_number": 0,
-				"image_path": "../Images/image03/*.png",
-				"interval_time": 10,
-				"recognition_confidence": 0.99,
-				"recognition_grayscale": True
-			}
-		}
-	],
-	"HouchClick04":
-	[
-		{
-			"name": "HouchRun04",
-			"type": "Recognition",
-			"setting": {
-				"action": "ACTION.DOUBLE_CLICK",
-				"end_condition": "RESULT.OK",
-				"end_action": "END_ACTION.BREAK",
-				"execute_number": 2,
-				"retry_number": 0,
-				"image_path": "../Images/image04/*.png",
-				"interval_time": 10,
-				"recognition_confidence": 0.99,
-				"recognition_grayscale": True
-			}
-		}
-	],
-	"HouchClick05":
-	[
-		{
-			"name": "HouchRun05",
-			"type": "Recognition",
-			"setting": {
-				"action": "ACTION.DOUBLE_CLICK",
-				"end_condition": "RESULT.OK",
-				"end_action": "END_ACTION.BREAK",
-				"execute_number": 2,
-				"retry_number": 0,
-				"image_path": "../Images/image05/*.png",
-				"interval_time": 10,
-				"recognition_confidence": 0.99,
-				"recognition_grayscale": True
-			}
-		}
-	],
-	"HouchClick06":
-	[
-		{
-			"name": "HouchRun06",
-			"type": "Recognition",
-			"setting": {
-				"action": "ACTION.DOUBLE_CLICK",
-				"end_condition": "RESULT.OK",
-				"end_action": "END_ACTION.BREAK",
-				"execute_number": 2,
-				"retry_number": 0,
-				"image_path": "../Images/image06/*.png",
-				"interval_time": 10,
-				"recognition_confidence": 0.99,
-				"recognition_grayscale": True
-			}
-		}
-	],
 	"ShutDown":
 	[
 		{
 			"name": "ShutDown",
 			"type": "ShutDown",
-			"setting": {}
+			"settings": {}
 		}
 	]	
 }
@@ -351,10 +107,48 @@ class Test(unittest.TestCase):
         parser = Parser.Parser()
         actual= parser.SplitByDictionary(text,data_dictioanry)
         self.assertEqual(expected,actual)
-            
+
+    def test_parser(self):
+        information={
+            "Result_DayCondition1":{"result" : True , "detail" : ""},
+            "Result_DayCondition2":{"result" : False , "detail" : ""},
+            "Result_DayCondition3":{ "detail" : ""},
+            "Result_DayCondition4":{ "detail" : "Result.OK"}
+        }
+        judge = Judge.Judge()
+
+        expression="Result_DayCondition1=True"
+        result=judge.Result_ByDictionaryInformation(expression,information)
+        expected = True
+        actual= result
+        self.assertEqual(expected,actual)
+
+        expression="Result_DayCondition2=True"
+        result=judge.Result_ByDictionaryInformation(expression,information)
+        expected = False
+        actual= result
+        self.assertEqual(expected,actual)
+
+        expression="Result_DayCondition3=None"
+        result=judge.Result_ByDictionaryInformation(expression,information)
+        expected = True
+        actual= result
+        self.assertEqual(expected,actual)
+        
+        expression="Result_DayCondition1=True,Result_DayCondition2=True"
+        result=judge.Result_ByDictionaryInformation(expression,information)
+        expected = True
+        actual= result
+        self.assertEqual(expected,actual)
+        
+        expression="Result_DayCondition4.detail=Result.OK"
+        result=judge.Result_ByDictionaryInformation(expression,information)
+        expected = True
+        actual= result
+        self.assertEqual(expected,actual)
         
     def test_Auto5_dictionarytodata(self):
-        recognition_information=auto.RecognitionInfomation(auto.ACTION.DOUBLE_CLICK ,auto.RESULT.OK, auto.END_ACTION.BREAK , 2 , 5 ,'./Test/*.png' , 1.8 , 0.8 , True)
+        recognition_information=Recognition.RecognitionInfomation(auto.ACTION.DOUBLE_CLICK ,auto.RESULT.OK, auto.END_ACTION.BREAK , 2 , 5 ,'./Test/*.png' , 1.8 , 0.8 , True)
         setting_dictionary = {
             "action" : "ACTION.CLICK" ,
             "end_condition" : "RESULT.OK",
@@ -364,14 +158,19 @@ class Test(unittest.TestCase):
             "image_path" : "../Images/test/*.png",
             "interval_time" : 1,
             "recognition_confidence" : 0.1,
-            "recognition_grayscale" : True
+            "recognition_grayscale" : True,
+            "log_file_path_list":["../Log/log_test_all.log","../Log/log_test1-1.log"],
+            "log_print_standardoutput" : True,
+            "log_function" : True,
+            "log_arguments" : False,
+            "step_check_mode" : True
         }
         #設定でInstance作成
-        recognition=auto.Recognition(setting_dictionary)
+        recognition=Recognition.Recognition(setting_dictionary)
         #設定を読みだす
         read_setting_dictionary = recognition.Get_SettingDictionary()
         #読みだした設定で再度Instance作成
-        recognition=auto.Recognition(read_setting_dictionary)
+        recognition=Recognition.Recognition(read_setting_dictionary)
         #設定のCheck
         recognition.CheckSettingDictionary(setting_dictionary)
         recognition.CheckSettingDictionary(read_setting_dictionary)
@@ -384,15 +183,17 @@ class Test(unittest.TestCase):
             [
                 {
                     "name":"test1-1",
+                    "step_check_mode" : True,
                     "type":"Recognition",
                     "comment":"起動開始のTaskは最終的には日時判断はさせても良いが、参照できるInfomaionが少ないので基本的にcondition無しになるかも。",
-                    "setting" : setting_dictionary,
+
+                    "settings" : setting_dictionary,
                 },
                 {
                     "name":"test1-2",
                     "type":"Recognition",
-                    "condition": ["Result.test1-1=True"],
-                    "setting" : setting_dictionary
+                    "condition_list": ["Result_test1-1=True"],
+                    "settings" : setting_dictionary
                 }
                 
             ],
@@ -401,13 +202,15 @@ class Test(unittest.TestCase):
                 {
                     "name":"test2",
                     "type":"RunPlanLists",
-                    "setting" :
+                    "settings" :
                     {
-                        "FilePath":"PlanLists.json",
-                        "RunPlanLists":[
+                        "file_path":"PlanLists.json",
+                        "plan_lists":[
                             "test2-1" ,
-                            "test2-2"
-                        ]
+                            "test2-2"],
+                        "log_file_path_list":["../Log/log_test_all.log","../Log/log_test2.log"],
+                        "log_print_standardoutput" : True
+                        
 
                     }
                 }
@@ -418,17 +221,20 @@ class Test(unittest.TestCase):
                     "name":"DayCondition1",
                     "type":"Check_Day",
                     "comment":"比較する時刻に矛盾が無いことを確認する関数。Day1,Day2には特定の日付か曜日を含む時間を入れられる。day2には曜日は入れられない。day1かday3片方が曜日の場合は一週間回って必ず成立するのでTrue。",
-                    "setting" : {
+                    "settings" : {
                         "day1" :"月曜日10:20",
                         "day2" :"Now",
-                        "day3" :"水曜日22:30"
+                        "day3" :"水曜日22:30",
+                        "log_file_path_list":"../Log/log_test_all.log"
+
                     }
                 },
                 {
                     "name":"DayCondition2",
                     "type":"Check_Day",
                     "comment":"比較する時刻に矛盾が無いことを確認する関数。Day1,Day2には特定の日付か曜日を含む時間を入れられる。day2には曜日は入れられない。day1かday3片方が曜日の場合は一週間回って必ず成立するのでTrue。",
-                    "setting" : {
+                    "settings" : {
+                        "log_print_standardoutput" : True,
                         "day1" :"水曜日22:30",
                         "day2" :"Now",
                         "day3" :"月曜日10:20"
@@ -437,7 +243,8 @@ class Test(unittest.TestCase):
                 {
                     "name":"DayCondition3",
                     "type":"Check_Day",
-                    "setting" : {
+                    "settings" : {
+                        "log_file_path_list":"../Log/log_test_all.log",
                         "day1" :"木曜10:20",
                         "day2" :"Now",
                         "day3" :"Friday 22:30"
@@ -447,15 +254,15 @@ class Test(unittest.TestCase):
                 {
                     "name":"test2-1-1",
                     "type":"Recognition",
-                    "condition" : ["Result.DayCondition1=True,Result.DayCondition2=True"],
-                    "setting" : setting_dictionary,
+                    "condition_list" : ["Result_DayCondition1=True,Result_DayCondition2=True"],
+                    "settings" : setting_dictionary,
                 },
                 {
                     "name":"test2-1-2",
                     "type":"Recognition",
                     "comment":"Check_Dayをconditionに入れたバージョン。符号が<=で良いかどうか微妙。",
-                    "condition" : ["水曜日10:20<=Now<=月曜日22:30,木曜日10:20<=Now<=金曜日22:30","Result.test2-1-1=True"],
-                    "setting" : setting_dictionary
+                    "condition_list" : ["水曜日10:20<=Now<=月曜日22:30,木曜日10:20<=Now<=金曜日22:30","Result_test2-1-1=True"],
+                    "settings" : setting_dictionary
                 }
             ],
             "test2-2" :
@@ -463,12 +270,12 @@ class Test(unittest.TestCase):
                 {
                     "name":"test2-2-1",
                     "type":"Recognition",
-                    "setting" : setting_dictionary,
+                    "settings" : setting_dictionary,
                 },
                 {
                     "name":"test2-2-2",
                     "type":"Recognition",
-                    "setting" : setting_dictionary
+                    "settings" : setting_dictionary
                 }
             ]
 
@@ -489,16 +296,9 @@ class Test(unittest.TestCase):
 
 #Main Program実行部
 def main():
-    
-    log.Log_MessageAdd(message_list,"Log動作test1")
-    log.Log_MessageAdd(message_list,"Log動作test2")
-    log.Write_MessageList(logfile_path,message_list)
-    log.Clear_MessageList(message_list)
-    
+
+
     unittest.main()
-    
-    log.Log_MessageAdd(message_list,"test3")
-    log.Write_MessageList(logfile_path,message_list)
 
 if __name__ == "__main__":
     sys.exit(main())

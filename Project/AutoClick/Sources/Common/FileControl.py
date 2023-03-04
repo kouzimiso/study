@@ -5,7 +5,9 @@ import sys
 import pathlib
 
 import rename
+import log
 
+MessageList=[]
 
 def Get_FolderSize(folder_path):
     total = 0
@@ -27,19 +29,27 @@ def Get_FilesNumber(folder_path):
                 total += Get_FolderSize(entry.path)
     return total
 
-def Archive_SizeOverFile(file_path,file_maxsize):
+def Archive_SizeOverFile(file_path,file_maxsize, setting={}):
+    global MessageList 
     if os.path.exists(file_path):
         filesize = os.path.getsize(file_path)
         if file_maxsize < filesize:
             root_ext_pair = os.path.splitext(file_path)
             newpath=rename.Name_AddDays(file_path)
-            os.rename(file_path, newpath) 
+            try:
+                os.rename(file_path, newpath) 
+            except PermissionError:
+                print("File " + file_path + " is lock.")
+                #logger = log.Logs(setting)
+                #MessageList = logger.error("File " + file_path + " is lock." )
         
 
 # folder_path: 空き容量確保のために削除できるファイルがあるフォルダのパス
 # folder_maxsize: 削除判断となるフォルダの容量
 # files_maxnumber: 削除判断となるFileの数
-def Delete_OldFiles(folder_path,  folder_maxsize , files_maxnumber):
+def Delete_OldFiles(folder_path,  folder_maxsize , files_maxnumber , setting={}):
+    global MessageList 
+    #logger = log.Logs(setting)
     files = []
     folders = []
     # サブフォルダのPathオブジェクトをイテレート。ファイルとフォルダに振り分ける。
@@ -53,22 +63,39 @@ def Delete_OldFiles(folder_path,  folder_maxsize , files_maxnumber):
     for file in files:  # 古いファイルからイテレート。
         folder_size=Get_FolderSize(folder_path)
         files_number=Get_FilesNumber(folder_path)
-        print("folder size:"+str(folder_size)+"/"+str(folder_maxsize))
-        print("file nuzmber:"+str(files_number)+"/"+str(files_maxnumber))
+        message = {"folder size":str(folder_size)+"/"+str(folder_maxsize),"file number": str(files_number)+"/"+str(files_maxnumber)}
+        print(message)
+        #MessageList = logger.log(message , "INFO")
         # 規定の空き容量、File数を超えた場合
         if folder_maxsize <folder_size :
-            os.remove(file)  # ファイルを削除。
-            print("Size Over the oldest file {} has been removed.".format(file.name))
+            try:
+                os.remove(file)  # ファイルを削除。
+                message = "Size Over the oldest file " + file.name + " has been removed."
+                #MessageList = logger.log(message,"INFO")
+            except PermissionError:
+                message = "File( " + file.name + ") is lock."
+                #MessageList = logger.error(message)
+                continue
+
         elif files_maxnumber < files_number :
-            os.remove(file)  # ファイルを削除。
-            print("File Number Over.The oldest file {} has been removed.".format(file.name))            
+            try:
+                os.remove(file)  # ファイルを削除。
+                message = "File Number Over.The oldest file " + file.name + " has been removed."
+                #MessageList = logger.log(message,"INFO")
+            except PermissionError:
+                message = "File(" + file.name + ") is lock."
+                #MessageList = logger.error(message)
+                continue
+
         else:  # 空き容量が確保出来ていた時はループを出る。
-            break 
+            break
+        print(message)
     folders.sort(key=lambda x: len(x.parents), reverse=True)  # 階層が深い降順に並べる。
     for folder in folders:  # 深い階層から空フォルダを削除する。
         if next(folder.iterdir(), None) is None:  # フォルダ内に子要素がない時。
             folder.rmdir()  # フォルダを削除。 
-            print("The empty folder {} has been removed.".format(folder.name))
+            #MessageList = logger.log("The empty folder " + folder.name + "has been removed.")
+            print("The empty folder " + folder.name + "has been removed.")
 
 def Manage_File(file_path , file_maxsize = 65536, archivefolder_path ="" , folder_maxsize = 262144, files_maxnumber =100):
     Archive_SizeOverFile(file_path ,  file_maxsize)
@@ -77,7 +104,6 @@ def Manage_File(file_path , file_maxsize = 65536, archivefolder_path ="" , folde
         folder_path = archivefolder_path
     else:
         folder_path = pathlib.Path(file_path).parent
-    print(folder_path)
     Delete_OldFiles(folder_path ,  folder_maxsize , files_maxnumber)
 
 def main(file_path , file_maxsize, archivefolder_path , folder_maxsize , files_maxnumber):
