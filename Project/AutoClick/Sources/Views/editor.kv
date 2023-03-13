@@ -1,0 +1,36 @@
+#:kivy 2.0.0
+<Window>:
+    size: 300, 400
+
+<EditorGUI>:
+    rv: rv
+    orientation: 'vertical'
+    padding: 10
+    spacing: 10
+    size_hint: None, None
+    size: 300, 400
+    RecycleView:
+        id: rv
+        viewclass: 'CustomLabel'
+        RecycleBoxLayout:
+            default_size: None, dp(100)
+            default_size_hint: 150, None
+            size_hint_y: None
+            height: self.minimum_height
+            orientation: 'vertical'
+    #Button:
+    #    text: 'Update'
+    #    on_press: root.update_data()
+ 
+<TextInput>
+    size_hint_y: None
+    height: 30
+<CustomLabel@Label>:
+    size_hint_x: None
+    width: dp(100)
+    text_size: self.width, None
+
+<MyTextInput@TextInput>:
+    height: 200
+
+

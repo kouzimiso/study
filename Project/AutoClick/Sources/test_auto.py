@@ -79,74 +79,7 @@ class Test(unittest.TestCase):
         actual=2*num
         self.assertEqual(expected,actual)
 
-    def test_split(self):
-        #"Searater複数個を含めて文字列をsplitで分割する正規表現(***|***|***)"
-        text="水曜日10:20<=Now<=月曜日22:30"
-        text_list =re.split("(==|<=|>=|<>|<|=|>)",text)
-        print(text_list)
-        
-        expected =["水曜日10:20","<=","Now","<=","月曜日22:30"]
-        actual= text_list
-        self.assertEqual(expected,actual)
-        
-    def test_split2(self):
-        data_dictioanry={"月曜日":1,"火曜日":{"type":"曜日","name":"Turesday"},"水曜日":3}
-        text="水曜日10:20<=Now<=月曜日22:30"
-        regular_expression = ""
-        for key in data_dictioanry.keys():
-            if regular_expression == "":
-                regular_expression="(" + key
-            else:
-                regular_expression = regular_expression + "|" +key
-        regular_expression = regular_expression + ")"
-        text_list =re.split(regular_expression , text)
-        text_list.remove("")
-        print (text_list)
-                
-        expected =text_list
-        parser = Parser.Parser()
-        actual= parser.SplitByDictionary(text,data_dictioanry)
-        self.assertEqual(expected,actual)
 
-    def test_parser(self):
-        information={
-            "Result_DayCondition1":{"result" : True , "detail" : ""},
-            "Result_DayCondition2":{"result" : False , "detail" : ""},
-            "Result_DayCondition3":{ "detail" : ""},
-            "Result_DayCondition4":{ "detail" : "Result.OK"}
-        }
-        judge = Judge.Judge()
-
-        expression="Result_DayCondition1=True"
-        result=judge.Result_ByDictionaryInformation(expression,information)
-        expected = True
-        actual= result
-        self.assertEqual(expected,actual)
-
-        expression="Result_DayCondition2=True"
-        result=judge.Result_ByDictionaryInformation(expression,information)
-        expected = False
-        actual= result
-        self.assertEqual(expected,actual)
-
-        expression="Result_DayCondition3=None"
-        result=judge.Result_ByDictionaryInformation(expression,information)
-        expected = True
-        actual= result
-        self.assertEqual(expected,actual)
-        
-        expression="Result_DayCondition1=True,Result_DayCondition2=True"
-        result=judge.Result_ByDictionaryInformation(expression,information)
-        expected = True
-        actual= result
-        self.assertEqual(expected,actual)
-        
-        expression="Result_DayCondition4.detail=Result.OK"
-        result=judge.Result_ByDictionaryInformation(expression,information)
-        expected = True
-        actual= result
-        self.assertEqual(expected,actual)
-        
     def test_Auto5_dictionarytodata(self):
         recognition_information=Recognition.RecognitionInfomation(auto.ACTION.DOUBLE_CLICK ,auto.RESULT.OK, auto.END_ACTION.BREAK , 2 , 5 ,'./Test/*.png' , 1.8 , 0.8 , True)
         setting_dictionary = {
@@ -159,6 +92,7 @@ class Test(unittest.TestCase):
             "interval_time" : 1,
             "recognition_confidence" : 0.1,
             "recognition_grayscale" : True,
+            "judge_default_result":True,
             "log_file_path_list":["../Log/log_test_all.log","../Log/log_test1-1.log"],
             "log_print_standardoutput" : True,
             "log_function" : True,
@@ -182,11 +116,15 @@ class Test(unittest.TestCase):
             "test1" :
             [
                 {
-                    "name":"test1-1",
+                    "name":"test1",
+                    "type":"Log",
+                    "comment":"起動開始のTaskは参照できるInfomaionが少ないので基本的にcondition無しになるかも。",
                     "step_check_mode" : True,
+                    "settings" : {"message":"######Recognitionの動作確認#####","level":"WARN"}
+                },
+                {
+                    "name":"test1-1",
                     "type":"Recognition",
-                    "comment":"起動開始のTaskは最終的には日時判断はさせても良いが、参照できるInfomaionが少ないので基本的にcondition無しになるかも。",
-
                     "settings" : setting_dictionary,
                 },
                 {
@@ -201,6 +139,12 @@ class Test(unittest.TestCase):
             [
                 {
                     "name":"test2",
+                    "type":"Log",
+                    "step_check_mode" : True,
+                    "settings" : {"message":"######PlanList、CheckDay、Judgeの動作確認#####","level":"WARN"}
+                },
+                {
+                    "name":"test2",
                     "type":"RunPlanLists",
                     "settings" :
                     {
@@ -209,8 +153,8 @@ class Test(unittest.TestCase):
                             "test2-1" ,
                             "test2-2"],
                         "log_file_path_list":["../Log/log_test_all.log","../Log/log_test2.log"],
-                        "log_print_standardoutput" : True
-                        
+                        "log_print_standardoutput" : True,
+                        "step_check_mode" : True
 
                     }
                 }
@@ -225,6 +169,7 @@ class Test(unittest.TestCase):
                         "day1" :"月曜日10:20",
                         "day2" :"Now",
                         "day3" :"水曜日22:30",
+                        "log_print_standardoutput" : True,
                         "log_file_path_list":"../Log/log_test_all.log"
 
                     }
@@ -233,8 +178,10 @@ class Test(unittest.TestCase):
                     "name":"DayCondition2",
                     "type":"Check_Day",
                     "comment":"比較する時刻に矛盾が無いことを確認する関数。Day1,Day2には特定の日付か曜日を含む時間を入れられる。day2には曜日は入れられない。day1かday3片方が曜日の場合は一週間回って必ず成立するのでTrue。",
+
                     "settings" : {
                         "log_print_standardoutput" : True,
+                        "log_file_path_list":"../Log/log_test_all.log",
                         "day1" :"水曜日22:30",
                         "day2" :"Now",
                         "day3" :"月曜日10:20"
@@ -244,27 +191,61 @@ class Test(unittest.TestCase):
                     "name":"DayCondition3",
                     "type":"Check_Day",
                     "settings" : {
-                        "log_file_path_list":"../Log/log_test_all.log",
+                        "log_print_standardoutput" : True,
                         "day1" :"木曜10:20",
-                        "day2" :"Now",
-                        "day3" :"Friday 22:30"
+                        "day2" :"2023/3/9 10:30:10",
+                        "day3" :"Friday 22:30",
+                        "log_file_path_list":"../Log/log_test_all.log"
                     }
+                },
+
+                {
+                    "name":"Condition_Execute",
+                    "type":"Judge",
+                    "result_name":"Condition_Execute",
+                    "settings" : {
+                        "log_print_standardoutput" : True,
+                        "log_file_path_list":"../Log/log_test_all.log",
+                        "condition_list":["Result_DayCondition1=True,Result_DayCondition2=True,Result_DayCondition3=True","Result_DayCondition3=True"]
+                    }
+                },
+                {
+                    "comment": "比較する時刻に矛盾が無いことを確認する関数。Day1,Day2には特定の日付か曜日を含む時間を入れられる。day2には曜日は入れられない。day1かday3片方が曜日の場合は一週間回って必ず成立するのでTrue。",
+                    "name": "TimeCheck_Houchi1",
+                    "type": "Check_Day",
+                    "result_name":"Houchi_Time_Check1",
+                    "settings": {
+                        "day1": "土曜日0:00",
+                        "day2": "Now",
+                        "day3": "日曜日24:00",
+                        "log_file_path_list": "../Log/log_houchi.json",
+                        "log_print_standardoutput": True,
+                        "step_check_mode" : True
+
+                }
                 },
 
                 {
                     "name":"test2-1-1",
                     "type":"Recognition",
-                    "condition_list" : ["Result_DayCondition1=True,Result_DayCondition2=True"],
+                    "condition_list" : ["Condition_Execute=True"],
                     "settings" : setting_dictionary,
                 },
                 {
                     "name":"test2-1-2",
+                    "type":"Recognition",
+                    "condition_list" : ["Result_DayCondition1=True,Result_DayCondition2=True"],
+                    "settings" : setting_dictionary,
+                },
+                {
+                    "name":"test2-1-3",
                     "type":"Recognition",
                     "comment":"Check_Dayをconditionに入れたバージョン。符号が<=で良いかどうか微妙。",
                     "condition_list" : ["水曜日10:20<=Now<=月曜日22:30,木曜日10:20<=Now<=金曜日22:30","Result_test2-1-1=True"],
                     "settings" : setting_dictionary
                 }
             ],
+
             "test2-2" :
             [
                 {

@@ -5,8 +5,6 @@ sys.path.append("./ViewModels")
 sys.path.append("./Views")
 import Scheduler
 
-
-
 # Main Program実行部
 def main():
     Scheduler.StartUp("Start","RunGame.json")

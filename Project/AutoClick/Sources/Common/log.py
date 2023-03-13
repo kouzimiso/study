@@ -76,12 +76,14 @@ class Logs:
     }
     
     
-    def __init__(self , setting = {}):
-        self.Setup_logging(setting)
+    def __init__(self , setting_dictionary = {}):
+        self.Setup(setting_dictionary)
         
-    def Setup_logging(self , setting = {}):
-        self.Setting = setting
-        log_setting_path = setting.get("log_setting_path")
+    def Setup(self , setting_dictionary = {}):
+        if type(setting_dictionary) is not dict:
+            setting_dictionary = {}
+        self.Setting = setting_dictionary
+        log_setting_path = setting_dictionary.get("log_setting_path")
         
         # ログ設定ファイルの読み込み
         try:
@@ -98,7 +100,7 @@ class Logs:
         logging.config.dictConfig(config)
         self.logger = logging.getLogger("file")
 
-        log_console_level = setting.get("log_console_level")
+        log_console_level = setting_dictionary.get("log_console_level")
         if log_console_level is None :
             log_console_level = logging.WARNING
 
@@ -145,8 +147,13 @@ class Logs:
         return log_level
 
 
-    #LogをListに貯める機能を持たせるが、設定によって挙動を変える
-    def log(self , message , level = "INFO" , details={} , flag_print = True , setting_dictionary = Setting , message_lists = Log_Lists):
+    #LogをListに貯める機能のあるLog
+    def log(self , message , level = "INFO" , details={} , flag_print = True , setting_dictionary = None , message_lists = None):
+        if setting_dictionary is None:
+            setting_dictionary = self.Setting
+        if message_lists is None:
+            message_lists = self.Log_Lists
+
         #辞書形式のlog dataを貯める
         log_message = {
             "date": datetime.datetime.now().strftime( setting_dictionary.get("time_format",self.TIME_FORMAT)),
@@ -181,33 +188,12 @@ class Logs:
         message_lists.append(log_message)
         return message_lists
 
-    def log2(self, message, level="INFO", details={}, flag_print=True, setting_dictionary=Setting, message_lists=Log_Lists):
-        # 辞書形式のlog dataを貯める
-        log_message = {
-            "date": datetime.datetime.now().strftime(setting_dictionary.get("time_format", self.TIME_FORMAT)),
-            "level": level,
-            "message": message,
-            **details,
-        }
-        if setting_dictionary.get("log_function", False):
-            frame = inspect.currentframe().f_back
-            function_information = {"function": frame.f_code.co_name}
-            if setting_dictionary.get("log_arguments", False):
-                arguments = {
-                        key: str(value) for key, value in frame.f_locals.items() if key != "self"
-                    }
-                function_information["arguments"] = arguments
-            log_message.update(function_information)
 
-        if flag_print and self.logger_console.isEnabledFor(logging.getLevelByName(setting_dictionary.get("log_level", self.default_log_console_level))):
-                setting_log_level = setting_dictionary.get("log_level",self.default_log_console_level)
-                log_level = self.Log_Level_Get(setting_log_level)             
-                self.logger_console.log(log_level , json.dumps(log_message , ensure_ascii=False))
-
-        message_lists.append(log_message)
-        return message_lists
-
-    def MessageList_Write(self , file_path_list = FilePathList , message_lists = Log_Lists):
+    def MessageList_Write(self , file_path_list = None , message_lists = None):
+        if file_path_list is None:
+            file_path_list = self.FilePathList
+        if message_lists is None:
+            message_lists = self.Log_Lists
         if type(file_path_list) is list:
             temporary_list = file_path_list
         else:

@@ -8,19 +8,22 @@ import Recognition
 import weekday
 #文字列のAction名と設定辞書で動作するだけの関数
 class Action:
-    def __init__(self) -> None:
-        pass
+    settings : dict ={}
+    def __init__(self , setting_dictionary ={}) -> None:
+        self.settings = setting_dictionary
 
     def Execute(self, type = "" , setting_dictionary = None):
+        if setting_dictionary is None:
+            setting_dictionary = self.settings
         result_dictionary={}
         if (type == "Recognition"):
             recognition = Recognition.Recognition(setting_dictionary)
             result_dictionary=recognition.Execute()
         
         elif (type == "Check_Day"):
-            week_day = weekday.DayOfTheWeek()
+            week_day = weekday.DayOfTheWeek(setting_dictionary = setting_dictionary)
             result_dictionary = week_day.Check_Day(setting_dictionary)
-
+            
         elif (type == "ShutDown"):
             os.system('shutdown -r -f')
             result_dictionary["result"] = True

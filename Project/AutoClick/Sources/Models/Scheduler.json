@@ -4,7 +4,7 @@
 		{
 			"name" : "StartTask",
 		 	"type" : "RunPlanLists",
-		 	"setting" : {
+		 	"settings" : {
 				"FilePath" : "RunGame.json",
 				"RunPlanLists" : [
 					"Start"				]

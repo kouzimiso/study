@@ -71,3 +71,6 @@ Project/AutoClick/Sources/Models/tmp/status3.png
 Project/AutoClick/Sources/Models/*級*.bat
 Project/AutoClick/Sources/Models/*_backup.py
 Project/AutoClick/Sources/Models/*_old.py
+Project/AutoClick/Images/image**/**.png
+Project/AutoClick/Log/log_*.json
+Project/AutoClick/Images/mementomori/*.png

@@ -4,6 +4,8 @@ import datetime
 import os
 import log
 import Parser
+import re
+
 class DayOfTheWeek:
     message_list=[]
     def __init__(self , set_monday=0 , flag_sunday_start=False,setting_dictionary={}):
@@ -47,11 +49,18 @@ class DayOfTheWeek:
             Information["ThursDay"] = self.ThursDay
             Information["FriDay"] = self.FriDay
             Information["SaturDay"] = self.SaturDay
+            Information["Monday"] = self.MonDay
+            Information["Tuesday"] = self.TuesDay
+            Information["Wednesday"] = self.WednesDay
+            Information["Thursday"] = self.ThursDay
+            Information["Friday"] = self.FriDay
+            Information["Saturday"] = self.SaturDay
             
         if  Information.get("日曜日") != self.SunDay:
             Information["日曜日"] = self.SunDay
             Information["日曜"] = self.SunDay
             Information["SunDay"] = self.SunDay
+            Information["Sunday"] = self.SunDay
         return Information
     
     def Get_DayOfTheWeek(self,date_time):
@@ -62,6 +71,18 @@ class DayOfTheWeek:
         #2022/4/18(Mon)
         day = datetime.datetime(2022,4,18 + offset, 15, 30,20,2000)        
         return day.strftime('%A')
+    
+    def Get_TheWeek_Offset(self,weekday,offset):
+        if self.MonDay < self.SunDay:
+            startday = self.MonDay 
+        else:
+            startday = self.SunDay 
+        lastday =startday + 6
+        result = weekday+offset
+        if result <= lastday:
+            return result
+        else:
+            return startday + result % 7             
         
     def Get_DayBeforeWeekDay(self,date_time, day_of_weekday,flag_include_today = False):
         if flag_include_today == True:
@@ -83,10 +104,10 @@ class DayOfTheWeek:
                 return date_time_after
         return -1
     
-    def Check_Day(self, setting):
-        day1 = setting.get("day1")
-        day2 = setting.get("day2")
-        day3 = setting.get("day3")
+    def Check_Day(self, setting_dictionary):
+        day1 = setting_dictionary.get("day1")
+        day2 = setting_dictionary.get("day2")
+        day3 = setting_dictionary.get("day3")
 
         day_information = self.SetDayInformation()
         now_information = self.SetNowInformation()
@@ -102,8 +123,9 @@ class DayOfTheWeek:
             day_of_weekday2 = day3_information["day_of_weekday"]
             result["result"] = self.Check_WithinRangeDay(date_time,time1, day_of_weekday1,time2,day_of_weekday2)
          #Step:Set the result to the data.
-        result_detail={"detail":""}
-        result_error={"error":""}
+        else:
+            result["error"].append("This function is set incorrectly")
+        return result 
 
     def StringToDay(self,day_string,now_information,day_information):
         parser = Parser.Parser()
@@ -120,17 +142,66 @@ class DayOfTheWeek:
                     results["date_time"] = value
                     results["type"] = "DateTime" 
                 else:
-                    try:
-                        results["date_time"] = datetime.date.fromisoformat(token)
-                        results["type"] = "DateTime" 
-                    except:
-                        try:
-                            results["date_time"] = None
-                            results["time"] = datetime.time.fromisoformat(token)
-                        except:
-                            results["type"] = "Error" 
-                            results["time"] = None
+                    date_time = self.StringDateTimeToDatetime(token,results)
         return results
+    
+    def StringDateTimeToDatetime(self,date_string,details = {}):
+        try:
+            # try to parse as datetime
+            date_string=date_string.strip(" ")
+            datetime_obj = datetime.fromisoformat(date_string)
+            details["date_time"] = datetime_obj#.strftime("%Y/%m/%d %H:%M:%S")
+            details["type"] = "DateTime" 
+            return datetime_obj
+        except ValueError:
+            pass
+        except:
+            pass
+
+        try:
+            # try to parse as datetime with custom format
+            date_format = "%Y/%m/%d %H:%M:%S"
+            datetime_obj = datetime.datetime.strptime(date_string, date_format)
+            details["date_time"] = datetime_obj#.strftime("%Y/%m/%d %H:%M:%S")
+            details["type"] = "DateTime" 
+            return datetime_obj
+        except ValueError:
+            pass
+        except:
+            pass
+
+        try:
+            # try to parse as time
+            date_format = '%H:%M:%S'
+            time_obj = datetime.datetime.strptime(date_string, date_format).time()
+            details["time"] = time_obj#.strftime('%H:%M:%S')
+            if(details.get("type",None) == None):
+                details["type"] = "Time" 
+            return time_obj
+        except :
+            pass
+
+        try:
+            # try to parse as time
+            date_format = '%H:%M'
+            time_obj = datetime.datetime.strptime(date_string, date_format).time()
+            details["time"] = time_obj#.strftime('%H:%M:%S')
+            if(details.get("type",None) == None):
+                details["type"] = "Time" 
+            return time_obj
+        except ValueError:
+            time_dictionary = parse_time(date_string)
+            weekday = details.get("day_of_weekday")
+            offset = time_dictionary.get("overday")
+            day_of_weekday = self.Get_TheWeek_Offset(weekday,offset)
+            details["day_of_weekday"] = day_of_weekday
+            details["time"] =  time_dictionary.get("time")
+        except :
+            details["time"] = None
+            details["type"] = "Error" 
+            return None
+
+
 
     def Check_WithinRangeDay(self,date_time,time1, day_of_weekday1,time2,day_of_weekday2):
         #time1をdate_timeと同じ日のdatetime型(time1の日時)に変換する。
@@ -148,23 +219,44 @@ class DayOfTheWeek:
             flag_include_today2 = True
         else:
             flag_include_today2 = False
+        details={}
         day_after=self.Get_DayAfterWeekDay(date_time_time2,day_of_weekday2,flag_include_today2)
-        message = "[確認日時]" + date_time.strftime ( '%Y/%m/%d(%A) %H:%M' ) 
-        self.logger.log(message)
         day_of_weekday1_string=self.Get_DayOfTheWeek_String(day_of_weekday1)
         day_of_weekday2_string=self.Get_DayOfTheWeek_String(day_of_weekday2)
-        message = "[設定曜日区間]" + day_of_weekday1_string + time1.strftime ( '%H:%M' ) +"～"+ day_of_weekday2_string +time2.strftime ( '%H:%M' ) 
-        self.logger.log(message)     
-        message = "[日時区間]" + day_before.strftime ( '%Y/%m/%d(%A) %H:%M' ) +"～"+day_after.strftime ( '%Y/%m/%d(%A) %H:%M' ) 
-        self.logger.log(message)     
         #前と後の時間が7日間以内ならTrue,そうでないならFaultを返す。
         time_delta = day_after - day_before
         time_delta_7day= datetime.timedelta(days=7)
+        details["time"] = str(time_delta )
+        details["checkdate"] = date_time.strftime ( '%Y/%m/%d(%A) %H:%M' ) 
+        details["settingzone"] = day_of_weekday1_string + time1.strftime ( '%H:%M' ) +"～"+ day_of_weekday2_string +time2.strftime ( '%H:%M' ) 
+        details["checkzone"] = day_before.strftime ( '%Y/%m/%d(%A) %H:%M' ) +"～"+day_after.strftime ( '%Y/%m/%d(%A) %H:%M' ) 
         if time_delta < time_delta_7day:
-            message = "[区間判定]" + str(time_delta )+"(期間内)" 
-            self.logger.log(message)
+            self.logger.log("day check true","INFO",details=details)     
             return True
         else:
-            message = "[区間判定]" + str(time_delta )+"(期間外)" 
-            self.logger.log(message)
+            self.logger.log("day check false","INFO",details=details)     
             return False
+        
+        import re
+
+def parse_time(string):
+    time_regex = re.compile(r'(\d{2}):(\d{2}):(\d{2})')
+    match = time_regex.search(string)
+    if match:
+        hour = int(match.group(1))
+        minute = int(match.group(2))
+        second = int(match.group(3))
+    else:
+        time_regex = re.compile(r'(\d{2}):(\d{2})')
+        match = time_regex.search(string)
+        if match:
+            hour = int(match.group(1))
+            minute = int(match.group(2))
+            second = 00
+        else:
+            return None
+    overday= int(hour//24)
+    hour = int(hour % 24)
+    time = datetime.time(hour,minute,second)
+    time_dictionary = {"hour": hour, "minute": minute, "second": second,"time":time,"overday":overday}
+    return time_dictionary

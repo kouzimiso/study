@@ -29,7 +29,7 @@ def Get_FilesNumber(folder_path):
                 total += Get_FolderSize(entry.path)
     return total
 
-def Archive_SizeOverFile(file_path,file_maxsize, setting={}):
+def Archive_SizeOverFile(file_path,file_maxsize, setting_dictionary={}):
     global MessageList 
     if os.path.exists(file_path):
         filesize = os.path.getsize(file_path)
@@ -40,16 +40,16 @@ def Archive_SizeOverFile(file_path,file_maxsize, setting={}):
                 os.rename(file_path, newpath) 
             except PermissionError:
                 print("File " + file_path + " is lock.")
-                #logger = log.Logs(setting)
+                #logger = log.Logs(setting_dictionary)
                 #MessageList = logger.error("File " + file_path + " is lock." )
         
 
 # folder_path: 空き容量確保のために削除できるファイルがあるフォルダのパス
 # folder_maxsize: 削除判断となるフォルダの容量
 # files_maxnumber: 削除判断となるFileの数
-def Delete_OldFiles(folder_path,  folder_maxsize , files_maxnumber , setting={}):
+def Delete_OldFiles(folder_path,  folder_maxsize , files_maxnumber , setting_dictionary={}):
     global MessageList 
-    #logger = log.Logs(setting)
+    #logger = log.Logs(setting_dictionary)
     files = []
     folders = []
     # サブフォルダのPathオブジェクトをイテレート。ファイルとフォルダに振り分ける。

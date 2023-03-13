@@ -9,6 +9,8 @@ import Judge
 import log
 import auto
 import json_control
+import UserInterface
+
 
 class Task(threading.Thread):
     status : auto.RUN_STATUS 
@@ -17,15 +19,14 @@ class Task(threading.Thread):
     information : dict = {}
     condition : dict = None
     plan_lists : dict = None
+    settings:dict = {}
 
     #子task情報
     task_name : str = ""
     task_type : str = ""
-    task_setting : str = ""
+    task_settings : str = ""
     task_condition : str = ""
     task_status : str = ""
-
-    
 
     #Task動作Mode(Check/AutoNext)
     step_check_mode : bool = False
@@ -34,7 +35,6 @@ class Task(threading.Thread):
     log_file_path_list : list = None
     log_print_standard_output : bool = False
     message_lists = {}
-
 
     def __init__(self,file_path="",plan_lists = None,setting = {}):
         self.status = auto.RUN_STATUS.INITIAL
@@ -48,21 +48,33 @@ class Task(threading.Thread):
             self.TaskStatusChange("Read PlanLists:" + file_path)
 
     def Run(self, name ,condition = None,plan_lists=None , information = None):
+        if plan_lists is None:
+            plan_lists=self.plan_lists
+        if information is None:
+            information = self.information
         self.name = name
         #Arguments check
-        if plan_lists == None:
-            plan_lists = self.plan_lists
-        if information == None:
-            information = self.information
-        if name in plan_lists:
+        planlist_type = type(plan_lists)
+        if planlist_type is dict:
+            run_plan_lists=plan_lists
+        else:
+            print( planlist_type)
+            run_plan_lists = {name : plan_lists}
+        self.settings = plan_lists.get("settings",{})
+        if name in run_plan_lists:
             self.TaskStatusChange("Start Check")
-            judge = Judge.Judge()
+            #self.logger.Setup_logging(self.task_settings)
+            judge = Judge.Judge(self.settings)
             flag_judge = judge.Result(condition , information)
             self.TaskStatusChange("Judge" , str(flag_judge))
             if flag_judge:
                 self.status = auto.RUN_STATUS.RUN
-                self.RunPlanLists(name,plan_lists)
+                self.RunPlanLists(name,run_plan_lists)
 
+        return self.information
+
+    #plan_list_names:実行するplan_listの名前
+    #plan_lists:plan_listsの設定
     def RunPlanLists(self , plan_list_names ,plan_lists):
         if type(plan_list_names) is list:
             for plan_list_name in plan_list_names:
@@ -82,67 +94,108 @@ class Task(threading.Thread):
         except:
             plan_list = None
             self.TaskStatusChange("No Plan")
-
         if plan_list is not None:
             for plan in plan_list:
-                self.TaskRead(plan)
-                self.TaskStatusChange("Plan RunCheck ")
-                judge = Judge.Judge()
-                flag_judge = judge.Result(self.task_condition,self.information)
-                self.TaskStatusChange("Gudge" , str(flag_judge))
-                #step毎に次へ進むか確認するmodeの設定を読みだす
-                self.step_check_mode = self.task_setting.get("step_check_mode")
-                if self.step_check_mode:
-                    input_text = Task.WaitInput(self.task_name + " Condition Judge:" + str(flag_judge) +"\nRun Task? n(no)/other(yes)")
-                    if input_text == "n" or input_text == "no":
-                        flag_judge = False
-                
-                if flag_judge:
-                    if self.task_type == "RunPlanLists":
-                        plan_list_names_new = self.task_setting["plan_lists"]
-                        #PlanListsをFilePathから読み込み、RunPlanListsで指定した名前のPlanを実行する。
-                        plan_list_filepath = self.task_setting.get("file_path")
-                        if plan_list_filepath is None:
-                            self.TaskStatusChange("Run PlanLists")
-                            self.RunPlanLists(plan_list_names_new,plan_lists)
+                result_taskread = self.TaskRead(plan)
+                if result_taskread:
+                    judge = Judge.Judge(self.task_settings,self.information)
+                    flag_judge = judge.Result(self.task_condition)
+                    self.TaskStatusChange("Judge" , str(flag_judge) )
+                    #step毎に次へ進むか確認するmodeの設定を読みだす
+                    self.step_check_mode = self.task_settings.get("step_check_mode")
+                    if self.step_check_mode:
+                        if self.task_type == "RunPlanLists":
+                            plan_list_names_new = self.task_settings.get("plan_lists","No plan_lists")
+                            print("RunPlanLists"+str(plan_list_names_new))
+                        input_text = Task.WaitInput(self.task_name + " Condition Judge:" + str(flag_judge) +"\nRun Task? n(no)/other(yes)")
+                        if input_text == "n" or input_text == "no":
+                            flag_judge = False
+                    
+                    if flag_judge:
+                        if self.task_type == "RunPlanLists":
+                            plan_list_names_new = self.task_settings["plan_lists"]
+                            #PlanListsをFilePathから読み込み、RunPlanListsで指定した名前のPlanを実行する。
+                            plan_list_filepath = self.task_settings.get("file_path")
+                            if plan_list_filepath is None:
+                                self.TaskStatusChange("Run PlanLists")
+                                self.RunPlanLists(plan_list_names_new,plan_lists)
+                            else:
+                                read_plan_lists = json_control.ReadDictionary(plan_list_filepath)
+                                self.TaskStatusChange("Run PlanLists" , plan_list_filepath)
+                                self.RunPlanLists(plan_list_names_new,read_plan_lists)  
+
+                        # task levelの情報にAccessできるJudge
+                        elif self.task_type == "Judge":
+                            judge = Judge.Judge(self.task_settings,self.information)
+                            condition_list = self.task_settings.get("condition_list",[])
+                            flag_judge = judge.Result(condition_list = condition_list , information = self.information)
+                            self.information[self.result_name] = {"result" : flag_judge}
+                            details = {"result_name":self.result_name,"result" : flag_judge,"condition_list":condition_list} 
+                            self.logger.log("Judge","INFO",details =details)
+                        # task levelの情報にAccessできるLog    
+                        elif self.task_type == "Log":
+                            message = self.task_settings.get("message")
+                            level = self.task_settings.get("level")
+                            self.logger.log(message,level)
                         else:
-                            read_plan_lists = json_control.ReadDictionary(plan_list_filepath)
-                            self.TaskStatusChange("Run PlanLists" , plan_list_filepath)
-                            self.RunPlanLists(plan_list_names_new,read_plan_lists)                       
-                    else:
-                        action = Action.Action()
-                        self.TaskStatusChange("Run PlanList", plan_list_name)
-                        self.information[self.result_name] = action.Execute(self.task_type , self.task_setting) 
+                            setting = self.task_settings
+                            task_type = self.task_type
+                            action = Action.Action(setting)
+                            self.TaskStatusChange("Run PlanList", plan_list_name)
+                            self.information[self.result_name] = action.Execute(task_type , setting) 
                         
         self.TaskStatusChange("End")
+
+    def Get_SettingData(self , data_name , default_data="",option_errorinput= False):
+        data = self.task_settings.get(data_name)
+        value = default_data
+        if data == None:
+            if option_errorinput:
+                setting={
+                    "label" : "Please Input Data.",
+                    "data_name" : data_name,
+                    "default_data" :default_data
+                }
+                editor = UserInterface.ValueEditor()
+                value = editor.input_data(setting)
+        return value
+
+
 
     ####専用命令####
     def TaskStatusChange(self , status , detail = ""):
         self.task_status=status
-        message ={}
-        message["task"]= self.name + "." +self.task_name
-        message["type"]=self.task_type
-        message["status"]=self.task_status
+        details ={}
+        details["task"]= self.name + "." +self.task_name
+        details["type"]=self.task_type
+        details["status"]=self.task_status
         if detail != "":
-            message[detail] = detail
+            details["detail"] = detail
 
-        self.logger.log(message)
+        self.logger.log("TaskStatusChange","INFO",details=details)
         if status =="End":
             self.task_name = ""
             self.task_type = ""
-            self.task_setting = ""
-            self.task_condition = ""
+            self.task_settings = {}
+            self.task_condition = []
 
     def TaskRead(self,plan):
+        if type(plan) is not dict:
+            self.logger.log("The Plan that was read is not in the Dictionary format. ","ERROR",details=details)
+            return False
         name = plan.get("name")
         if name is None:
             name = ""
         self.task_name=name
         self.result_name = plan.get("result_name","Result_"+self.task_name)
         self.task_type = plan.get("type","")
-        self.task_setting = plan.get("settings",{})
+        self.task_settings = plan.get("settings",{})
         self.task_condition = plan.get("condition_list",[])
-        self.logger=log.Logs(self.task_setting)
+        self.logger=log.Logs(self.task_settings)
+        details = plan
+        self.logger.log("Task Read","DEBUG",details=details)
+        return True
+
 
     def WaitInput(text):
         input_text = input(text)

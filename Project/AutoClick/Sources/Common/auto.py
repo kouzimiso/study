@@ -26,6 +26,7 @@ class END_ACTION(enum.Enum):
     CONTINUE = 2
 
 class RESULT(enum.Enum):
+    NONE = -1
     NG = 0
     OK = 1
     ALL_OK = 2
@@ -54,6 +55,7 @@ enum_dictionary={
     "END_ACTION.BREAK":END_ACTION.BREAK,
     "END_ACTION.FOLDER_END_BREAK":END_ACTION.FOLDER_END_BREAK,
     "END_ACTION.CONTINUE": END_ACTION.CONTINUE,
+    "RESULT.NONE":RESULT.NONE,
     "RESULT.NG":RESULT.NG,
     "RESULT.OK":RESULT.OK,
     "RESULT.ALL_OK": RESULT.ALL_OK,
@@ -303,23 +305,28 @@ def Action_Execute(action):
         pyautogui.mouseUp()
 
 # 条件判断回路
-def Condition_Judge(condition, result):
+def Condition_Judge(condition1, condition2,details={}):
     # 条件と結果が同じならOK
-    if condition == result:
-        log.Log_MessageAdd(message_list, "Condition_Judge(" + RESULT(condition).name+","+RESULT(result).name+"):OK")
+    detail_dictionary = {
+        "condition1": RESULT(condition1).name,
+        "condition1_type":type(condition1),
+        "condition2":RESULT(condition2).name,
+        "condition2_type":type(condition2)
+    }
+
+    if condition1 == condition2:
+        detail_dictionary["result"] = True,
+        details = detail_dictionary
         return True
     # 条件がOKで結果がALL_OKならOK
-    elif condition == RESULT.OK and result == RESULT.ALL_OK:
-        log.Log_MessageAdd(message_list, "Condition_Judge("+RESULT(condition).name + ","+RESULT(result).name+"):OK(condition:ok,result:ALL_OK)")
+    elif condition1 == RESULT.OK and condition2 == RESULT.ALL_OK:
+        detail_dictionary["result"] = True,
+        details = detail_dictionary
         return True
     # それ以外はFalse
     else:
-        print("####condition_Judge")
-        print(type(result))
-        print(result)
-        print(type(condition))
-        print(condition)
-        log.Log_MessageAdd(message_list, "Condition_Judge(" + RESULT(condition).name + ","+RESULT(result).name+"):NG")
+        detail_dictionary["result"] = False
+        details = detail_dictionary
         return False
 
 Images_Action_Result = {}
