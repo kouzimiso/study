@@ -26,9 +26,11 @@ message_list = []
 logfile_path = '../../Log/log.txt'
 
 device_address = "0.0.0.0"
-MAX_OCR_RETRY=3
-IMAGE_WAITING=1
+MAX_OCR_RETRY=1
+READ_WAITING=0.1
+IMAGE_WAITING=0.1
 IMAGE_WAITING2=0
+INTERVAL_WAITING=0.4
 #育成前のstatusの座標(x, y, w, h)
 data1_position = [] 
 #育成後のstatusの座標(x, y, w, h)
@@ -37,9 +39,11 @@ data2_position = []
 #offset=90
 offset=0
 
+target_device =0 ##0:PC 1:android
+
 tapxy=[
-        [400 , 1480 + offset],     #c級/cancel x,y
-        [760 , 1480 + offset]      #b級/accept x,y
+        [400 , 1540 + offset],     #c級/cancel x,y
+        [760 , 1540 + offset]      #b級/accept x,y
 ]
 screenshot_file="tmp\screen_1.png"
 pre_ss_files=["tmp\pre_status0.png","tmp\pre_status1.png","tmp\pre_status2.png","tmp\pre_status3.png"]
@@ -53,6 +57,8 @@ param_zero = list()
 
 def main(args):
     print("init")
+    global offset
+    offset = int(input("Please input the offset of screen position"))
     init(args)
     exec_input()
     exec_ikusei(nurture_rank,data_rate,loop_number)
@@ -79,7 +85,8 @@ def init(args):
 
 def exec_input():
     global param_zero
-    capture_data()
+    capture_data_and_crop(screenshot_file)
+
     ocr_instance = ocr.OCR()
     ocr_instance.Setting_BuilderDigits()
     param_zero = ocr_instance.Recognition_ByFilePathList(pre_ss_files, "eng")
@@ -95,12 +102,15 @@ def exec_ikusei(nurture_rank,data_rate,loop_number):
                 tap(0)
         else:
                 tap(1)
+        time.sleep(READ_WAITING)
         calcStatus.ocr_failure_cnt = 0
-        capture_data()       
+        capture_data_and_crop(screenshot_file)
         calcStatus(float(data_rate[0]),float(data_rate[1]),float(data_rate[2]),float(data_rate[3]))
 
 def show_result():
-    capture_data()
+    image = capture_data(screenshot_file)
+    crop_image(image)
+
     ocr_instance = ocr.OCR()
     ocr_instance.Setting_BuilderDigits()
     param_end = ocr_instance.Recognition_ByFilePathList(pre_ss_files, "eng")
@@ -134,18 +144,28 @@ def tap(n):
     #pyautogui.click(tapxy[n][0], tapxy[n][1])
     adb.Tap(device_address , tapxy[n][0] , tapxy[n][1])
 
-def capture_data():
+
+def capture_data_and_crop():
+    if(target_device==0):
+        image = capture_data(screenshot_file)
+    else:    
+        image = capture_data_adb(screenshot_file)
+    time.sleep(IMAGE_WAITING)
+    #画像をimgに読み込む
+    return image = cv2.imread(screenshot_file)
+    crop_image(image)
+
+def capture_data_adb(screenshot_file,target_device):
     global device_address
     global message_list
     #image_control.Image_Capture(screenshot_file)
     #画像をscreen captureする
     device_address = adb.Get_DeviceAddress()
-    #screen_size = adb.Get_ScreenSize(device_address)
     #log.Log_MessageAdd(message_list,str(screen_size))
     adb.ScreenCapture(device_address,screenshot_file)
-    #画像をimgに読み込む
-    time.sleep(IMAGE_WAITING)
-    img = cv2.imread(screenshot_file)
+    screen_size = adb.Get_ScreenSize(device_address)
+
+def crop_image(image):
     #cvtColorでグレースケール画像化し、thresholdで2値化する。
     ret, img_gray = cv2.threshold(cv2.cvtColor(img, cv2.COLOR_BGR2GRAY), 160, 255, cv2.THRESH_BINARY)
     #ret, img_gray = cv2.threshold(img, 100, 255, cv2.THRESH_BINARY)
@@ -174,7 +194,8 @@ def calcStatus(a,b,c,d):
             #img = cv2.imread(r"%s\screen_1.png" %(ss_dir))
             img = cv2.imread(screenshot_file)
             if count<= 1:
-                capture_data()
+                capture_data_and_crop(screenshot_file)
+
                 count =count +1
                 continue
             else:
@@ -203,7 +224,8 @@ def calcStatus(a,b,c,d):
                 else:
                     print("warn: OCR誤認識検知、ステータスを再読み込みします...%d" %(calcStatus.ocr_failure_cnt))
                     flg_ocr_failure = 1
-                capture_data()
+                capture_data_and_crop(screenshot_file)
+
                 calcStatus.preParam = list()
                 ocr_instance = ocr.OCR()
                 ocr_instance.Setting_BuilderDigits()
@@ -216,18 +238,18 @@ def calcStatus(a,b,c,d):
         elif flg_ocr_failure == 2:
             break
 
-
         print("Calculation Res: %.2f" %calc)
         if (calc > 0):
             print("Accept")
             tap(1)
             for loop in range(4):
                 calcStatus.preParam[loop] = param[loop]
-
         else:
             print("Cancel")
             tap(0)
+        time.sleep(INTERVAL_WAITING)
         break
+
 
 if __name__ == '__main__':    
     main(sys.argv)

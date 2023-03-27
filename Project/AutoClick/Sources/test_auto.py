@@ -198,7 +198,17 @@ class Test(unittest.TestCase):
                         "log_file_path_list":"../Log/log_test_all.log"
                     }
                 },
-
+{
+                    "name":"DayCondition4",
+                    "type":"Check_Day",
+                    "settings" : {
+                        "log_print_standardoutput" : True,
+                        "day1" :"10:20",
+                        "day2" :"2023/3/9 10:30:10",
+                        "day3" :"10:40:23",
+                        "log_file_path_list":"../Log/log_test_all.log"
+                    }
+                },
                 {
                     "name":"Condition_Execute",
                     "type":"Judge",

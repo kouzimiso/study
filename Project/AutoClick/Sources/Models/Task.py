@@ -5,6 +5,8 @@ sys.path.append("../Common")
 sys.path.append("../../Common")
 import Plan
 import Action
+import datetime
+import time
 import Judge
 import log
 import auto
@@ -21,12 +23,18 @@ class Task(threading.Thread):
     plan_lists : dict = None
     settings:dict = {}
 
+    execute_start_time: datetime = datetime.datetime.now()
+    execute_end_time: datetime = datetime.datetime.now()
+
     #子task情報
     task_name : str = ""
+    task_path : list =[]
     task_type : str = ""
     task_settings : str = ""
     task_condition : str = ""
     task_status : str = ""
+
+
 
     #Task動作Mode(Check/AutoNext)
     step_check_mode : bool = False
@@ -66,7 +74,7 @@ class Task(threading.Thread):
             #self.logger.Setup_logging(self.task_settings)
             judge = Judge.Judge(self.settings)
             flag_judge = judge.Result(condition , information)
-            self.TaskStatusChange("Judge" , str(flag_judge))
+            self.TaskStatusChange("Judge" , {"result":flag_judge})
             if flag_judge:
                 self.status = auto.RUN_STATUS.RUN
                 self.RunPlanLists(name,run_plan_lists)
@@ -75,22 +83,22 @@ class Task(threading.Thread):
 
     #plan_list_names:実行するplan_listの名前
     #plan_lists:plan_listsの設定
-    def RunPlanLists(self , plan_list_names ,plan_lists):
+    def RunPlanLists(self , plan_list_names ,plan_lists,details={}):
         if type(plan_list_names) is list:
             for plan_list_name in plan_list_names:
-                self.RunPlanList(plan_list_name,plan_lists)
+                self.RunPlanList(plan_list_name,plan_lists,details)
         else:
             plan_list_name = plan_list_names
-            self.RunPlanList(plan_list_name,plan_lists)
+            self.RunPlanList(plan_list_name,plan_lists,details)
 
  
-    def RunPlanList(self , plan_list_name ,plan_lists):
+    def RunPlanList(self , plan_list_name ,plan_lists,details={}):
         self.task_name = plan_list_name
-        type_data = type(plan_lists)
         #plan_list = plan_lists.get(plan_list_name)
         try:
             plan_list = plan_lists[plan_list_name]
-            self.TaskStatusChange("Plan Read",plan_list_name)
+            details["plan_list_name"]=plan_list_name
+            self.TaskStatusChange("Plan Read",details)
         except:
             plan_list = None
             self.TaskStatusChange("No Plan")
@@ -99,53 +107,34 @@ class Task(threading.Thread):
                 result_taskread = self.TaskRead(plan)
                 if result_taskread:
                     judge = Judge.Judge(self.task_settings,self.information)
-                    flag_judge = judge.Result(self.task_condition)
-                    self.TaskStatusChange("Judge" , str(flag_judge) )
+                    judge_details={}
+                    flag_judge = judge.Result(self.task_condition , result_details = judge_details)
+                    self.TaskStatusChange("Judge" , details = judge_details )
                     #step毎に次へ進むか確認するmodeの設定を読みだす
                     self.step_check_mode = self.task_settings.get("step_check_mode")
                     if self.step_check_mode:
+                        details_stepcheck={}
                         if self.task_type == "RunPlanLists":
-                            plan_list_names_new = self.task_settings.get("plan_lists","No plan_lists")
-                            print("RunPlanLists"+str(plan_list_names_new))
-                        input_text = Task.WaitInput(self.task_name + " Condition Judge:" + str(flag_judge) +"\nRun Task? n(no)/other(yes)")
-                        if input_text == "n" or input_text == "no":
-                            flag_judge = False
-                    
+                            details_stepcheck = {"plan_lists": self.task_settings.get("plan_lists","No plan_lists")}
+                        flag_judge = self.StepCheck(flag_judge,details_stepcheck)
                     if flag_judge:
-                        if self.task_type == "RunPlanLists":
-                            plan_list_names_new = self.task_settings["plan_lists"]
-                            #PlanListsをFilePathから読み込み、RunPlanListsで指定した名前のPlanを実行する。
-                            plan_list_filepath = self.task_settings.get("file_path")
-                            if plan_list_filepath is None:
-                                self.TaskStatusChange("Run PlanLists")
-                                self.RunPlanLists(plan_list_names_new,plan_lists)
+                        retry = True
+                        while retry:
+                            result = self.ExecutePlanList(plan_list_name ,plan_lists,details)
+                            retry_check = self.task_settings.get("retry_check",False)
+                            if retry_check == True and result == False:
+                                input_text = self.RetryCheck("□Retry Task? y(yes)/other(no)")
+                                if input_text == "y":   
+                                    retry = True
+                                else:
+                                    retry = False
                             else:
-                                read_plan_lists = json_control.ReadDictionary(plan_list_filepath)
-                                self.TaskStatusChange("Run PlanLists" , plan_list_filepath)
-                                self.RunPlanLists(plan_list_names_new,read_plan_lists)  
+                                retry = False                        
+                sleep_time = self.task_settings.get("sleep_time",0)
+                time.sleep(sleep_time)
+        self.TaskStatusChange("End",details)
 
-                        # task levelの情報にAccessできるJudge
-                        elif self.task_type == "Judge":
-                            judge = Judge.Judge(self.task_settings,self.information)
-                            condition_list = self.task_settings.get("condition_list",[])
-                            flag_judge = judge.Result(condition_list = condition_list , information = self.information)
-                            self.information[self.result_name] = {"result" : flag_judge}
-                            details = {"result_name":self.result_name,"result" : flag_judge,"condition_list":condition_list} 
-                            self.logger.log("Judge","INFO",details =details)
-                        # task levelの情報にAccessできるLog    
-                        elif self.task_type == "Log":
-                            message = self.task_settings.get("message")
-                            level = self.task_settings.get("level")
-                            self.logger.log(message,level)
-                        else:
-                            setting = self.task_settings
-                            task_type = self.task_type
-                            action = Action.Action(setting)
-                            self.TaskStatusChange("Run PlanList", plan_list_name)
-                            self.information[self.result_name] = action.Execute(task_type , setting) 
-                        
-        self.TaskStatusChange("End")
-
+    ####専用命令 Step####
     def Get_SettingData(self , data_name , default_data="",option_errorinput= False):
         data = self.task_settings.get(data_name)
         value = default_data
@@ -160,19 +149,78 @@ class Task(threading.Thread):
                 value = editor.input_data(setting)
         return value
 
+    def StepCheck(self,flag_judge , details = {}):
+        input_text = self.WaitInput("□Run Task("+ self.task_name +")? n(no)/other(yes)",details)
+        if input_text == "n" or input_text == "no":
+            flag_judge = False
+        return flag_judge
+        
+    def ExecutePlanList(self , plan_list_name ,plan_lists,details={}):
+        result_details = {}
+        self.execute_start_time = datetime.datetime.now()
+        if self.task_type == "RunPlanLists":
+            plan_list_names_new = self.task_settings["plan_lists"]
+            #PlanListsをFilePathから読み込み、RunPlanListsで指定した名前のPlanを実行する。
+            plan_list_filepath = self.task_settings.get("file_path")
+            if plan_list_filepath is None:
+                self.TaskStatusChange("Run PlanLists",details)
+                self.RunPlanLists(plan_list_names_new,plan_lists)
+            else:
+                read_plan_lists = json_control.ReadDictionary(plan_list_filepath)
+                details["file_path"] = plan_list_filepath
+                self.TaskStatusChange("Run PlanLists file" , details)
+                self.RunPlanLists(plan_list_names_new,read_plan_lists)  
+                result_details = {"file_path" : plan_list_filepath}
+        # task levelの情報にAccessできるJudge
+        elif self.task_type == "Judge":
+            judge = Judge.Judge(self.task_settings,self.information)
+            condition_list = self.task_settings.get("condition_list",[])
+            flag_judge = judge.Result(condition_list = condition_list , information = self.information)
+            self.information[self.result_name] = {"result" : flag_judge}
+            result_details = {"result" : flag_judge,"condition_list":condition_list}
+        # task levelの情報にAccessできるLog    
+        elif self.task_type == "Log":
+            message = self.task_settings.get("message")
+            level = self.task_settings.get("level")
+            self.logger.log(message,level)
+            result_details = {"result" : True}
+        else:
+            setting = self.task_settings
+            task_type = self.task_type
+            action = Action.Action(setting)
+            details["plan_list_name"] = plan_list_name
+            self.TaskStatusChange("Run PlanList", details)
+            result_details = action.Execute(task_type , setting) 
+            self.information[self.result_name] = result_details
+        interval_time = self.execute_start_time - self.execute_end_time 
+        self.execute_end_time = datetime.datetime.now()
+        execution_time = self.execute_end_time - self.execute_start_time 
 
+        task_details = {"type": self.task_type,"result_name":self.result_name}
+        task_details.update(result_details)
+        task_details.update(details)
+        task_details["interval_time"] = str(interval_time)
+        task_details["execution_time"] = str(execution_time)
+        self.TaskStatusChange("Task end" , task_details)
+        return task_details.get("result",False)
 
     ####専用命令####
-    def TaskStatusChange(self , status , detail = ""):
+    def TaskStatusChange(self , status ,  details = {}):
         self.task_status=status
-        details ={}
-        details["task"]= self.name + "." +self.task_name
-        details["type"]=self.task_type
-        details["status"]=self.task_status
-        if detail != "":
-            details["detail"] = detail
+        detail_dictionary ={}
+        task_list = details.get("task_list",   [ self.name ,self.task_name])
+        if task_list[-1] != self.task_name:
+            task_list.append(self.task_name)
+            details = task_list
+        detail_dictionary["task"]= ".".join(task_list)
+        detail_dictionary["type"]=self.task_type
+        detail_dictionary["status"]=self.task_status
+        if type(details) is not dict:
+            detail_dictionary["detail"] = details
+        else:
+            detail_dictionary.update(details)
 
-        self.logger.log("TaskStatusChange","INFO",details=details)
+        self.logger.log("TaskStatusChange","INFO",details=detail_dictionary)
         if status =="End":
             self.task_name = ""
             self.task_type = ""
@@ -197,7 +245,23 @@ class Task(threading.Thread):
         return True
 
 
-    def WaitInput(text):
+    def WaitInput(self,text,details = {}):
+        if type(details) is dict:
+            if details == {}:
+                details_text = ""
+            else:
+                details_text = json_control.ToString(details)
+        elif type(details) is list:
+            details_text=",".join(details)
+        else:
+            details_text =details
+
+        if details_text == "":
+            input_text = input(text)
+        else:
+            input_text = input(details_text +"\n"+ text)
+        return input_text
+    def RetryCheck(self,text):
         input_text = input(text)
         return input_text
 

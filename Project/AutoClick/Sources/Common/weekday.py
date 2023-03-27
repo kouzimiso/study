@@ -115,6 +115,7 @@ class DayOfTheWeek:
         day2_information = self.StringToDay(day2,now_information,day_information)
         day3_information = self.StringToDay(day3,now_information,day_information)
         result ={"result":False,"detail":{},"error":[]}
+
         if day1_information["type"] == "WeekAndTime" and day2_information["type"] == "DateTime" and day3_information["type"] == "WeekAndTime":
             date_time =day2_information["date_time"]
             time1 = day1_information["time"]
@@ -122,7 +123,13 @@ class DayOfTheWeek:
             time2 = day3_information["time"]
             day_of_weekday2 = day3_information["day_of_weekday"]
             result["result"] = self.Check_WithinRangeDay(date_time,time1, day_of_weekday1,time2,day_of_weekday2)
-         #Step:Set the result to the data.
+        #Step:Set the result to the data.
+        elif day1_information["type"] == "Time" and day2_information["type"] == "DateTime" and day3_information["type"] == "Time":
+            date_time =day2_information["date_time"]
+            time1 = day1_information["time"]
+            time2 = day3_information["time"]
+    
+            result["result"] = self.Check_datetime_between(date_time,time1, time2)
         else:
             result["error"].append("This function is set incorrectly")
         return result 
@@ -175,7 +182,7 @@ class DayOfTheWeek:
             date_format = '%H:%M:%S'
             time_obj = datetime.datetime.strptime(date_string, date_format).time()
             details["time"] = time_obj#.strftime('%H:%M:%S')
-            if(details.get("type",None) == None):
+            if(details.get("type","") == ""):
                 details["type"] = "Time" 
             return time_obj
         except :
@@ -186,7 +193,7 @@ class DayOfTheWeek:
             date_format = '%H:%M'
             time_obj = datetime.datetime.strptime(date_string, date_format).time()
             details["time"] = time_obj#.strftime('%H:%M:%S')
-            if(details.get("type",None) == None):
+            if(details.get("type","") == ""):
                 details["type"] = "Time" 
             return time_obj
         except ValueError:
@@ -237,7 +244,18 @@ class DayOfTheWeek:
             self.logger.log("day check false","INFO",details=details)     
             return False
         
-        import re
+    def Check_datetime_between(self,check_datetime, start_time, end_time):
+        """ある日のある時間のdatetimeオブジェクトが2つのtimeオブジェクトの間の時間の時にTrueを返す関数"""
+        # check_datetimeから日付部分を取り出して、start_timeとend_timeのdate情報を加える
+        start_datetime = datetime.datetime.combine(check_datetime.date(), start_time)
+        end_datetime = datetime.datetime.combine(check_datetime.date(), end_time)
+
+        # end_datetimeがstart_datetimeより前にある場合は、end_datetimeに1日分の時間を加算する
+        if end_datetime < start_datetime:
+            end_datetime += datetime.timedelta(days=1)
+
+        # check_datetimeがstart_datetimeとend_datetimeの間にある場合にTrueを返す
+        return start_datetime <= check_datetime <= end_datetime
 
 def parse_time(string):
     time_regex = re.compile(r'(\d{2}):(\d{2}):(\d{2})')

@@ -90,16 +90,14 @@ class Recognition:
         data = RecognitionInfomation()
         if recognition_information==None:
             data = self.setting
-            print("###recognition_information")
         else:
-            print("###recognition_information else")
             data = recognition_information
-        message={
+        details={
                 "action" : str(data.action) , 
                 "end_condition" : str(data.end_condition),
                 "execute_number" : data.execute_number
             }
-        self.logger.log(message)
+        self.logger.log("Get_SettingDictionary","DEBUG",details = details)
         #ENUMがDictionaryで使えないのでasdictは使えない。
         #setting_dictionary = dataclasses.asdict(data)
         setting_dictionary={
@@ -131,9 +129,9 @@ class Recognition:
         self.setting = RecognitionInfomation(action, end_condition, end_action, execute_number, retry_number, image_path, interval_time, recognition_confidence, recognition_grayscale)
 
     def Get_Data(self, data_name, data_type=auto.DATA_TYPE.ENUM, data_dictionary={} ,default_value=""):
-        message="Get_Data"
+        message="Get_Data_Start"
         detail_dictionary = {"data_name" : data_name}
-        self.logger.log(message, "INFO", details=detail_dictionary)
+        self.logger.log(message, "DEBUG", details=detail_dictionary)
             
       #  data_type_mapping = {
       #      auto.DATA_TYPE.ENUM: lambda x: auto.enum_dictionary[x[data_name]],
@@ -153,12 +151,12 @@ class Recognition:
             try:
 
                 parameter_value = data_type_mapping[data_type](data_name)
-                message = "Get_Data"
+                message = "Get_Data_Result"
                 detail_dictionary = {
                     "data_name": data_name,
                     "data_value": str(parameter_value)
                 }
-                self.logger.log(message, "INFO", details=detail_dictionary)
+                self.logger.log(message, "DEBUG", details = detail_dictionary)
                 return parameter_value
             except:
                 return default_value
@@ -287,11 +285,10 @@ class Recognition:
                 pyautogui.moveTo(x, y)
                 # Logを貯めて強制終了時にFileを書き込む。
                 self.logger.log( "ImageSearchAndMove","INFO",details = detail_dictionary)
-                # 毎回LogをFileni書き込む記述（遅いので没）
-                #Write_Message(logfile_path , Log_MessageFormat(message))
                 return True
             else:
-                self.logger.log("can not find image on screen"+ image_path,"WARNING")
+                detail_dictionary={"image_path": image_path}
+                self.logger.log("can not find image on screen","INFO",details = detail_dictionary)
                 return False
         except Exception:
             self.logger.error("image read error")
@@ -366,10 +363,14 @@ class Recognition:
     def Images_Action(self,action , end_action , end_condition , images_path , x_offset_dictionary , y_offset_dictionary , recognition_grayscale , recognition_confidence , interval_time):
         all_ok = True
         all_ng = True
-        result = False
+        none = True
         self.Images_Action_Result
-
+        path_list = glob.glob(images_path)
+        #abs_path = os.path.abspath(images_path)
+        #print("####"+abs_path+":"+",".join(path_list))
+        #for image_path in path_list:
         for image_path in glob.glob(images_path):
+            none = False
             # 画像検索とPointer移動
             end_result = self.Image_SearchAndMove(image_path , x_offset_dictionary , y_offset_dictionary , recognition_grayscale , recognition_confidence)
             if end_result:
@@ -391,6 +392,8 @@ class Recognition:
                 if end_action == auto.END_ACTION.BREAK and end_condition == auto.RESULT.NG:
                     self.logger.log( "Images_Action Result_NG Break(" + str(action) + ")")
                     return auto.RESULT.NG
+        if none:
+            return auto.RESULT.NONE
         if all_ok == True:
             return auto.RESULT.ALL_OK
         elif all_ng == True:
@@ -420,17 +423,28 @@ class Recognition:
                 message="Images_Action"
                 details={
                     "retry" : loop01,
-                    "execute_number":str(loop02)+"/"+str(recognition_information.execute_number)
+                    "execute_number":str(loop02+1)+"/"+str(recognition_information.execute_number),
+                    "file_path": recognition_information.image_path
                 }
                 self.logger.log(message,"INFO",details=details)
                 end_result = self.Images_Action(recognition_information.action , recognition_information.end_action , recognition_information.end_condition , recognition_information.image_path,x_offset_dictionary , y_offset_dictionary , recognition_information.recognition_grayscale , recognition_information.recognition_confidence , recognition_information.interval_time)
-                if end_result != auto.RESULT.NG:
-                    all_ng = False
-                    message="Images_Action Continue"
+                if end_result == auto.RESULT.NONE:
+                    all_ok = False
+                    all_ng = True
+                    message="Images_Actction image is None"
                     details={
                         "result" : auto.RESULT(end_result).name,
                         "retry" : loop01,
-                        "execute_number":str(loop02)+"/"+str(recognition_information.execute_number)
+                        "execute_number":str(loop02+1)+"/"+str(recognition_information.execute_number)
+                    }
+                    self.logger.log(message,"INFO",details)
+                elif end_result != auto.RESULT.NG:
+                    all_ng = False
+                    message="Images_Action complete and Continue"
+                    details={
+                        "result" : auto.RESULT(end_result).name,
+                        "retry" : loop01,
+                        "execute_number":str(loop02+1)+"/"+str(recognition_information.execute_number)
                     }
                     self.logger.log(message,"INFO",details)
                 else:
@@ -439,57 +453,58 @@ class Recognition:
                     details={
                         "result" : auto.RESULT(end_result).name,
                         "retry" : loop01,
-                        "execute_number":str(loop02)+"/"+str(recognition_information.execute_number)
+                        "execute_number":str(loop02+1)+"/"+str(recognition_information.execute_number)
                     }
                     self.logger.log(message,"INFO",details)
                 # 条件成立での中止処理
                 if recognition_information.end_action == auto.END_ACTION.BREAK and recognition_information.end_condition == end_result:
-                    message="Images_Action BREAK"
+                    message="Images_Action complete and BREAK"
                     details={
                         "result" : auto.RESULT(end_result).name,
                         "retry" : loop01,
-                        "execute_number":str(loop02)+"/"+str(recognition_information.execute_number)
+                        "execute_number":str(loop02+1)+"/"+str(recognition_information.execute_number)
                     }
                     self.logger.log(message,"INFO",details)
                     break
                 # 条件成立での中止処理
                 if recognition_information.end_action == auto.END_ACTION.FOLDER_END_BREAK and recognition_information.end_condition == end_result:
-                    message="Images_Action FOLDER_END_BREAK"
+                    message="Images_Action complete and FOLDER_END_BREAK"
                     details={
                         "result" : auto.RESULT(end_result).name,
                         "retry" : loop01,
-                        "execute_number":str(loop02)+"/"+str(recognition_information.execute_number)
+                        "execute_number":str(loop02+1)+"/"+str(recognition_information.execute_number)
                     }
                     self.logger.log(message,"INFO",details)
                     break
             judge_detail={}
-            judge_result = auto.Condition_Judge(recognition_information.end_condition , end_result, judge_detail)
-            self.logger.log("Judge" , "INFO", details = judge_detail)
+            judge_result = auto.Condition_Judge(recognition_information.end_condition , end_result,details = judge_detail)
+            self.logger.log("Judge Result" , "INFO", details = judge_detail)
             if judge_result == False and loop01 < recognition_information.retry_number:
                 message="Images_Action False and retry"
                 details={
                     "result" : auto.RESULT(end_result).name,
                     "retry" : loop01,
-                    "execute_number":str(loop02)+"/"+str(recognition_information.execute_number)
+                    "execute_number":str(loop02+1)+"/"+str(recognition_information.execute_number)
                 }
                 self.logger.log(message,"INFO",details)
                 continue_flag = True
             else:
-                message="Images_Action EndResult"
-                details={
-                    "result" : auto.RESULT(end_result).name,
-                    "retry" : loop01,
-                    "execute_number":str(loop02)+"/"+str(recognition_information.execute_number)
-                }
-                self.logger.log(message,"INFO",details)
                 continue_flag = False
             loop01 = loop01 + 1
         if all_ok == True:
-            return auto.RESULT.ALL_OK
+            result = auto.RESULT.ALL_OK
         elif all_ng == True:
-            return auto.RESULT.NG
+            result = auto.RESULT.NG
         else:
-            return auto.RESULT.OK
+            result = auto.RESULT.OK
+        message="Images_Action End."
+        details={
+            "result" : auto.RESULT(result).name,
+            "retry" : loop01,
+            "execute_number":str(loop02+1)+"/"+str(recognition_information.execute_number)
+        }
+        self.logger.log(message,"INFO",details)
+        return result
 
     # 条件が成立した時に繰り返し実行する。
     def Images_ConditionCheckAndAction(self,name , condition , action_recognition_information , x_offset_dictionary , y_offset_dictionary):

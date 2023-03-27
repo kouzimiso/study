@@ -1,6 +1,7 @@
 import enum
 import sys
 import os
+import platform
 sys.path.append("../Common")
 sys.path.append("../../Common")
 import auto
@@ -16,6 +17,7 @@ class Action:
         if setting_dictionary is None:
             setting_dictionary = self.settings
         result_dictionary={}
+
         if (type == "Recognition"):
             recognition = Recognition.Recognition(setting_dictionary)
             result_dictionary=recognition.Execute()
@@ -25,16 +27,36 @@ class Action:
             result_dictionary = week_day.Check_Day(setting_dictionary)
             
         elif (type == "ShutDown"):
-            os.system('shutdown -r -f')
-            result_dictionary["result"] = True
+            shutdown()
+            result_dictionary={
+                "detail" : "ShutDown"
+            }
 
-            result_detail={}
-            result_detail["detail"]="ShutDown"
-            result_dictionary["detail"]=result_detail
-
-            result_error={}
-            result_dictionary["error"]=result_error
+        elif (type == "Reboot"):
+            reboot()
+            result_dictionary={
+                "detail" : "Reboot"
+            }
 
         return result_dictionary
 
 
+def shutdown():
+    if platform.system() == "Windows":
+        os.system("shutdown /s /t 1")
+        return True
+    elif platform.system() == "Linux":
+        os.system("sudo shutdown -h now")
+        return True
+    else:
+        return False  
+
+def reboot():
+    if platform.system() == "Windows":
+        os.system("shutdown /r /t 1")
+        return True
+    elif platform.system() == "Linux":
+        os.system("sudo shutdown -r now")
+        return True
+    else:
+        return False  

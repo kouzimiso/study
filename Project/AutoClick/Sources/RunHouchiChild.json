@@ -1,0 +1,950 @@
+{
+	"TimeCheck_Houchi_Sub":[
+		{
+            "comment": "比較する時刻に矛盾が無いことを確認する関数。Day1,Day2には特定の日付か曜日を含む時間を入れられる。day2には曜日は入れられない。day1かday3片方が曜日の場合は一週間回って必ず成立するのでTrue。",
+            "name": "TimeCheck_Houchi1",
+            "type": "Check_Day",
+  	    	"result_name":"Houchi_Time_Check1",
+            "settings": {
+                "day1": "土曜日0:00",
+                "day2": "Now",
+                "day3": "日曜日24:00",
+                "log_file_path_list": "../Log/log_houchi.json",
+                "log_function":true,"log_print_standardoutput": true
+            }
+		},
+		{
+            "name": "TimeCheck_Houchi2",
+            "type": "Check_Day",
+  	    	"result_name":"Houchi_Time_Check2",
+            "settings": {
+                "day1": "月曜日0:00",
+                "day2": "Now",
+                "day3": "月曜日24:00",
+                "log_file_path_list": "../Log/log_houchi.json",
+                "log_function":true,"log_print_standardoutput": true
+            }
+		},
+		{
+            "name": "TimeCheck_Houchi3",
+            "type": "Check_Day",
+  	    	"result_name":"Houchi_Time_Check3",
+            "settings": {
+                "day1": "火曜日0:00",
+                "day2": "Now",
+                "day3": "木曜日24:00",
+                "log_file_path_list": "../Log/log_houchi.json",
+                "log_function":true,"log_print_standardoutput": true
+            }
+		},
+		{
+            "name": "TimeCheck_Houchi4",
+            "type": "Check_Day",
+  	    	"result_name":"Houchi_Time_Check4",
+            "settings": {
+                "day1": "金曜日0:00",
+                "day2": "Now",
+                "day3": "金曜日24:00",
+                "log_file_path_list": "../Log/log_houchi.json",
+                "log_function":true,"log_print_standardoutput": true,
+				"#step_check_mode" : true
+
+            }
+		},
+        {
+            "name": "Condition_Execute",
+            "result_name": "Condition_Execute",
+            "type": "Judge",
+            "settings": {
+                "condition_list": [
+                    "Houchi_Time_Check1=True,Houchi_Time_Check2=True,Houchi_Time_Check3=True,Houchi_Time_Check4=True"
+                ],
+                "log_file_path_list": "../Log/log_houchi.json",
+                "log_function":true,"log_print_standardoutput": true,
+				"#step_check_mode" : true
+
+            }
+        }
+	],
+
+	"TimeCheck_Houchi_Main":[
+		{
+            "comment": "比較する時刻に矛盾が無いことを確認する関数。Day1,Day2には特定の日付か曜日を含む時間を入れられる。day2には曜日は入れられない。day1かday3片方が曜日の場合は一週間回って必ず成立するのでTrue。",
+            "name": "TimeCheck_Houchi1",
+            "type": "Check_Day",
+  	    	"result_name":"Houchi_Time_Check1",
+            "settings": {
+                "day1": "土曜日8:00",
+                "day2": "Now",
+                "day3": "日曜日23:30",
+                "log_file_path_list": "../Log/log_houchi.json",
+                "log_function":true,"log_print_standardoutput": true
+            }
+		},
+		{
+            "name": "TimeCheck_Houchi2",
+            "type": "Check_Day",
+  	    	"result_name":"Houchi_Time_Check2",
+            "settings": {
+                "day1": "月曜日12:00",
+                "day2": "Now",
+                "day3": "月曜日23:30",
+                "log_file_path_list": "../Log/log_houchi.json",
+                "log_function":true,"log_print_standardoutput": true
+            }
+		},
+		{
+            "name": "TimeCheck_Houchi3",
+            "type": "Check_Day",
+  	    	"result_name":"Houchi_Time_Check3",
+            "settings": {
+                "day1": "火曜日8:00",
+                "day2": "Now",
+                "day3": "木曜日23:30",
+                "log_file_path_list": "../Log/log_houchi.json",
+                "log_function":true,"log_print_standardoutput": true
+            }
+		},
+		{
+            "name": "TimeCheck_Houchi4",
+            "type": "Check_Day",
+  	    	"result_name":"Houchi_Time_Check4",
+            "settings": {
+                "day1": "金曜日8:00",
+                "day2": "Now",
+                "day3": "金曜日23:30",
+                "log_file_path_list": "../Log/log_houchi.json",
+                "log_function":true,"log_print_standardoutput": true
+            }
+		},
+        {
+            "name": "Condition_Execute",
+            "result_name": "Condition_Execute",
+            "type": "Judge",
+            "settings": {
+                "condition_list": [
+                    "Houchi_Time_Check1=True,Houchi_Time_Check2=True,Houchi_Time_Check3=True,Houchi_Time_Check4=True"
+                ],
+                "log_file_path_list": "../Log/log_houchi.json",
+                "log_function":true,"log_print_standardoutput": true
+            }
+        }
+	],
+	"TimeCheck_Houchi_Chokyo":[
+		{
+			"name": "TimeCheck_Houchi_Chokyo01",
+			"type": "Check_Day",
+			"result_name":"Houchi_ChokyoTime_Check1",
+			"settings": {
+				"day1": "12:15",
+				"day2": "Now",
+				"day3": "13:45",
+				"log_file_path_list": "../Log/log_houchi.json",
+				"log_function":true,"log_print_standardoutput": true
+			}
+		},
+		{
+			"name": "TimeCheck_Houchi_Chokyo02",
+			"type": "Check_Day",
+			"result_name":"Houchi_ChokyoTime_Check2",
+			"settings": {
+				"day1": "19:45",
+				"day2": "Now",
+				"day3": "20:45",
+				"log_file_path_list": "../Log/log_houchi.json",
+				"log_function":true,"log_print_standardoutput": true
+			}
+		},
+		{
+            "name": "Condition_Chokyo",
+            "result_name": "Condition_Execute",
+            "type": "Judge",
+            "settings": {
+                "condition_list": [
+                    "Houchi_ChokyoTime_Check1=True,Houchi_ChokyoTime_Check2=True"
+                ],
+                "log_file_path_list": "../Log/log_houchi.json",
+                "log_function":true,"log_print_standardoutput": true
+            }
+        }
+	],
+	"TimeCheck_HimePlay":[
+		{
+            "comment": "比較する時刻に矛盾が無いことを確認する関数。Day1,Day2には特定の日付か曜日を含む時間を入れられる。day2には曜日は入れられない。day1かday3片方が曜日の場合は一週間回って必ず成立するのでTrue。",
+            "name": "TimeCheck_Houchi1",
+            "type": "Check_Day",
+  	    	"result_name":"Houchi_Time_Check1",
+            "settings": {
+				"day1": "12:30",
+				"day2": "Now",
+				"day3": "12:40",
+                "log_file_path_list": "../Log/log_houchi.json",
+                "log_function":true,"log_print_standardoutput": true
+            }
+	},
+	"HouchiClickGroup" : 
+	[
+		{
+	 		"name" : "HouchiClickGroup",
+			"type" : "RunPlanLists",
+			"condition_list" : "Result_HouchiServerClicked.detail = RESULT.OK,Result_HouchiServerClicked.detail = RESULT.ALL_OK",
+			"settings" : {
+				"file_path"  : "RunHouchiChild.json",
+				"#step_check_mode" : true,
+ 		 		"plan_lists" : [
+					"HouchiStart","HouchiMainte","HouchiPlay"
+				]
+			}
+		}
+	],
+	"HouchiPlay" : 
+	[
+		{
+	 		"name" : "HouchiPlay",
+			"type" : "RunPlanLists",
+			"condition_list" : "Condition_Start = true",
+			"result_name":"",
+			"settings" : {
+				"file_path"  : "RunHouchiChild.json",
+				"#step_check_mode" : true,
+ 		 		"plan_lists" : [
+					"HouchiStart2",	"HouchiNoMoney","HouchiEvent02","HouchiIkusei","HouchiEvent01","HouchiHighSpeed","HouchiUnderWare","TimeCheck_Houchi_Chokyo","Chokyo"
+				]
+			}
+		}
+	],
+	"HouchiNoMoney": 
+	[
+		{
+	 		"name" : "HouchiNoMoney",
+			"type" : "RunPlanLists",
+			"condition_list" : "",
+			"result_name":"",
+			"settings" : {
+				"file_path"  : "RunHouchiChild.json",
+ 		 		"plan_lists" : [
+					"HomeClick","PochiClick","PochiContinue",
+					"HouchiStart2","PochiClick","PochiContinue",
+					"HomeClick","PochiClick","PochiContinue",
+					"PochiContinue","PochiContinue","PochiContinue","PochiContinue","PochiContinue",
+					"PochiContinue","PochiContinue","PochiContinue","PochiContinue","PochiClick"
+				]
+			}
+		}
+	],
+	"HouchiEvent01": 
+	[
+		{
+	 		"name" : "HouchiEvent01",
+			"type" : "RunPlanLists",
+			"condition_list" : "",
+			"result_name":"",
+			"settings" : {
+				"file_path"  : "RunHouchiChild.json",
+ 		 		"plan_lists" : [
+					"HomeClick","HouchiEvent01Click",
+					"HomeClick","HouchiEvent01Click"
+				]
+			}
+		}
+	],
+	"HouchiEvent02": 
+	[
+		{
+	 		"name" : "HouchiEvent02",
+			"type" : "RunPlanLists",
+			"condition_list" : "",
+			"result_name":"",
+			"settings" : {
+				"file_path"  : "RunHouchiChild.json",
+ 		 		"plan_lists" : [
+					"HomeClick","HouchiEvent02Click",
+					"HomeClick","HouchiEvent02Click"
+				]
+			}
+		}
+	],
+	"HouchiIkusei": 
+	[
+		{
+	 		"name" : "HouchiIkusei",
+			"type" : "RunPlanLists",
+			"condition_list" : "",
+			"result_name":"",
+			"settings" : {
+				"file_path"  : "RunHouchiChild.json",
+ 		 		"plan_lists" : [
+					"HomeClick","HouchiDairyClick","HouchiIkuseiClick","HouchiBattleClick",
+					"HomeClick","HouchiDairyClick","HouchiIkuseiClick","HouchiBattleClick",
+					"HomeClick","HouchiDairyClick","HouchiIkuseiClick","HouchiBattleClick"
+				]
+			}
+		}
+	],
+	"HouchiUnderWare": 
+	[
+		{
+	 		"name" : "HouchiHighSpeed",
+			"type" : "RunPlanLists",
+			"condition_list" : "",
+			"result_name":"",
+			"settings" : {
+				"file_path"  : "RunHouchiChild.json",
+ 		 		"plan_lists" : [
+					"HomeClick","HouchiUnderWareClick",
+					"HomeClick","HouchiUnderWareClick"
+				]
+			}
+		}
+	],
+	"HouchiHighSpeed": 
+	[
+		{
+	 		"name" : "HouchiHighSpeed",
+			"type" : "RunPlanLists",
+			"condition_list" : "",
+			"result_name":"",
+			"settings" : {
+				"file_path"  : "RunHouchiChild.json",
+ 		 		"plan_lists" : [
+					"HomeClick","HouchiHighSpeedClick"
+				]
+			}
+		}
+	],
+	"Chokyo": 
+	[
+		{
+	 		"name" : "Chokyo",
+			"type" : "RunPlanLists",
+			"condition_list" : "Condition_Execute = True",
+			"result_name":"",
+			"settings" : {
+				"file_path"  : "RunHouchiChild.json",
+ 		 		"plan_lists" : [
+					"CloseWindow","TimeCheck_Houchi_Chokyo","HouchiAccount01","HouchiWaiting","HouchiServer01","ChokyoClickGroup",
+					"CloseWindow","TimeCheck_Houchi_Chokyo","HouchiAccount01","HouchiWaiting","HouchiServer02","ChokyoClickGroup",
+					"CloseWindow","TimeCheck_Houchi_Chokyo","HouchiAccount01","HouchiWaiting","HouchiServer03","ChokyoClickGroup",
+					"CloseWindow","TimeCheck_Houchi_Chokyo","HouchiAccount01","HouchiWaiting","HouchiServer04","ChokyoClickGroup",
+					"CloseWindow","TimeCheck_Houchi_Chokyo","HouchiAccount01","HouchiWaiting","HouchiServer05","ChokyoClickGroup",
+					"CloseWindow","TimeCheck_Houchi_Chokyo","HouchiAccount01","HouchiWaiting","HouchiServer06","ChokyoClickGroup",
+					"CloseWindow","TimeCheck_Houchi_Chokyo","HouchiAccount01","HouchiWaiting","HouchiServer07","ChokyoClickGroup",
+					"CloseWindow","TimeCheck_Houchi_Chokyo","HouchiAccount01","HouchiWaiting","HouchiServer08","ChokyoClickGroup",
+					"CloseWindow","TimeCheck_Houchi_Chokyo","HouchiAccount02","HouchiWaiting","HouchiServer01","ChokyoClickGroup",
+					"CloseWindow","TimeCheck_Houchi_Chokyo","HouchiAccount02","HouchiWaiting","HouchiServer02","ChokyoClickGroup",
+					"CloseWindow","TimeCheck_Houchi_Chokyo","HouchiAccount02","HouchiWaiting","HouchiServer03","ChokyoClickGroup",
+					"CloseWindow","TimeCheck_Houchi_Chokyo","HouchiAccount02","HouchiWaiting","HouchiServer04","ChokyoClickGroup",
+					"CloseWindow","TimeCheck_Houchi_Chokyo","HouchiAccount02","HouchiWaiting","HouchiServer05","ChokyoClickGroup",
+					"CloseWindow","TimeCheck_Houchi_Chokyo","HouchiAccount02","HouchiWaiting","HouchiServer06","ChokyoClickGroup",
+					"CloseWindow","TimeCheck_Houchi_Chokyo","HouchiAccount02","HouchiWaiting","HouchiServer07","ChokyoClickGroup",
+					"CloseWindow","TimeCheck_Houchi_Chokyo","HouchiAccount02","HouchiWaiting","HouchiServer08","ChokyoClickGroup",
+					"CloseWindow","TimeCheck_Houchi_Chokyo","HouchiAccount03","HouchiWaiting","HouchiServer09","ChokyoClickGroup",
+					"CloseWindow","TimeCheck_Houchi_Chokyo","HouchiAccount04","HouchiWaiting","HouchiServer09","ChokyoClickGroup",
+					"CloseWindow","TimeCheck_Houchi_Chokyo","HouchiAccount05","HouchiWaiting","HouchiServer09","ChokyoClickGroup",
+					"CloseWindow","TimeCheck_Houchi_Chokyo","HouchiAccount01","HouchiWaiting","HouchiServer09","ChokyoClickGroup",
+					"CloseWindow","TimeCheck_Houchi_Chokyo","HouchiAccount02","HouchiWaiting","HouchiServer09","ChokyoClickGroup",
+					"CloseWindow","TimeCheck_Houchi_Chokyo","HouchiAccount06","HouchiWaiting","HouchiServer09","ChokyoClickGroup"
+				]
+			}
+		}
+	],
+	"ChokyoClickGroup": 
+	[
+
+		{
+	 		"name" : "ChokyoClickGroup",
+			"type" : "RunPlanLists",
+			"condition_list" : "Condition_Execute = True",
+			"result_name":"",
+			"settings" : {
+				"file_path"  : "RunHouchiChild.json",
+ 		 		"plan_lists" : [
+					"HouchiStart","ChokyoPlay"
+				]
+			}
+		}
+	],
+	"ChokyoPlay": 
+	[
+
+		{
+	 		"name" : "ChokyoPlay",
+			"type" : "RunPlanLists",
+			"condition_list" : "Condition_Execute = True",
+			"result_name":"",
+			"settings" : {
+				"file_path"  : "RunHouchiChild.json",
+ 		 		"plan_lists" : [
+					"HouchiStart2","ChokyoClick"
+				]
+			}
+		}
+	],
+	"HouchiStart":
+	[
+		{
+			"name" : "HouchiStartClick01",
+			"type" : "Recognition",
+			"condition_list" : "",
+			"result_name":"Result_HouchiStartClicked",
+			"settings" : {
+				"#step_check_mode" : true,
+				"action" : "ACTION.CLICK",
+				"end_condition" : "RESULT.OK",
+				"end_action" : "END_ACTION.FOLDER_END_BREAK",
+				"execute_number" : 2,
+				"retry_number" : 2,
+				"image_path" : "../Images/houchi1000_start/Click0*.png",
+				"interval_time" : 0.1,
+				"recognition_confidence" : 0.93,
+				"recognition_grayscale" : true,
+				"log_file_path_list": "../Log/log_recognition.json",
+				"log_function":true,"log_print_standardoutput": true
+			}
+		}
+	],
+
+	"HouchiMainte":
+	[
+		{
+			"name" : "HouchiMainteClick01",
+			"type" : "Recognition",
+			"condition_list" : "",
+			"result_name":"Result_HouchiMaintClicked",
+			"settings" : {
+				"#step_check_mode" : true,
+				"action" : "ACTION.CLICK",
+				"end_condition" : "RESULT.NG",
+				"end_action" : "END_ACTION.FOLDER_END_BREAK",
+				"execute_number" : 2,
+				"retry_number" : 2,
+				"image_path" : "../Images/houchi9999_mainte/Click0*.png",
+				"interval_time" : 0.1,
+				"recognition_confidence" : 0.93,
+				"recognition_grayscale" : true,
+				"log_file_path_list": "../Log/log_recognition.json",
+				"log_function":true,"log_print_standardoutput": true
+			}
+		},
+
+		{
+			"name": "Condition_Mainte",
+			"result_name": "Condition_Start",
+			"type": "Judge",
+			"settings": {
+				"condition_list": [
+					"Result_HouchiStartClicked.detail = RESULT.OK,Result_HouchiStartClicked.detail = RESULT.ALL_OK",
+					"Result_HouchiMaintClicked.detail = RESULT.NG"					
+				],
+				"log_file_path_list": "../Log/log_houchi.json",
+				"log_function":true,"log_print_standardoutput": true
+				
+			}
+		}
+	],
+
+	"HouchiStart2":
+	[
+		{
+			"name" : "HouchiStartClick02",
+			"type" : "Recognition",
+			"condition_list" : "",
+			"result_name":"",
+			"settings" : {
+				"#step_check_mode" : true,"retry_check" : false,"sleep_time" : 0,
+				"action" : "ACTION.CLICK",
+				"end_condition" : "RESULT.OK",
+				"end_action" : "END_ACTION.CONTINUE",
+				"execute_number" : 1,
+				"retry_number" : 4,
+				"image_path" : "../Images/houchi1010_home/*.png",
+				"interval_time" : 0.1,
+				"recognition_confidence" : 0.93,
+				"recognition_grayscale" : true,
+				"log_file_path_list": "../Log/log_recognition.json",
+				"log_function":true,"log_print_standardoutput": true
+			}
+		}
+	],
+	"PochiClick":
+	[
+		{
+			"name" : "PochiClick01",
+			"type" : "Recognition",
+			"result_name":"PochiStart",
+			"settings" : {
+				"#step_check_mode" : true,"retry_check" : false,"sleep_time" : 0,
+				"action" : "ACTION.CLICK",
+				"end_condition" : "RESULT.OK",
+				"end_action" : "END_ACTION.BREAK",
+				"execute_number" : 1,
+				"retry_number" : 5,
+				"image_path" : "../Images/houchi1020_pochistart/*.png",
+				"interval_time" : 0.0,
+				"recognition_confidence" : 0.93,
+				"recognition_grayscale" : true,
+				"log_file_path_list": "../Log/log_recognition.json",
+				"log_function":true,"log_print_standardoutput": true
+			}
+		},
+		{
+			"name" : "PochiClick02",
+			"type" : "Recognition",
+			"condition_list" : "PochiStart.detail = RESULT.OK,PochiStart.detail = RESULT.ALL_OK",
+			"result_name":"",
+			"settings" : {
+				"action" : "ACTION.CLICK",
+				"end_condition" : "RESULT.OK",
+				"end_action" : "END_ACTION.FOLDER_END_BREAK",
+				"execute_number" : 1,
+				"retry_number" : 1,
+				"image_path" : "../Images/houchi1021_pochi/*.png",
+				"interval_time" : 0.4,
+				"recognition_confidence" : 0.93,
+				"recognition_grayscale" : false,
+				"log_file_path_list": "../Log/log_recognition.json",
+				"log_function":true,"log_print_standardoutput": false
+			}
+		},
+		{
+			"name" : "PochiClickEnd",
+			"type" : "Recognition",
+			"condition_list" : "PochiStart.detail = RESULT.OK,PochiStart.detail = RESULT.ALL_OK",
+			"result_name":"",
+			"settings" : {
+				"action" : "ACTION.CLICK",
+				"end_condition" : "RESULT.OK",
+				"end_action" : "END_ACTION.CONTINUE",
+				"execute_number" : 1,
+				"retry_number" : 1,
+				"image_path" : "../Images/houchi1029_pochiend/*.png",
+				"interval_time" : 0.0,
+				"recognition_confidence" : 0.93,
+				"recognition_grayscale" : true,
+				"log_file_path_list": "../Log/log_recognition.json",
+				"log_function":true,"log_print_standardoutput": false
+			}
+		}
+	],
+	"PochiContinue":
+	[
+		{
+			"name" : "PochiClick01",
+			"type" : "Recognition",
+			"condition_list" : "PochiStart.detail = RESULT.OK,PochiStart.detail = RESULT.ALL_OK",
+			"result_name":"PochiStart",
+			"settings" : {
+				"#step_check_mode" : true,"retry_check" : false,"sleep_time" : 0,
+				"action" : "ACTION.DOUBLE_CLICK",
+				"end_condition" : "RESULT.OK",
+				"end_action" : "END_ACTION.BREAK",
+				"execute_number" : 1,
+				"retry_number" : 5,
+				"image_path" : "../Images/houchi1020_pochistart/*.png",
+				"interval_time" : 0.0,
+				"recognition_confidence" : 0.93,
+				"recognition_grayscale" : true,
+				"log_file_path_list": "../Log/log_recognition.json",
+				"log_function":true,"log_print_standardoutput": false
+			}
+		},
+		{
+			"name" : "PochiClick02",
+			"type" : "Recognition",
+			"condition_list" : "PochiStart.detail = RESULT.OK,PochiStart.detail = RESULT.ALL_OK",
+			"result_name":"",
+			"settings" : {
+				"action" : "ACTION.CLICK",
+				"end_condition" : "RESULT.OK",
+				"end_action" : "END_ACTION.FOLDER_END_BREAK",
+				"execute_number" : 1,
+				"retry_number" : 1,
+				"image_path" : "../Images/houchi1021_pochi/*.png",
+				"interval_time" : 0.0,
+				"recognition_confidence" : 0.93,
+				"recognition_grayscale" : true,
+				"log_file_path_list": "../Log/log_recognition.json",
+				"log_function":true,"log_print_standardoutput": false
+			}
+		},
+		{
+			"name" : "PochiClickEnd",
+			"type" : "Recognition",
+			"condition_list" : "PochiStart.detail = RESULT.OK,PochiStart.detail = RESULT.ALL_OK",
+			"result_name":"",
+			"settings" : {
+				"action" : "ACTION.CLICK",
+				"end_condition" : "RESULT.OK",
+				"end_action" : "END_ACTION.CONTINUE",
+				"execute_number" : 1,
+				"retry_number" : 1,
+				"image_path" : "../Images/houchi1029_pochiend/*.png",
+				"interval_time" : 0.0,
+				"recognition_confidence" : 0.93,
+				"recognition_grayscale" : true,
+				"log_file_path_list": "../Log/log_recognition.json",
+				"log_function":true,"log_print_standardoutput": false
+			}
+		}
+	],
+	"HouchiEvent01Click":
+	[
+		{
+			"name" : "HouchiEvent01Click01",
+			"type" : "Recognition",
+			"condition_list" : "",
+			"result_name":"Execute",
+			"settings" : {
+				"action" : "ACTION.DOUBLE_CLICK",
+				"end_condition" : "RESULT.OK",
+				"end_action" : "END_ACTION.CONTINUE",
+				"execute_number" : 1,
+				"retry_number" : 2,
+				"image_path" : "../Images/houchi1400_event/01Start/*.png",
+				"interval_time" : 0.1,
+				"recognition_confidence" : 0.93,
+				"recognition_grayscale" : true,
+				"log_file_path_list": "../Log/log_recognition.json",
+				"log_function":true,"log_print_standardoutput": false
+			}
+		},
+		{
+			"name" : "HouchiEvent01Click03",
+			"condition_list" : "Execute.detail = RESULT.OK,Execute.detail = RESULT.ALL_OK",
+			"result_name":"",
+			"settings" : {
+				"action" : "ACTION.CLICK",
+				"end_condition" : "RESULT.OK",
+				"end_action" : "END_ACTION.CONTINUE",
+				"execute_number" : 1,
+				"retry_number" : 0,
+				"image_path" : "../Images/houchi1400_event/03Execute/*.png",
+				"interval_time" : 0.5,
+				"recognition_confidence" : 0.93,
+				"recognition_grayscale" : true,
+				"log_file_path_list": "../Log/log_recognition.json",
+				"log_function":true,"log_print_standardoutput": false
+			}
+		},
+		{
+			"name" : "HouchiEvent01Click11",
+			"type" : "Recognition",
+			"condition_list" : "",
+			"result_name":"Execute",
+			"settings" : {
+				"action" : "ACTION.DOUBLE_CLICK",
+				"end_condition" : "RESULT.OK",
+				"end_action" : "END_ACTION.CONTINUE",
+				"execute_number" : 1,
+				"retry_number" : 2,
+				"image_path" : "../Images/houchi1400_event/11Start/*.png",
+				"interval_time" : 0.1,
+				"recognition_confidence" : 0.93,
+				"recognition_grayscale" : true,
+				"log_file_path_list": "../Log/log_recognition.json",
+				"log_function":true,"log_print_standardoutput": false
+			}
+		},
+		{
+			"name" : "HouchiEvent01Click13",
+			"condition_list" : "Execute.detail = RESULT.OK,Execute.detail = RESULT.ALL_OK",
+			"result_name":"",
+			"settings" : {
+				"action" : "ACTION.CLICK",
+				"end_condition" : "RESULT.OK",
+				"end_action" : "END_ACTION.CONTINUE",
+				"execute_number" : 1,
+				"retry_number" : 0,
+				"image_path" : "../Images/houchi1400_event/13Execute/*.png",
+				"interval_time" : 0.5,
+				"recognition_confidence" : 0.93,
+				"recognition_grayscale" : true,
+				"log_file_path_list": "../Log/log_recognition.json",
+				"log_function":true,"log_print_standardoutput": false
+			}
+		},
+		{
+			"name" : "HouchiEvent01Click21",
+			"type" : "Recognition",
+			"condition_list" : "",
+			"result_name":"Execute",
+			"settings" : {
+				"action" : "ACTION.DOUBLE_CLICK",
+				"end_condition" : "RESULT.OK",
+				"end_action" : "END_ACTION.CONTINUE",
+				"execute_number" : 1,
+				"retry_number" : 2,
+				"image_path" : "../Images/houchi1400_event/21Start/*.png",
+				"interval_time" : 0.1,
+				"recognition_confidence" : 0.93,
+				"recognition_grayscale" : true,
+				"log_file_path_list": "../Log/log_recognition.json",
+				"log_function":true,"log_print_standardoutput": false
+			}
+		},
+		{
+			"name" : "HouchiEvent01Click23",
+			"condition_list" : "Execute.detail = RESULT.OK,Execute.detail = RESULT.ALL_OK",
+			"result_name":"",
+			"settings" : {
+				"action" : "ACTION.CLICK",
+				"end_condition" : "RESULT.OK",
+				"end_action" : "END_ACTION.CONTINUE",
+				"execute_number" : 1,
+				"retry_number" : 0,
+				"image_path" : "../Images/houchi1400_event/23Execute/*.png",
+				"interval_time" : 0.5,
+				"recognition_confidence" : 0.93,
+				"recognition_grayscale" : true,
+				"log_file_path_list": "../Log/log_recognition.json",
+				"log_function":true,"log_print_standardoutput": false
+			}
+		}
+	],
+	"HouchiEvent02Click":
+	[
+		{
+			"name" : "HouchiZikaiStart",
+			"type" : "Recognition",
+			"condition_list" : "",
+			"result_name":"Execute",
+			"settings" : {
+				"action" : "ACTION.DOUBLE_CLICK",
+				"end_condition" : "RESULT.OK",
+				"end_action" : "END_ACTION.FOLDER_END_BREAK",
+				"execute_number" : 1,
+				"retry_number" : 2,
+				"image_path" : "../Images/houchi1490_event/01Start/*.png",
+				"interval_time" : 0.1,
+				"recognition_confidence" : 0.93,
+				"recognition_grayscale" : true,
+				"log_file_path_list": "../Log/log_recognition.json",
+				"log_function":true,"log_print_standardoutput": false
+			}
+		},
+		{
+			"name" : "HouchiZikai",
+			"type" : "Recognition",
+			"condition_list" : "Execute.detail = RESULT.OK,Execute.detail = RESULT.ALL_OK",
+			"result_name":"",
+			"settings" : {
+				"action" : "ACTION.DOUBLE_CLICK",
+				"end_condition" : "RESULT.OK",
+				"end_action" : "END_ACTION.FOLDER_END_BREAK",
+				"execute_number" : 1,
+				"retry_number" : 1,
+				"image_path" : "../Images/houchi1490_event/02Execute/*.png",
+				"interval_time" : 0.8,
+				"recognition_confidence" : 0.93,
+				"recognition_grayscale" : true,
+				"log_file_path_list": "../Log/log_recognition.json",
+				"log_function":true,"log_print_standardoutput": false
+			}
+		},
+		{
+			"name" : "HouchiZikai",
+			"type" : "Recognition",
+			"condition_list" : "Execute.detail = RESULT.OK,Execute.detail = RESULT.ALL_OK",
+			"result_name":"Execute02",
+			"settings" : {
+				"action" : "ACTION.DOUBLE_CLICK",
+				"end_condition" : "RESULT.OK",
+				"end_action" : "END_ACTION.FOLDER_END_BREAK",
+				"execute_number" : 1,
+				"retry_number" : 1,
+				"image_path" : "../Images/houchi1490_event/03Check/*.png",
+				"interval_time" : 0.8,
+				"recognition_confidence" : 0.95,
+				"recognition_grayscale" : false,
+				"log_file_path_list": "../Log/log_recognition.json",
+				"log_function":true,"log_print_standardoutput": false
+			}
+		},
+		{
+			"name" : "HouchiZikai",
+			"type" : "Recognition",
+			"condition_list" : "Execute02.detail = RESULT.OK,Execute02.detail = RESULT.ALL_OK",
+			"result_name":"",
+			"settings" : {
+				"action" : "ACTION.CLICK",
+				"end_condition" : "RESULT.OK",
+				"end_action" : "END_ACTION.CONTINUE",
+				"execute_number" : 1,
+				"retry_number" : 1,
+				"image_path" : "../Images/image_event2/*.png",
+				"interval_time" : 0.8,
+				"recognition_confidence" : 0.93,
+				"recognition_grayscale" : true,
+				"log_file_path_list": "../Log/log_recognition.json",
+				"log_function":true,"log_print_standardoutput": false
+			}
+		}
+	],
+	"HouchiDairyClick":
+	[
+		{
+			"name" : "Dairy01",
+			"type" : "Recognition",
+			"condition_list" : "",
+			"result_name":"Execute",
+			"settings" : {
+				"action" : "ACTION.DOUBLE_CLICK",
+				"end_condition" : "RESULT.OK",
+				"end_action" : "END_ACTION.CONTINUE",
+				"execute_number" : 1,
+				"retry_number" : 2,
+				"image_path" : "../Images/houchi1500_dairy/*.png",
+				"interval_time" : 0.1,
+				"recognition_confidence" : 0.93,
+				"recognition_grayscale" : true,
+				"log_file_path_list": "../Log/log_recognition.json",
+				"log_function":true,"log_print_standardoutput": false
+			}
+		},
+		{
+			"name" : "Dairy02",
+			"type" : "Recognition",
+			"condition_list" : "Execute.detail = RESULT.OK,Execute.detail = RESULT.ALL_OK",
+			"result_name":"",
+			"settings" : {
+				"action" : "ACTION.CLICK",
+				"end_condition" : "RESULT.OK",
+				"end_action" : "END_ACTION.CONTINUE",
+				"execute_number" : 1,
+				"retry_number" : 0,
+				"image_path" : "../Images/houchi1510_dairy/*.png",
+				"interval_time" : 0.8,
+				"recognition_confidence" : 0.93,
+				"recognition_grayscale" : true,
+				"log_file_path_list": "../Log/log_recognition.json",
+				"log_function":true,"log_print_standardoutput": false
+			}
+		}
+	],
+	"HouchiIkuseiClick":
+	[
+		{
+			"name" : "Ikusei",
+			"type" : "Recognition",
+			"condition_list" : "",
+			"result_name":"Execute",
+			"settings" : {
+				"action" : "ACTION.DOUBLE_CLICK",
+				"end_condition" : "RESULT.OK",
+				"end_action" : "END_ACTION.CONTINUE",
+				"execute_number" : 1,
+				"retry_number" : 2,
+				"image_path" : "../Images/houchi1901_ikusei/*.png",
+				"interval_time" : 0.1,
+				"recognition_confidence" : 0.93,
+				"recognition_grayscale" : true,
+				"log_file_path_list": "../Log/log_recognition.json",
+				"log_function":true,"log_print_standardoutput": false
+			}
+		}
+	],
+	"HouchiBattleClick":
+	[
+		{
+			"name" : "HouchiBattle",
+			"type" : "Recognition",
+			"condition_list" : "",
+			"result_name":"Execute",
+			"settings" : {
+				"action" : "ACTION.DOUBLE_CLICK",
+				"end_condition" : "RESULT.OK",
+				"end_action" : "END_ACTION.CONTINUE",
+				"execute_number" : 1,
+				"retry_number" : 2,
+				"image_path" : "../Images/houchi1910_battle/*.png",
+				"interval_time" : 0.1,
+				"recognition_confidence" : 0.93,
+				"recognition_grayscale" : true,
+				"log_file_path_list": "../Log/log_recognition.json",
+				"log_function":true,"log_print_standardoutput": false
+			}
+		}
+	],
+	"HomeClick":
+	[
+		{
+			"name" : "HomeClick",
+			"type" : "Recognition",
+			"result_name":"",
+			"settings" : {
+				"action" : "ACTION.DOUBLE_CLICK",
+				"end_condition" : "RESULT.OK",
+				"end_action" : "END_ACTION.CONTINUE",
+				"execute_number" : 2,
+				"retry_number" : 2,
+				"image_path" : "../Images/houchi1010_home/*.png",
+				"interval_time" : 0.5,
+				"recognition_confidence" : 0.95,
+				"recognition_grayscale" : true,
+				"log_file_path_list": "../Log/log_recognition.json",
+				"log_function":true,"log_print_standardoutput": false
+			}
+		}
+	],
+	"ChokyoClick":
+	[
+		{
+			"name" : "ChokyoClick",
+			"type" : "Recognition",
+			"result_name":"Condition_Chokyo",
+			"settings" : {
+				"action" : "ACTION.DOUBLE_CLICK",
+				"end_condition" : "RESULT.OK",
+				"end_action" : "END_ACTION.CONTINUE",
+				"execute_number" : 2,
+				"retry_number" : 2,
+				"image_path" : "../Images/image_kyoudou1/*.png",
+				"interval_time" : 0.5,
+				"recognition_confidence" : 0.95,
+				"recognition_grayscale" : true,
+				"log_file_path_list": "../Log/log_recognition.json",
+				"log_function":true,"log_print_standardoutput": false
+			}
+		},
+		{
+			"name" : "ChokyoClick",
+			"type" : "Recognition",
+			"condition_list" : "Execute.detail = RESULT.OK,Execute.detail = RESULT.ALL_OK",
+			"result_name":"",
+			"settings" : {
+				"action" : "ACTION.DOUBLE_CLICK",
+				"end_condition" : "RESULT.OK",
+				"end_action" : "END_ACTION.CONTINUE",
+				"execute_number" : 2,
+				"retry_number" : 2,
+				"image_path" : "../Images/image_kyoudou2/*.png",
+				"interval_time" : 0.5,
+				"recognition_confidence" : 0.95,
+				"recognition_grayscale" : true,
+				"log_file_path_list": "../Log/log_recognition.json",
+				"log_function":true,"log_print_standardoutput": false
+			}
+		}
+	],
+	"CloseWindow":
+	[
+		{
+			"name" : "CloseWindow",
+			"type" : "Recognition",
+			"result_name":"",
+			"settings" : {
+				"action" : "ACTION.CLICK",
+				"end_condition" : "RESULT.OK",
+				"end_action" : "END_ACTION.CONTINUE",
+				"execute_number" : 2,
+				"retry_number" : 2,
+				"image_path" : "../Images/image_end/*.png",
+				"interval_time" : 1.8,
+				"recognition_confidence" : 0.95,
+				"recognition_grayscale" : true,
+				"log_file_path_list": "../Log/log_recognition.json",
+				"log_function":true,"log_print_standardoutput": false
+			}
+		}
+	]
+}

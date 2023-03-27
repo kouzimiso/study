@@ -31,7 +31,7 @@ class Judge:
         ClassControl.update_from_dict(self,self.default_setting_dictionary)
         self.Setup(setting_dictionary,information)
 
-    def Setup(self , setting_dictionary , information = information ) :
+    def Setup(self , setting_dictionary , information = {} ) :
         self.logger.Setup(setting_dictionary)
         self.information = information
         if("condition_list" in setting_dictionary ):
@@ -39,13 +39,13 @@ class Judge:
         if("default_result" in setting_dictionary ):
             self.default_result = setting_dictionary["default_result"]
 
-    def Result(self , condition_list = condition_list ,information = information,default_result=default_result,result_details ={}):
+    def Result(self , condition_list = None ,information = None,default_result = None , result_details ={}):
         if condition_list is None:
             condition_list = self.condition_list 
         if information is None:
             information = self.information
         if default_result is None:
-            default_result=default_result
+            default_result = self.default_result
 
         result = self.Results_ByDictionaryInformation(condition_list,information,default_result,result_details)
         return result

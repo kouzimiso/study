@@ -6,7 +6,7 @@ import datetime
 import pyautogui
 import cv2
 import json
-import clr
+#import clr
 import PIL
 import unittest
 import socket

@@ -100,12 +100,10 @@ class Logs:
         logging.config.dictConfig(config)
         self.logger = logging.getLogger("file")
 
-        log_console_level = setting_dictionary.get("log_console_level")
-        if log_console_level is None :
-            log_console_level = logging.WARNING
-
         self.logger_console = logging.getLogger("console")
-        self.logger_console.setLevel(log_console_level)
+        log_console_level = setting_dictionary.get("log_console_level",None)
+        if log_console_level is not None:
+            self.logger_console.setLevel(log_console_level)
         if not self.logger_console.handlers:
             handler = logging.StreamHandler(sys.stdout)
             self.logger_console.addHandler(handler)
@@ -141,7 +139,7 @@ class Logs:
 
     def Log_Level_Get(self , log_level_string , default_log_level=logging.WARNING):
         try:            
-            log_level=logging.getLevelname(log_level_string)
+            log_level=logging.getLevelName(log_level_string)
         except:
             log_level=default_log_level
         return log_level
@@ -156,13 +154,16 @@ class Logs:
 
         #辞書形式のlog dataを貯める
         log_message = {
-            "date": datetime.datetime.now().strftime( setting_dictionary.get("time_format",self.TIME_FORMAT)),
+            "date": datetime.datetime.now(),
             "level": level,
             "message": message
         }
         if details != {}:
             log_message.update(details)
-        
+        #dateをdetailsの中のdateで上書きしてフォーマットを合わせる事ができる仕様。
+        date = log_message["date"]
+        if type(date) == datetime.datetime:
+            log_message["date"]=date.strftime( setting_dictionary.get("time_format",self.TIME_FORMAT))
         if setting_dictionary.get("log_function", False):
             frame = inspect.currentframe().f_back
             function_information = {"function":frame.f_code.co_name}
@@ -179,8 +180,9 @@ class Logs:
             log_message.update(function_information)
 
         if flag_print:
-            setting_log_level = setting_dictionary.get("log_level",self.default_log_console_level)
-            log_level = self.Log_Level_Get(setting_log_level) 
+            #setting_log_level = setting_dictionary.get("log_level",self.default_log_console_level)
+            log_level = self.Log_Level_Get(level) 
+
             message = json.dumps(log_message , ensure_ascii=False)
             self.logger_console.log(log_level , message)
             #print(self.logger_console.handlers)
@@ -189,7 +191,7 @@ class Logs:
         return message_lists
 
 
-    def MessageList_Write(self , file_path_list = None , message_lists = None):
+    def MessageList_Write(self , file_path_list = None , message_lists = None,log_level_string="INFO"):
         if file_path_list is None:
             file_path_list = self.FilePathList
         if message_lists is None:
@@ -198,12 +200,17 @@ class Logs:
             temporary_list = file_path_list
         else:
             temporary_list = [file_path_list]
+        message_list=[]
         for file_path in temporary_list:
-            FileControl.Manage_File(file_path)
+            FileControl.Manage_File(file_path,message_list=message_list)
             # 辞書形式DataをJson形式のファイルに追記
             with open(file_path , 'a') as file:
                 for message in message_lists:
-                    file.write(json.dumps(message , ensure_ascii=False)+"\n")
+                    message_level = self.Log_Level_Get(message.get("level"),logging.WARNING)
+                    log_level = self.Log_Level_Get(log_level_string)
+                    if log_level <= message_level:
+                        file.write(json.dumps(message , ensure_ascii=False)+"\n")
+        #self.log("","INFO",details = message_list)
                 
     def MessageList_Clear(self , message_lists = Log_Lists):
         message_lists.clear()
@@ -229,7 +236,8 @@ def Clear_MessageList(message_list):
 
 #Message ListをFileに書き込む
 def Write_MessageList(file_path , message_list):
-    FileControl.Manage_File(file_path)
+    FileControl.Manage_File(file_path , message_list = message_list)
+    
     file = open(file_path , 'a')
     file.writelines(message_list)
     file.close()

@@ -273,9 +273,6 @@ class Test(unittest.TestCase):
         }
         task = Task.Task("")
         information = task.Run( "test1","" , plan_lists_dictionary)
-        print("#####Result####")
-        print (information)
-
          
 #Main Program実行部
 def main():

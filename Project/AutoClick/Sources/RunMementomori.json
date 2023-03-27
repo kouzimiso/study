@@ -1,0 +1,94 @@
+{
+	"MementomoriPlan":
+	[
+		{
+			"name" : "MementomoryRun01",
+			"result_name":"Result_Mementmori_Run",
+			"type" : "Recognition",
+			"settings" : {
+				"action" : "ACTION.DOUBLE_CLICK",
+				"end_condition" : "RESULT.OK",
+				"end_action" : "END_ACTION.BREAK",
+				"execute_number" : 1,
+				"retry_number" : 3,
+				"image_path" : "../Images/mementomori/Click00*.png",
+				"interval_time" : 1.8,
+				"recognition_confidence" : 0.95,
+				"recognition_grayscale" : true,
+				"log_print_standardoutput": false,"log_function":true
+			}
+		},
+		{
+			"name" : "MementomoryRun02",
+			"type" : "Recognition",
+			"condition_list" : ["Result_Mementmori_Run.detail=RESULT.OK,Result_Mementmori_Run.detail=RESULT.ALL_OK"],
+			"settings" : {
+				"action" : "ACTION.DOUBLE_CLICK",
+				"end_condition" : "RESULT.NG",
+				"end_action" : "END_ACTION.CONTINUE",
+				"execute_number" : 25,
+				"retry_number" : 100,
+				"image_path" : "../Images/mementomori/Click05*.png",
+				"interval_time" : 5,
+				"recognition_confidence" : 0.95,
+				"recognition_grayscale" : true,
+				"log_print_standardoutput": false,"log_function":true
+			}
+		},
+		{
+			"name" : "MementomoryRun03",
+			"type" : "Recognition",
+			"condition_list" : ["Result_Mementmori_Run.detail=RESULT.OK,Result_Mementmori_Run.detail=RESULT.ALL_OK"],
+			"settings" : {
+				"action" : "ACTION.CLICK",
+				"end_condition" : "RESULT.NG",
+				"end_action" : "END_ACTION.CONTINUE",
+				"execute_number" : 3,
+				"retry_number" : 5,
+				"image_path" : "../Images/mementomori/Click1*.png",
+				"interval_time" : 1.8,
+				"recognition_confidence" : 0.95,
+				"recognition_grayscale" : true,
+				"log_print_standardoutput": false,"log_function":true
+			}
+		},
+		{
+		 	"name" : "Information_Calc" ,
+			"type" : "Information_Calc" ,
+			"settings" : {
+				"expression" : "Result_MementomoryRun01 + Result_MementomoryRun02 + Result_MementomoryRun03",
+				"target_item_list" : [],
+				"target_item_calc_list" : ["detect_rate=detect/(detect+undetect)"],
+				"target_ignore_item_list" : ["total.+"]
+			}
+		},
+		{
+			"name" : "Information_Reset",
+			"type" : "Information_Reset",
+			"settings" : {
+				"expression" : "",
+				"target_item_calc_list" : ["detect_rate=detect/(detect+undetect)"],
+				"target_ignore_item_list" : []
+			}
+		}
+	],
+	"CloseWindow":
+	[
+		{
+			"name" : "CloseWindow",
+			"type" : "Recognition",
+			"settings" : {
+				"action" : "ACTION.CLICK",
+				"end_condition" : "RESULT.OK",
+				"end_action" : "END_ACTION.CONTINUE",
+				"execute_number" : 2,
+				"retry_number" : 2,
+				"image_path" : "../Images/image_end/*.png",
+				"interval_time" : 1.8,
+				"recognition_confidence" : 0.95,
+				"recognition_grayscale" : true,
+				"log_print_standardoutput": false,"log_function":true
+			}
+		}
+	]
+}

@@ -140,10 +140,6 @@ class Recognition:
             data = self.setting
         else:
             data = recognition_information
-        print("####Get_SettingDictionary####")
-        print(data.action)
-        print(data.end_condition)
-        print(data.execute_number)
         #ENUMがDictionaryで使えないのでasdictは使えない。
         #setting_dictionary = dataclasses.asdict(data)
         setting_dictionary={
@@ -175,9 +171,7 @@ class Recognition:
         if data_dictionary is None :
             data_dictionary = self.Get_SettingDictionary()
         if data_type == DATA_TYPE.ENUM:
-            print("data_name:"+data_name)#"end_condition"のような文字Data
             parameter_name = data_dictionary[data_name]
-            print("parameter_name:"+parameter_name)
             return enum_dictionary[parameter_name]
         elif data_type == DATA_TYPE.NUMBER:
             return int(data_dictionary[data_name])
@@ -307,27 +301,23 @@ def Action_Execute(action):
 # 条件判断回路
 def Condition_Judge(condition1, condition2,details={}):
     # 条件と結果が同じならOK
-    detail_dictionary = {
-        "condition1": RESULT(condition1).name,
-        "condition1_type":type(condition1),
-        "condition2":RESULT(condition2).name,
-        "condition2_type":type(condition2)
-    }
-
     if condition1 == condition2:
-        detail_dictionary["result"] = True,
-        details = detail_dictionary
-        return True
+        result = True
     # 条件がOKで結果がALL_OKならOK
     elif condition1 == RESULT.OK and condition2 == RESULT.ALL_OK:
-        detail_dictionary["result"] = True,
-        details = detail_dictionary
-        return True
+        result =  True
     # それ以外はFalse
     else:
-        detail_dictionary["result"] = False
-        details = detail_dictionary
-        return False
+        result =  False
+    detail_dictionary = {
+        "result" : result,
+        "condition1": RESULT(condition1).name,
+        "condition1_type":str(type(condition1)),
+        "condition2":RESULT(condition2).name,
+        "condition2_type":str(type(condition2))
+    }
+    details.update(detail_dictionary)
+    return result
 
 Images_Action_Result = {}
 def Images_Action_ResultInit(dictionary , detect = 0 , undetect = 0 , total_detect = 0 , total_undetect = 0):
