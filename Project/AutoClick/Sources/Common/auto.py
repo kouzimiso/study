@@ -16,9 +16,9 @@ import dataclasses
 
 sys.path.append("../Common")
 sys.path.append("../../Common")
-import rename
-import log
-import json_control
+import Rename
+import Log
+import JSON_Control
 
 class END_ACTION(enum.Enum):
     BREAK = 0
@@ -264,7 +264,7 @@ def Image_SearchAndMove(image_path, x_offset_dictionary, y_offset_dictionary, re
                     print(image_path + "offset_y:" + str(y_offset))
             pyautogui.moveTo(x, y)
             # Logを貯めて強制終了時にFileを書き込む。
-            log.Log_MessageAdd(message_list, "ImageSearchAndMove(" + image_path + ")" + str(x)+","+str(y))
+            Log.Log_MessageAdd(message_list, "ImageSearchAndMove(" + image_path + ")" + str(x)+","+str(y))
             # 毎回LogをFileni書き込む記述（遅いので没）
             #Write_Message(logfile_path , Log_MessageFormat(message))
             return True
@@ -276,7 +276,7 @@ def Image_SearchAndMove(image_path, x_offset_dictionary, y_offset_dictionary, re
     except:
         import traceback
         traceback.print_exc()
-        log.Log_MessageAdd(message_list, "unexplained error:ImageSearchAndMove(" + image_path + ")")
+        Log.Log_MessageAdd(message_list, "unexplained error:ImageSearchAndMove(" + image_path + ")")
         print("x_offset_dictionary")
         print(x_offset_dictionary)
         print("y_offset_dictionary")
@@ -371,15 +371,15 @@ def InfomationToString():
     
 def WriteInfomationToJson(file_path):
     global Images_Action_Result    
-    json_control.WriteDictionary(file_path,Images_Action_Result)
+    JSON_Control.WriteDictionary(file_path,Images_Action_Result)
 
 def ReadInfomationFromJson(file_path):
     global Images_Action_Result
     try:
-        Images_Action_Result = json_control.ReadDictionary(file_path,Images_Action_Result)
+        Images_Action_Result = JSON_Control.ReadDictionary(file_path,Images_Action_Result)
     except:
         Images_Action_Result={}
-        log.Log_MessageAdd(message_list, "[ERROR]ReadInfomationFromJson:Json Read Error")
+        Log.Log_MessageAdd(message_list, "[ERROR]ReadInfomationFromJson:Json Read Error")
     return Images_Action_Result
 
 # Folder内のImageを探してMouse pointerを移動し、行動する
@@ -401,7 +401,7 @@ def Images_Action(action, end_action, end_condition, images_path, x_offset_dicti
 
             # 条件成立での中止処理
             if end_action == END_ACTION.BREAK and end_condition == RESULT.OK:
-                log.Log_MessageAdd(message_list, "Images_Action:Result_OK Break(" + str(action) + ")")
+                Log.Log_MessageAdd(message_list, "Images_Action:Result_OK Break(" + str(action) + ")")
                 return RESULT.OK
         else:
             Images_Action_Result=Images_Action_ResultSet(Images_Action_Result,image_path,0,1)        
@@ -409,7 +409,7 @@ def Images_Action(action, end_action, end_condition, images_path, x_offset_dicti
             all_ok = False
             # 条件成立での中止処理
             if end_action == END_ACTION.BREAK and end_condition == RESULT.NG:
-                log.Log_MessageAdd(message_list, "Images_Action:Result_NG Break(" + str(action) + ")")
+                Log.Log_MessageAdd(message_list, "Images_Action:Result_NG Break(" + str(action) + ")")
                 return RESULT.NG
     if all_ok == True:
         return RESULT.ALL_OK
@@ -438,7 +438,7 @@ def Images_Action_ByInformation(recognition_information, x_offset_dictionary=Non
         print("###Images_Action_ByInformation####")
         print(recognition_information.execute_number)
         for loop02 in range(recognition_information.execute_number):
-            log.Log_MessageAdd(message_list, "Execute_Number:"+str(loop02))
+            Log.Log_MessageAdd(message_list, "Execute_Number:"+str(loop02))
             end_result = Images_Action(recognition_information.action, recognition_information.end_action, recognition_information.end_condition, recognition_information.image_path,x_offset_dictionary, y_offset_dictionary, recognition_information.recognition_grayscale, recognition_information.recognition_confidence, recognition_information.interval_time)
             if end_result != RESULT.NG:
                 all_ng = False
@@ -448,20 +448,20 @@ def Images_Action_ByInformation(recognition_information, x_offset_dictionary=Non
                 print("RESULT.NG:loop" + str(loop02) + "/" + str(recognition_information.execute_number))
             # 条件成立での中止処理
             if recognition_information.end_action == END_ACTION.BREAK and recognition_information.end_condition == end_result:
-                log.Log_MessageAdd(message_list, "BREAK:retry"+str(loop01))
+                Log.Log_MessageAdd(message_list, "BREAK:retry"+str(loop01))
                 break
             # 条件成立での中止処理
             if recognition_information.end_action == END_ACTION.FOLDER_END_BREAK and recognition_information.end_condition == end_result:
-                log.Log_MessageAdd(message_list, "FOLDER_END_BREAK:retry"+str(loop01))
+                Log.Log_MessageAdd(message_list, "FOLDER_END_BREAK:retry"+str(loop01))
                 break
         if Condition_Judge(recognition_information.end_condition, end_result) == False and loop01 < recognition_information.retry_number:
-            log.Log_MessageAdd(message_list, "False and retry:retry"+str(loop01))
+            Log.Log_MessageAdd(message_list, "False and retry:retry"+str(loop01))
             continue_flag = True
         else:
-            log.Log_MessageAdd(message_list, "EndResult:retry"+str(loop01))
+            Log.Log_MessageAdd(message_list, "EndResult:retry"+str(loop01))
             continue_flag = False
         loop01 = loop01 + 1
-    log.Write_MessageList(logfile_path, message_list)
+    Log.Write_MessageList(logfile_path, message_list)
     message_list.clear()
     if all_ok == True:
         return RESULT.ALL_OK
@@ -488,7 +488,7 @@ def Images_ConditionCheckAndAction(name, condition, action_recognition_informati
             action_condition = True
     # 条件を比較して成立したら実行
     if action_condition == True:
-        log.Log_MessageAdd(message_list, "Images_ConditionCheckAndAction:実行条件成立:" + name)
+        Log.Log_MessageAdd(message_list, "Images_ConditionCheckAndAction:実行条件成立:" + name)
         action_result = Images_Action_ByInformation(action_recognition_information, x_offset_dictionary, y_offset_dictionary)
     return action_result
 
@@ -501,7 +501,7 @@ def Image_AroundMouse(file_path, flag_overwrite=True, wide=0, height=0, dupplica
 
 def Image_AroundPoint(file_path, flag_overwrite=True, x=0, y=0, wide=0, height=0, dupplicate_format="{}({:0=3}){}"):
     if flag_overwrite == False:
-        path = rename.duplicate_rename(file_path, dupplicate_format)
+        path = Rename.duplicate_rename(file_path, dupplicate_format)
     else:
         path = file_path
     if wide == 0 or height == 0:

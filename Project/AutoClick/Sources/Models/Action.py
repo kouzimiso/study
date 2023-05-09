@@ -4,26 +4,28 @@ import os
 import platform
 sys.path.append("../Common")
 sys.path.append("../../Common")
-import auto
 import Recognition
-import weekday
+import Weekday
+import ExecuteProgram
+
 #文字列のAction名と設定辞書で動作するだけの関数
 class Action:
     settings : dict ={}
     def __init__(self , setting_dictionary ={}) -> None:
-        self.settings = setting_dictionary
+        result_dictionary = self.settings = setting_dictionary
 
     def Execute(self, type = "" , setting_dictionary = None):
         if setting_dictionary is None:
             setting_dictionary = self.settings
         result_dictionary={}
 
-        if (type == "Recognition"):
+        if (type == "ExecuteProgram"):
+            result_dictionary = ExecuteProgram.ExecuteProgram(setting_dictionary)
+        elif (type == "Recognition"):
             recognition = Recognition.Recognition(setting_dictionary)
-            result_dictionary=recognition.Execute()
-        
+            result_dictionary=recognition.Execute()        
         elif (type == "Check_Day"):
-            week_day = weekday.DayOfTheWeek(setting_dictionary = setting_dictionary)
+            week_day = Weekday.DayOfTheWeek(setting_dictionary = setting_dictionary)
             result_dictionary = week_day.Check_Day(setting_dictionary)
             
         elif (type == "ShutDown"):

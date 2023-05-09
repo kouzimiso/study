@@ -1,0 +1,1614 @@
+{
+		"TimeCheck_DarkTails_Sub":[
+		{
+			"name": "TimeCheck_DarkTails1",
+			"type": "Check_Day",
+			"result_name":"DarkTails_Time_Check1",
+			"settings": {
+				"day1": "土曜日0:00",
+				"day2": "Now",
+				"day3": "日曜日24:00",
+				"log_file_path_list": "../Log/log_DarkTails.json",
+				"log_function":true,"log_print_standardoutput": true
+			}
+		},
+		{
+			"name": "TimeCheck_DarkTails2",
+			"type": "Check_Day",
+			"result_name":"DarkTails_Time_Check2",
+			"settings": {
+				"day1": "月曜日0:00",
+				"day2": "Now",
+				"day3": "月曜日24:00",
+				"log_file_path_list": "../Log/log_DarkTails.json",
+				"log_function":true,"log_print_standardoutput": true
+			}
+		},
+		{
+			"name": "TimeCheck_DarkTails3",
+			"type": "Check_Day",
+			"result_name":"DarkTails_Time_Check3",
+			"settings": {
+				"day1": "火曜日0:00",
+				"day2": "Now",
+				"day3": "木曜日24:00",
+				"log_file_path_list": "../Log/log_DarkTails.json",
+				"log_function":true,"log_print_standardoutput": true
+			}
+		},
+		{
+			"name": "TimeCheck_DarkTails4",
+			"type": "Check_Day",
+			"result_name":"DarkTails_Time_Check4",
+			"settings": {
+				"day1": "金曜日0:00",
+				"day2": "Now",
+				"day3": "金曜日24:00",
+				"log_file_path_list": "../Log/log_DarkTails.json",
+				"log_function":true,"log_print_standardoutput": true,
+				"#step_check_mode" : true
+
+			}
+		},
+		{
+			"name": "Condition_Execute",
+			"result_name": "Condition_Execute",
+			"type": "Judge",
+			"settings": {
+				"condition_list": [
+					"DarkTails_Time_Check1=True,DarkTails_Time_Check2=True,DarkTails_Time_Check3=True,DarkTails_Time_Check4=True"
+				],
+				"log_file_path_list": "../Log/log_DarkTails.json",
+				"log_function":true,"log_print_standardoutput": true,
+				"#step_check_mode" : true
+
+			}
+		}
+	],
+
+	"TimeCheck_DarkTails_Main":[
+		{
+            		"comment": "",
+			"name": "TimeCheck_DarkTails1",
+			"type": "Check_Day",
+			"result_name":"DarkTails_Time_Check1",
+			"settings": {
+				"day1": "土曜日8:00",
+				"day2": "Now",
+				"day3": "日曜日23:30",
+				"log_file_path_list": "../Log/log_DarkTails.json",
+				"log_function":true,"log_print_standardoutput": true
+			}
+		},
+		{
+			"name": "TimeCheck_DarkTails2",
+			"type": "Check_Day",
+			"result_name":"DarkTails_Time_Check2",
+			"settings": {
+				"day1": "月曜日12:00",
+				"day2": "Now",
+				"day3": "月曜日23:30",
+				"log_file_path_list": "../Log/log_DarkTails.json",
+				"log_function":true,"log_print_standardoutput": true
+			}
+		},
+		{
+			"name": "TimeCheck_DarkTails3",
+			"type": "Check_Day",
+			"result_name":"DarkTails_Time_Check3",
+			"settings": {
+				"day1": "火曜日8:00",
+				"day2": "Now",
+				"day3": "木曜日23:30",
+				"log_file_path_list": "../Log/log_DarkTails.json",
+				"log_function":true,"log_print_standardoutput": true
+			}
+		},
+		{
+			"name": "TimeCheck_DarkTails4",
+			"type": "Check_Day",
+			"result_name":"DarkTails_Time_Check4",
+			"settings": {
+				"day1": "金曜日8:00",
+				"day2": "Now",
+				"day3": "金曜日23:30",
+				"log_file_path_list": "../Log/log_DarkTails.json",
+				"log_function":true,"log_print_standardoutput": true
+			}
+		},
+		{
+			"name": "Condition_Execute",
+			"result_name": "Condition_Execute",
+			"type": "Judge",
+			"settings": {
+				"condition_list": [
+					"DarkTails_Time_Check1=True,DarkTails_Time_Check2=True,DarkTails_Time_Check3=True,DarkTails_Time_Check4=True"
+				],
+				"log_file_path_list": "../Log/log_DarkTails.json",
+				"log_function":true,"log_print_standardoutput": true
+			}
+		}
+		],
+		"TimeCheck_DarkTails_TimeEvent":[
+			{
+				"name": "TimeCheck_DarkTails_TimeEvent01",
+				"type": "Check_Day",
+				"result_name":"DarkTails_TimeEventTime_Check1",
+				"settings": {
+					"day1": "12:15",
+					"day2": "Now",
+					"day3": "13:45",
+					"log_file_path_list": "../Log/log_DarkTails.json",
+					"log_function":true,"log_print_standardoutput": true
+				}
+			},
+			{
+				"name": "TimeCheck_DarkTails_TimeEvent02",
+				"type": "Check_Day",
+				"result_name":"DarkTails_TimeEventTime_Check2",
+				"settings": {
+					"day1": "19:45",
+					"day2": "Now",
+					"day3": "20:45",
+					"log_file_path_list": "../Log/log_DarkTails.json",
+					"log_function":true,"log_print_standardoutput": true
+				}
+			},
+			{
+				"name": "Condition_TimeEvent",
+				"result_name": "Condition_Execute",
+				"type": "Judge",
+				"settings": {
+					"condition_list": [
+						"DarkTails_TimeEventTime_Check1=True,DarkTails_TimeEventTime_Check2=True"
+					],
+					"log_file_path_list": "../Log/log_DarkTails.json",
+					"log_function":true,"log_print_standardoutput": true
+				}
+			}
+		],
+	"TimeCheck_HimePlay":[
+		{
+            		"comment": "",
+			"name": "TimeCheck_DarkTails1",
+			"type": "Check_Day",
+			"result_name":"Time_Check_DarkTails_HimePlay",
+			"settings": {
+				"day1": "12:30",
+				"day2": "Now",
+				"day3": "12:40",
+				"log_file_path_list": "../Log/log_DarkTails.json",
+				"log_function":true,"log_print_standardoutput": false
+			}
+		}
+	],
+	"DarkTailsPlay" : 
+	[
+		{
+	 		"name" : "DarkTailsPlay",
+			"type" : "RunPlanLists",
+			"condition_list" : "Condition_Start = true",
+			"result_name":"",
+			"settings" : {
+				"file_path"  : "RunDarkTailsChild.json",
+				"#step_check_mode" : true,
+ 		 		"plan_lists" : [
+					"PlayContents"
+				]
+			}
+		}
+	],
+	"PlayContents" : 
+	[
+		{
+	 		"name" : "DarkTailsPlay",
+			"type" : "RunPlanLists",
+			"condition_list" : "",
+			"result_name":"",
+			"settings" : {
+				"file_path"  : "RunDarkTailsChild.json",
+				"#step_check_mode" : true,
+ 		 		"plan_lists" : [
+					"ReturnClick","HomeClick","PoochiPochi",
+					"HomeClick","Mail",
+					"HomeClick","Casting",
+					"HomeClick","InformationClick",
+					"DarkTailsEvent01",
+					"DarkTailsEvent02","DarkTailsIkusei","Etc",
+					"TimeCheck_DarkTails_TimeEvent","TimeEvent"
+				]
+			}
+		}
+	],
+
+	"PoochiPochi": 
+	[
+		{
+	 		"name" : "PoochiPochi",
+			"type" : "RunPlanLists",
+			"condition_list" : "",
+			"result_name":"",
+			"settings" : {
+				"file_path"  : "RunDarkTailsChild.json",
+ 		 		"plan_lists" : [
+					"HomeClick","PochiClick","PochiContinue","PochiContinue","PochiContinue",
+					"HomeClick","PochiClick","PochiContinue","PochiContinue","PochiContinue",
+					"HomeClick","PochiClick","PochiContinue","PochiContinue","PochiContinue",
+					"HomeClick","PochiClick","PochiContinue","PochiContinue","PochiContinue",
+					"HomeClick","PochiClick","PochiContinue","PochiContinue","PochiContinue",
+					"HomeClick","PochiClick","PochiContinue","PochiContinue","PochiContinue"
+				]
+			}
+		}
+	],
+	"PochiContinue": 
+	[
+		{
+	 		"name" : "PoochiPochi",
+			"type" : "RunPlanLists",
+			"condition_list" : "PochiStart.detail = RESULT.OK,PochiStart.detail = RESULT.ALL_OK",
+			"result_name":"",
+			"settings" : {
+				"file_path"  : "RunDarkTailsChild.json",
+ 		 		"plan_lists" : [
+					"PochiClick"
+				]
+			}
+		}
+	],
+	"DarkTailsEvent01": 
+	[
+		{
+	 		"name" : "DarkTailsEvent01",
+			"type" : "RunPlanLists",
+			"condition_list" : "",
+			"result_name":"",
+			"settings" : {
+				"file_path"  : "RunDarkTailsChild.json",
+ 		 		"plan_lists" : [
+					"HomeClick","DarkTailsEvent01Click",
+					"HomeClick","DarkTailsEvent01Click",
+					"HomeClick","DarkTailsEvent01Click"
+				]
+			}
+		}
+	],
+	"DarkTailsEvent02": 
+	[
+		{
+	 		"name" : "DarkTailsEvent02",
+			"type" : "RunPlanLists",
+			"condition_list" : "",
+			"result_name":"",
+			"settings" : {
+				"file_path"  : "RunDarkTailsChild.json",
+ 		 		"plan_lists" : [
+					"HomeClick","DarkTailsEvent02Click",
+					"HomeClick","DarkTailsEvent02Click"
+				]
+			}
+		}
+	],
+	"DarkTailsIkusei": 
+	[
+		{
+	 		"name" : "DarkTailsIkusei",
+			"type" : "RunPlanLists",
+			"condition_list" : "",
+			"result_name":"",
+			"settings" : {
+				"file_path"  : "RunDarkTailsChild.json",
+ 		 		"plan_lists" : [
+					"HomeClick","DarkTailsDairyClick","DarkTailsIkuseiClick","DarkTailsBattleClick",
+					"HomeClick","DarkTailsDairyClick","DarkTailsIkuseiClick","DarkTailsBattleClick",
+					"HomeClick","DarkTailsDairyClick","DarkTailsIkuseiClick","DarkTailsBattleClick"
+				]
+			}
+		}
+	],
+	"Etc" : 
+	[
+		{
+	 		"name" : "Etc",
+			"type" : "RunPlanLists",
+			"condition_list" : "",
+			"result_name":"",
+			"settings" : {
+				"file_path"  : "RunDarkTailsChild.json",
+				"#step_check_mode" : true,
+ 		 		"plan_lists" : [
+					"HomeClick","Item",
+					"HomeClick","DarkTailsUnderWareClick",
+					"HomeClick","DarkTailsUnderWareClick",
+					"HomeClick","DarkTailsHighSpeedClick"
+				]
+			}
+		}
+	],
+	"Item" : 
+	[
+		{
+			"name" : "DarkTailsStartClick01",
+			"type" : "Recognition",
+			"condition_list" : "",
+			"result_name":"ItemMax",
+			"settings" : {
+				"#step_check_mode" : true,
+				"action" : "ACTION.CLICK",
+				"end_condition" : "RESULT.OK",
+				"end_action" : "END_ACTION.FOLDER_END_BREAK",
+				"execute_number" : 2,
+				"retry_number" : 2,
+				"image_path" : "../Images/DarkTails/2000_item/0000_start/*.png",
+				"interval_time" : 1,
+				"recognition_confidence" : 0.93,
+				"recognition_grayscale" : true,
+				"log_file_path_list": "../Log/log_recognition.json",
+				"log_function":true,"log_print_standardoutput": true
+			}
+		},
+		{
+			"name": "TimeCheck_ItemMaintenance1",
+			"type": "Check_Day",
+			"result_name":"Time_Check_ItemMaintenance1",
+			"settings": {
+				"day1": "日曜日0:00",
+				"day2": "Now",
+				"day3": "月曜日24:00",
+				"log_file_path_list": "../Log/log_DarkTails.json",
+				"log_function":true,"log_print_standardoutput": true
+			}
+		},
+		{
+			"name": "TimeCheck_ItemMaintenance2",
+			"type": "Check_Day",
+			"result_name":"Time_Check_ItemMaintenance2",
+			"settings": {
+				"day1": "木曜日0:00",
+				"day2": "Now",
+				"day3": "木曜日24:00",
+				"log_file_path_list": "../Log/log_DarkTails.json",
+				"log_function":true,"log_print_standardoutput": true
+			}
+		},
+		{
+			"name": "Check_Condition_ItemMaintenance",
+			"result_name": "Condition_ItemMaintenance",
+			"type": "Judge",
+			"settings": {
+				"condition_list": [
+					"Time_Check_ItemMaintenance1=True,Time_Check_ItemMaintenance2=True,ItemMax.detail = RESULT.OK,ItemMax.detail = RESULT.ALL_OK"
+				],
+				"log_file_path_list": "../Log/log_DarkTails.json",
+				"log_function":true,"log_print_standardoutput": true,
+				"#step_check_mode" : true
+
+			}
+		},
+		{
+			"name" : "DarkTailsStartClick01",
+			"type" : "Recognition",
+			"condition_list" : "",
+			"result_name":"ItemMax",
+			"settings" : {
+				"#step_check_mode" : true,
+				"action" : "ACTION.CLICK",
+				"end_condition" : "RESULT.OK",
+				"end_action" : "END_ACTION.FOLDER_END_BREAK",
+				"execute_number" : 2,
+				"retry_number" : 2,
+				"image_path" : "../Images/DarkTails/2000_item/0000_start/*.png",
+				"interval_time" : 1,
+				"recognition_confidence" : 0.93,
+				"recognition_grayscale" : true,
+				"log_file_path_list": "../Log/log_recognition.json",
+			"log_function":true,"log_print_standardoutput": true
+			}
+		},
+	   {
+		"name" : "Item",
+	   "type" : "RunPlanLists",
+	   "condition_list" : "Condition_ItemMaintenance = true",
+	   "result_name":"",
+	   "settings" : {
+		   	"file_path"  : "RunDarkTailsChild.json",
+		   	"#step_check_mode" : true,
+			"plan_lists" : [
+			   "ItemMaintenance"
+		   ]
+	   }
+   }
+ 
+
+	],
+	"TimeEventPlay": 
+	[
+		{
+	 		"name" : "TimeEventPlay",
+			"type" : "RunPlanLists",
+			"condition_list" : "",
+			"result_name":"",
+			"settings" : {
+				"file_path"  : "RunDarkTailsChild.json",
+ 		 		"plan_lists" : [
+					"TimeCheck_DarkTails_TimeEvent","TimeEventPlay2"
+				]
+			}
+		}
+	],
+	"TimeEventPlay2": 
+	[
+		{
+	 		"name" : "TimeEventPlay2",
+			"type" : "RunPlanLists",
+			"condition_list" : "Condition_Execute = True",
+			"result_name":"",
+			"settings" : {
+				"file_path"  : "RunDarkTailsChild.json",
+ 		 		"plan_lists" : [
+					"ReturnClick","HomeClick","TimeEventClick",
+					"HomeClick","TimeEventClick",
+					"HomeClick","TimeEventClick"
+
+				]
+			}
+		}
+	],
+	"DarkTailsStart":
+	[
+		{
+			"name" : "DarkTailsStartClick01",
+			"type" : "Recognition",
+			"condition_list" : "",
+			"result_name":"Result_DarkTailsStartClicked",
+			"settings" : {
+				"#step_check_mode" : true,
+				"action" : "ACTION.CLICK",
+				"end_condition" : "RESULT.OK",
+				"end_action" : "END_ACTION.FOLDER_END_BREAK",
+				"execute_number" : 2,
+				"retry_number" : 2,
+				"image_path" : "../Images/DarkTails/1000_start/Click0*.png",
+				"interval_time" : 1,
+				"recognition_confidence" : 0.93,
+				"recognition_grayscale" : true,
+				"log_file_path_list": "../Log/log_recognition.json",
+				"log_function":true,"log_print_standardoutput": true
+			}
+		}
+	],
+
+	"DarkTailsMainte":
+	[
+		{
+			"name" : "DarkTailsMainteClick01",
+			"type" : "Recognition",
+			"condition_list" : "",
+			"result_name":"Result_DarkTailsMaintClicked",
+			"settings" : {
+				"#step_check_mode" : true,
+				"action" : "ACTION.CLICK",
+				"end_condition" : "RESULT.NG",
+				"end_action" : "END_ACTION.FOLDER_END_BREAK",
+				"execute_number" : 2,
+				"retry_number" : 2,
+				"image_path" : "../Images/DarkTails/9999_mainte/*.png",
+				"interval_time" : 0.1,
+				"recognition_confidence" : 0.93,
+				"recognition_grayscale" : true,
+				"log_file_path_list": "../Log/log_recognition.json",
+				"log_function":true,"log_print_standardoutput": true
+			}
+		},
+
+		{
+			"name": "Condition_Mainte",
+			"result_name": "Condition_Start",
+			"type": "Judge",
+			"settings": {
+				"condition_list": [
+					"Result_DarkTailsStartClicked.detail = RESULT.OK,Result_DarkTailsStartClicked.detail = RESULT.ALL_OK",
+					"Result_DarkTailsMaintClicked.detail = RESULT.NG"					
+				],
+				"log_file_path_list": "../Log/log_DarkTails.json",
+				"log_function":true,"log_print_standardoutput": true
+			}
+		}
+	],
+
+	"PochiClick":
+	[
+		{
+			"name" : "PochiClick01",
+			"type" : "Recognition",
+			"result_name":"PochiStart",
+			"settings" : {
+				"#step_check_mode" : true,"retry_check" : false,"sleep_time" : 0,
+				"action" : "ACTION.CLICK",
+				"end_condition" : "RESULT.OK",
+				"end_action" : "END_ACTION.BREAK",
+				"execute_number" : 1,
+				"retry_number" : 5,
+				"image_path" : "../Images/DarkTails/1020_pochistart/*.png",
+				"interval_time" : 0.0,
+				"recognition_confidence" : 0.93,
+				"recognition_grayscale" : true,
+				"log_file_path_list": "../Log/log_recognition.json",
+				"log_function":true,"log_print_standardoutput": false
+			}
+		},
+		{
+			"name" : "PochiClick02",
+			"type" : "Recognition",
+			"condition_list" : "PochiStart.detail = RESULT.OK,PochiStart.detail = RESULT.ALL_OK",
+			"result_name":"",
+			"settings" : {
+				"action" : "ACTION.CLICK",
+				"end_condition" : "RESULT.OK",
+				"end_action" : "END_ACTION.FOLDER_END_BREAK",
+				"execute_number" : 1,
+				"retry_number" : 1,
+				"image_path" : "../Images/DarkTails/1021_pochi/*.png",
+				"interval_time" : 0.4,
+				"recognition_confidence" : 0.93,
+				"recognition_grayscale" : false,
+				"log_file_path_list": "../Log/log_recognition.json",
+				"log_function":true,"log_print_standardoutput": false
+			}
+		},
+		{
+			"name" : "PochiClick03",
+			"type" : "Recognition",
+			"condition_list" : "PochiStart.detail = RESULT.OK,PochiStart.detail = RESULT.ALL_OK",
+			"result_name":"PochiLongStart",
+			"settings" : {
+				"action" : "ACTION.CLICK",
+				"end_condition" : "RESULT.OK",
+				"end_action" : "END_ACTION.BREAK",
+				"execute_number" : 1,
+				"retry_number" : 0,
+				"image_path" : "../Images/DarkTails/1022_pochilongstart/*.png",
+				"interval_time" : 0.4,
+				"recognition_confidence" : 0.93,
+				"recognition_grayscale" : false,
+				"log_file_path_list": "../Log/log_recognition.json",
+				"log_function":true,"log_print_standardoutput": false
+			}
+		},
+		{
+			"name" : "PochiClick04",
+			"type" : "Recognition",
+			"condition_list" : "PochiLongStart.detail = RESULT.OK,PochiLongStart.detail = RESULT.ALL_OK",
+			"result_name":"",
+			"settings" : {
+				"action" : "ACTION.CLICK",
+				"end_condition" : "RESULT.OK",
+				"end_action" : "END_ACTION.FOLDER_END_BREAK",
+				"execute_number" : 1,
+				"retry_number" : 1,
+				"image_path" : "../Images/DarkTails/1023_pochilong/*.png",
+				"interval_time" : 0.4,
+				"recognition_confidence" : 0.93,
+				"recognition_grayscale" : false,
+				"log_file_path_list": "../Log/log_recognition.json",
+				"log_function":true,"log_print_standardoutput": false
+			}
+		},
+		{
+			"name" : "PochiClickEnd",
+			"type" : "Recognition",
+			"condition_list" : "PochiStart.detail = RESULT.OK,PochiStart.detail = RESULT.ALL_OK",
+			"result_name":"",
+			"settings" : {
+				"action" : "ACTION.CLICK",
+				"end_condition" : "RESULT.OK",
+				"end_action" : "END_ACTION.CONTINUE",
+				"execute_number" : 1,
+				"retry_number" : 1,
+				"image_path" : "../Images/DarkTails/1029_pochiend/*.png",
+				"interval_time" : 0.3,
+				"recognition_confidence" : 0.93,
+				"recognition_grayscale" : true,
+				"log_file_path_list": "../Log/log_recognition.json",
+				"log_function":true,"log_print_standardoutput": false
+			}
+		}
+	],
+
+	"DarkTailsEvent01Click":
+	[
+		{
+			"name" : "DarkTailsEvent01Click01",
+			"type" : "Recognition",
+			"condition_list" : "",
+			"result_name":"Result_Click",
+			"settings" : {
+				"action" : "ACTION.DOUBLE_CLICK",
+				"end_condition" : "RESULT.OK",
+				"end_action" : "END_ACTION.CONTINUE",
+				"execute_number" : 1,
+				"retry_number" : 2,
+				"image_path" : "../Images/DarkTails/1400_event/0000_start/*.png",
+				"interval_time" : 1,
+				"recognition_confidence" : 0.93,
+				"recognition_grayscale" : true,
+				"log_file_path_list": "../Log/log_recognition.json",
+				"log_function":true,"log_print_standardoutput": false
+			}
+		},
+		{
+			"name" : "DarkTailsEvent01Click05",
+			"type" : "Recognition",
+			"condition_list" : "Result_Click.detail=RESULT.OK,Result_Click.detail = RESULT.ALL_OK",
+			"result_name":"Result_Click",
+			"settings" : {
+				"action" : "ACTION.CLICK",
+				"end_condition" : "RESULT.OK",
+				"end_action" : "END_ACTION.CONTINUE",
+				"execute_number" : 1,
+				"retry_number" : 2,
+				"image_path" : "../Images/DarkTails/1400_event/0005_execute/*.png",
+				"interval_time" : 0.5,
+				"recognition_confidence" : 0.93,
+				"recognition_grayscale" : true,
+				"log_file_path_list": "../Log/log_recognition.json",
+				"log_function":true,"log_print_standardoutput": false
+			}
+		},
+		{
+		   "name" : "Home",
+		   "type" : "RunPlanLists",
+		   "condition_list" : "Result_Click.detail = RESULT.OK,Result_Click.detail = RESULT.ALL_OK",
+		   "result_name":"",
+		   "settings" : {
+			   "file_path"  : "RunDarkTailsChild.json",
+				 "plan_lists" : [
+					"HomeClick"
+			   ]
+		   }
+		},
+		{
+			"name" : "DarkTailsEvent01Click10",
+			"type" : "Recognition",
+			"condition_list" : "",
+			"result_name":"Result_Click",
+			"settings" : {
+				"action" : "ACTION.DOUBLE_CLICK",
+				"end_condition" : "RESULT.OK",
+				"end_action" : "END_ACTION.CONTINUE",
+				"execute_number" : 1,
+				"retry_number" : 2,
+				"image_path" : "../Images/DarkTails/1400_event/0010_start/*.png",
+				"interval_time" : 1,
+				"recognition_confidence" : 0.93,
+				"recognition_grayscale" : true,
+				"log_file_path_list": "../Log/log_recognition.json",
+				"log_function":true,"log_print_standardoutput": false
+			}
+		},
+		{
+			"name" : "DarkTailsEvent01Click15",
+			"type" : "Recognition",
+			"condition_list" : "Result_Click.detail = RESULT.OK,Result_Click.detail = RESULT.ALL_OK",
+			"result_name":"",
+			"settings" : {
+				"action" : "ACTION.CLICK",
+				"end_condition" : "RESULT.OK",
+				"end_action" : "END_ACTION.CONTINUE",
+				"execute_number" : 1,
+				"retry_number" : 0,
+				"image_path" : "../Images/DarkTails/1400_event/0015_execute/*.png",
+				"interval_time" : 0.5,
+				"recognition_confidence" : 0.93,
+				"recognition_grayscale" : true,
+				"log_file_path_list": "../Log/log_recognition.json",
+				"log_function":true,"log_print_standardoutput": false
+			}
+		},
+		{
+			"name" : "Home",
+		   "type" : "RunPlanLists",
+		   "condition_list" : "Result_Click.detail = RESULT.OK,Result_Click.detail = RESULT.ALL_OK",
+		   "result_name":"",
+		   "settings" : {
+			   "file_path"  : "RunDarkTailsChild.json",
+				 "plan_lists" : [
+					"HomeClick"
+			   ]
+		   }
+		},
+		{
+			"name" : "DarkTailsEvent01Click20",
+			"type" : "Recognition",
+			"condition_list" : "",
+			"result_name":"Result_Click",
+			"settings" : {
+				"action" : "ACTION.DOUBLE_CLICK",
+				"end_condition" : "RESULT.OK",
+				"end_action" : "END_ACTION.CONTINUE",
+				"execute_number" : 1,
+				"retry_number" : 2,
+				"image_path" : "../Images/DarkTails/1400_event/0020_start/*.png",
+				"interval_time" : 1,
+				"recognition_confidence" : 0.93,
+				"recognition_grayscale" : true,
+				"log_file_path_list": "../Log/log_recognition.json",
+				"log_function":true,"log_print_standardoutput": false
+			}
+		},
+		{
+			"name" : "DarkTailsEvent01Click25",
+			"type" : "Recognition",
+			"condition_list" : "Result_Click.detail = RESULT.OK,Result_Click.detail = RESULT.ALL_OK",
+			"result_name":"",
+			"settings" : {
+				"action" : "ACTION.CLICK",
+				"end_condition" : "RESULT.OK",
+				"end_action" : "END_ACTION.CONTINUE",
+				"execute_number" : 1,
+				"retry_number" : 0,
+				"image_path" : "../Images/DarkTails/1400_event/0025_execute/*.png",
+				"interval_time" : 0.5,
+				"recognition_confidence" : 0.93,
+				"recognition_grayscale" : true,
+				"log_file_path_list": "../Log/log_recognition.json",
+				"log_function":true,"log_print_standardoutput": false
+			}
+		},
+		{
+		   "name" : "Home",
+		   "type" : "RunPlanLists",
+		   "condition_list" : "Result_Click.detail = RESULT.OK,Result_Click.detail = RESULT.ALL_OK",
+		   "result_name":"",
+		   "settings" : {
+			   "file_path"  : "RunDarkTailsChild.json",
+				 "plan_lists" : [
+					"HomeClick"
+			   ]
+		   }
+		},
+		{
+			"name" : "DarkTailsEvent01Click30",
+			"type" : "Recognition",
+			"condition_list" : "",
+			"result_name":"Result_Click",
+			"settings" : {
+				"action" : "ACTION.DOUBLE_CLICK",
+				"end_condition" : "RESULT.OK",
+				"end_action" : "END_ACTION.CONTINUE",
+				"execute_number" : 1,
+				"retry_number" : 2,
+				"image_path" : "../Images/DarkTails/1400_event/0030_start/*.png",
+				"interval_time" : 1,
+				"recognition_confidence" : 0.93,
+				"recognition_grayscale" : true,
+				"log_file_path_list": "../Log/log_recognition.json",
+				"log_function":true,"log_print_standardoutput": false
+			}
+		},
+		{
+			"name" : "DarkTailsEvent01Click35",
+			"type" : "Recognition",
+			"condition_list" : "Result_Click.detail = RESULT.OK,Result_Click.detail = RESULT.ALL_OK",
+			"result_name":"",
+			"settings" : {
+				"action" : "ACTION.CLICK",
+				"end_condition" : "RESULT.OK",
+				"end_action" : "END_ACTION.CONTINUE",
+				"execute_number" : 1,
+				"retry_number" : 0,
+				"image_path" : "../Images/DarkTails/1400_event/0035_execute/*.png",
+				"interval_time" : 0.5,
+				"recognition_confidence" : 0.93,
+				"recognition_grayscale" : true,
+				"log_file_path_list": "../Log/log_recognition.json",
+				"log_function":true,"log_print_standardoutput": false
+			}
+		},
+		{
+			"name" : "DarkTailsEvent01Click40",
+			"type" : "Recognition",
+			"condition_list" : "",
+			"result_name":"Result_Click",
+			"settings" : {
+				"action" : "ACTION.DOUBLE_CLICK",
+				"end_condition" : "RESULT.OK",
+				"end_action" : "END_ACTION.BREAK",
+				"execute_number" : 1,
+				"retry_number" : 2,
+				"image_path" : "../Images/DarkTails/1400_event/0040_start/*.png",
+				"interval_time" : 1,
+				"recognition_confidence" : 0.93,
+				"recognition_grayscale" : true,
+				"log_file_path_list": "../Log/log_recognition.json",
+				"log_function":true,"log_print_standardoutput": false
+			}
+		},
+		{
+			"name" : "DarkTailsEvent01Click45",
+			"type" : "Recognition",
+			"condition_list" : "Result_Click.detail = RESULT.OK,Result_Click.detail = RESULT.ALL_OK",
+			"result_name":"",
+			"settings" : {
+				"action" : "ACTION.CLICK",
+				"end_condition" : "RESULT.OK",
+				"end_action" : "END_ACTION.CONTINUE",
+				"execute_number" : 1,
+				"retry_number" : 0,
+				"image_path" : "../Images/DarkTails/1400_event/0045_execute/*.png",
+				"interval_time" : 0.5,
+				"recognition_confidence" : 0.93,
+				"recognition_grayscale" : true,
+				"log_file_path_list": "../Log/log_recognition.json",
+				"log_function":true,"log_print_standardoutput": false
+			}
+		},
+		{
+			"name" : "DarkTailsEvent01Click50",
+			"type" : "Recognition",
+			"condition_list" : "",
+			"result_name":"Result_Click",
+			"settings" : {
+				"action" : "ACTION.DOUBLE_CLICK",
+				"end_condition" : "RESULT.OK",
+				"end_action" : "END_ACTION.BREAK",
+				"execute_number" : 1,
+				"retry_number" : 2,
+				"image_path" : "../Images/DarkTails/1400_event/0050_start/*.png",
+				"interval_time" : 1,
+				"recognition_confidence" : 0.93,
+				"recognition_grayscale" : true,
+				"log_file_path_list": "../Log/log_recognition.json",
+				"log_function":true,"log_print_standardoutput": false
+			}
+		},
+		{
+			"name" : "DarkTailsEvent01Click55",
+			"type" : "Recognition",
+			"condition_list" : "Result_Click.detail = RESULT.OK,Result_Click.detail = RESULT.ALL_OK",
+			"result_name":"",
+			"settings" : {
+				"action" : "ACTION.CLICK",
+				"end_condition" : "RESULT.OK",
+				"end_action" : "END_ACTION.CONTINUE",
+				"execute_number" : 1,
+				"retry_number" : 0,
+				"image_path" : "../Images/DarkTails/1400_event/0055_execute/*.png",
+				"interval_time" : 0.5,
+				"recognition_confidence" : 0.93,
+				"recognition_grayscale" : true,
+				"log_file_path_list": "../Log/log_recognition.json",
+				"log_function":true,"log_print_standardoutput": false
+			}
+		}
+	],
+	"DarkTailsEvent02Click":
+	[
+		{
+			"name" : "DarkTailsZikaiStart",
+			"type" : "Recognition",
+			"condition_list" : "",
+			"result_name":"Result_Click",
+			"settings" : {
+				"action" : "ACTION.DOUBLE_CLICK",
+				"end_condition" : "RESULT.OK",
+				"end_action" : "END_ACTION.FOLDER_END_BREAK",
+				"execute_number" : 1,
+				"retry_number" : 2,
+				"image_path" : "../Images/DarkTails/1490_event/0000_start/*.png",
+				"interval_time" : 0.5,
+				"recognition_confidence" : 0.93,
+				"recognition_grayscale" : true,
+				"log_file_path_list": "../Log/log_recognition.json",
+				"log_function":true,"log_print_standardoutput": false
+			}
+		},
+		{
+			"name" : "DarkTailsZikai",
+			"type" : "Recognition",
+			"condition_list" : "",
+			"result_name":"Result_Click",
+			"settings" : {
+				"action" : "ACTION.DOUBLE_CLICK",
+				"end_condition" : "RESULT.OK",
+				"end_action" : "END_ACTION.FOLDER_END_BREAK",
+				"execute_number" : 1,
+				"retry_number" : 1,
+				"image_path" : "../Images/DarkTails/1490_event/0002_execute/*.png",
+				"interval_time" : 0.8,
+				"recognition_confidence" : 0.93,
+				"recognition_grayscale" : true,
+				"log_file_path_list": "../Log/log_recognition.json",
+				"log_function":true,"log_print_standardoutput": false
+			}
+		},
+		{
+			"name" : "DarkTailsZikai",
+			"type" : "Recognition",
+			"condition_list" : "Result_Click.detail = RESULT.OK,Result_Click.detail = RESULT.ALL_OK",
+			"result_name":"Execute02",
+			"settings" : {
+				"action" : "ACTION.DOUBLE_CLICK",
+				"end_condition" : "RESULT.OK",
+				"end_action" : "END_ACTION.FOLDER_END_BREAK",
+				"execute_number" : 1,
+				"retry_number" : 1,
+				"image_path" : "../Images/DarkTails/1490_event/0003_check/*.png",
+				"interval_time" : 0.8,
+				"recognition_confidence" : 0.98,
+				"recognition_grayscale" : false,
+				"log_file_path_list": "../Log/log_recognition.json",
+				"log_function":true,"log_print_standardoutput": false
+			}
+		},
+		{
+			"name" : "DarkTailsZikai",
+			"type" : "Recognition",
+			"condition_list" : "Execute02.detail = RESULT.OK,Execute02.detail = RESULT.ALL_OK",
+			"result_name":"",
+			"settings" : {
+				"action" : "ACTION.CLICK",
+				"end_condition" : "RESULT.OK",
+				"end_action" : "END_ACTION.CONTINUE",
+				"execute_number" : 1,
+				"retry_number" : 1,
+				"image_path" : "../Images/DarkTails/1490_event/0005_execute/*.png",
+				"interval_time" : 0.8,
+				"recognition_confidence" : 0.93,
+				"recognition_grayscale" : true,
+				"log_file_path_list": "../Log/log_recognition.json",
+				"log_function":true,"log_print_standardoutput": false
+			}
+		},
+		{
+			"name" : "DarkTailsZikaiClick11",
+			"type" : "Recognition",
+			"condition_list" : "",
+			"result_name":"Result_Click",
+			"settings" : {
+				"action" : "ACTION.DOUBLE_CLICK",
+				"end_condition" : "RESULT.OK",
+				"end_action" : "END_ACTION.CONTINUE",
+				"execute_number" : 1,
+				"retry_number" : 0,
+				"image_path" : "../Images/DarkTails/1490_event/0010_start/*.png",
+				"interval_time" : 1,
+				"recognition_confidence" : 0.93,
+				"recognition_grayscale" : false,
+				"log_file_path_list": "../Log/log_recognition.json",
+				"log_function":true,"log_print_standardoutput": false
+			}
+		},
+		{
+			"name" : "DarkTailsZikaiClick13",
+			"type" : "Recognition",
+			"condition_list" : "Result_Click.detail = RESULT.OK,Result_Click.detail = RESULT.ALL_OK",
+			"result_name":"",
+			"settings" : {
+				"action" : "ACTION.CLICK",
+				"end_condition" : "RESULT.NG",
+				"end_action" : "END_ACTION.CONTINUE",
+				"execute_number" : 1,
+				"retry_number" : 5,
+				"image_path" : "../Images/DarkTails/1490_event/0015_execute/*.png",
+				"interval_time" : 1,
+				"recognition_confidence" : 0.93,
+				"recognition_grayscale" : false,
+				"log_file_path_list": "../Log/log_recognition.json",
+				"log_function":false,"log_print_standardoutput": false
+			}
+		},
+		{
+			"name" : "DarkTailsZikaiClick21",
+			"type" : "Recognition",
+			"condition_list" : "",
+			"result_name":"Result_Click",
+			"settings" : {
+				"action" : "ACTION.DOUBLE_CLICK",
+				"end_condition" : "RESULT.OK",
+				"end_action" : "END_ACTION.CONTINUE",
+				"execute_number" : 1,
+				"retry_number" : 0,
+				"image_path" : "../Images/DarkTails/1490_event/0020_start/*.png",
+				"interval_time" : 1,
+				"recognition_confidence" : 0.93,
+				"recognition_grayscale" : false,
+				"log_file_path_list": "../Log/log_recognition.json",
+				"log_function":true,"log_print_standardoutput": false
+			}
+		},
+		{
+			"name" : "DarkTailsZikaiClick23",
+			"type" : "Recognition",
+			"condition_list" : "Result_Click.detail = RESULT.OK,Result_Click.detail = RESULT.ALL_OK",
+			"result_name":"",
+			"settings" : {
+				"action" : "ACTION.CLICK",
+				"end_condition" : "RESULT.OK",
+				"end_action" : "END_ACTION.CONTINUE",
+				"execute_number" : 2,
+				"retry_number" : 0,
+				"image_path" : "../Images/DarkTails/1490_event/0025_execute/*.png",
+				"interval_time" : 1,
+				"recognition_confidence" : 0.93,
+				"recognition_grayscale" : false,
+				"log_file_path_list": "../Log/log_recognition.json",
+				"log_function":false,"log_print_standardoutput": false
+			}
+		},
+
+
+		{
+			"name" : "DarkTailsZikaiEnd",
+			"type" : "Recognition",
+			"condition_list" : "Result_Click.detail = RESULT.OK,Result_Click.detail = RESULT.ALL_OK",
+			"result_name":"",
+			"settings" : {
+				"action" : "ACTION.CLICK",
+				"end_condition" : "RESULT.NG",
+				"end_action" : "END_ACTION.CONTINUE",
+				"execute_number" : 1,
+				"retry_number" : 2,
+				"image_path" : "../Images/DarkTails/1490_event/0019_end/*.png",
+				"interval_time" : 1,
+				"recognition_confidence" : 0.93,
+				"recognition_grayscale" : true,
+				"log_file_path_list": "../Log/log_recognition.json",
+				"log_function":true,"log_print_standardoutput": false
+			}
+		}
+	],
+	"DarkTailsDairyClick":
+	[
+		{
+			"name" : "Dairy01",
+			"type" : "Recognition",
+			"condition_list" : "",
+			"result_name":"Result_Click",
+			"settings" : {
+				"action" : "ACTION.DOUBLE_CLICK",
+				"end_condition" : "RESULT.OK",
+				"end_action" : "END_ACTION.CONTINUE",
+				"execute_number" : 1,
+				"retry_number" : 2,
+				"image_path" : "../Images/DarkTails/1500_dairy/*.png",
+				"interval_time" : 0.5,
+				"recognition_confidence" : 0.93,
+				"recognition_grayscale" : true,
+				"log_file_path_list": "../Log/log_recognition.json",
+				"log_function":true,"log_print_standardoutput": false
+			}
+		},
+		{
+			"name" : "Dairy02",
+			"type" : "Recognition",
+			"condition_list" : "Result_Click.detail = RESULT.OK,Result_Click.detail = RESULT.ALL_OK",
+			"result_name":"",
+			"settings" : {
+				"action" : "ACTION.CLICK",
+				"end_condition" : "RESULT.OK",
+				"end_action" : "END_ACTION.CONTINUE",
+				"execute_number" : 1,
+				"retry_number" : 0,
+				"image_path" : "../Images/DarkTails/1510_dairy/*.png",
+				"interval_time" : 0.8,
+				"recognition_confidence" : 0.93,
+				"recognition_grayscale" : true,
+				"log_file_path_list": "../Log/log_recognition.json",
+				"log_function":true,"log_print_standardoutput": false
+			}
+		},
+		{
+			"name" : "Dairy03",
+			"type" : "Recognition",
+			"condition_list" : "Result_Click.detail = RESULT.OK,Result_Click.detail = RESULT.ALL_OK",
+			"result_name":"Dairy",
+			"settings" : {
+				"action" : "ACTION.CLICK",
+				"end_condition" : "RESULT.OK",
+				"end_action" : "END_ACTION.CONTINUE",
+				"execute_number" : 1,
+				"retry_number" : 0,
+				"image_path" : "../Images/DarkTails/1511_dairy/*.png",
+				"interval_time" : 0.8,
+				"recognition_confidence" : 0.93,
+				"recognition_grayscale" : true,
+				"log_file_path_list": "../Log/log_recognition.json",
+				"log_function":true,"log_print_standardoutput": false
+			}
+		},
+		{
+			"name" : "DarkTailsIkusei",
+			"type" : "RunPlanLists",
+			"condition_list" : "Dairy.detail = RESULT.OK,Dairy.detail = RESULT.ALL_OK",
+			"result_name":"",
+			"settings" : {
+				"file_path"  : "RunDarkTailsChild.json",
+				"plan_lists" : [
+					"DarkTailsIkuseiClick","DarkTailsBattleClick"
+				]
+			}
+		}
+	],
+
+	"Casting":
+	[
+		{
+			"name" : "Casting",
+			"type" : "Recognition",
+			"condition_list" : "",
+			"result_name":"Result_Click",
+			"settings" : {
+				"action" : "ACTION.CLICK",
+				"end_condition" : "RESULT.OK",
+				"end_action" : "END_ACTION.CONTINUE",
+				"execute_number" : 1,
+				"retry_number" : 2,
+				"image_path" : "../Images/DarkTails/1520_tyuzo/*.png",
+				"interval_time" : 0.7,
+				"recognition_confidence" : 0.93,
+				"recognition_grayscale" : true,
+				"log_file_path_list": "../Log/log_recognition.json",
+				"log_function":true,"log_print_standardoutput": false
+			}
+		}
+	],
+	"ItemMaintenance":
+	[
+		{
+			"name" : "ItemMaintenance",
+			"type" : "Recognition",
+			"condition_list" : "",
+			"result_name":"Result_Click",
+			"settings" : {
+				"action" : "ACTION.CLICK",
+				"end_condition" : "RESULT.OK",
+				"end_action" : "END_ACTION.CONTINUE",
+				"execute_number" : 1,
+				"retry_number" : 0,
+				"image_path" : "../Images/DarkTails/2000_item/0005_execute/*.png",
+				"interval_time" : 0.7,
+				"recognition_confidence" : 0.93,
+				"recognition_grayscale" : true,
+				"log_file_path_list": "../Log/log_recognition.json",
+				"log_function":true,"log_print_standardoutput": false
+			}
+		},
+		{
+			"name" : "HomeClick",
+			"type" : "RunPlanLists",
+			"condition_list" : "",
+			"result_name":"",
+			"settings" : {
+				"file_path"  : "RunDarkTailsChild.json",
+					"plan_lists" : [
+					"HomeClick"
+				]
+			}
+		},
+		{
+			"name" : "ItemMaintenance",
+			"type" : "Recognition",
+			"condition_list" : "",
+			"result_name":"Result_Click",
+			"settings" : {
+				"action" : "ACTION.CLICK",
+				"end_condition" : "RESULT.OK",
+				"end_action" : "END_ACTION.CONTINUE",
+				"execute_number" : 1,
+				"retry_number" : 2,
+				"image_path" : "../Images/DarkTails/2000_item/0010_start/*.png",
+				"interval_time" : 0.7,
+				"recognition_confidence" : 0.93,
+				"recognition_grayscale" : true,
+				"log_file_path_list": "../Log/log_recognition.json",
+				"log_function":true,"log_print_standardoutput": true
+			}
+		},
+		{
+			"name" : "ItemMaintenance",
+			"type" : "Recognition",
+			"condition_list" : "Result_Click.detail = RESULT.OK,Result_Click.detail = RESULT.ALL_OK",
+			"result_name":"Result_Click",
+			"settings" : {
+				"action" : "ACTION.CLICK",
+				"end_condition" : "RESULT.OK",
+				"end_action" : "END_ACTION.CONTINUE",
+				"execute_number" : 1,
+				"retry_number" : 0,
+				"image_path" : "../Images/DarkTails/2000_item/0015_execute/*.png",
+				"interval_time" : 0.7,
+				"recognition_confidence" : 0.93,
+				"recognition_grayscale" : true,
+				"log_file_path_list": "../Log/log_recognition.json",
+				"log_function":true,"log_print_standardoutput": false
+			}
+		}
+	],
+	"Mail":
+	[
+		{
+			"name" : "Mail",
+			"type" : "Recognition",
+			"condition_list" : "",
+			"result_name":"Result_Click",
+			"settings" : {
+				"action" : "ACTION.CLICK",
+				"end_condition" : "RESULT.OK",
+				"end_action" : "END_ACTION.CONTINUE",
+				"execute_number" : 1,
+				"retry_number" : 2,
+				"image_path" : "../Images/DarkTails/1100_mail/*.png",
+				"interval_time" : 0.5,
+				"recognition_confidence" : 0.93,
+				"recognition_grayscale" : true,
+				"log_file_path_list": "../Log/log_recognition.json",
+				"log_function":true,"log_print_standardoutput": false
+			}
+		}
+	],
+	"DarkTailsIkuseiClick":
+	[
+		{
+			"name" : "Ikusei",
+			"type" : "Recognition",
+			"condition_list" : "",
+			"result_name":"Result_Click",
+			"settings" : {
+				"action" : "ACTION.DOUBLE_CLICK",
+				"end_condition" : "RESULT.OK",
+				"end_action" : "END_ACTION.CONTINUE",
+				"execute_number" : 1,
+				"retry_number" : 1,
+				"image_path" : "../Images/DarkTails/1901_ikusei/0000_start/*.png",
+				"interval_time" : 0.8,
+				"recognition_confidence" : 0.93,
+				"recognition_grayscale" : true,
+				"log_file_path_list": "../Log/log_recognition.json",
+				"log_function":true,"log_print_standardoutput": false
+			}
+		},
+		{
+			"name" : "Ikusei",
+			"type" : "Recognition",
+			"condition_list" : "",
+			"result_name":"Result_Click",
+			"settings" : {
+				"action" : "ACTION.DOUBLE_CLICK",
+				"end_condition" : "RESULT.OK",
+				"end_action" : "END_ACTION.CONTINUE",
+				"execute_number" : 1,
+				"retry_number" : 0,
+				"image_path" : "../Images/DarkTails/1901_ikusei/0005_execute/*.png",
+				"interval_time" : 0.8,
+				"recognition_confidence" : 0.93,
+				"recognition_grayscale" : true,
+				"log_file_path_list": "../Log/log_recognition.json",
+				"log_function":true,"log_print_standardoutput": false
+			}
+		},
+		{
+			"name" : "Home",
+			"type" : "RunPlanLists",
+			"condition_list" : "Result_Click.detail = RESULT.OK,Result_Click.detail = RESULT.ALL_OK",
+			"result_name":"",
+			"settings" : {
+				"file_path"  : "RunDarkTailsChild.json",
+				  "plan_lists" : [
+					 "ItemMaintenance"
+				]
+			}
+		 }
+	],
+	"DarkTailsBattleClick":
+	[
+		{
+			"name" : "DarkTailsBattle",
+			"type" : "Recognition",
+			"condition_list" : "",
+			"result_name":"Result_Click",
+			"settings" : {
+				"action" : "ACTION.DOUBLE_CLICK",
+				"end_condition" : "RESULT.OK",
+				"end_action" : "END_ACTION.CONTINUE",
+				"execute_number" : 1,
+				"retry_number" : 2,
+				"image_path" : "../Images/DarkTails/1910_battle/*.png",
+				"interval_time" : 0.5,
+				"recognition_confidence" : 0.93,
+				"recognition_grayscale" : true,
+				"log_file_path_list": "../Log/log_recognition.json",
+				"log_function":true,"log_print_standardoutput": false
+			}
+		},
+		{
+			"name" : "ItemError",
+			"type" : "Recognition",
+			"condition_list" : "",
+			"result_name":"Result_Click",
+			"settings" : {
+				"action" : "ACTION.CLICK",
+				"end_condition" : "RESULT.OK",
+				"end_action" : "END_ACTION.CONTINUE",
+				"execute_number" : 1,
+				"retry_number" : 2,
+				"image_path" : "../Images/DarkTails/1910_battle/0006error/*.png",
+				"interval_time" : 0.8,
+				"recognition_confidence" : 0.93,
+				"recognition_grayscale" : true,
+				"log_file_path_list": "../Log/log_recognition.json",
+				"log_function":true,"log_print_standardoutput": false
+			}
+		}
+	],
+
+	"TimeEventClick":
+	[
+		{
+			"name" : "TimeEventClick1",
+			"type" : "Recognition",
+			"result_name":"Condition_TimeEvent",
+			"settings" : {
+				"action" : "ACTION.CLICK",
+				"end_condition" : "RESULT.OK",
+				"end_action" : "END_ACTION.CONTINUE",
+				"execute_number" : 2,
+				"retry_number" : 2,
+				"image_path" : "../Images/DarkTails/1650_timeevent/0010_start/*.png",
+				"interval_time" : 0.5,
+				"recognition_confidence" : 0.95,
+				"recognition_grayscale" : true,
+				"log_file_path_list": "../Log/log_recognition.json",
+				"log_function":true,"log_print_standardoutput": false
+			}
+		},
+		{
+			"name" : "TimeEventClick2",
+			"type" : "Recognition",
+			"condition_list" : "Condition_TimeEvent.detail = RESULT.OK,Condition_TimeEvent.detail = RESULT.ALL_OK",
+			"result_name":"",
+			"settings" : {
+				"action" : "ACTION.CLICK",
+				"end_condition" : "RESULT.OK",
+				"end_action" : "END_ACTION.CONTINUE",
+				"execute_number" : 1,
+				"retry_number" : 1,
+				"image_path" : "../Images/DarkTails/1650_timeevent/0015_execute/*.png",
+				"interval_time" : 0.5,
+				"recognition_confidence" : 0.95,
+				"recognition_grayscale" : true,
+				"log_file_path_list": "../Log/log_recognition.json",
+				"log_function":true,"log_print_standardoutput": false
+			}
+		},
+		{
+			"name" : "TimeCheck_HimePlay",
+		   "type" : "RunPlanLists",
+		   "condition_list" : "",
+		   "result_name":"",
+		   "settings" : {
+			   "file_path"  : "RunDarkTailsChild.json",
+			   "#step_check_mode" : true,
+				 "plan_lists" : [
+				   "TimeCheck_HimePlay"
+			   ]
+		   }
+	   },
+	   {
+			"name" : "HimePlay",
+			"type" : "RunPlanLists",
+			"condition_list" : ["Time_Check_DarkTails_HimePlay = true","Condition_TimeEvent.detail = RESULT.OK,Condition_TimeEvent.detail = RESULT.ALL_OK"],
+			"result_name":"",
+			"settings" : {
+				"file_path"  : "RunDarkTailsChild.json",
+				"#step_check_mode" : true,
+				"plan_lists" : [
+					"HimePlayClick"
+				]
+			}
+		}
+	],
+	"HimePlayClick":
+	[
+		{
+			"name" : "HimeClick",
+			"type" : "Recognition",
+			"condition_list" : "",
+			"result_name":"Result_HimePlayClick",
+			"settings" : {
+				"action" : "ACTION.CLICK",
+				"end_condition" : "RESULT.OK",
+				"end_action" : "END_ACTION.CONTINUE",
+				"execute_number" : 1,
+				"retry_number" : 1,
+				"image_path" : "../Images/DarkTails/1650_timeevent/0000_start/*.png",
+				"interval_time" : 0.5,
+				"recognition_confidence" : 0.95,
+				"recognition_grayscale" : true,
+				"log_file_path_list": "../Log/log_recognition.json",
+				"log_function":true,"log_print_standardoutput": false
+			}
+		},
+		{
+			"name" : "HimeClick",
+			"type" : "Recognition",
+			"condition_list" : "Result_HimePlayClick.detail = RESULT.OK,Result_HimePlayClick.detail = RESULT.ALL_OK",
+			"result_name":"",
+			"settings" : {
+				"action" : "ACTION.CLICK",
+				"end_condition" : "RESULT.OK",
+				"end_action" : "END_ACTION.CONTINUE",
+				"execute_number" : 1,
+				"retry_number" : 1,
+				"image_path" : "../Images/DarkTails/1650_timeevent/0005_execute/*.png",
+				"interval_time" : 0.5,
+				"recognition_confidence" : 0.95,
+				"recognition_grayscale" : true,
+				"log_file_path_list": "../Log/log_recognition.json",
+				"log_function":true,"log_print_standardoutput": false
+			}
+		}
+
+	],
+	"InformationClick":
+	[
+		{
+			"name" : "InformationClick01",
+			"type" : "Recognition",
+			"condition_list" : "",
+			"result_name":"Result_Click",
+			"settings" : {
+				"action" : "ACTION.DOUBLE_CLICK",
+				"end_condition" : "RESULT.OK",
+				"end_action" : "END_ACTION.FOLDER_END_BREAK",
+				"execute_number" : 1,
+				"retry_number" : 2,
+				"image_path" : "../Images/DarkTails/1200_infomation/0000_start/*.png",
+				"interval_time" : 0.5,
+				"recognition_confidence" : 0.93,
+				"recognition_grayscale" : true,
+				"log_file_path_list": "../Log/log_recognition.json",
+				"log_function":true,"log_print_standardoutput": false
+			}
+		},
+		{
+			"name" : "InformationClick02",
+			"type" : "Recognition",
+			"condition_list" : "Result_Click.detail = RESULT.OK,Result_Click.detail = RESULT.ALL_OK",
+			"result_name":"Result_Click",
+			"settings" : {
+				"action" : "ACTION.DOUBLE_CLICK",
+				"end_condition" : "RESULT.OK",
+				"end_action" : "END_ACTION.FOLDER_END_BREAK",
+				"execute_number" : 1,
+				"retry_number" : 3,
+				"image_path" : "../Images/DarkTails/1200_infomation/0003_check/*.png",
+				"interval_time" : 0.5,
+				"recognition_confidence" : 0.93,
+				"recognition_grayscale" : true,
+				"log_file_path_list": "../Log/log_recognition.json",
+				"log_function":true,"log_print_standardoutput": false
+			}
+		},
+		{
+			"name" : "InformationClick03",
+			"type" : "Recognition",
+			"condition_list" : "Result_Click.detail = RESULT.OK,Result_Click.detail = RESULT.ALL_OK",
+			"result_name":"Result_Click",
+			"settings" : {
+				"action" : "ACTION.DOUBLE_CLICK",
+				"end_condition" : "RESULT.OK",
+				"end_action" : "END_ACTION.FOLDER_END_BREAK",
+				"execute_number" : 1,
+				"retry_number" : 2,
+				"image_path" : "../Images/DarkTails/1200_infomation/0005_execute/*.png",
+				"interval_time" : 0.2,
+				"recognition_confidence" : 0.93,
+				"recognition_grayscale" : true,
+				"log_file_path_list": "../Log/log_recognition.json",
+				"log_function":true,"log_print_standardoutput": false
+			}
+		}
+	],
+	"ReturnClick":
+	[
+		{
+			"name" : "ReturnClick",
+			"type" : "Recognition",
+			"result_name":"",
+			"settings" : {
+				"action" : "ACTION.DOUBLE_CLICK",
+				"end_condition" : "RESULT.OK",
+				"end_action" : "END_ACTION.FOLDER_END_BREAK",
+				"execute_number" : 1,
+				"retry_number" : 0,
+				"image_path" : "../Images/DarkTails/1010_Return/*.png",
+				"interval_time" : 0.5,
+				"recognition_confidence" : 0.95,
+				"recognition_grayscale" : true,
+				"log_file_path_list": "../Log/log_recognition.json",
+				"log_function":true,"log_print_standardoutput": false
+			}
+		}
+	],
+	"HomeClick":
+	[
+		{
+			"name" : "HomeClick",
+			"type" : "Recognition",
+			"result_name":"HomeClick",
+			"settings" : {
+				"action" : "ACTION.DOUBLE_CLICK",
+				"end_condition" : "RESULT.OK",
+				"end_action" : "END_ACTION.BREAK",
+				"execute_number" : 1,
+				"retry_number" : 0,
+				"image_path" : "../Images/DarkTails/1011_home/*.png",
+				"interval_time" : 0.5,
+				"recognition_confidence" : 0.95,
+				"recognition_grayscale" : true,
+				"log_file_path_list": "../Log/log_recognition.json",
+				"log_function":false,"log_print_standardoutput": false
+			}
+		},
+		{
+			"name" : "ReturnClick",
+			"type" : "Recognition",
+			"condition_list" :"HomeClick.detail = RESULT.NG",
+			"result_name":"",
+			"settings" : {
+				"action" : "ACTION.DOUBLE_CLICK",
+				"end_condition" : "RESULT.OK",
+				"end_action" : "END_ACTION.FOLDER_END_BREAK",
+				"execute_number" : 1,
+				"retry_number" : 0,
+				"image_path" : "../Images/DarkTails/1010_Return/*.png",
+				"interval_time" : 0.5,
+				"recognition_confidence" : 0.95,
+				"recognition_grayscale" : true,
+				"log_file_path_list": "../Log/log_recognition.json",
+				"log_function":false,"log_print_standardoutput": false
+			}
+		},
+		{
+			"name" : "HomeClick",
+			"type" : "Recognition",
+			"condition_list" :"HomeClick.detail = RESULT.NG",
+			"result_name":"",
+			"settings" : {
+				"action" : "ACTION.DOUBLE_CLICK",
+				"end_condition" : "RESULT.OK",
+				"end_action" : "END_ACTION.BREAK",
+				"execute_number" : 1,
+				"retry_number" : 2,
+				"image_path" : "../Images/DarkTails/1011_home/*.png",
+				"interval_time" : 0.5,
+				"recognition_confidence" : 0.95,
+				"recognition_grayscale" : true,
+				"log_file_path_list": "../Log/log_recognition.json",
+				"log_function":false,"log_print_standardoutput": false
+			}
+		}
+	],
+	"CloseWindow":
+	[
+		{
+			"name" : "CloseWindow",
+			"type" : "Recognition",
+			"result_name":"",
+			"settings" : {
+				"action" : "ACTION.CLICK",
+				"end_condition" : "RESULT.OK",
+				"end_action" : "END_ACTION.CONTINUE",
+				"execute_number" : 2,
+				"retry_number" : 2,
+				"image_path" : "../Images/image_end/*.png",
+				"interval_time" : 1.8,
+				"recognition_confidence" : 0.95,
+				"recognition_grayscale" : true,
+				"log_file_path_list": "../Log/log_recognition.json",
+				"log_function":true,"log_print_standardoutput": false
+			}
+		}
+	]
+}

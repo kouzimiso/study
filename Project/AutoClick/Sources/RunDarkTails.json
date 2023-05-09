@@ -1,0 +1,370 @@
+{
+	"Change":[
+		{
+			"comment":[
+				"Houchi > DarkTails",
+				"Chokyo > TimeEvent",
+				"DarkTailsNoMoney > PoochiPochi",
+				"",
+				"",
+				"",
+				""
+			]
+		}
+	],
+	"DarkTailsPlan" : 
+	[
+		{
+	 		"name" : "DarkTailsPlanStart",
+			"type" : "RunPlanLists",
+			"settings" : {
+				"#step_check_mode" : true,
+				"file_path"  : "RunDarkTails.json",
+				"plan_lists" : [
+					"DarkTailsMain",
+					"DarkTailsSub"
+				]
+			}
+		}
+	],	
+	"DarkTailsSub" : 
+	[
+		{
+	 		"name" : "DarkTailsAccountPlanSub",
+			"type" : "RunPlanLists",
+			"condition_list" : "",
+			"settings" : {
+				"file_path"  : "RunDarkTails.json",
+ 		 		"plan_lists" : [
+					"DarkTailsCondition_TimeEvent","TimeEvent",
+					"CloseWindow","DarkTailsCondition_Sub","DarkTailsAccount00","DarkTailsWaiting","DarkTailsServer01","DarkTailsClickGroup"
+				]
+			}
+		}
+	],
+	"DarkTailsMain" : 
+	[
+		{
+	 		"name" : "DarkTailsAccountPlanMain",
+			"type" : "RunPlanLists",
+			"condition_list" : "",
+			"settings" : {
+				"file_path"  : "RunDarkTails.json",
+ 		 		"plan_lists" : [
+					"DarkTailsCondition_TimeEvent","TimeEvent",
+					"CloseWindow","DarkTailsCondition_Main","DarkTailsAccount00","DarkTailsWaiting","DarkTailsServer00","DarkTailsClickGroup"
+				]
+			}
+		}
+	],
+	"DarkTailsCondition_Main" : 
+	[
+		{
+	 		"name" : "DarkTailsCondition_Main",
+			"type" : "RunPlanLists",
+			"comment" : "",
+			"condition_list" : "",
+			"settings" : {
+				"file_path"  : "RunDarkTailsChild.json",
+				"#step_check_mode" : true,
+ 		 		"plan_lists" : [
+					"TimeCheck_DarkTails_Main"
+				]
+			}
+		}
+	],
+	"DarkTailsCondition_Sub" : 
+	[
+		{
+	 		"name" : "DarkTailsCondition_Sub",
+			"type" : "RunPlanLists",
+			"comment" : "",
+			"condition_list" : "",
+			"settings" : {
+				"file_path"  : "RunDarkTailsChild.json",
+				"#step_check_mode" : true,
+ 		 		"plan_lists" : [
+					"TimeCheck_DarkTails_Sub"
+				]
+			}
+		}
+	],
+	"DarkTailsCondition_ACM" : 
+	[
+		{
+	 		"name" : "DarkTailsCondition_ACM",
+			"type" : "RunPlanLists",
+			"comment" : "",
+			"condition_list" : "",
+			"settings" : {
+				"file_path"  : "RunDarkTailsChild.json",
+				"#step_check_mode" : true,
+ 		 		"plan_lists" : [
+					"TimeCheck_DarkTails_Main"
+				]
+			}
+		}
+	],
+	"DarkTailsCondition_TimeEvent" : 
+	[
+		{
+	 		"name" : "DarkTailsCondition_TimeEvent",
+			"type" : "RunPlanLists",
+			"comment" : "",
+			"condition_list" : "",
+			"settings" : {
+				"file_path"  : "RunDarkTailsChild.json",
+				"#step_check_mode" : true,
+ 		 		"plan_lists" : [
+					"TimeCheck_DarkTails_TimeEvent"
+				]
+			}
+		}
+	],
+	"DarkTailsClickGroup" : 
+	[
+		{
+	 		"name" : "DarkTailsClickGroup",
+			"type" : "RunPlanLists",
+			"comment" : "",
+			"condition_list" : "Result_DarkTailsServerClick.detail = RESULT.OK,Result_DarkTailsServerClick.detail = RESULT.ALL_OK",
+			"settings" : {
+				"file_path"  : "RunDarkTailsChild.json",
+				"#step_check_mode" : true,
+ 		 		"plan_lists" : [
+					"DarkTailsStart","DarkTailsMainte","DarkTailsPlay"
+				]
+			}
+		}
+	],
+	"TimeEvent": 
+	[
+		{
+	 		"name" : "TimeEvent",
+			"type" : "RunPlanLists",
+			"condition_list" : "Condition_Execute = True",
+			"result_name":"",
+			"settings" : {
+				"file_path"  : "RunDarkTails.json",
+ 		 		"plan_lists" : [
+					"CloseWindow","DarkTailsCondition_TimeEvent","DarkTailsAccount00","DarkTailsWaiting","DarkTailsServer01","TimeEventClickGroup"
+				]
+			}
+		}
+	],
+	"TimeEventClickGroup": 
+	[
+
+		{
+	 		"name" : "TimeEventClickGroup",
+			"type" : "RunPlanLists",
+			"condition_list" : "Result_DarkTailsServerClick.detail = RESULT.OK,Result_DarkTailsServerClick.detail = RESULT.ALL_OK",
+			"result_name":"",
+			"settings" : {
+				"file_path"  : "RunDarkTailsChild.json",
+ 		 		"plan_lists" : [
+					"DarkTailsStart","TimeEventPlay"
+				]
+			}
+		}
+	],
+	"DarkTailsAccount00":
+	[
+		{
+			"name": "DarkTailsAccount00",
+			"type": "Recognition",
+			"condition_list":["Condition_Execute = true"],
+			"result_name":"Result_DarkTailsAccountClick",
+			"settings": {
+				"action": "ACTION.DOUBLE_CLICK",
+				"end_condition": "RESULT.OK",
+				"end_action": "END_ACTION.BREAK",
+				"execute_number": 2,
+				"retry_number": 0,
+				"image_path": "../Images/DarkTails/0000_account/0000/*.png",
+				"interval_time": 10,
+				"recognition_confidence": 0.99,
+				"recognition_grayscale": true,
+				"log_function":true,"log_print_standardoutput": true,"log_file_path_list": "../Log/log_recognition.json",
+				"#step_check_mode" : true
+
+			}
+		}
+	],
+	"DarkTailsWaiting":
+	[
+		{
+			"name" : "DarkTailsWaiting",
+			"type" : "Recognition",
+			"condition_list" : "Result_DarkTailsAccountClick.detail = RESULT.OK,Result_DarkTailsAccountClick.detail = RESULT.ALL_OK",
+			"result_name":"Result_DarkTailsAccountClick",
+			"settings" : {
+				"action" : "ACTION.CLICK",
+				"end_condition" : "RESULT.NG",
+				"end_action" : "END_ACTION.CONTINUE",
+				"execute_number" :1,
+				"retry_number" : 10,
+				"image_path" : "../Images/DarkTails/0500_waiting/*.png",
+				"interval_time" : 2,
+				"recognition_confidence" : 0.99,
+				"recognition_grayscale" : false
+			}
+		},
+		{
+			"name" : "DarkTailsWaitingEnd",
+			"type" : "Recognition",
+			"condition_list" : ["Result_DarkTailsAccountClick.detail = RESULT.OK,Result_DarkTailsAccountClick.detail = RESULT.ALL_OK"],
+			"result_name":"Result_DarkTailsWaitEndClick",
+			"settings" : {
+				"action" : "ACTION.CLICK",
+				"end_condition" : "RESULT.OK",
+				"end_action" : "END_ACTION.BREAK",
+				"execute_number" :1,
+				"retry_number" : 2,
+				"image_path" : "../Images/DarkTails/0509_waitingend/*.png",
+				"interval_time" : 2,
+				"recognition_confidence" : 0.99,
+				"recognition_grayscale" : false
+			}
+		},
+		{
+			"name" : "DarkTailsWaiting",
+			"type" : "Recognition",
+			"condition_list" : [
+				"Result_DarkTailsAccountClick.detail = RESULT.OK,Result_DarkTailsAccountClick.detail = RESULT.ALL_OK",
+				"Result_DarkTailsWaitEndClick.detail = RESULT.NG"
+			],
+			"settings" : {
+				"action" : "ACTION.CLICK",
+				"end_condition" : "RESULT.NG",
+				"end_action" : "END_ACTION.CONTINUE",
+				"execute_number" :1,
+				"retry_number" : 20,
+				"image_path" : "../Images/DarkTails/0500_waiting/*.png",
+				"interval_time" : 2,
+				"recognition_confidence" : 0.99,
+				"recognition_grayscale" : false
+			}
+		},
+		{
+			"name" : "DarkTailsWaitingEnd",
+			"type" : "Recognition",
+			"condition_list" : [
+				"Result_DarkTailsAccountClick.detail = RESULT.OK,Result_DarkTailsAccountClick.detail = RESULT.ALL_OK",
+				"Result_DarkTailsWaitEndClick.detail = RESULT.NG"
+			],
+			"result_name":"Result_DarkTailsWaitEndClick",
+			"settings" : {
+				"action" : "ACTION.CLICK",
+				"end_condition" : "RESULT.OK",
+				"end_action" : "END_ACTION.BREAK",
+				"execute_number" :1,
+				"retry_number" : 2,
+				"image_path" : "../Images/DarkTails/0509_waitingend/*.png",
+				"interval_time" : 2,
+				"recognition_confidence" : 0.99,
+				"recognition_grayscale" : false
+			}
+		},
+		{
+			"name" : "DarkTailsWaiting",
+			"type" : "Recognition",
+			"condition_list" : [
+				"Result_DarkTailsAccountClick.detail = RESULT.OK,Result_DarkTailsAccountClick.detail = RESULT.ALL_OK",
+				"Result_DarkTailsWaitEndClick.detail = RESULT.NG"
+			],
+			"settings" : {
+				"action" : "ACTION.CLICK",
+				"end_condition" : "RESULT.NG",
+				"end_action" : "END_ACTION.CONTINUE",
+				"execute_number" :1,
+				"retry_number" : 10,
+				"image_path" : "../Images/DarkTails/0500_waiting/*.png",
+				"interval_time" : 2,
+				"recognition_confidence" : 0.99,
+				"recognition_grayscale" : false
+			}
+		},
+		{
+			"name" : "DarkTailsWaitingEnd",
+			"type" : "Recognition",
+			"condition_list" : [
+				"Result_DarkTailsAccountClick.detail = RESULT.OK,Result_DarkTailsAccountClick.detail = RESULT.ALL_OK",
+				"Result_DarkTailsWaitEndClick.detail = RESULT.NG"
+			],
+			"result_name":"Result_DarkTailsWaitEndClick",
+			"settings" : {
+				"action" : "ACTION.CLICK",
+				"end_condition" : "RESULT.OK",
+				"end_action" : "END_ACTION.BREAK",
+				"execute_number" :1,
+				"retry_number" : 2,
+				"image_path" : "../Images/DarkTails/0509_waitingend/*.png",
+				"interval_time" : 2,
+				"recognition_confidence" : 0.99,
+				"recognition_grayscale" : false
+			}
+		}
+	],
+	"DarkTailsServer00":
+	[	
+		{
+			"name" : "DarkTailsServer00",
+			"type" : "Recognition",
+			"condition_list" : "Result_DarkTailsAccountClick.detail = RESULT.OK,Result_DarkTailsAccountClick.detail = RESULT.ALL_OK",
+			"result_name":"Result_DarkTailsServerClick",
+			"settings"  : {
+				"#step_check_mode" : true,
+				"action" : "ACTION.DOUBLE_CLICK",
+				"end_condition" : "RESULT.OK",
+				"end_action" : "END_ACTION.BREAK",
+				"execute_number" : 2,
+				"retry_number" : 5,
+				"image_path" : "../Images/DarkTails/0600_selectserver/0000_Server/*.png",
+				"interval_time" : 0.1,
+				"recognition_confidence" : 0.8,
+				"recognition_grayscale" : true
+			}
+		}
+	],
+	"DarkTailsServer01":
+	[	
+		{
+			"name" : "DarkTailsServer01",
+			"type" : "Recognition",
+			"condition_list" : "Result_DarkTailsAccountClick.detail = RESULT.OK,Result_DarkTailsAccountClick.detail = RESULT.ALL_OK",
+			"result_name":"Result_DarkTailsServerClick",
+			"settings"  : {
+				"#step_check_mode" : true,
+				"action" : "ACTION.DOUBLE_CLICK",
+				"end_condition" : "RESULT.OK",
+				"end_action" : "END_ACTION.BREAK",
+				"execute_number" : 2,
+				"retry_number" : 5,
+				"image_path" : "../Images/DarkTails/0600_selectserver/0001_Server/*.png",
+				"interval_time" : 0.1,
+				"recognition_confidence" : 0.8,
+				"recognition_grayscale" : true
+			}
+		}
+	],
+	"CloseWindow":
+	[
+		{
+			"name" : "CloseWindow",
+			"type" : "Recognition",
+			"condition_list" : "",
+			"settings" : {
+				"action" : "ACTION.CLICK",
+				"end_condition" : "RESULT.OK",
+				"end_action" : "END_ACTION.CONTINUE",
+				"execute_number" : 2,
+				"retry_number" : 2,
+				"image_path" : "../Images/DarkTails/0000_account/000_end/*.png",
+				"interval_time" : 1.8,
+				"recognition_confidence" : 0.95,
+				"recognition_grayscale" : true
+			}
+		}
+	]
+}

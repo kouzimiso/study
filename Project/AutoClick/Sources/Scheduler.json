@@ -1,0 +1,427 @@
+{
+	"Start": 
+	[
+		{
+			"name" : "StartTask",
+		 	"type" : "RunPlanLists",
+		 	"settings" : {
+				"file_path" : "",
+				"plan_lists" : [
+					"HotSpotON",
+			 		"Mementomori",
+ 					"Houchi",
+					"#ShutDown"
+				]
+			}
+		}
+	],
+	"Mementomori" : 
+	[
+		{
+			"name" : "MementmoriPlanStart",
+			"type" : "RunPlanLists",
+	 		"settings" : {
+		 		"file_path" : "",
+		 		"plan_lists" : [
+					"CloseWindow",
+					"MementomoriClick01",
+		 			"MementomoriClick02",
+		 			"MementomoriClick03"
+				]
+			}
+		}
+	],
+	"Houchi" : 
+	[
+		{
+	 		"name" : "HouchiPlanStart",
+			"type" : "RunPlanLists",
+			"settings" : {
+				"file_path" : "",
+ 		 		"plan_lists" : [
+		 			"HouchSub",
+					"HouchMain",
+					"HouchACM"
+				]
+			}
+		}
+	],
+	"HouchiSub" : 
+	[
+		{
+	 		"name" : "HouchiSubPlanStart",
+			"type" : "RunPlanLists",
+			"condition" : "",
+			"settings" : {
+				"file_path" : "",
+ 		 		"plan_lists" : [
+					"CloseWindow","TimeCheck_Houch_Sub","HouchAccount01","HouchWaiting","HouchServer01","HouchClickGroupSub",
+					"CloseWindow","TimeCheck_Houch_Sub","HouchAccount01","HouchWaiting","HouchServer02","HouchClickGroupSub",
+					"CloseWindow","TimeCheck_Houch_Sub","HouchAccount01","HouchWaiting","HouchServer03","HouchClickGroupSub",
+					"CloseWindow","TimeCheck_Houch_Sub","HouchAccount01","HouchWaiting","HouchServer04","HouchClickGroupSub",
+					"CloseWindow","TimeCheck_Houch_Sub","HouchAccount01","HouchWaiting","HouchServer05","HouchClickGroupSub",
+					"CloseWindow","TimeCheck_Houch_Sub","HouchAccount01","HouchWaiting","HouchServer06","HouchClickGroupSub",
+					"CloseWindow","TimeCheck_Houch_Sub","HouchAccount01","HouchWaiting","HouchServer07","HouchClickGroupSub",
+					"CloseWindow","TimeCheck_Houch_Sub","HouchAccount01","HouchWaiting","HouchServer08","HouchClickGroupSub",
+					"CloseWindow","TimeCheck_Houch_Sub","HouchAccount01","HouchWaiting","HouchServer01","HouchClickGroupSub",
+					"CloseWindow","TimeCheck_Houch_Sub","HouchAccount01","HouchWaiting","HouchServer02","HouchClickGroupSub",
+					"CloseWindow","TimeCheck_Houch_Sub","HouchAccount01","HouchWaiting","HouchServer03","HouchClickGroupSub",
+					"CloseWindow","TimeCheck_Houch_Sub","HouchAccount01","HouchWaiting","HouchServer04","HouchClickGroupSub",
+					"CloseWindow","TimeCheck_Houch_Sub","HouchAccount01","HouchWaiting","HouchServer05","HouchClickGroupSub",
+					"CloseWindow","TimeCheck_Houch_Sub","HouchAccount01","HouchWaiting","HouchServer06","HouchClickGroupSub",
+					"CloseWindow","TimeCheck_Houch_Sub","HouchAccount01","HouchWaiting","HouchServer07","HouchClickGroupSub",
+					"CloseWindow","TimeCheck_Houch_Sub","HouchAccount01","HouchWaiting","HouchServer08","HouchClickGroupSub"
+				]
+			}
+		}
+	],
+	"HouchMain" : 
+	[
+		{
+	 		"name" : "HouchiSubPlanStart",
+			"type" : "RunPlanLists",
+			"condition" : "",
+			"settings" : {
+				"file_path" : "",
+ 		 		"plan_lists" : [
+					"CloseWindow","TimeCheck_Houch_Main","HouchAccount01","HouchWaiting","HouchServer09","HouchClickGroupMain",
+					"CloseWindow","TimeCheck_Houch_Main","HouchAccount02","HouchWaiting","HouchServer09","HouchClickGroupMain",
+					"CloseWindow","TimeCheck_Houch_Main","HouchAccount03","HouchWaiting","HouchServer09","HouchClickGroupMain",
+					"CloseWindow","TimeCheck_Houch_Main","HouchAccount04","HouchWaiting","HouchServer09","HouchClickGroupMain",
+					"CloseWindow","TimeCheck_Houch_Main","HouchAccount05","HouchWaiting","HouchServer09","HouchClickGroupMain"
+				]
+			}
+		}
+	],
+	"HouchACM" : 
+	[
+		{
+	 		"name" : "HouchiACMPlanStart",
+			"type" : "RunPlanLists",
+			"condition" : "",
+			"settings" : {
+				"file_path" : "",
+ 		 		"plan_lists" : [
+					"CloseWindow","TimeCheck_Houch_ACM","HouchAccount06","HouchWaiting","HouchServer09","HouchClickGroupACM"
+				]
+			}
+		}
+	],
+	"HouchClickGroupSub" : 
+	[
+		{
+	 		"name" : "HouchiSub01",
+			"type" : "RunPlanLists",
+			"condition" : "Result_HouchiServerClicked = Result.OK",
+			"settings" : {
+				"file_path" : "",
+ 		 		"plan_lists" : [
+					"","Houch02","Houch03","Houch04","Houch05","Houch06"
+				]
+			}
+		}
+	],
+	
+	"HotSpotON":
+	[
+		{
+			"name" : "HotSpotON",
+			"type" : "Recognition",
+			"settings" : {
+				"action" : "ACTION.CLICK",
+				"end_condition" : "RESULT.OK",
+				"end_action" : "END_ACTION.FOLDER_END_BREAK",
+				"execute_number" : 2,
+				"retry_number" : 2,
+				"image_path" : "../Images/hotspot/*.png",
+				"interval_time" : 1.8,
+				"recognition_confidence" : 0.95,
+				"recognition_grayscale" : true
+			}
+		}
+	],
+
+	"CloseWindow":
+	[
+		{
+			"name" : "CloseWindow",
+			"type" : "Recognition",
+			"settings" : {
+				"action" : "ACTION.CLICK",
+				"end_condition" : "RESULT.OK",
+				"end_action" : "END_ACTION.CONTINUE",
+				"execute_number" : 2,
+				"retry_number" : 2,
+				"image_path" : "../Images/image_end/*.png",
+				"interval_time" : 1.8,
+				"recognition_confidence" : 0.95,
+				"recognition_grayscale" : true
+			}
+		}
+	],
+
+	"MementomoriClick01":
+	[
+		{
+			"name" : "MementomoryRun01",
+			"result_name":"Result_Mementmori_Run",
+			"type" : "Recognition",
+			"settings" : {
+				"action" : "ACTION.DOUBLE_CLICK",
+				"end_condition" : "RESULT.OK",
+				"end_action" : "END_ACTION.BREAK",
+				"execute_number" : 1,
+				"retry_number" : 3,
+				"image_path" : "../Images/mementomori/Click00*.png",
+				"interval_time" : 1.8,
+				"recognition_confidence" : 0.95,
+				"recognition_grayscale" : true
+			}
+		},
+		{
+			"name" : "MementomoryRun02",
+			"type" : "Recognition",
+			"condition" : ["Result_Mementmori_Run.detail=RESULT.OK,Result_Mementmori_Run.detail=RESULT.ALL_OK"],
+			"settings" : {
+				"action" : "ACTION.DOUBLE_CLICK",
+				"end_condition" : "RESULT.NG",
+				"end_action" : "END_ACTION.CONTINUE",
+				"execute_number" : 25,
+				"retry_number" : 100,
+				"image_path" : "../Images/mementomori/Click05*.png",
+				"interval_time" : 5,
+				"recognition_confidence" : 0.95,
+				"recognition_grayscale" : true
+			}
+		},
+		{
+			"name" : "MementomoryRun03",
+			"type" : "Recognition",
+			"condition" : ["Result_MementomoryRun01.detail=RESULT.OK,Result_MementomoryRun01.detail=RESULT.ALL_OK"],
+			"settings" : {
+				"action" : "ACTION.CLICK",
+				"end_condition" : "RESULT.NG",
+				"end_action" : "END_ACTION.CONTINUE",
+				"execute_number" : 3,
+				"retry_number" : 5,
+				"image_path" : "../Images/mementomori/Click1*.png",
+				"interval_time" : 1.8,
+				"recognition_confidence" : 0.95,
+				"recognition_grayscale" : true
+			}
+		},
+		{
+		 	"name" : "Information_Calc" ,
+			"type" : "Information_Calc" ,
+			"settings" : {
+				"expression" : "Result_MementomoryRun01 + Result_MementomoryRun02 + Result_MementomoryRun03",
+				"target_item_list" : [],
+				"target_item_calc_list" : ["detect_rate=detect/(detect+undetect)"],
+				"target_ignore_item_list" : ["total.+"]
+			}
+		},
+		{
+			"name" : "Information_Reset",
+			"type" : "Information_Reset",
+			"settings" : {
+				"expression" : "",
+				"target_item_calc_list" : ["detect_rate=detect/(detect+undetect)"],
+				"target_ignore_item_list" : []
+			}
+		}
+	],
+	"HouchAccount01":
+	[
+		{
+			"name": "HouchAccount01",
+			"type": "Recognition",
+			"result_name":"Result_HouchiServerClicked",
+			"settings": {
+				"action": "ACTION.DOUBLE_CLICK",
+				"end_condition": "RESULT.OK",
+				"end_action": "END_ACTION.BREAK",
+				"execute_number": 2,
+				"retry_number": 0,
+				"image_path": "../Images/image00/*.png",
+				"interval_time": 10,
+				"recognition_confidence": 0.99,
+				"recognition_grayscale": true
+			}
+		}
+	],
+	"HouchAccount02":
+	[
+		{
+			"name": "HouchAccount02",
+			"type": "Recognition",
+			"result_name":"Result_HouchiServerClicked",
+			"settings": {
+				"action": "ACTION.DOUBLE_CLICK",
+				"end_condition": "RESULT.OK",
+				"end_action": "END_ACTION.BREAK",
+				"execute_number": 2,
+				"retry_number": 0,
+				"image_path": "../Images/image02/*.png",
+				"interval_time": 10,
+				"recognition_confidence": 0.99,
+				"recognition_grayscale": true
+			}
+		}
+	],
+	"HouchAccount03":
+	[
+		{
+			"name": "HouchAccount03",
+			"type": "Recognition",
+			"result_name":"Result_HouchiServerClicked",
+			"settings": {
+				"action": "ACTION.DOUBLE_CLICK",
+				"end_condition": "RESULT.OK",
+				"end_action": "END_ACTION.BREAK",
+				"execute_number": 2,
+				"retry_number": 0,
+				"image_path": "../Images/image03/*.png",
+				"interval_time": 10,
+				"recognition_confidence": 0.99,
+				"recognition_grayscale": true
+			}
+		}
+	],
+	"HouchAccount04":
+	[
+		{
+			"name": "HouchAccount04",
+			"type": "Recognition",
+			"result_name":"Result_HouchiServerClicked",
+			"settings": {
+				"action": "ACTION.DOUBLE_CLICK",
+				"end_condition": "RESULT.OK",
+				"end_action": "END_ACTION.BREAK",
+				"execute_number": 2,
+				"retry_number": 0,
+				"image_path": "../Images/image04/*.png",
+				"interval_time": 10,
+				"recognition_confidence": 0.99,
+				"recognition_grayscale": true
+			}
+		}
+	],
+	"HouchAccount05":
+	[
+		{
+			"name": "HouchAccount05",
+			"type": "Recognition",
+			"result_name":"Result_HouchiServerClicked",
+			"settings": {
+				"action": "ACTION.DOUBLE_CLICK",
+				"end_condition": "RESULT.OK",
+				"end_action": "END_ACTION.BREAK",
+				"execute_number": 2,
+				"retry_number": 0,
+				"image_path": "../Images/image05/*.png",
+				"interval_time": 10,
+				"recognition_confidence": 0.99,
+				"recognition_grayscale": true
+			}
+		}
+	],
+	"HouchAccount06":
+	[
+		{
+			"name": "HouchAccount06",
+			"type": "Recognition",
+			"result_name":"Result_HouchiServerClicked",
+			"settings": {
+				"action": "ACTION.DOUBLE_CLICK",
+				"end_condition": "RESULT.OK",
+				"end_action": "END_ACTION.BREAK",
+				"execute_number": 2,
+				"retry_number": 0,
+				"image_path": "../Images/image06/*.png",
+				"interval_time": 10,
+				"recognition_confidence": 0.99,
+				"recognition_grayscale": true
+			}
+		}
+	],
+	"HouchWaiting":
+	[	
+		{
+			"name" : "HouchWaiting",
+			"type" : "Recognition",
+			"settings" : {
+				"action" : "ACTION.CLICK",
+				"end_condition" : "RESULT.NG",
+				"end_action" : "END_ACTION.CONTINUE",
+				"execute_number" : 3,
+				"retry_number" : 20,
+				"image_path" : "../Images/image_waiting/*.png",
+				"interval_time" : 4,
+				"recognition_confidence" : 0.99,
+				"recognition_grayscale" : false
+			}
+		}
+	],
+	"HouchStart":
+	[	
+		{
+			"name" : "HouchStartClick",
+			"type" : "Recognition",
+			"settings" : {
+				"action" : "ACTION.CLICK",
+				"end_condition" : "RESULT.OK",
+				"end_action" : "END_ACTION.CONTINUE",
+				"execute_number" : 2,
+				"retry_number" : 0,
+				"image_path" : "../Images/image_start/Click0*.png",
+				"interval_time" : 1.8,
+				"recognition_confidence" : 0.93,
+				"recognition_grayscale" : true
+			}
+		}
+	],
+	"HouchStart":
+	[
+		{
+			"name" : "HouchStart",
+			"type" : "Recognition",
+			"settings" : {
+				"action" : "ACTION.CLICK",
+				"end_condition" : "RESULT.OK",
+				"end_action" : "END_ACTION.CONTINUE",
+				"execute_number" : 2,
+				"retry_number" : 0,
+				"image_path" : "../Images/image_start/Click0*.png",
+				"interval_time" : 1.8,
+				"recognition_confidence" : 0.93,
+				"recognition_grayscale" : true
+			}
+		}
+	],
+	"HouchNoMoneyClick":
+	[
+		{
+			"name" : "HouchNoMoneyClick",
+			"type" : "Recognition",
+			"settings" : {
+				"action" : "ACTION.CLICK",
+				"end_condition" : "RESULT.OK",
+				"end_action" : "END_ACTION.CONTINUE",
+				"execute_number" : 4,
+				"retry_number" : 0,
+				"image_path" : "'../Images/image/*.png",
+				"interval_time" : 0.5,
+				"recognition_confidence" : 0.93,
+				"recognition_grayscale" : true
+			}
+		}
+	],
+	"ShutDown":
+	[
+		{
+			"name": "ShutDown",
+			"type": "ShutDown",
+			"settings": {}
+		}
+	]	
+}

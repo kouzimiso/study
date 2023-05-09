@@ -9,10 +9,8 @@ import logging
 import logging.config
 import json
 from pythonjsonlogger import jsonlogger
-
-
 import FileControl
-
+import LogMessage
 
 #class END_ACTION(Enum):
 #    BREAK = 0
@@ -84,7 +82,9 @@ class Logs:
             setting_dictionary = {}
         self.Setting = setting_dictionary
         log_setting_path = setting_dictionary.get("log_setting_path")
-        
+        file_path_list = setting_dictionary.get("log_file_path_list",None)
+        if file_path_list is not None:
+            self.FilePathList = file_path_list
         # ログ設定ファイルの読み込み
         try:
             if log_setting_path is None:
@@ -107,6 +107,7 @@ class Logs:
         if not self.logger_console.handlers:
             handler = logging.StreamHandler(sys.stdout)
             self.logger_console.addHandler(handler)
+        self.log_print_standardoutput =  setting_dictionary.get("log_print_standardoutput",False)
 
     def debug(self , message) :
         self.log(message , "DEBUG")
@@ -124,7 +125,7 @@ class Logs:
         self.MessageList_Clear()
 
     def error(self , message,details={}) :
-        error_information = get_error_dictionary()
+        error_information = LogMessage.Get_Error_Dictionary()
         details.update(error_information)
         self.log(message , "ERROR" , details)
         self.MessageList_Write()
@@ -146,13 +147,15 @@ class Logs:
 
 
     #LogをListに貯める機能のあるLog
-    def log(self , message , level = "INFO" , details={} , flag_print = True , setting_dictionary = None , message_lists = None):
+    def log(self , message , level = "INFO" , details={} , flag_print = None , setting_dictionary = None , message_lists = None):
+        if flag_print is None:
+            flag_print = self.log_print_standardoutput 
         if setting_dictionary is None:
             setting_dictionary = self.Setting
         if message_lists is None:
             message_lists = self.Log_Lists
 
-        #辞書形式のlog dataを貯める
+        #辞書形式のlog data format
         log_message = {
             "date": datetime.datetime.now(),
             "level": level,
@@ -178,15 +181,13 @@ class Logs:
                         arguments[key] = "<skip>"
                 function_information["arguments"] = arguments
             log_message.update(function_information)
-
+        
         if flag_print:
             #setting_log_level = setting_dictionary.get("log_level",self.default_log_console_level)
             log_level = self.Log_Level_Get(level) 
-
             message = json.dumps(log_message , ensure_ascii=False)
             self.logger_console.log(log_level , message)
             #print(self.logger_console.handlers)
-            
         message_lists.append(log_message)
         return message_lists
 
@@ -241,18 +242,4 @@ def Write_MessageList(file_path , message_list):
     file = open(file_path , 'a')
     file.writelines(message_list)
     file.close()
-
-
-def get_error_dictionary():
-    exc_type , exc_value , exc_traceback = sys.exc_info()
-    error_information_dictionary ={
-        "error": {
-            'type': exc_type.__name__ , 
-            'message': str(exc_value) , 
-            'function': exc_traceback.tb_frame.f_code.co_name , 
-            'lineno': exc_traceback.tb_lineno , 
-            'filename': exc_traceback.tb_frame.f_code.co_filename
-        }
-    }
-    return error_information_dictionary
 

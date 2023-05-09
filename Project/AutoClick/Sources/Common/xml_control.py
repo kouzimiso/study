@@ -97,7 +97,7 @@ def Image_MouseAround(file_path,flag_overwrite=False,wide=0,height=0,dupplicate_
 
 def Image_PointAround(file_path,flag_overwrite=False,x=0,y=0,wide=0,height=0,dupplicate_format="{}({:0=3}){}"):
     if flag_overwrite == False:
-        path = rename.duplicate_rename(file_path,dupplicate_format)
+        path = Rename.duplicate_rename(file_path,dupplicate_format)
     else:
         path=file_path
     if wide==0 or height==0 :

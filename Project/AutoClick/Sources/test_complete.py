@@ -14,23 +14,22 @@ import threading
 import dataclasses
 import difflib
 import logging
+import xml.dom.minidom
+import os
 sys.path.append("./Common")
 sys.path.append("./Models")
 sys.path.append("./ViewModels")
 sys.path.append("./Views")
 
-import log
-import adb
-import ocr
-import auto
-import weekday
-import xml_control
-import xml.dom.minidom
-import image_delete
-import json_control
+import Log
+import ADB
+import OCR
+import Auto
+import Weekday
+import XML_Control
+import ImageDelete
 import FileControl
-import image_control
-import os
+import ImageControl
 
 
 #log関係
@@ -53,8 +52,8 @@ class Test(unittest.TestCase):
         #機能の名称を取得
         function_name=sys._getframe().f_code.co_name
         #Messageを追加する
-        log.Log_MessageAdd(message_list,"["+function_name+"]"+"Test")
-        logs = log.Logs()
+        Log.Log_MessageAdd(message_list,"["+function_name+"]"+"Test")
+        logs = Log.Logs()
         logs.Message_Add("../Log/test1.txt","["+function_name+"]"+"Test1-1")
         logs.Message_Add("../Log/test2.txt","["+function_name+"]"+"Test2-1")
         #MessageをFileに書込む
@@ -76,15 +75,15 @@ class Test(unittest.TestCase):
         file1 = open(file_path1)
         file2 = open(file_path2)
         diff = difflib.Differ()
-        result = diff.compare(file1.readlines(),file2.readlines())
-        for data in result :
+        result_detail = diff.compare(file1.readlines(),file2.readlines())
+        for data in result_detail :
             if data[0:1] in ['+', '-'] :
                 print(data)   
         file1.close()
         file2.close()
 
         print("test")
-        json_read = json_control.ReadDictionary("..\conf\conf.json")
+        json_read = JSON_Control.ReadDictionary("..\conf\conf.json")
         print(json_read)
         
         num=3
@@ -118,29 +117,29 @@ class Test(unittest.TestCase):
             for text2 in text:
                 print( "String単体:" + text2)
         
-    def test_adb(self):
+    def test_ADB(self):
         function_name=sys._getframe().f_code.co_name
-        log.Log_MessageAdd(message_list,"["+function_name+"]"+"adbのTest")
-        device_address = adb.Get_DeviceAddress()
-        screen_size = adb.Get_ScreenSize(device_address)
-        log.Log_MessageAdd(message_list,str(screen_size))
-        adb.ScreenCapture(device_address,"../Images/Test/screen1.png")#準備必要問題:Folder
+        Log.Log_MessageAdd(message_list,"["+function_name+"]"+"ADBのTest")
+        device_address = ADB.Get_DeviceAddress()
+        screen_size = ADB.Get_ScreenSize(device_address)
+        Log.Log_MessageAdd(message_list,str(screen_size))
+        ADB.ScreenCapture(device_address,"../Images/Test/screen1.png")#準備必要問題:Folder
 
     def test_image_delete_duplicate(self):
         function_name=sys._getframe().f_code.co_name
-        log.Log_MessageAdd(message_list,"["+function_name+"]")
-        image_delete.Image_DeleteDuplicate("../Images/Test")#準備必要問題:Folder
+        Log.Log_MessageAdd(message_list,"["+function_name+"]")
+        ImageDelete.Image_DeleteDuplicate("../Images/Test")#準備必要問題:Folder
 
     def test_OCR(self):
         function_name=sys._getframe().f_code.co_name
-        log.Log_MessageAdd(message_list,"["+function_name+"]"+"OCRのTest")
+        Log.Log_MessageAdd(message_list,"["+function_name+"]"+"OCRのTest")
         
         #画面Captureの文字認識
-        ocr_instance = ocr.OCR()
+        ocr_instance = OCR.OCR()
         file_path="../Images/Test/screen_capture_PC.png"    #準備必要問題:Folder
         PIL.ImageGrab.grab().save(file_path)
         text=ocr_instance.Recognition_ByFilePath(file_path,"jpn")
-        log.Log_MessageAdd(message_list,"ocr1:\n"+text)
+        Log.Log_MessageAdd(message_list,"ocr1:\n"+text)
 
         #画像処理後の文字認識       
         file_path="../Images/Test/screen_capture_PC.png"    #準備必要問題:Folder
@@ -153,30 +152,30 @@ class Test(unittest.TestCase):
         cv2.imwrite(file_path,image)
         ocr_instance.Setting_BuilderText(6)
         text=ocr_instance.Recognition_ByFilePath(file_path,"jpn")
-        log.Log_MessageAdd(message_list,"{ocr2:"+text+"}\n")
+        Log.Log_MessageAdd(message_list,"{ocr2:"+text+"}\n")
 
         
     def test_WeekDay0001(self):
         function_name=sys._getframe().f_code.co_name
-        log.Log_MessageAdd(message_list,"["+function_name+"]"+"WeekDayのTest")
+        Log.Log_MessageAdd(message_list,"["+function_name+"]"+"WeekDayのTest")
 
         day=datetime.datetime(2022,4,18, 15, 30,20,2000)
         
-        week_day=weekday.DayOfTheWeek()
+        week_day=Weekday.DayOfTheWeek()
         
         expected=week_day.MonDay
         actual=week_day.Get_DayOfTheWeek(day)
-        log.Log_MessageAdd(message_list,week_day.Get_DayOfTheWeek_String(actual))
+        Log.Log_MessageAdd(message_list,week_day.Get_DayOfTheWeek_String(actual))
         self.assertEqual(expected,actual)
 
     def test_WeekDay0002(self):
         function_name=sys._getframe().f_code.co_name
-        log.Log_MessageAdd(message_list,"["+function_name+"]"+"WeekDayのTest")
+        Log.Log_MessageAdd(message_list,"["+function_name+"]"+"WeekDayのTest")
 
         #2022/4/18(Mon)
         day=datetime.datetime(2022,4,18, 15, 30,20,2000)
         
-        week_day=weekday.DayOfTheWeek(1,True)
+        week_day=Weekday.DayOfTheWeek(1,True)
         
         expected=week_day.MonDay
         actual=week_day.Get_DayOfTheWeek(day)
@@ -184,12 +183,12 @@ class Test(unittest.TestCase):
         
     def test_WeekDay0003(self):
         function_name=sys._getframe().f_code.co_name
-        log.Log_MessageAdd(message_list,"["+function_name+"]"+"WeekDayのTest:1つ前の月曜日")
+        Log.Log_MessageAdd(message_list,"["+function_name+"]"+"WeekDayのTest:1つ前の月曜日")
 
         #2022/4/18(Mon)
         day = datetime.datetime(2022,4,18, 15, 30,20,2000)
         
-        week_day = weekday.DayOfTheWeek(set_monday = 1 , flag_sunday_start= True)
+        week_day = Weekday.DayOfTheWeek(set_monday = 1 , flag_sunday_start= True)
         day_before_monday = week_day.Get_DayBeforeWeekDay(date_time = day,day_of_weekday=week_day.MonDay,flag_include_today=False)
         message_list.extend(week_day.message_list)
         week_day.message_list.clear()
@@ -200,9 +199,9 @@ class Test(unittest.TestCase):
 
     def test_WeekDay0004(self):
         function_name=sys._getframe().f_code.co_name
-        log.Log_MessageAdd(message_list,"["+function_name+"]"+"WeekDayのTest:指定時間の間に入っているか？")
+        Log.Log_MessageAdd(message_list,"["+function_name+"]"+"WeekDayのTest:指定時間の間に入っているか？")
 
-        week_day = weekday.DayOfTheWeek(set_monday=1)
+        week_day = Weekday.DayOfTheWeek(set_monday=1)
         #2022/4/18(Mon)
         date_time = datetime.datetime(2022,4,18, 15, 30,20,2000)
         time1 = datetime.time(12,00,00)
@@ -219,9 +218,9 @@ class Test(unittest.TestCase):
 
     def test_WeekDay0005(self):
         function_name=sys._getframe().f_code.co_name
-        log.Log_MessageAdd(message_list,"["+function_name+"]"+"WeekDayのTest:当日の12:00～23時の指定時間の間に入っているか？")
+        Log.Log_MessageAdd(message_list,"["+function_name+"]"+"WeekDayのTest:当日の12:00～23時の指定時間の間に入っているか？")
 
-        week_day = weekday.DayOfTheWeek(set_monday=1)
+        week_day = Weekday.DayOfTheWeek(set_monday=1)
         #2022/4/18(Mon)
         date_time = datetime.datetime(2022,4,18, 15, 30,20,2000)
         time1 = datetime.time(12,00,00)
@@ -238,9 +237,9 @@ class Test(unittest.TestCase):
 
     def test_WeekDay0006(self):
         function_name=sys._getframe().f_code.co_name
-        log.Log_MessageAdd(message_list,"["+function_name+"]"+"WeekDayのTest:同じ曜日の23時～12:00の指定時間の間に入っているか？")
+        Log.Log_MessageAdd(message_list,"["+function_name+"]"+"WeekDayのTest:同じ曜日の23時～12:00の指定時間の間に入っているか？")
 
-        week_day = weekday.DayOfTheWeek(set_monday=1)
+        week_day = Weekday.DayOfTheWeek(set_monday=1)
         #2022/4/18(Mon)
         date_time = datetime.datetime(2022,4,18,10, 30,20,2000)
         #date_time = datetime.datetime.now()
@@ -255,8 +254,8 @@ class Test(unittest.TestCase):
 
     def test_WeekDay0007(self):
         function_name=sys._getframe().f_code.co_name
-        log.Log_MessageAdd(message_list,"["+function_name+"]"+"WeekDayのTest:同じ曜日の23時～12:00の指定時間の間に入っているか？")
-        week_day = weekday.DayOfTheWeek(set_monday=1)
+        Log.Log_MessageAdd(message_list,"["+function_name+"]"+"WeekDayのTest:同じ曜日の23時～12:00の指定時間の間に入っているか？")
+        week_day = Weekday.DayOfTheWeek(set_monday=1)
         #2022/4/18(Mon)
         date_time = datetime.datetime(2022,4,18,23, 30,20,2000)
         time1 = datetime.time(23,00,00)
@@ -270,9 +269,9 @@ class Test(unittest.TestCase):
 
     def test_WeekDay0008(self):
         function_name=sys._getframe().f_code.co_name
-        log.Log_MessageAdd(message_list,"["+function_name+"]"+"放置少女の指定時間チェック")
+        Log.Log_MessageAdd(message_list,"["+function_name+"]"+"放置少女の指定時間チェック")
 
-        week_day = weekday.DayOfTheWeek(set_monday=1)
+        week_day = Weekday.DayOfTheWeek(set_monday=1)
         #2022/4/18(Mon)
         date_time = datetime.datetime(2022,4,18,12, 30,20,2000)
         #date_time = datetime.datetime.now()
@@ -304,29 +303,29 @@ class Test(unittest.TestCase):
         
         expected=True
         self.assertEqual(expected,actual)
-        log.Write_MessageList(logfile_path,message_list)
+        Log.Write_MessageList(logfile_path,message_list)
 
     def test_xml(self):
         function_name=sys._getframe().f_code.co_name
-        log.Log_MessageAdd(message_list,"["+function_name+"]"+"xmlのテスト")
+        Log.Log_MessageAdd(message_list,"["+function_name+"]"+"xmlのテスト")
         
         information1 = {"key1":"value1","key2":"value2","key3":"value3"}
-        xml_control.Dictionary_XMLWrite("./test.xml",information1)        
+        XML_Control.Dictionary_XMLWrite("./test.xml",information1)        
         #information1で書いたxmlを読んだのがinformation2とする
         information2 = {}
-        information2 = xml_control.XML_Read("./test.xml")
-        log.Log_MessageAdd(message_list,"Infomation2")
+        information2 = XML_Control.XML_Read("./test.xml")
+        Log.Log_MessageAdd(message_list,"Infomation2")
         dictionary_string = json.dumps(information2)
-        log.Log_MessageAdd(message_list,dictionary_string)
+        Log.Log_MessageAdd(message_list,dictionary_string)
         
         print("[test_xml02]")
         
-        xml_control.Dictionary_ToXMLFile("./test2.xml",information1)
+        XML_Control.Dictionary_ToXMLFile("./test2.xml",information1)
         information3 = {}
-        information3 = xml_control.XML_ToDictionary("./test2.xml")
-        log.Log_MessageAdd(message_list,"Infomation3")
+        information3 = XML_Control.XML_ToDictionary("./test2.xml")
+        Log.Log_MessageAdd(message_list,"Infomation3")
         dictionary_string = json.dumps(information3)
-        log.Log_MessageAdd(message_list,dictionary_string)
+        Log.Log_MessageAdd(message_list,dictionary_string)
         
         print("[test_xml03]")
         
@@ -351,7 +350,7 @@ class Test(unittest.TestCase):
 
     def test_json(self):
         function_name=sys._getframe().f_code.co_name
-        log.Log_MessageAdd(message_list,"["+function_name+"]")
+        Log.Log_MessageAdd(message_list,"["+function_name+"]")
 
         #information1 = {"key1":"value1","key2":"value2","key3":"value3"}
         information1={
@@ -423,12 +422,12 @@ class Test(unittest.TestCase):
 
         """
         search_sequence=[]
-        search_sequence.append(auto.RecognitionInfomation(auto.ACTION.DOUBLE_CLICK ,auto.RESULT.OK, auto.END_ACTION.BREAK , 2 , 0 ,'./image00/*.png' , 10 , 0.99 , True))
-        search_sequence.append(auto.RecognitionInfomation(auto.ACTION.DOUBLE_CLICK ,auto.RESULT.OK, auto.END_ACTION.BREAK , 2 , 0 ,'./image01/*.png' , 10 , 0.97 , True))
-        search_sequence.append(auto.RecognitionInfomation(auto.ACTION.DOUBLE_CLICK ,auto.RESULT.OK, auto.END_ACTION.BREAK , 2 , 0 ,'./image02/*.png' , 10 , 0.99 , True))
-        search_sequence.append(auto.RecognitionInfomation(auto.ACTION.DOUBLE_CLICK ,auto.RESULT.OK, auto.END_ACTION.BREAK , 2 , 0 ,'./image03/*.png' , 10 , 0.99 , True))
-        search_sequence.append(auto.RecognitionInfomation(auto.ACTION.DOUBLE_CLICK ,auto.RESULT.OK, auto.END_ACTION.BREAK , 2 , 0 ,'./image04/*.png' , 10 , 0.99 , True))
-        search_sequence.append(auto.RecognitionInfomation(auto.ACTION.DOUBLE_CLICK ,auto.RESULT.OK, auto.END_ACTION.BREAK , 2 , 0 ,'./image05/*.png' , 10 , 0.99 , True))
+        search_sequence.append(Auto.RecognitionInfomation(Auto.ACTION.DOUBLE_CLICK ,Auto.RESULT.OK, Auto.END_ACTION.BREAK , 2 , 0 ,'./image00/*.png' , 10 , 0.99 , True))
+        search_sequence.append(Auto.RecognitionInfomation(Auto.ACTION.DOUBLE_CLICK ,Auto.RESULT.OK, Auto.END_ACTION.BREAK , 2 , 0 ,'./image01/*.png' , 10 , 0.97 , True))
+        search_sequence.append(Auto.RecognitionInfomation(Auto.ACTION.DOUBLE_CLICK ,Auto.RESULT.OK, Auto.END_ACTION.BREAK , 2 , 0 ,'./image02/*.png' , 10 , 0.99 , True))
+        search_sequence.append(Auto.RecognitionInfomation(Auto.ACTION.DOUBLE_CLICK ,Auto.RESULT.OK, Auto.END_ACTION.BREAK , 2 , 0 ,'./image03/*.png' , 10 , 0.99 , True))
+        search_sequence.append(Auto.RecognitionInfomation(Auto.ACTION.DOUBLE_CLICK ,Auto.RESULT.OK, Auto.END_ACTION.BREAK , 2 , 0 ,'./image04/*.png' , 10 , 0.99 , True))
+        search_sequence.append(Auto.RecognitionInfomation(Auto.ACTION.DOUBLE_CLICK ,Auto.RESULT.OK, Auto.END_ACTION.BREAK , 2 , 0 ,'./image05/*.png' , 10 , 0.99 , True))
         information1 = search_sequence
         """
 
@@ -438,8 +437,8 @@ class Test(unittest.TestCase):
         file.close()
 
         information1 = {"file_path1":{"detect":1,"undetect":2},"file_path":{"detect":1,"undetect":2}}        
-        json_control.WriteDictionary("test2.json",information1)
-        json_control.ReadDictionary("test2.json",information1)
+        JSON_Control.WriteDictionary("test2.json",information1)
+        JSON_Control.ReadDictionary("test2.json",information1)
         print(information1)
 
 
@@ -449,33 +448,33 @@ class Test(unittest.TestCase):
 
         print("[test_xml04]")
         print(xml_document)
-        xml_control.XML_Write("./text_xml_write.xml",xml_document)
+        XML_Control.XML_Write("./text_xml_write.xml",xml_document)
 
     def test_rate(self):
         expected=0.1
-        actual=auto.rate(1,2,3,4)
+        actual=Auto.rate(1,2,3,4)
         self.assertEqual(expected,actual)
 
         expected=0
-        actual=auto.rate(1,-1)
+        actual=Auto.rate(1,-1)
         self.assertEqual(expected,actual)
 
 
 
     def test_Auto1(self):
         print("####test_Auto1####")
-        auto.Image_AroundPoint("../Images/Test/Image_Screen.png")
-        auto.Image_AroundPoint("../Images/Test/Image_PIL_capture.png",True,0,0,100,200)
-        auto.Image_AroundMouse("../Images/Test/Image_mouse_capture.png",False,200,100,"{}_{:0=3}{}")
+        Auto.Image_AroundPoint("../Images/Test/Image_Screen.png")
+        Auto.Image_AroundPoint("../Images/Test/Image_PIL_capture.png",True,0,0,100,200)
+        Auto.Image_AroundMouse("../Images/Test/Image_mouse_capture.png",False,200,100,"{}_{:0=3}{}")
  
     def test_Auto2_ConditionCheck(self):
         print("####test_Auto2_ConditionCheck####")
         file_path='../Images/Test/Image_mouse_capture.png'
-        image_control.Image_AroundMouse(file_path, flag_overwrite=True, wide=100, height=100)
-        image_instance = image_control.open(file_path)
+        ImageControl.Image_AroundMouse(file_path, flag_overwrite=True, wide=100, height=100)
+        image_instance = ImageControl.open(file_path)
         image_instance.show()
-        x,y=auto.Image_SearchAndXY(file_path , True , 0.5)
-        log.Log_MessageAdd(message_list,"test_Images_ConditionCheckAndAction x" + str(x) + "y:" + str(y))
+        x,y=Auto.Image_SearchAndXY(file_path , True , 0.5)
+        Log.Log_MessageAdd(message_list,"test_Images_ConditionCheckAndAction x" + str(x) + "y:" + str(y))
 
     def test_Auto3_ConditionCheckAndAction(self):
         print("####test_Auto3_ConditionCheckAndAction####")
@@ -483,29 +482,29 @@ class Test(unittest.TestCase):
         #画像を探してずらした位置をクリックする設定。{画像Path:ずらす位置}の形式で記述する。
         x_offset_dictionary= {'../Images/Test/test_Auto_Blank' : "0"}
         y_offset_dictionary= {'../Images/Test/test_Auto_Blank' : "30"}
-        auto.Images_Action_Result=auto.ReadInfomationFromJson("../Log/test_auto.json")
-        auto.Images_Action_Result=auto.Images_Action_ResultInit(auto.Images_Action_Result)
+        Auto.Images_Action_Result=Auto.ReadInfomationFromJson("../Log/test_auto.json")
+        Auto.Images_Action_Result=Auto.Images_Action_ResultInit(Auto.Images_Action_Result)
         
-        recognition_information=auto.RecognitionInfomation(auto.ACTION.DOUBLE_CLICK ,auto.RESULT.OK, auto.END_ACTION.BREAK , 2 , 5 ,'./Test/*.png' , 1.8 , 0.8 , True)
-        actual=auto.Images_ConditionCheckAndAction("test1",auto.RESULT.OK,recognition_information,x_offset_dictionary,y_offset_dictionary)
-        auto.WriteInfomationToJson("../Log/test_auto.json")
+        recognition_information=Auto.RecognitionInfomation(Auto.ACTION.DOUBLE_CLICK ,Auto.RESULT.OK, Auto.END_ACTION.BREAK , 2 , 5 ,'./Test/*.png' , 1.8 , 0.8 , True)
+        actual=Auto.Images_ConditionCheckAndAction("test1",Auto.RESULT.OK,recognition_information,x_offset_dictionary,y_offset_dictionary)
+        Auto.WriteInfomationToJson("../Log/test_auto.json")
         
         print("test_Auto3_ConditionCheckAndAction1")
-        expected =auto.RESULT.ALL_OK
+        expected =Auto.RESULT.ALL_OK
         #self.assertEqual(expected,actual)
-        print(auto.InfomationToString())
+        print(Auto.InfomationToString())
 
-        actual=auto.Images_ConditionCheckAndAction("test1",auto.RESULT.OK,recognition_information,x_offset_dictionary,y_offset_dictionary)
-        expected =auto.RESULT.NG
+        actual=Auto.Images_ConditionCheckAndAction("test1",Auto.RESULT.OK,recognition_information,x_offset_dictionary,y_offset_dictionary)
+        expected =Auto.RESULT.NG
         #self.assertEqual(expected,actual)
 
         print("test_Auto3_ConditionCheckAndAction2")
 
-        actual=auto.Images_ConditionCheckAndAction("test1",auto.RESULT.NG,recognition_information,x_offset_dictionary,y_offset_dictionary)
-        expected =auto.RESULT.NG
+        actual=Auto.Images_ConditionCheckAndAction("test1",Auto.RESULT.NG,recognition_information,x_offset_dictionary,y_offset_dictionary)
+        expected =Auto.RESULT.NG
         #self.assertEqual(expected,actual)
         print("test_Auto3_ConditionCheckAndAction3")
-        auto.WriteInfomationToJson("../Log/test_auto.json")      
+        Auto.WriteInfomationToJson("../Log/test_auto.json")      
         
     def test_Auto4_FileControl(self):
         folder_path="../Images/Test"
@@ -549,15 +548,15 @@ class FormWindows(threading.Thread):
 #Main Program実行部
 def main():
 
-    log.Log_MessageAdd(message_list,"Log動作test1")
-    log.Log_MessageAdd(message_list,"Log動作test2")
-    log.Write_MessageList(logfile_path,message_list)
-    log.Clear_MessageList(message_list)
+    Log.Log_MessageAdd(message_list,"Log動作test1")
+    Log.Log_MessageAdd(message_list,"Log動作test2")
+    Log.Write_MessageList(logfile_path,message_list)
+    Log.Clear_MessageList(message_list)
     
     unittest.main()
 
-    log.Log_MessageAdd(message_list,"test3")
-    log.Write_MessageList(logfile_path,message_list)
+    Log.Log_MessageAdd(message_list,"test3")
+    Log.Write_MessageList(logfile_path,message_list)
 
 if __name__ == "__main__":
     sys.exit(main())

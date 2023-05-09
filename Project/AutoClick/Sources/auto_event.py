@@ -16,11 +16,11 @@ sys.path.append("./Common")
 sys.path.append("./Models")
 sys.path.append("./ViewModels")
 sys.path.append("./Views")
-import ocr
-import weekday
-import log
-import image_control
-import auto
+import OCR
+import Weekday
+import Log
+import ImageControl
+import Auto
 
 
 #Program設定関係(必要に応じて変更)
@@ -29,7 +29,7 @@ import auto
 message_list=[]
 logfile_path='../Log/log_event.txt'
 
-action_sequence_start = auto.RecognitionInfomation(auto.ACTION.CLICK, auto.RESULT.OK, auto.END_ACTION.CONTINUE, 2, 0, '../Images/image_start/Click0*.png', 1.8, 0.93, True)
+action_sequence_start = Auto.RecognitionInfomation(Auto.ACTION.CLICK, Auto.RESULT.OK, Auto.END_ACTION.CONTINUE, 2, 0, '../Images/image_start/Click0*.png', 1.8, 0.93, True)
 
 #アニメーションするボタンが押せない対策
 #画像を探してずらした位置をクリックする設定。{画像Path:ずらす位置}の形式で記述する。
@@ -70,7 +70,7 @@ def Signal_Handler(signal_number,frame) -> None:
 
 def timecheck_ikusei():
     #放置少女育成時間チェック(イベント時にDairy消費防止12:00まで待つ)
-    week_day = weekday.DayOfTheWeek(set_monday=1)
+    week_day = Weekday.DayOfTheWeek(set_monday=1)
     date_time = datetime.datetime.now()
     #time1 = datetime.time(12,00,00)
     time1 = datetime.time(8,00,00)
@@ -112,7 +112,7 @@ def timecheck_ikusei():
 
 def timecheck_login():
     #放置少女Login時間チェック
-    week_day = weekday.DayOfTheWeek(set_monday=1)   
+    week_day = Weekday.DayOfTheWeek(set_monday=1)   
     date_time = datetime.datetime.now()
     
     time1 = datetime.time(8,00,00)
@@ -168,7 +168,7 @@ def timecheck_evening():
 
 def highspeed():
     #放置少女2.5倍日 特殊動作
-    week_day = weekday.DayOfTheWeek(set_monday=1)   
+    week_day = Weekday.DayOfTheWeek(set_monday=1)   
     date_time = datetime.datetime.now()
     
     time1 = datetime.time(8,00,00)
@@ -201,17 +201,17 @@ def highspeed():
 
     flag_execute = check1 or check2 or check3 or check4
     if flag_execute:
-        log.Log_MessageAdd(message_list,"time check" + date_time.strftime ( '%Y 年 %m 月 %d　日　(%A) %H : %M' ))
+        Log.Log_MessageAdd(message_list,"time check" + date_time.strftime ( '%Y 年 %m 月 %d　日　(%A) %H : %M' ))
 
         file_path = '../Images/image_item/*.png'
-        sequence_item = auto.RecognitionInfomation(auto.ACTION.CLICK, auto.RESULT.OK, auto.END_ACTION.CONTINUE, 1, 0, file_path, 0.8, 0.93, False)
-        result_action = auto.Images_Action_ByInformation(sequence_item, x_offset_dictionary, y_offset_dictionary)
+        sequence_item = Auto.RecognitionInfomation(Auto.ACTION.CLICK, Auto.RESULT.OK, Auto.END_ACTION.CONTINUE, 1, 0, file_path, 0.8, 0.93, False)
+        result_action = Auto.Images_Action_ByInformation(sequence_item, x_offset_dictionary, y_offset_dictionary)
 
         file_path = '../Images/image_highspeed/*.png'
-        sequence_highspeed=auto.RecognitionInfomation(auto.ACTION.CLICK ,auto.RESULT.OK, auto.END_ACTION.CONTINUE ,1, 0 ,file_path , 0.8 , 0.93 , True)
-        result_action = auto.Images_Action_ByInformation(sequence_highspeed,x_offset_dictionary,y_offset_dictionary)
+        sequence_highspeed=Auto.RecognitionInfomation(Auto.ACTION.CLICK ,Auto.RESULT.OK, Auto.END_ACTION.CONTINUE ,1, 0 ,file_path , 0.8 , 0.93 , True)
+        result_action = Auto.Images_Action_ByInformation(sequence_highspeed,x_offset_dictionary,y_offset_dictionary)
         
-        result_start = auto.Images_Action_ByInformation(action_sequence_start, x_offset_dictionary, y_offset_dictionary)  # "プロセス実行", result_waiting
+        result_start = Auto.Images_Action_ByInformation(action_sequence_start, x_offset_dictionary, y_offset_dictionary)  # "プロセス実行", result_waiting
 
    
 
@@ -219,11 +219,11 @@ def ocr_sequence():
     info_message_list=[]
     info_logfile_path='../log/log_information.txt'
     #画面Captureの文字認識
-    ocr_instance = ocr.OCR()
-    sequence_Infomation0 = auto.RecognitionInfomation(auto.ACTION.CLICK, auto.RESULT.OK, auto.END_ACTION.CONTINUE, 1, 0, '../Images/images/image_Information0/*.png', 0.8, 0.93, True)
-    result_action = auto.Images_Action_ByInformation(sequence_Infomation0, x_offset_dictionary, y_offset_dictionary)
-    sequence_Infomation1 = auto.RecognitionInfomation(auto.ACTION.CLICK, auto.RESULT.OK, auto.END_ACTION.CONTINUE, 1, 0, '../Images/image_Information1/*.png', 0.8, 0.93, True)
-    result_action = auto.Images_Action_ByInformation(sequence_Infomation1, x_offset_dictionary, y_offset_dictionary)
+    ocr_instance = OCR.OCR()
+    sequence_Infomation0 = Auto.RecognitionInfomation(Auto.ACTION.CLICK, Auto.RESULT.OK, Auto.END_ACTION.CONTINUE, 1, 0, '../Images/images/image_Information0/*.png', 0.8, 0.93, True)
+    result_action = Auto.Images_Action_ByInformation(sequence_Infomation0, x_offset_dictionary, y_offset_dictionary)
+    sequence_Infomation1 = Auto.RecognitionInfomation(Auto.ACTION.CLICK, Auto.RESULT.OK, Auto.END_ACTION.CONTINUE, 1, 0, '../Images/image_Information1/*.png', 0.8, 0.93, True)
+    result_action = Auto.Images_Action_ByInformation(sequence_Infomation1, x_offset_dictionary, y_offset_dictionary)
     file_path = "../Images/image_information/screen_capture1.png"
     file_path2 = "../Images/image_information/screen_capture_Comment.png"
     bbox_w=700
@@ -231,27 +231,27 @@ def ocr_sequence():
     bbox_x=600
     bbox_y=0
     PIL.ImageGrab.grab(bbox=(bbox_x,  bbox_y,bbox_x + bbox_w , bbox_y + bbox_h)).save(file_path)
-    image = image_control.CropAndAlign_ByFilePath(file_path,
+    image = ImageControl.CropAndAlign_ByFilePath(file_path,
         0,
         200,
         500,
         100,
-        image_control.HOLIZONTAL_ALIGN.CENTER,
-        image_control.VIRTICAL_ALIGN.MIDDLE
+        ImageControl.HOLIZONTAL_ALIGN.CENTER,
+        ImageControl.VIRTICAL_ALIGN.MIDDLE
         )
     image.save(file_path2)
     ocr_instance.Setting_BuilderText(6)
     text=ocr_instance.Recognition_ByFilePath(file_path2,"jpn")
-    log.Log_MessageAdd(info_message_list,"Comment:\n"+text)
+    Log.Log_MessageAdd(info_message_list,"Comment:\n"+text)
 
-    sequence_Infomation0 = auto.RecognitionInfomation(auto.ACTION.CLICK, auto.RESULT.OK, auto.END_ACTION.CONTINUE, 1, 0, '../Images/image_Information0/*.png', 0.8, 0.93, True)
-    result_action = auto.Images_Action_ByInformation(sequence_Infomation0, x_offset_dictionary, y_offset_dictionary)
-    sequence_Infomation2 = auto.RecognitionInfomation(auto.ACTION.CLICK, auto.RESULT.OK, auto.END_ACTION.CONTINUE, 1, 0, '../Images/image_Information2/*.png', 0.8, 0.93, True)
-    result_action = auto.Images_Action_ByInformation(sequence_Infomation2, x_offset_dictionary, y_offset_dictionary)
+    sequence_Infomation0 = Auto.RecognitionInfomation(Auto.ACTION.CLICK, Auto.RESULT.OK, Auto.END_ACTION.CONTINUE, 1, 0, '../Images/image_Information0/*.png', 0.8, 0.93, True)
+    result_action = Auto.Images_Action_ByInformation(sequence_Infomation0, x_offset_dictionary, y_offset_dictionary)
+    sequence_Infomation2 = Auto.RecognitionInfomation(Auto.ACTION.CLICK, Auto.RESULT.OK, Auto.END_ACTION.CONTINUE, 1, 0, '../Images/image_Information2/*.png', 0.8, 0.93, True)
+    result_action = Auto.Images_Action_ByInformation(sequence_Infomation2, x_offset_dictionary, y_offset_dictionary)
     if result_action:
 
-        sequence_Infomation2 = auto.RecognitionInfomation(auto.ACTION.CLICK ,auto.RESULT.OK, auto.END_ACTION.CONTINUE ,1, 0 ,'./Images/image_Information2/*.png' , 0.8 , 0.93 , True)
-        result_action = auto.Images_Action_ByInformation( sequence_Infomation2,x_offset_dictionary,y_offset_dictionary)
+        sequence_Infomation2 = Auto.RecognitionInfomation(Auto.ACTION.CLICK ,Auto.RESULT.OK, Auto.END_ACTION.CONTINUE ,1, 0 ,'./Images/image_Information2/*.png' , 0.8 , 0.93 , True)
+        result_action = Auto.Images_Action_ByInformation( sequence_Infomation2,x_offset_dictionary,y_offset_dictionary)
         file_path = "../Images/image_information/screen_capture2.png"
         file_path2 = "../Images/image_information/screen_capture_Name.png"
         file_path3 = "../Images/image_information/screen_capture_Money.png"
@@ -261,41 +261,41 @@ def ocr_sequence():
         bbox_x=600
         bbox_y=0
         PIL.ImageGrab.grab(bbox=(bbox_x,  bbox_y,bbox_x + bbox_w , bbox_y + bbox_h)).save(file_path)
-        image = image_control.CropAndAlign_ByFilePath(file_path,
+        image = ImageControl.CropAndAlign_ByFilePath(file_path,
             100,
             45,
             140,
             70,
-            image_control.HOLIZONTAL_ALIGN.LEFT,
-            image_control.VIRTICAL_ALIGN.TOP
+            ImageControl.HOLIZONTAL_ALIGN.LEFT,
+            ImageControl.VIRTICAL_ALIGN.TOP
             )
         image.save(file_path2)
-        image = image_control.CropAndAlign_ByFilePath(file_path,
+        image = ImageControl.CropAndAlign_ByFilePath(file_path,
             480,
             45,
             100,
             60,
-            image_control.HOLIZONTAL_ALIGN.LEFT,
-            image_control.VIRTICAL_ALIGN.TOP
+            ImageControl.HOLIZONTAL_ALIGN.LEFT,
+            ImageControl.VIRTICAL_ALIGN.TOP
             )
         image.save(file_path3)
-        image = image_control.CropAndAlign_ByFilePath(file_path,
+        image = ImageControl.CropAndAlign_ByFilePath(file_path,
             0,
             110,
             150,
             30,
-            image_control.HOLIZONTAL_ALIGN.CENTER,
-            image_control.VIRTICAL_ALIGN.TOP
+            ImageControl.HOLIZONTAL_ALIGN.CENTER,
+            ImageControl.VIRTICAL_ALIGN.TOP
             )
         image.save(file_path4)
         
         ocr_instance.Setting_BuilderText(6)
         text=ocr_instance.Recognition_ByFilePath(file_path2,"jpn")
-        log.Log_MessageAdd(info_message_list,"Name:"+text)
+        Log.Log_MessageAdd(info_message_list,"Name:"+text)
         text=ocr_instance.Recognition_ByFilePath(file_path3,"jpn")
-        log.Log_MessageAdd(info_message_list,"Money:"+text)
+        Log.Log_MessageAdd(info_message_list,"Money:"+text)
         text=ocr_instance.Recognition_ByFilePath(file_path4,"jpn")
-        log.Log_MessageAdd(info_message_list,"Level:"+text)
+        Log.Log_MessageAdd(info_message_list,"Level:"+text)
     Write_MessageList(info_logfile_path , info_message_list)
     info_message_list.clear()
     
@@ -303,45 +303,45 @@ def ocr_sequence():
         ocr_instance.Setting_BuilderText(loop1)
         #text=ocr_instance.Recognition(image,"jpn")
         text=ocr_instance.Recognition_ByFilePath(file_path2,"jpn")
-        log.Log_MessageAdd(message_list,"ocr" + str(loop1) + ":\n" + text)
+        Log.Log_MessageAdd(message_list,"ocr" + str(loop1) + ":\n" + text)
         text=ocr_instance.Recognition_ByFilePath(file_path3,"jpn")
-        log.Log_MessageAdd(message_list,"ocr" + str(loop1) + ":\n" + text)
+        Log.Log_MessageAdd(message_list,"ocr" + str(loop1) + ":\n" + text)
         text=ocr_instance.Recognition_ByFilePath(file_path4,"jpn")
-        log.Log_MessageAdd(message_list,"ocr" + str(loop1) + ":\n" + text)
+        Log.Log_MessageAdd(message_list,"ocr" + str(loop1) + ":\n" + text)
 
 def UnderWare():
     for i in range(2):
-        action_underware = auto.RecognitionInfomation(auto.ACTION.CLICK, auto.RESULT.OK, auto.END_ACTION.CONTINUE,3, 0, '../Images/UnderWare/Click00*.png', 0, 0.93, True)
-        result_action = auto.Images_Action_ByInformation(action_underware,x_offset_dictionary,y_offset_dictionary)
+        action_underware = Auto.RecognitionInfomation(Auto.ACTION.CLICK, Auto.RESULT.OK, Auto.END_ACTION.CONTINUE,3, 0, '../Images/UnderWare/Click00*.png', 0, 0.93, True)
+        result_action = Auto.Images_Action_ByInformation(action_underware,x_offset_dictionary,y_offset_dictionary)
         for i in range(10):
-            action_underware = auto.RecognitionInfomation(auto.ACTION.CLICK, auto.RESULT.OK, auto.END_ACTION.CONTINUE ,2, 2, '../Images/UnderWare/Click010*.png', 0, 0.93, True)
-            result_action = auto.Images_Action_ByInformation(action_underware,x_offset_dictionary,y_offset_dictionary)
-            action_underware = auto.RecognitionInfomation(auto.ACTION.CLICK, auto.RESULT.OK, auto.END_ACTION.BREAK ,3, 2, '../Images/UnderWare/Click011*.png', 0, 0.97, True)
-            result_action = auto.Images_Action_ByInformation(action_underware,x_offset_dictionary,y_offset_dictionary)
+            action_underware = Auto.RecognitionInfomation(Auto.ACTION.CLICK, Auto.RESULT.OK, Auto.END_ACTION.CONTINUE ,2, 2, '../Images/UnderWare/Click010*.png', 0, 0.93, True)
+            result_action = Auto.Images_Action_ByInformation(action_underware,x_offset_dictionary,y_offset_dictionary)
+            action_underware = Auto.RecognitionInfomation(Auto.ACTION.CLICK, Auto.RESULT.OK, Auto.END_ACTION.BREAK ,3, 2, '../Images/UnderWare/Click011*.png', 0, 0.97, True)
+            result_action = Auto.Images_Action_ByInformation(action_underware,x_offset_dictionary,y_offset_dictionary)
             #action_underware = RecognitionInfomation(ACTION.CLICK, RESULT.OK, END_ACTION.BREAK ,1, 20, '../Images/UnderWare/Click012*.png', 0, 0.85, True)
             #result_action = Images_Action_ByInformation(action_underware,x_offset_dictionary,y_offset_dictionary)
             #action_underware = RecognitionInfomation(ACTION.CLICK, RESULT.OK, END_ACTION.BREAK ,1, 20, '../Images/UnderWare/Click013*.png', 0, 0.85, True)
             #result_action = Images_Action_ByInformation(action_underware,x_offset_dictionary,y_offset_dictionary)
-            action_underware = auto.RecognitionInfomation(auto.ACTION.CLICK, auto.RESULT.ALL_OK, auto.END_ACTION.FOLDER_END_BREAK ,1, 0, '../Images/UnderWare/Click014*.png', 0, 0.93, True)
-            result_action = auto.Images_Action_ByInformation(action_underware,x_offset_dictionary,y_offset_dictionary)
-        action_underware = auto.RecognitionInfomation(auto.ACTION.CLICK, auto.RESULT.OK, auto.END_ACTION.CONTINUE, 7, 2, '../Images/UnderWare/Click02*.png', 0, 0.93, True)
-        result_action = auto.Images_Action_ByInformation(action_underware,x_offset_dictionary,y_offset_dictionary)
+            action_underware = Auto.RecognitionInfomation(Auto.ACTION.CLICK, Auto.RESULT.ALL_OK, Auto.END_ACTION.FOLDER_END_BREAK ,1, 0, '../Images/UnderWare/Click014*.png', 0, 0.93, True)
+            result_action = Auto.Images_Action_ByInformation(action_underware,x_offset_dictionary,y_offset_dictionary)
+        action_underware = Auto.RecognitionInfomation(Auto.ACTION.CLICK, Auto.RESULT.OK, Auto.END_ACTION.CONTINUE, 7, 2, '../Images/UnderWare/Click02*.png', 0, 0.93, True)
+        result_action = Auto.Images_Action_ByInformation(action_underware,x_offset_dictionary,y_offset_dictionary)
 
 
 #Main Program実行部
 def main():
     signal.signal(signal.SIGTERM, Signal_Handler)
 
-    action_sequence_waiting = auto.RecognitionInfomation(auto.ACTION.CLICK, auto.RESULT.NG, auto.END_ACTION.CONTINUE, 4, 20, '../Images/image_waiting/*.png', 4, 0.99, False)
-    action_sequence_start = auto.RecognitionInfomation(auto.ACTION.CLICK, auto.RESULT.OK, auto.END_ACTION.CONTINUE, 1, 0, '../Images/image_start/*.png', 1.8, 0.93, True)
-    action_sequence_main = auto.RecognitionInfomation(auto.ACTION.CLICK, auto.RESULT.OK, auto.END_ACTION.CONTINUE, 4, 0, '../Images/image/*.png', 0.5, 0.93, True)
-    action_sequence_event = auto.RecognitionInfomation(auto.ACTION.CLICK, auto.RESULT.OK, auto.END_ACTION.CONTINUE, 3, 0, '../Images/image_event/*.png', 0.5, 0.93, True)
-    action_sequence_event2 = auto.RecognitionInfomation(auto.ACTION.CLICK, auto.RESULT.OK, auto.END_ACTION.CONTINUE, 2, 2, '../Images/image_event2/*.png', 0.8, 0.93, True)
-    #result = auto.Images_Action_ByInformation(action_sequence_waiting, x_offset_dictionary, y_offset_dictionary)
-    #result = auto.Images_Action_ByInformation(action_sequence_start, x_offset_dictionary, y_offset_dictionary)
-    #result = auto.Images_Action_ByInformation(action_sequence_main, x_offset_dictionary, y_offset_dictionary)
-    result = auto.Images_Action_ByInformation(action_sequence_event, x_offset_dictionary, y_offset_dictionary)
-    result = auto.Images_Action_ByInformation(action_sequence_event2, x_offset_dictionary, y_offset_dictionary)
+    action_sequence_waiting = Auto.RecognitionInfomation(Auto.ACTION.CLICK, Auto.RESULT.NG, Auto.END_ACTION.CONTINUE, 4, 20, '../Images/image_waiting/*.png', 4, 0.99, False)
+    action_sequence_start = Auto.RecognitionInfomation(Auto.ACTION.CLICK, Auto.RESULT.OK, Auto.END_ACTION.CONTINUE, 1, 0, '../Images/image_start/*.png', 1.8, 0.93, True)
+    action_sequence_main = Auto.RecognitionInfomation(Auto.ACTION.CLICK, Auto.RESULT.OK, Auto.END_ACTION.CONTINUE, 4, 0, '../Images/image/*.png', 0.5, 0.93, True)
+    action_sequence_event = Auto.RecognitionInfomation(Auto.ACTION.CLICK, Auto.RESULT.OK, Auto.END_ACTION.CONTINUE, 3, 0, '../Images/image_event/*.png', 0.5, 0.93, True)
+    action_sequence_event2 = Auto.RecognitionInfomation(Auto.ACTION.CLICK, Auto.RESULT.OK, Auto.END_ACTION.CONTINUE, 2, 2, '../Images/image_event2/*.png', 0.8, 0.93, True)
+    #result = Auto.Images_Action_ByInformation(action_sequence_waiting, x_offset_dictionary, y_offset_dictionary)
+    #result = Auto.Images_Action_ByInformation(action_sequence_start, x_offset_dictionary, y_offset_dictionary)
+    #result = Auto.Images_Action_ByInformation(action_sequence_main, x_offset_dictionary, y_offset_dictionary)
+    result = Auto.Images_Action_ByInformation(action_sequence_event, x_offset_dictionary, y_offset_dictionary)
+    result = Auto.Images_Action_ByInformation(action_sequence_event2, x_offset_dictionary, y_offset_dictionary)
     try:
 
         #UnderWare()
@@ -359,22 +359,22 @@ def main():
             #    result_action = Images_Action_ByInformation(action_mementomori,x_offset_dictionary,y_offset_dictionary)
         
         
-        log.Log_MessageAdd(message_list,"OCR start")
+        Log.Log_MessageAdd(message_list,"OCR start")
         ocr_sequence()
         #action_kyoudou1=RecognitionInfomation(ACTION.CLICK ,RESULT.OK, END_ACTION.CONTINUE ,10, 0 ,'../Images/image_kyoudou1/*.png' , 0.8 , 0.93 , True)
         #result_action = Images_Action_ByInformation(action_kyoudou1,x_offset_dictionary,y_offset_dictionary)
         #if result_action:
         #    action_kyoudou2=RecognitionInfomation(ACTION.CLICK ,RESULT.NG, END_ACTION.FOLDER_END_BREAK, 300,0,'../Images/image_kyoudou2/*.png' , 0.3 , 0.93 , True)
         #    result_action = Images_Action_ByInformation(action_kyoudou2,x_offset_dictionary,y_offset_dictionary)
-        action_sequence_event = auto.RecognitionInfomation(auto.ACTION.CLICK, auto.RESULT.OK, auto.END_ACTION.CONTINUE, 3, 0, '../Images/image_event/*.png', 0.5, 0.93, True)
-        action_sequence_ikusei = auto.RecognitionInfomation(auto.ACTION.CLICK, auto.RESULT.OK, auto.END_ACTION.CONTINUE, 3, 1, '../Images/image_ikusei/*.png', 1.8, 0.93, True)
-        result_action = auto.Images_Action_ByInformation(action_sequence_event, x_offset_dictionary, y_offset_dictionary)  # "プロセス実行", result_waiting
-        result_action = auto.Images_Action_ByInformation(action_sequence_ikusei, x_offset_dictionary, y_offset_dictionary)  # "プロセス実行", result_waiting
+        action_sequence_event = Auto.RecognitionInfomation(Auto.ACTION.CLICK, Auto.RESULT.OK, Auto.END_ACTION.CONTINUE, 3, 0, '../Images/image_event/*.png', 0.5, 0.93, True)
+        action_sequence_ikusei = Auto.RecognitionInfomation(Auto.ACTION.CLICK, Auto.RESULT.OK, Auto.END_ACTION.CONTINUE, 3, 1, '../Images/image_ikusei/*.png', 1.8, 0.93, True)
+        result_action = Auto.Images_Action_ByInformation(action_sequence_event, x_offset_dictionary, y_offset_dictionary)  # "プロセス実行", result_waiting
+        result_action = Auto.Images_Action_ByInformation(action_sequence_ikusei, x_offset_dictionary, y_offset_dictionary)  # "プロセス実行", result_waiting
         highspeed()
 
-        log.Log_MessageAdd(message_list,"Event2 start")
-        action_sequence_event2 = auto.RecognitionInfomation(auto.ACTION.CLICK ,auto.RESULT.OK, auto.END_ACTION.CONTINUE ,10, 0 ,'../Images/image_event2/*.png' , 0.8 , 0.93 , True)
-        result_action = auto.Images_Action_ByInformation(action_sequence_event2,x_offset_dictionary,y_offset_dictionary)
+        Log.Log_MessageAdd(message_list,"Event2 start")
+        action_sequence_event2 = Auto.RecognitionInfomation(Auto.ACTION.CLICK ,Auto.RESULT.OK, Auto.END_ACTION.CONTINUE ,10, 0 ,'../Images/image_event2/*.png' , 0.8 , 0.93 , True)
+        result_action = Auto.Images_Action_ByInformation(action_sequence_event2,x_offset_dictionary,y_offset_dictionary)
         Write_MessageList(logfile_path , message_list)
         message_list.clear()
     finally:

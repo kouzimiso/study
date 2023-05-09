@@ -1,4 +1,34 @@
 {
+	"Comment":[
+		{
+			"tytle":"設定の一般的構成",
+            		"comment": [
+				"大まかには3つの区分けでPlanfileを分けて作ると良い。",
+				"Category(Apply):ApplyやReboot等のOS単位の操作起動を定義するRunPlanList集",
+				"Process:Applyが起動する作業を定義したRunPlanList集",
+				"Task:Callされる単位の区分け",
+				"※Taskの再利用性を考えると、Taskの起動条件は無い方がいい。ProcessのRunPlanListで起動条件を設定すれば同様の動作ができる上に再利用性が落ちない。",
+				"※Task内の起動条件は自Task内で完結するように作った方が良いだろう。",
+				"※Taskからアカウントやサーバーなどの作業レベルの機能を起動する場合はTaskのラッパーをProcessに作る事で呼び出せるようにする。",
+				"",
+				"<Gameの場合>",
+				"Category(Apply)でMementmori、放置少女のようなApplyやReboot等のOS単位の操作起動を定義する。また、ユーザーが起動するのもこの単位:HotSpotON,Event,Mementomori,Houchi・・・・Reboot",
+				"Processでアカウントとサーバー別の操作を定義する。:ConditionCheck",
+				"TaskでCallされる内容を定義する。:TimeCheck**,画像認識+Click命令",
+				"",
+				"",
+				"",
+				"",
+				"",
+				""
+			],
+			"Check_Day":[
+				"比較する時刻に矛盾が無いことを確認するTask。Day1,Day2には特定の日付か曜日を含む時間を入れられる。day2には曜日は入れられない。day1かday3片方が曜日の場合は一週間回って必ず成立するのでTrue。",
+				"",
+				""
+			]
+		}
+	],
 	"Start": 
 	[
 		{
@@ -8,9 +38,69 @@
 				"file_path" : "",
 				"plan_lists" : [
 					"HotSpotON",
+					"Capture",
+					"Event",
 			 		"Mementomori",
  					"Houchi",
 					"Reboot"
+				]
+			}
+		}
+	],
+	"Capture":
+	[
+
+		{
+			"name" : "ExecuteCamera",
+			"type": "ExecuteProgram",
+			"result_name":"",
+			"condition_list":"",
+			"settings": {
+					"program_path": "../Resources/Camera.exe",
+					"file_path": "../Images/capture/capture.png",
+					"log_print_standardoutput": true,"log_function":true,"log_file_path_list": "../Log/log_ExecuteProgram.json",
+					"step_check_mode" : false,"step_check_comment":""
+			}
+		},
+		{
+			"name" : "ExecuteFileControl",
+			"type": "ExecuteProgram",
+			"result_name":"",
+			"condition_list":"",
+			"settings": {
+					"program_path": "../Resources/FileControl.exe",
+					"file_path":"../Images/capture/capture.png" ,
+					"file_maxsize": 100,
+					"archivefolder_path": "../Images/capture",
+					"folder_maxsize" : 1048576,
+					"files_maxnumber" : 5,
+					"log_print_standardoutput": true,"log_function":true,"log_file_path_list": "../Log/log_ExecuteProgram.json",
+					"step_check_mode" : false,"step_check_comment":""
+			}
+		}
+	],
+
+	"Event" : 
+	[
+		{
+			"name" : "EventPlanStart",
+			"type" : "RunPlanLists",
+	 		"settings" : {
+		 		"file_path" : "RunHouchiChild.json",
+		 		"plan_lists" : [
+					"TimeCheck_Houchi_Chokyo","Chokyo"
+					
+				]
+			}
+		},
+		{
+			"name" : "EventPlanStart",
+			"type" : "RunPlanLists",
+	 		"settings" : {
+		 		"file_path" : "RunHouchi.json",
+		 		"plan_lists" : [
+					"Chokyo"
+					
 				]
 			}
 		}
@@ -38,6 +128,20 @@
 				"file_path" : "RunHouchi.json",
 				"plan_lists" : [
 					"HouchiPlan"
+				],
+				"#step_check_mode" : true
+			}
+		}
+	],
+	"DarkTails" : 
+	[
+		{
+	 		"name" : "DarkTailsPlanStart",
+			"type" : "RunPlanLists",
+			"settings" : {
+				"file_path" : "RunDarkTails.json",
+				"plan_lists" : [
+					"DarkTailsPlan"
 				],
 				"#step_check_mode" : true
 			}

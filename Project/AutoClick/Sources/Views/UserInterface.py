@@ -12,7 +12,11 @@ from kivy.core.window import Window
 from kivy.uix.label import Label
 from kivy.clock import Clock
 
+sys.path.append("../Common")
+sys.path.append("../../Common")
+
 import dictionaryeditor_kivy
+import FunctionUtility
 
 class CloseGUI(kivy.uix.boxlayout.BoxLayout):
     def __init__(self, **kwargs):
@@ -77,32 +81,33 @@ class ValueEditor:
         else:
             return queue
 
-def main():
+def main(argument_dictionary):
+    print("test")
+    
+    editor = DictionaryEditor()
+    print("test")
+    result = editor.run(argument_dictionary)
+    print(result)
 
-    data = {
+    editor = DictionaryEditor()
+    result = editor.run(argument_dictionary)
+    print(result)
+
+    argument_dictionary = "test"
+    editor = ValueEditor()
+    result = editor.run(argument_dictionary)
+    print(result)
+
+
+if __name__ == "__main__":
+    gui=CloseApp()
+    gui.run()
+    # Defaultの辞書Data
+    default_dictionary = {
         'key1': 'value1',
         'key2': 'value2',
         'key3': 'value3',
         'key4': 'value4'
     }
-    print("test")
-    
-    editor = DictionaryEditor()
-    print("test")
-    result = editor.run(data)
-    print("test")
-    print(result)
-
-    editor = DictionaryEditor()
-    result = editor.run(data)
-    print(result)
-
-    data ="test"
-    editor = ValueEditor()
-    result = editor.run(data)
-    print(result)
-
-gui=CloseApp()
-gui.run()
-if __name__ == "__main__":
-    sys.exit(main())
+    argument_dictionary = FunctionUtility.ArgumentGet(default_dictionary)
+    main(argument_dictionary)

@@ -7,8 +7,8 @@ sys.path.append("../Common")
 sys.path.append("../Models")
 sys.path.append("../ViewModels")
 sys.path.append("../Views")
-import auto
-import ocr
+import Auto
+import OCR
 
 Flag_Image_Capture = False
 FilePath="../../Images/image_capture/Image_screen.png"
@@ -75,9 +75,9 @@ def move(x, y):
 def click(x, y, button, pressed):
     global Flag_Image_Capture
     if Flag_Image_Capture == True:
-        auto.Image_AroundMouse(file_path = FilePath ,wide=CaptureWidth , height=CaptureHeight)
+        Auto.Image_AroundMouse(file_path = FilePath ,wide=CaptureWidth , height=CaptureHeight)
         Flag_Image_Capture = False
-        show_image()
+        show_image()OCR
 
     #if not pressed:     # クリックを離したら
     #    mouse_listener_stop()
@@ -93,7 +93,7 @@ def on_pushed_capture():
 
 def on_pushed_ocr():
     # 画面Captureの文字認識
-    ocr_instance = ocr.OCR()
+    ocr_instance = OCR.OCR()
     ocr_instance.Setting_BuilderText(6)
     OCR_Text = ocr_instance.Recognition_ByFilePath(FilePath, "jpn")
     print(OCR_Text)

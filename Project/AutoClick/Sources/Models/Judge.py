@@ -8,8 +8,8 @@ import re
 sys.path.append("../Common")
 sys.path.append("../../Common")
 import FileControl
-import auto
-import log
+import Auto
+import Log
 import ClassControl
 
 
@@ -27,7 +27,7 @@ class Judge:
     }
 
     def __init__(self ,  setting_dictionary = {},information={}) :
-        self.logger = log.Logs(setting_dictionary)
+        self.logger = Log.Logs(setting_dictionary)
         ClassControl.update_from_dict(self,self.default_setting_dictionary)
         self.Setup(setting_dictionary,information)
 
@@ -89,11 +89,11 @@ class Judge:
             return True
         
     def Result_ByDictionaryInformation(self , condition , information,trace_list=[]):
-        print("######仮のsplit分割処理#####")
+        ######仮のsplit分割処理#####
         condition_or_list = condition.split(",") 
         details={}
         for condition_item in condition_or_list:
-            print("######仮の判断処理#####")
+            ######仮の判断処理#####
             condition_parts_list =re.split("(==|<=|>=|<>|<|=|>)", condition_item)
             
             trace_list_parts=[]
@@ -118,7 +118,7 @@ class Judge:
     #***.****.**のように.の指定でDictionary内のDictionaryにアクセスする仕様。
     def TextChangeToData_ByDefaultAndDictionary(self , expression , data_dictionary, default_key = "",trace_list=[]):
         #ENUMに置換する（一般性が無いので没。出力側でENUMを文字列に変換する。）
-        #enum_data = auto.enum_dictionary.get(expression)
+        #enum_data = Auto.enum_dictionary.get(expression)
         #if enum_data is not None:
         #    return enum_data
         if expression == "True" or expression == "true":

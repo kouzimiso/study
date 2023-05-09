@@ -19,16 +19,16 @@ sys.path.append("./Models")
 sys.path.append("./ViewModels")
 sys.path.append("./Views")
 
-import log
-import adb
-import ocr
-import auto
-import weekday
-import xml_control
+import Log
+import ADB
+import OCR
+import Auto
+import Weekday
+import XML_Control
 import xml.dom.minidom
-import image_delete
-import image_control
-import json_control
+import ImageDelete
+import ImageControl
+import JSON_Control
 import FileControl
 import Scheduler
 import Task
@@ -73,7 +73,7 @@ check_planlist={
 class Test(unittest.TestCase):
     def test_unittest_assertEqual(self):
         function_name=sys._getframe().f_code.co_name
-        log.Log_MessageAdd(message_list,"["+function_name+"]"+"assert命令自体のTest")
+        Log.Log_MessageAdd(message_list,"["+function_name+"]"+"assert命令自体のTest")
         num=3
         expected =6
         actual=2*num
@@ -81,7 +81,7 @@ class Test(unittest.TestCase):
 
 
     def test_Auto5_dictionarytodata(self):
-        recognition_information=Recognition.RecognitionInfomation(auto.ACTION.DOUBLE_CLICK ,auto.RESULT.OK, auto.END_ACTION.BREAK , 2 , 5 ,'./Test/*.png' , 1.8 , 0.8 , True)
+        recognition_information=Recognition.RecognitionInfomation(Auto.ACTION.DOUBLE_CLICK ,Auto.RESULT.OK, Auto.END_ACTION.BREAK , 2 , 5 ,'./Test/*.png' , 1.8 , 0.8 , True)
         setting_dictionary = {
             "action" : "ACTION.CLICK" ,
             "end_condition" : "RESULT.OK",
@@ -271,8 +271,8 @@ class Test(unittest.TestCase):
             ]
 
         }
-        json_control.WriteDictionary("RunPlanLists_Test.json" , plan_lists_dictionary)
-        json_control.WriteDictionary("PlanLists_CheckTest.json" , check_planlist)
+        JSON_Control.WriteDictionary("RunPlanLists_Test.json" , plan_lists_dictionary)
+        JSON_Control.WriteDictionary("PlanLists_CheckTest.json" , check_planlist)
         task = Task.Task("RunPlanLists_Test.json")
         print("task.Run( test1, , plan_lists_dictionary)")
         task.Run( "test1","" , plan_lists_dictionary)

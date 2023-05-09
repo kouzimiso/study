@@ -19,7 +19,7 @@ sys.path.append("../Common")
 sys.path.append("../Models")
 sys.path.append("../ViewModels")
 sys.path.append("../Views")
-import image_control
+import ImageControl
 import ocr
 Config.set('modules', 'inspector', '')
 
@@ -66,7 +66,7 @@ class OCRWidget(Widget):
     def ocr_clicked(self):
         self.image_update()
         # 画面Captureの文字認識
-        ocr_instance = ocr.OCR()
+        ocr_instance = OCR.OCR()
         ocr_instance.Setting_BuilderText(6)
         OCR_Text = ocr_instance.Recognition_ByFilePath(self.file_path, "jpn")
         self.ocr_text = OCR_Text
@@ -158,14 +158,14 @@ def capture_end(x, y):
         global CaptureWidth
         global CaptureHeight
         #2pointを1pointと大きさに変換
-        CaptureX, CaptureY,CaptureWidth,CaptureHeight = image_control.point2ToXYWH(x,y,CaptureX,CaptureY)
-        image_control.Image_Capture(FilePath ,True ,CaptureX,CaptureY,CaptureWidth ,CaptureHeight)
+        CaptureX, CaptureY,CaptureWidth,CaptureHeight = ImageControl.point2ToXYWH(x,y,CaptureX,CaptureY)
+        ImageControl.Image_Capture(FilePath ,True ,CaptureX,CaptureY,CaptureWidth ,CaptureHeight)
         print( "touch up x:"+str(CaptureX)+"y:"+str(CaptureY)+"w:"+str(CaptureWidth)+"h:"+str(CaptureHeight))
         return
         
 def click(x, y, button, pressed):
     global Sequence_ImageCapture
-    #auto.Image_AroundMouse(file_path = FilePath ,wide=CaptureWidth , height=CaptureHeight)
+    #Auto.Image_AroundMouse(file_path = FilePath ,wide=CaptureWidth , height=CaptureHeight)
 
     if pressed:     # クリックしたら
         #print("touch_down")

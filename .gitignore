@@ -75,3 +75,6 @@ Project/AutoClick/Images/image**/**.png
 Project/AutoClick/Log/log_*.json
 Project/AutoClick/Images/mementomori/*.png
 Project/AutoClick/Images/*.png
+Project/AutoClick/Sources/Common/test/Image*.png
+Project/AutoClick/Log/log.json
+Project/AutoClick/Log/log*.json

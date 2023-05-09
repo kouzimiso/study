@@ -2,7 +2,7 @@
 #設定したフォルダ内の画像を順番に画面表示から探し、クリックする。
 import datetime
 import os
-import log
+import Log
 import Parser
 import re
 
@@ -19,7 +19,7 @@ class DayOfTheWeek:
             self.SunDay = set_monday-1
         else:
             self.SunDay = set_monday+6
-        self.logger = log.Logs(setting_dictionary)
+        self.logger = Log.Logs(setting_dictionary)
 
     
     def SetNowInformation(self):
@@ -78,11 +78,11 @@ class DayOfTheWeek:
         else:
             startday = self.SunDay 
         lastday =startday + 6
-        result = weekday+offset
-        if result <= lastday:
-            return result
+        result_detail = weekday+offset
+        if result_detail <= lastday:
+            return result_detail
         else:
-            return startday + result % 7             
+            return startday + result_detail % 7             
         
     def Get_DayBeforeWeekDay(self,date_time, day_of_weekday,flag_include_today = False):
         if flag_include_today == True:
@@ -114,7 +114,7 @@ class DayOfTheWeek:
         day1_information = self.StringToDay(day1,now_information,day_information)
         day2_information = self.StringToDay(day2,now_information,day_information)
         day3_information = self.StringToDay(day3,now_information,day_information)
-        result ={"result":False,"detail":{},"error":[]}
+        details ={"result":False,"detail":{},"error":[]}
 
         if day1_information["type"] == "WeekAndTime" and day2_information["type"] == "DateTime" and day3_information["type"] == "WeekAndTime":
             date_time =day2_information["date_time"]
@@ -122,35 +122,36 @@ class DayOfTheWeek:
             day_of_weekday1 = day1_information["day_of_weekday"]
             time2 = day3_information["time"]
             day_of_weekday2 = day3_information["day_of_weekday"]
-            result["result"] = self.Check_WithinRangeDay(date_time,time1, day_of_weekday1,time2,day_of_weekday2)
+            details["result"] = self.Check_WithinRangeDay(date_time,time1, day_of_weekday1,time2,day_of_weekday2)
         #Step:Set the result to the data.
         elif day1_information["type"] == "Time" and day2_information["type"] == "DateTime" and day3_information["type"] == "Time":
             date_time =day2_information["date_time"]
             time1 = day1_information["time"]
             time2 = day3_information["time"]
     
-            result["result"] = self.Check_datetime_between(date_time,time1, time2)
+            details["result"] = self.Check_datetime_between(date_time,time1, time2)
         else:
-            result["error"].append("This function is set incorrectly")
-        return result 
+            details["error"].append("This function is set incorrectly")
+        return details 
 
     def StringToDay(self,day_string,now_information,day_information):
         parser = Parser.Parser()
         tokens = parser.SplitByDictionary(day_string,day_information)
-        results = {"type":"", "day_of_weekday":"","date_time":None ,"time":None }
+        details = {"type":"", "day_of_weekday":"","date_time":None ,"time":None }
         for token in tokens:
             value = day_information.get(token)
             if value is not None:
-                results["day_of_weekday"] = value
-                results["type"] = "WeekAndTime" 
+                details["day_of_weekday"] = value
+                details["type"] = "WeekAndTime" 
             else:
                 value = now_information.get(token)
                 if value is not None:
-                    results["date_time"] = value
-                    results["type"] = "DateTime" 
+                    details["date_time"] = value
+                    details["type"] = "DateTime" 
                 else:
-                    date_time = self.StringDateTimeToDatetime(token,results)
-        return results
+                    #date_timeはDummyの入れ物。detailsが欲しい。
+                    date_time = self.StringDateTimeToDatetime(token,details)
+        return details
     
     def StringDateTimeToDatetime(self,date_string,details = {}):
         try:

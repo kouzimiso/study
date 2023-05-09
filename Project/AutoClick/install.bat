@@ -1,3 +1,5 @@
+D:
+cd D:\ProgramFiles\Coding\WPy64-38100\python-3.8.10.amd64
 python -m pip install -U pip
 python -m pip install --upgrade pip
 
@@ -21,3 +23,6 @@ python -m pip install kivy.deps.gstreamer
 python -m pip install kivy
 python -m pip install japanize-kivy
 python -m pip install watchdog
+python -m pip install keyboard
+python -m pip install pyreadline
+pause

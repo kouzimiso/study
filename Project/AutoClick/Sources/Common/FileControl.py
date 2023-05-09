@@ -4,9 +4,10 @@ import os
 import sys
 import pathlib
 
-import rename
-import log
+import Rename
+
 import datetime
+import FunctionUtility
 
 def Get_FolderSize(folder_path):
     total = 0
@@ -33,7 +34,7 @@ def Archive_SizeOverFile(file_path,file_maxsize, setting_dictionary={},message_l
         filesize = os.path.getsize(file_path)
         if file_maxsize < filesize:
             root_ext_pair = os.path.splitext(file_path)
-            newpath=rename.Name_AddDays(file_path)
+            newpath=Rename.Name_AddDays(file_path)
             try:
                 os.rename(file_path, newpath) 
             #except PermissionError:
@@ -100,24 +101,39 @@ def Delete_OldFiles(folder_path,  folder_maxsize , files_maxnumber , setting_dic
             folder.rmdir()  # フォルダを削除。 
             message_list.append({
                     "message" :"The empty folder has been removed. ",
-                    "folder_path" : folder.nam
+                    "folder_path" : folder
             })
-def Manage_File(file_path , file_maxsize = 65536, archivefolder_path ="" , folder_maxsize = 262144, files_maxnumber =100,message_list=[]):
+def Manage_File(file_path , file_maxsize = 65536, archivefolder_path ="" , folder_maxsize = 1048576, files_maxnumber =100,message_list=[]):
     Archive_SizeOverFile(file_path ,file_maxsize)
     if os.path.exists(archivefolder_path):
         folder_path = archivefolder_path
     else:
         folder_path = pathlib.Path(file_path).parent
     Delete_OldFiles(folder_path ,  folder_maxsize , files_maxnumber,message_list)
+    return True
 
-def main(file_path , file_maxsize, archivefolder_path , folder_maxsize , files_maxnumber,message_list=[]):
-    Manage_File(file_path , file_maxsize, archivefolder_path , folder_maxsize , files_maxnumber,message_list)
-    print(message_list)
+def main(argument_dictionary):
+    file_path = argument_dictionary.get("file_path")
+    file_maxsize = argument_dictionary.get("file_maxsize")
+    archivefolder_path = argument_dictionary.get("archivefolder_path")
+    folder_maxsize = argument_dictionary.get("folder_maxsize")
+    files_maxnumber = argument_dictionary.get("files_maxnumber")
+    message_list = []
+    result = Manage_File(file_path , file_maxsize, archivefolder_path , folder_maxsize , files_maxnumber,message_list)
 
-if __name__ == "__main__": 
-    defaults = "C:/Users/kouzi/Dropbox/Works_Shibaura/Nowworks/Auto/AutoClick/Sources/Test/testdir/test_kivy3.py" , 100 ,"", 100000 , 5  # デフォルト引数。
-    args = list(sys.argv)  # コマンドラインの引数を取得。インデックス0はスクリプトのパスなど。
-    for i in defaults[len(args)-1:]:  # 足りない引数をデフォルトから補う。
-        args.append(i)
-    args[2] = int(args[2])  # 引数は文字列で返るので整数に変換する。
-    main(*args[1:])
+    result_dictionary={"result" : result}
+    if(message_list != []):
+        result_dictionary["message"] = message_list
+    FunctionUtility.Result(result_dictionary)
+
+if __name__ == "__main__":
+    # Defaultの辞書Data
+    default_dictionary ={
+        "file_path":"./test/test.png" ,
+        "file_maxsize": 100,
+        "archivefolder_path": "./test",
+        "folder_maxsize" : 1048576,
+        "files_maxnumber" : 5
+    }
+    argument_dictionary = FunctionUtility.ArgumentGet(default_dictionary)
+    main(argument_dictionary)

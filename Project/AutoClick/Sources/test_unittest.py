@@ -19,16 +19,14 @@ sys.path.append("./Models")
 sys.path.append("./ViewModels")
 sys.path.append("./Views")
 
-import log
-import adb
-import ocr
-import auto
-import weekday
-import xml_control
+import Log
+import ADB
+import OCR
+import Auto
+import Weekday
 import xml.dom.minidom
-import image_delete
-import image_control
-import json_control
+import ImageDelete
+import ImageControl
 import FileControl
 import Scheduler
 import Task
@@ -40,7 +38,7 @@ import Recognition
 
 class Test(unittest.TestCase):
     def setUp(self):
-        self.logger = log.Logs()
+        self.logger = Log.Logs()
         
     def test_unittest_assertEqual(self):
         function_name=sys._getframe().f_code.co_name
@@ -87,41 +85,41 @@ class Test(unittest.TestCase):
             "Result_DayCondition3":{ "detail" : ""},
             "Result_DayCondition4":{ "detail" : "Result.OK"}
         }
-        judge = Judge.Judge()
+        judge_instance = Judge.Judge()
 
         expression="Result_DayCondition1=True"
-        result=judge.Result_ByDictionaryInformation(expression,information)
+        result=judge_instance.Result_ByDictionaryInformation(expression,information)
         expected = True
         actual= result
         self.assertEqual(expected,actual)
 
         expression="Result_DayCondition2=True"
-        result=judge.Result_ByDictionaryInformation(expression,information)
+        result=judge_instance.Result_ByDictionaryInformation(expression,information)
         expected = False
         actual= result
         self.assertEqual(expected,actual)
 
         expression="Result_DayCondition3=None"
-        result=judge.Result_ByDictionaryInformation(expression,information)
+        result=judge_instance.Result_ByDictionaryInformation(expression,information)
         expected = True
         actual= result
         self.assertEqual(expected,actual)
         
         expression="Result_DayCondition1=True,Result_DayCondition2=True"
-        result=judge.Result_ByDictionaryInformation(expression,information)
+        result=judge_instance.Result_ByDictionaryInformation(expression,information)
         expected = True
         actual= result
         self.assertEqual(expected,actual)
         
         expression="Result_DayCondition4.detail=Result.OK"
-        result=judge.Result_ByDictionaryInformation(expression,information)
+        result=judge_instance.Result_ByDictionaryInformation(expression,information)
         expected = True
         actual= result
         self.assertEqual(expected,actual)
 
     def test_weekday(self):
         details = {}
-        week_day = weekday.DayOfTheWeek()
+        week_day = Weekday.DayOfTheWeek()
         result =week_day.StringDateTimeToDatetime("2003/4/14 22:00:30",details)
 
         expected = datetime.datetime(2003,4,14,22,00,30)
@@ -132,13 +130,11 @@ class Test(unittest.TestCase):
         actual= details["type"]
         self.assertEqual(expected,actual)
 
-        week_day = weekday.DayOfTheWeek()
+        week_day = Weekday.DayOfTheWeek()
         result =week_day.StringDateTimeToDatetime("22:00",details)
         expected = datetime.time(22,00)
         actual= result
         self.assertEqual(expected,actual)
-
-
         setting={
             "log_print_standardoutput" : True,
             "log_file_path_list":"../Log/log_test_all.log",
@@ -164,10 +160,8 @@ class Test(unittest.TestCase):
                         "day1": "月曜日0:00",
                         "day2": "Now",
                         "day3": "月曜日24:00",
-                        "log_file_path_list": "../Log/log_unittest.json",
-                        "log_print_standardoutput": True,
-                        "log_function":True,
-                        "#step_check_mode" : True,
+                        "log_print_standardoutput": True,"log_function":True,"log_file_path_list": "../Log/log_unittest.json",
+                        "#step_check_mode" : True
                     }
                 },
                 {
@@ -178,9 +172,7 @@ class Test(unittest.TestCase):
                         "day1": "火曜日0:00",
                         "day2": "Now",
                         "day3": "木曜日24:00",
-                        "log_file_path_list": "../Log/log_unittest.json",
-                        "log_print_standardoutput": True,
-                        "log_function":True,
+                        "log_print_standardoutput": False,"log_function":True,"log_file_path_list": "../Log/log_unittest.json",
                         "#step_check_mode" : True,
                     }
                 },
@@ -191,10 +183,8 @@ class Test(unittest.TestCase):
                     "settings": {
                         "day1": "金曜日0:00",
                         "day2": "Now",
-                        "day3": "金曜日24:00",
-                        "log_file_path_list": "../Log/log_unittest.json",
-                        "log_print_standardoutput": True,
-                        "log_function":True,
+                        "day3": "日曜日24:00",
+                        "log_print_standardoutput": True,"log_function":True,"log_file_path_list": "../Log/log_unittest.json",
                         "#step_check_mode" : True
                     }
                 },
@@ -206,10 +196,8 @@ class Test(unittest.TestCase):
                         "condition_list": [
                             "Houchi_Time_Check1=True,Houchi_Time_Check2=True,Houchi_Time_Check3.result=True,Houchi_Time_Check4.result=True"
                         ],
-                        "log_file_path_list": "../Log/log_unittest.json",
-                        "log_print_standardoutput": True,
-                        "log_function":True,
-                        "step_check_mode" : True
+                        "log_print_standardoutput": True,"log_function":True,"log_file_path_list": "../Log/log_unittest.json",
+                        "step_check_mode" : True,"step_check_comment":"The following statement will always be true if it is currently Monday, Tuesday through Wednesday, or Friday through Sunday. "
                     }
                 },
                 {
@@ -221,12 +209,23 @@ class Test(unittest.TestCase):
                             "Houchi_Time_Check1=True,Houchi_Time_Check2=True,Houchi_Time_Check3.result=True,Houchi_Time_Check4.result=True",
                             "Condition_Execute01 = true"
                         ],
-                        "log_file_path_list": "../Log/log_unittest.json",
-                        "log_print_standardoutput": True,
-                        "log_function":True,
-                        "step_check_mode" : True
+                        "log_print_standardoutput": True,"log_function":True,"log_file_path_list": "../Log/log_unittest.json",
+                        "step_check_mode" : True,"step_check_comment":"The results Time check and Time check Judge are True and you should get a True result."
                     }
                 },
+                {
+                    "name": "Test_ExecuteProgram",
+                    "type": "ExecuteProgram",
+                    "result_name":"",
+                    "condition_list":["Condition_Execute = true"],
+                    "settings": {
+                        "program_path": "./Resources/Camera.exe",
+                        "file_path": "../Log/capture.png",
+                        "log_print_standardoutput": False,"log_function":True,"log_file_path_list": "../Log/log_camera.json",
+                        "step_check_mode" : False,"step_check_comment":""
+                    }
+                },
+
                 {
                     "name": "ClickTest01",
                     "type": "Recognition",
@@ -242,14 +241,48 @@ class Test(unittest.TestCase):
                         "interval_time": 10,
                         "recognition_confidence": 0.99,
                         "recognition_grayscale": True,
-                        "log_file_path_list": "../Log/log_recognition.json",
-                        "log_print_standardoutput": True,
-                        "log_function":True,
-                        "step_check_mode" : True
+                        "log_print_standardoutput": True,"log_function":True,"log_file_path_list": "../Log/log_recognition.json",
+                        "step_check_mode" : True,"step_check_comment":"NGになる予定のClick Teskです。標準出力は有効。"
                     }
                 },
                 {
-                    "name": "ClickTest02",
+                    "name": "ClickTest02-1",
+                    "type": "Recognition",
+                    "condition_list":["Condition_Execute = true","Result_ClickTest01.detail=RESULT.NG"],
+                    "result_name":"Result_HouchiAccountClicked",
+                    "settings": {
+                        "action": "ACTION.DOUBLE_CLICK",
+                        "end_condition": "RESULT.OK",
+                        "end_action": "END_ACTION.BREAK",
+                        "execute_number": 2,
+                        "retry_number": 0,
+                        "image_path": "../Images/image01/*.png",
+                        "interval_time": 10,
+                        "recognition_confidence": 0.99,
+                        "recognition_grayscale": True,
+                        "log_print_standardoutput": False,"log_function":True,"log_file_path_list": "../Log/log_recognition.json",
+                        "step_check_mode" : True,"step_check_comment":"同じくNGになる予定のClick Teskです。標準出力は無効。"
+                    }
+                },
+                {
+                    "name" : "HouchiPlanStart",
+                    "type" : "RunPlanLists",
+                    "condition_list":["Condition_Execute = true","Result_ClickTest01.detail=RESULT.NG"],
+                    "result_name":"",
+                    "settings" : {
+                        "file_path"  : "RunHouchi.json",
+                        "log_function":True,"log_print_standardoutput": True,"log_file_path_list": "../Log/log_RunPlanList.json.json",
+                        "#step_check_mode" : True,
+                        "plan_lists" : [
+                            "CallSetting"
+                        ]
+                    }
+                }
+            ],
+            "CallSetting" :
+            [
+                {
+                    "name": "ClickTest02-2",
                     "type": "Recognition",
                     "result_name":"Result_HouchiAccountClicked",
                     "condition_list":["Condition_Execute = true","Result_ClickTest01.detail=RESULT.NG"],
@@ -263,10 +296,8 @@ class Test(unittest.TestCase):
                         "interval_time": 10,
                         "recognition_confidence": 0.99,
                         "recognition_grayscale": True,
-                        "log_file_path_list": "../Log/log_recognition.json",
-                        "log_print_standardoutput": True,
-                        "log_function":True,
-                        "step_check_mode" : True
+                        "log_print_standardoutput": False,"log_function":True,"log_file_path_list": "../Log/log_recognition.json",
+                        "step_check_mode" : True,"step_check_comment":"同じくNGになる予定のClick Teskです。標準出力は無効。"
                     }
                 }
             ]

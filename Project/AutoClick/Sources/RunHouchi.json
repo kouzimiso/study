@@ -4,42 +4,47 @@
 		{
 	 		"name" : "HouchiPlanStart",
 			"type" : "RunPlanLists",
+			
 			"settings" : {
+				"file_path"  : "RunHouchi.json",
+				"log_function":true,"log_print_standardoutput": true,"log_file_path_list": "../Log/log_houchi.json.json",
 				"#step_check_mode" : true,
 				"plan_lists" : [
 					"HouchiACM",
 					"HouchiMain",
 					"HouchiSub"
 				]
+
 			}
 		}
 	],	
 	"HouchiSub" : 
 	[
 		{
-	 		"name" : "HouchiSubPlanStart",
+	 		"name" : "HouchiAccountPlanSub",
 			"type" : "RunPlanLists",
 			"condition_list" : "",
 			"settings" : {
-				"file_path"  : "RunHouchiChild.json",
+				"file_path"  : "RunHouchi.json",
+				"log_function":true,"log_print_standardoutput": true,"log_file_path_list": "../Log/log_houchi.json.json",
+				"#step_check_mode" : true,
  		 		"plan_lists" : [
-					"TimeCheck_Houchi_Chokyo","Chokyo",
-					"CloseWindow","TimeCheck_Houchi_Sub","HouchiAccount01","HouchiWaiting","HouchiServer01","HouchiClickGroup",
-					"CloseWindow","TimeCheck_Houchi_Sub","HouchiAccount01","HouchiWaiting","HouchiServer02","HouchiClickGroup",
-					"CloseWindow","TimeCheck_Houchi_Sub","HouchiAccount01","HouchiWaiting","HouchiServer03","HouchiClickGroup",
-					"CloseWindow","TimeCheck_Houchi_Sub","HouchiAccount01","HouchiWaiting","HouchiServer04","HouchiClickGroup",
-					"CloseWindow","TimeCheck_Houchi_Sub","HouchiAccount01","HouchiWaiting","HouchiServer05","HouchiClickGroup",
-					"CloseWindow","TimeCheck_Houchi_Sub","HouchiAccount01","HouchiWaiting","HouchiServer06","HouchiClickGroup",
-					"CloseWindow","TimeCheck_Houchi_Sub","HouchiAccount01","HouchiWaiting","HouchiServer07","HouchiClickGroup",
-					"CloseWindow","TimeCheck_Houchi_Sub","HouchiAccount01","HouchiWaiting","HouchiServer08","HouchiClickGroup",
-					"CloseWindow","TimeCheck_Houchi_Sub","HouchiAccount02","HouchiWaiting","HouchiServer01","HouchiClickGroup",
-					"CloseWindow","TimeCheck_Houchi_Sub","HouchiAccount02","HouchiWaiting","HouchiServer02","HouchiClickGroup",
-					"CloseWindow","TimeCheck_Houchi_Sub","HouchiAccount02","HouchiWaiting","HouchiServer03","HouchiClickGroup",
-					"CloseWindow","TimeCheck_Houchi_Sub","HouchiAccount02","HouchiWaiting","HouchiServer04","HouchiClickGroup",
-					"CloseWindow","TimeCheck_Houchi_Sub","HouchiAccount02","HouchiWaiting","HouchiServer05","HouchiClickGroup",
-					"CloseWindow","TimeCheck_Houchi_Sub","HouchiAccount02","HouchiWaiting","HouchiServer06","HouchiClickGroup",
-					"CloseWindow","TimeCheck_Houchi_Sub","HouchiAccount02","HouchiWaiting","HouchiServer07","HouchiClickGroup",
-					"CloseWindow","TimeCheck_Houchi_Sub","HouchiAccount02","HouchiWaiting","HouchiServer08","HouchiClickGroup"
+					"HouchiCondition_TimeEvent","TimeEvent",
+					"CloseWindow","HouchiCondition_Sub","HouchiAccount00","HouchiWaiting","HouchiServer01","HouchiClickGroup",
+					"CloseWindow","HouchiCondition_Sub","HouchiAccount00","HouchiWaiting","HouchiServer02","HouchiClickGroup",
+					"CloseWindow","HouchiCondition_Sub","HouchiAccount00","HouchiWaiting","HouchiServer03","HouchiClickGroup",
+					"CloseWindow","HouchiCondition_Sub","HouchiAccount00","HouchiWaiting","HouchiServer05","HouchiClickGroup",
+					"CloseWindow","HouchiCondition_Sub","HouchiAccount00","HouchiWaiting","HouchiServer06","HouchiClickGroup",
+					"CloseWindow","HouchiCondition_Sub","HouchiAccount00","HouchiWaiting","HouchiServer07","HouchiClickGroup",
+					"CloseWindow","HouchiCondition_Sub","HouchiAccount00","HouchiWaiting","HouchiServer08","HouchiClickGroup",
+					"CloseWindow","HouchiCondition_Sub","HouchiAccount01","HouchiWaiting","HouchiServer01","HouchiClickGroup",
+					"CloseWindow","HouchiCondition_Sub","HouchiAccount01","HouchiWaiting","HouchiServer02","HouchiClickGroup",
+					"CloseWindow","HouchiCondition_Sub","HouchiAccount01","HouchiWaiting","HouchiServer03","HouchiClickGroup",
+					"CloseWindow","HouchiCondition_Sub","HouchiAccount01","HouchiWaiting","HouchiServer04","HouchiClickGroup",
+					"CloseWindow","HouchiCondition_Sub","HouchiAccount01","HouchiWaiting","HouchiServer05","HouchiClickGroup",
+					"CloseWindow","HouchiCondition_Sub","HouchiAccount01","HouchiWaiting","HouchiServer06","HouchiClickGroup",
+					"CloseWindow","HouchiCondition_Sub","HouchiAccount01","HouchiWaiting","HouchiServer07","HouchiClickGroup",
+					"CloseWindow","HouchiCondition_Sub","HouchiAccount01","HouchiWaiting","HouchiServer08","HouchiClickGroup"
 				]
 			}
 		}
@@ -47,18 +52,22 @@
 	"HouchiMain" : 
 	[
 		{
-	 		"name" : "HouchiMainPlanStart",
+	 		"name" : "HouchiAccountPlanMain",
 			"type" : "RunPlanLists",
 			"condition_list" : "",
 			"settings" : {
-				"file_path"  : "RunHouchiChild.json",
+				"file_path"  : "RunHouchi.json",
+				"log_function":true,"log_print_standardoutput": true,"log_file_path_list": "../Log/log_houchi.json.json",
+				"#step_check_mode" : true,
  		 		"plan_lists" : [
-					"TimeCheck_Houchi_Chokyo","Chokyo",
-					"CloseWindow","TimeCheck_Houchi_Main","HouchiAccount03","HouchiWaiting","HouchiServer09","HouchiClickGroup",
-					"CloseWindow","TimeCheck_Houchi_Main","HouchiAccount04","HouchiWaiting","HouchiServer09","HouchiClickGroup",
-					"CloseWindow","TimeCheck_Houchi_Main","HouchiAccount05","HouchiWaiting","HouchiServer09","HouchiClickGroup",
-					"CloseWindow","TimeCheck_Houchi_Main","HouchiAccount01","HouchiWaiting","HouchiServer09","HouchiClickGroup",
-					"CloseWindow","TimeCheck_Houchi_Main","HouchiAccount02","HouchiWaiting","HouchiServer09","HouchiClickGroup"
+					"HouchiCondition_TimeEvent","TimeEvent",
+					"CloseWindow","HouchiCondition_Main","HouchiAccount03","HouchiWaiting","HouchiServer09","HouchiClickGroup",
+					"CloseWindow","HouchiCondition_Main","HouchiAccount04","HouchiWaiting","HouchiServer09","HouchiClickGroup",
+					"CloseWindow","HouchiCondition_Main","HouchiAccount05","HouchiWaiting","HouchiServer09","HouchiClickGroup",
+					"CloseWindow","HouchiCondition_Main","HouchiAccount00","HouchiWaiting","HouchiServer09","HouchiClickGroup",
+					"CloseWindow","HouchiCondition_Main","HouchiAccount01","HouchiWaiting","HouchiServer09","HouchiClickGroup",
+					"CloseWindow","HouchiCondition_Main","HouchiAccount02","HouchiWaiting","HouchiServer09","HouchiClickGroup",
+					"CloseWindow","HouchiCondition_Main","HouchiAccount00","HouchiWaiting","HouchiServer04","HouchiClickGroup"
 				]
 			}
 		}
@@ -66,14 +75,157 @@
 	"HouchiACM" : 
 	[
 		{
-	 		"name" : "HouchiACMPlanStart",
+	 		"name" : "HouchiAccountPlanACM",
 			"type" : "RunPlanLists",
 			"condition_list" : "",
 			"settings" : {
-				"file_path" : "RunHouchiChild.json",
+				"file_path" : "RunHouchi.json",
+				"log_function":true,"log_print_standardoutput": true,"log_file_path_list": "../Log/log_houchi.json.json",
+				"#step_check_mode" : true,
  		 		"plan_lists" : [
-					"TimeCheck_Houchi_Chokyo","Chokyo",
-					"CloseWindow","TimeCheck_Houchi_ACM","HouchiAccount06","HouchiServer09","HouchiClickGroup"
+					"HouchiCondition_TimeEvent","TimeEvent",
+					"CloseWindow","HouchiCondition_ACM","HouchiAccount06","HouchiWaiting","HouchiServer09","HouchiClickGroup"
+				]
+			}
+		}
+	],
+	"HouchiCondition_Main" : 
+	[
+		{
+	 		"name" : "HouchiCondition_Main",
+			"type" : "RunPlanLists",
+			"comment" : "",
+			"condition_list" : "",
+			"settings" : {
+				"file_path"  : "RunHouchiChild.json",
+				"log_function":true,"log_print_standardoutput": true,"log_file_path_list": "../Log/log_houchi.json.json",
+				"#step_check_mode" : true,
+ 		 		"plan_lists" : [
+					"TimeCheck_Houchi_Main"
+				]
+			}
+		}
+	],
+	"HouchiCondition_Sub" : 
+	[
+		{
+	 		"name" : "HouchiCondition_Sub",
+			"type" : "RunPlanLists",
+			"comment" : "",
+			"condition_list" : "",
+			"settings" : {
+				"file_path"  : "RunHouchiChild.json",
+				"log_function":true,"log_print_standardoutput": true,"log_file_path_list": "../Log/log_houchi.json.json",
+				"#step_check_mode" : true,
+ 		 		"plan_lists" : [
+					"TimeCheck_Houchi_Sub"
+				]
+			}
+		}
+	],
+	"HouchiCondition_ACM" : 
+	[
+		{
+	 		"name" : "HouchiCondition_ACM",
+			"type" : "RunPlanLists",
+			"comment" : "",
+			"condition_list" : "",
+			"settings" : {
+				"file_path"  : "RunHouchiChild.json",
+				"log_function":true,"log_print_standardoutput": true,"log_file_path_list": "../Log/log_houchi.json.json",
+				"#step_check_mode" : true,
+ 		 		"plan_lists" : [
+					"TimeCheck_Houchi_Main"
+				]
+			}
+		}
+	],
+	"HouchiCondition_TimeEvent" : 
+	[
+		{
+	 		"name" : "HouchiCondition_TimeEvent",
+			"type" : "RunPlanLists",
+			"comment" : "",
+			"condition_list" : "",
+			"settings" : {
+				"file_path"  : "RunHouchiChild.json",
+				"log_function":true,"log_print_standardoutput": true,"log_file_path_list": "../Log/log_houchi.json.json",
+				"#step_check_mode" : true,
+ 		 		"plan_lists" : [
+					"TimeCheck_Houchi_TimeEvent"
+				]
+			}
+		}
+	],
+	"HouchiClickGroup" : 
+	[
+		{
+	 		"name" : "HouchiClickGroup",
+			"type" : "RunPlanLists",
+			"comment" : "",
+			"condition_list" : "Result_HouchiServerClick.detail = RESULT.OK,Result_HouchiServerClick.detail = RESULT.ALL_OK",
+			"settings" : {
+				"file_path"  : "RunHouchiChild.json",
+				"log_function":true,"log_print_standardoutput": true,"log_file_path_list": "../Log/log_houchi.json.json",
+				"#step_check_mode" : true,
+ 		 		"plan_lists" : [
+					"HouchiStart","HouchiMainte","HouchiPlay"
+				]
+			}
+		}
+	],
+	"TimeEvent": 
+	[
+		{
+	 		"name" : "TimeEvent",
+			"type" : "RunPlanLists",
+			"condition_list" : "Condition_Execute = True",
+			"result_name":"",
+			"settings" : {
+				"file_path"  : "RunHouchi.json",
+				"log_function":true,"log_print_standardoutput": true,"log_file_path_list": "../Log/log_houchi.json.json",
+				"#step_check_mode" : true,
+ 		 		"plan_lists" : [
+					"CloseWindow","HouchiCondition_TimeEvent","HouchiAccount00","HouchiWaiting","HouchiServer01","TimeEventClickGroup",
+					"CloseWindow","HouchiCondition_TimeEvent","HouchiAccount00","HouchiWaiting","HouchiServer02","TimeEventClickGroup",
+					"CloseWindow","HouchiCondition_TimeEvent","HouchiAccount00","HouchiWaiting","HouchiServer03","TimeEventClickGroup",
+					"CloseWindow","HouchiCondition_TimeEvent","HouchiAccount00","HouchiWaiting","HouchiServer04","TimeEventClickGroup",
+					"CloseWindow","HouchiCondition_TimeEvent","HouchiAccount00","HouchiWaiting","HouchiServer05","TimeEventClickGroup",
+					"CloseWindow","HouchiCondition_TimeEvent","HouchiAccount00","HouchiWaiting","HouchiServer06","TimeEventClickGroup",
+					"CloseWindow","HouchiCondition_TimeEvent","HouchiAccount00","HouchiWaiting","HouchiServer07","TimeEventClickGroup",
+					"CloseWindow","HouchiCondition_TimeEvent","HouchiAccount00","HouchiWaiting","HouchiServer08","TimeEventClickGroup",
+					"CloseWindow","HouchiCondition_TimeEvent","HouchiAccount01","HouchiWaiting","HouchiServer01","TimeEventClickGroup",
+					"CloseWindow","HouchiCondition_TimeEvent","HouchiAccount01","HouchiWaiting","HouchiServer02","TimeEventClickGroup",
+					"CloseWindow","HouchiCondition_TimeEvent","HouchiAccount01","HouchiWaiting","HouchiServer03","TimeEventClickGroup",
+					"CloseWindow","HouchiCondition_TimeEvent","HouchiAccount01","HouchiWaiting","HouchiServer04","TimeEventClickGroup",
+					"CloseWindow","HouchiCondition_TimeEvent","HouchiAccount01","HouchiWaiting","HouchiServer05","TimeEventClickGroup",
+					"CloseWindow","HouchiCondition_TimeEvent","HouchiAccount01","HouchiWaiting","HouchiServer06","TimeEventClickGroup",
+					"CloseWindow","HouchiCondition_TimeEvent","HouchiAccount01","HouchiWaiting","HouchiServer07","TimeEventClickGroup",
+					"CloseWindow","HouchiCondition_TimeEvent","HouchiAccount01","HouchiWaiting","HouchiServer08","TimeEventClickGroup",
+					"CloseWindow","HouchiCondition_TimeEvent","HouchiAccount03","HouchiWaiting","HouchiServer09","TimeEventClickGroup",
+					"CloseWindow","HouchiCondition_TimeEvent","HouchiAccount04","HouchiWaiting","HouchiServer09","TimeEventClickGroup",
+					"CloseWindow","HouchiCondition_TimeEvent","HouchiAccount05","HouchiWaiting","HouchiServer09","TimeEventClickGroup",
+					"CloseWindow","HouchiCondition_TimeEvent","HouchiAccount01","HouchiWaiting","HouchiServer09","TimeEventClickGroup",
+					"CloseWindow","HouchiCondition_TimeEvent","HouchiAccount02","HouchiWaiting","HouchiServer09","TimeEventClickGroup",
+					"CloseWindow","HouchiCondition_TimeEvent","HouchiAccount06","HouchiWaiting","HouchiServer09","TimeEventClickGroup"
+				]
+			}
+		}
+	],
+	"TimeEventClickGroup": 
+	[
+
+		{
+	 		"name" : "TimeEventClickGroup",
+			"type" : "RunPlanLists",
+			"condition_list" : "Result_HouchiServerClick.detail = RESULT.OK,Result_HouchiServerClick.detail = RESULT.ALL_OK",
+			"result_name":"",
+			"settings" : {
+				"file_path"  : "RunHouchiChild.json",
+				"log_function":true,"log_print_standardoutput": true,"log_file_path_list": "../Log/log_houchi.json.json",
+				"#step_check_mode" : true,
+ 		 		"plan_lists" : [
+					"HouchiStart","TimeEventPlay"
 				]
 			}
 		}
@@ -83,15 +235,15 @@
 		{
 			"name": "HouchiAccount00_ZX",
 			"type": "Recognition",
-			"result_name":"Result_HouchiAccountClicked",
 			"condition_list":["Condition_Execute = true"],
+			"result_name":"Result_HouchiAccountClick",
 			"settings": {
 				"action": "ACTION.DOUBLE_CLICK",
 				"end_condition": "RESULT.OK",
 				"end_action": "END_ACTION.BREAK",
 				"execute_number": 2,
 				"retry_number": 0,
-				"image_path": "../Images/image00/*.png",
+				"image_path": "../Images/houchi/0000_account/0000/*.png",
 				"interval_time": 10,
 				"recognition_confidence": 0.99,
 				"recognition_grayscale": true,
@@ -106,15 +258,15 @@
 		{
 			"name": "HouchiAccount01_ZZ",
 			"type": "Recognition",
-			"result_name":"Result_HouchiAccountClicked",
 			"condition_list":["Condition_Execute = true"],
+			"result_name":"Result_HouchiAccountClick",
 			"settings": {
 				"action": "ACTION.DOUBLE_CLICK",
 				"end_condition": "RESULT.OK",
 				"end_action": "END_ACTION.BREAK",
 				"execute_number": 2,
 				"retry_number": 0,
-				"image_path": "../Images/image01/*.png",
+				"image_path": "../Images/houchi/0000_account/0001/*.png",
 				"interval_time": 10,
 				"recognition_confidence": 0.99,
 				"recognition_grayscale": true,
@@ -129,19 +281,19 @@
 		{
 			"name": "HouchiAccount02_G",
 			"type": "Recognition",
-			"result_name":"Result_HouchiAccountClicked",
 			"condition_list":["Condition_Execute = true"],
+			"result_name":"Result_HouchiAccountClick",
 			"settings": {
 				"action": "ACTION.DOUBLE_CLICK",
 				"end_condition": "RESULT.OK",
 				"end_action": "END_ACTION.BREAK",
 				"execute_number": 2,
 				"retry_number": 0,
-				"image_path": "../Images/image02/*.png",
+				"image_path": "../Images/houchi/0000_account/0002/*.png",
 				"interval_time": 10,
 				"recognition_confidence": 0.99,
 				"recognition_grayscale": true,
-				"log_function":true,"log_print_standardoutput": false,"log_file_path_list": "../Log/log_recognition.json",
+				"log_function":true,"log_print_standardoutput": true,"log_file_path_list": "../Log/log_recognition.json",
 				"#step_check_mode" : true
 
 			}
@@ -152,15 +304,15 @@
 		{
 			"name": "HouchiAccount03_W",
 			"type": "Recognition",
-			"result_name":"Result_HouchiAccountClicked",
 			"condition_list":["Condition_Execute = true"],
+			"result_name":"Result_HouchiAccountClick",
 			"settings": {
 				"action": "ACTION.DOUBLE_CLICK",
 				"end_condition": "RESULT.OK",
 				"end_action": "END_ACTION.BREAK",
 				"execute_number": 2,
 				"retry_number": 0,
-				"image_path": "../Images/image03/*.png",
+				"image_path": "../Images/houchi/0000_account/0003/*.png",
 				"interval_time": 10,
 				"recognition_confidence": 0.99,
 				"recognition_grayscale": true,
@@ -175,15 +327,15 @@
 		{
 			"name": "HouchiAccount04_V",
 			"type": "Recognition",
-			"result_name":"Result_HouchiAccountClicked",
 			"condition_list":["Condition_Execute = true"],
+			"result_name":"Result_HouchiAccountClick",
 			"settings": {
 				"action": "ACTION.DOUBLE_CLICK",
 				"end_condition": "RESULT.OK",
 				"end_action": "END_ACTION.BREAK",
 				"execute_number": 2,
 				"retry_number": 0,
-				"image_path": "../Images/image04/*.png",
+				"image_path": "../Images/houchi/0000_account/0004/*.png",
 				"interval_time": 10,
 				"recognition_confidence": 0.99,
 				"recognition_grayscale": true,
@@ -198,15 +350,15 @@
 		{
 			"name": "HouchiAccount05_TA",
 			"type": "Recognition",
-			"result_name":"Result_HouchiAccountClicked",
 			"condition_list":["Condition_Execute = true"],
+			"result_name":"Result_HouchiAccountClick",
 			"settings": {
 				"action": "ACTION.DOUBLE_CLICK",
 				"end_condition": "RESULT.OK",
 				"end_action": "END_ACTION.BREAK",
 				"execute_number": 2,
 				"retry_number": 0,
-				"image_path": "../Images/image05/*.png",
+				"image_path": "../Images/houchi/0000_account/0005/*.png",
 				"interval_time": 10,
 				"recognition_confidence": 0.99,
 				"recognition_grayscale": true,
@@ -221,19 +373,18 @@
 		{
 			"name": "HouchiAccount06_ACM",
 			"type": "Recognition",
-			"result_name":"Result_HouchiAccountClicked",
 			"condition_list":["Condition_Execute = true"],
+			"result_name":"Result_HouchiAccountClick",
 			"settings": {
 				"action": "ACTION.DOUBLE_CLICK",
 				"end_condition": "RESULT.OK",
 				"end_action": "END_ACTION.BREAK",
 				"execute_number": 2,
 				"retry_number": 0,
-				"image_path": "../Images/image06/*.png",
+				"image_path": "../Images/houchi/0000_account/0006/*.png",
 				"interval_time": 10,
 				"recognition_confidence": 0.99,
 				"recognition_grayscale": true,
-
 				"log_function":true,"log_print_standardoutput": true,
 				"log_file_path_list": "../Log/log_recognition.json",
 				"#step_check_mode" : true
@@ -245,14 +396,110 @@
 		{
 			"name" : "HouchiWaiting",
 			"type" : "Recognition",
-			"condition_list" : "Result_HouchiAccountClicked.detail = RESULT.OK,Result_HouchiAccountClicked.detail = RESULT.ALL_OK",
+			"condition_list" : "Result_HouchiAccountClick.detail = RESULT.OK,Result_HouchiAccountClick.detail = RESULT.ALL_OK",
+			"result_name":"Result_HouchiAccountClick",
 			"settings" : {
 				"action" : "ACTION.CLICK",
 				"end_condition" : "RESULT.NG",
 				"end_action" : "END_ACTION.CONTINUE",
-				"execute_number" :3,
+				"execute_number" :1,
+				"retry_number" : 10,
+				"image_path" : "../Images/houchi/0500_waiting/*.png",
+				"interval_time" : 2,
+				"recognition_confidence" : 0.99,
+				"recognition_grayscale" : false
+			}
+		},
+		{
+			"name" : "HouchiWaitingEnd",
+			"type" : "Recognition",
+			"condition_list" : ["Result_HouchiAccountClick.detail = RESULT.OK,Result_HouchiAccountClick.detail = RESULT.ALL_OK"],
+			"result_name":"Result_HouchiWaitEndClick",
+			"settings" : {
+				"action" : "ACTION.CLICK",
+				"end_condition" : "RESULT.OK",
+				"end_action" : "END_ACTION.BREAK",
+				"execute_number" :1,
+				"retry_number" : 2,
+				"image_path" : "../Images/houchi/0509_waitingend/*.png",
+				"interval_time" : 2,
+				"recognition_confidence" : 0.99,
+				"recognition_grayscale" : false
+			}
+		},
+		{
+			"name" : "HouchiWaiting",
+			"type" : "Recognition",
+			"condition_list" : [
+				"Result_HouchiAccountClick.detail = RESULT.OK,Result_HouchiAccountClick.detail = RESULT.ALL_OK",
+				"Result_HouchiWaitEndClick.detail = RESULT.NG"
+			],
+			"settings" : {
+				"action" : "ACTION.CLICK",
+				"end_condition" : "RESULT.NG",
+				"end_action" : "END_ACTION.CONTINUE",
+				"execute_number" :1,
 				"retry_number" : 20,
-				"image_path" : "../Images/image_waiting/*.png",
+				"image_path" : "../Images/houchi/0500_waiting/*.png",
+				"interval_time" : 2,
+				"recognition_confidence" : 0.99,
+				"recognition_grayscale" : false
+			}
+		},
+		{
+			"name" : "HouchiWaitingEnd",
+			"type" : "Recognition",
+			"condition_list" : [
+				"Result_HouchiAccountClick.detail = RESULT.OK,Result_HouchiAccountClick.detail = RESULT.ALL_OK",
+				"Result_HouchiWaitEndClick.detail = RESULT.NG"
+			],
+			"result_name":"Result_HouchiWaitEndClick",
+			"settings" : {
+				"action" : "ACTION.CLICK",
+				"end_condition" : "RESULT.OK",
+				"end_action" : "END_ACTION.BREAK",
+				"execute_number" :1,
+				"retry_number" : 2,
+				"image_path" : "../Images/houchi/0509_waitingend/*.png",
+				"interval_time" : 2,
+				"recognition_confidence" : 0.99,
+				"recognition_grayscale" : false
+			}
+		},
+		{
+			"name" : "HouchiWaiting",
+			"type" : "Recognition",
+			"condition_list" : [
+				"Result_HouchiAccountClick.detail = RESULT.OK,Result_HouchiAccountClick.detail = RESULT.ALL_OK",
+				"Result_HouchiWaitEndClick.detail = RESULT.NG"
+			],
+			"settings" : {
+				"action" : "ACTION.CLICK",
+				"end_condition" : "RESULT.NG",
+				"end_action" : "END_ACTION.CONTINUE",
+				"execute_number" :1,
+				"retry_number" : 10,
+				"image_path" : "../Images/houchi/0500_waiting/*.png",
+				"interval_time" : 2,
+				"recognition_confidence" : 0.99,
+				"recognition_grayscale" : false
+			}
+		},
+		{
+			"name" : "HouchiWaitingEnd",
+			"type" : "Recognition",
+			"condition_list" : [
+				"Result_HouchiAccountClick.detail = RESULT.OK,Result_HouchiAccountClick.detail = RESULT.ALL_OK",
+				"Result_HouchiWaitEndClick.detail = RESULT.NG"
+			],
+			"result_name":"Result_HouchiWaitEndClick",
+			"settings" : {
+				"action" : "ACTION.CLICK",
+				"end_condition" : "RESULT.OK",
+				"end_action" : "END_ACTION.BREAK",
+				"execute_number" :1,
+				"retry_number" : 2,
+				"image_path" : "../Images/houchi/0509_waitingend/*.png",
 				"interval_time" : 2,
 				"recognition_confidence" : 0.99,
 				"recognition_grayscale" : false
@@ -264,8 +511,8 @@
 		{
 			"name" : "HouchiServer01",
 			"type" : "Recognition",
-			"condition_list" : "Result_HouchiAccountClicked.detail = RESULT.OK,Result_HouchiAccountClicked.detail = RESULT.ALL_OK",
-			"result_name":"Result_HouchiServerClicked",
+			"condition_list" : "Result_HouchiAccountClick.detail = RESULT.OK,Result_HouchiAccountClick.detail = RESULT.ALL_OK",
+			"result_name":"Result_HouchiServerClick",
 			"settings"  : {
 				"#step_check_mode" : true,
 				"action" : "ACTION.DOUBLE_CLICK",
@@ -273,7 +520,7 @@
 				"end_action" : "END_ACTION.BREAK",
 				"execute_number" : 2,
 				"retry_number" : 5,
-				"image_path" : "../Images/image_SelectServer01/*.png",
+				"image_path" : "../Images/houchi/0600_selectserver/0001_Server/*.png",
 				"interval_time" : 0.1,
 				"recognition_confidence" : 0.8,
 				"recognition_grayscale" : true
@@ -285,8 +532,8 @@
 		{
 			"name" : "HouchiServer02",
 			"type" : "Recognition",
-			"condition_list" : "Result_HouchiAccountClicked.detail = RESULT.OK,Result_HouchiAccountClicked.detail = RESULT.ALL_OK",
-			"result_name":"Result_HouchiServerClicked",
+			"condition_list" : "Result_HouchiAccountClick.detail = RESULT.OK,Result_HouchiAccountClick.detail = RESULT.ALL_OK",
+			"result_name":"Result_HouchiServerClick",
 			"settings" : {
 				"#step_check_mode" : true,
 				"action" : "ACTION.DOUBLE_CLICK",
@@ -294,7 +541,7 @@
 				"end_action" : "END_ACTION.BREAK",
 				"execute_number" : 2,
 				"retry_number" : 5,
-				"image_path" : "../Images/image_SelectServer02/*.png",
+				"image_path" : "../Images/houchi/0600_selectserver/0002_Server/*.png",
 				"interval_time" : 0.1,
 				"recognition_confidence" : 0.8,
 				"recognition_grayscale" : true
@@ -306,8 +553,8 @@
 		{
 			"name" : "HouchiServer03",
 			"type" : "Recognition",
-			"condition_list" : "Result_HouchiAccountClicked.detail = RESULT.OK,Result_HouchiAccountClicked.detail = RESULT.ALL_OK",
-			"result_name":"Result_HouchiServerClicked",
+			"condition_list" : "Result_HouchiAccountClick.detail = RESULT.OK,Result_HouchiAccountClick.detail = RESULT.ALL_OK",
+			"result_name":"Result_HouchiServerClick",
 			"settings" : {
 				"#step_check_mode" : true,
 				"action" : "ACTION.DOUBLE_CLICK",
@@ -315,7 +562,7 @@
 				"end_action" : "END_ACTION.BREAK",
 				"execute_number" : 2,
 				"retry_number" : 5,
-				"image_path" : "../Images/image_SelectServer03/*.png",
+				"image_path" : "../Images/houchi/0600_selectserver/0003_Server/*.png",
 				"interval_time" : 0.1,
 				"recognition_confidence" : 0.8,
 				"recognition_grayscale" : true
@@ -327,8 +574,8 @@
 		{
 			"name" : "HouchiServer04",
 			"type" : "Recognition",
-			"condition_list" : "Result_HouchiAccountClicked.detail = RESULT.OK,Result_HouchiAccountClicked.detail = RESULT.ALL_OK",
-			"result_name":"Result_HouchiServerClicked",
+			"condition_list" : "Result_HouchiAccountClick.detail = RESULT.OK,Result_HouchiAccountClick.detail = RESULT.ALL_OK",
+			"result_name":"Result_HouchiServerClick",
 			"settings" : {
 				"#step_check_mode" : true,
 				"action" : "ACTION.DOUBLE_CLICK",
@@ -336,7 +583,7 @@
 				"end_action" : "END_ACTION.BREAK",
 				"execute_number" : 2,
 				"retry_number" : 5,
-				"image_path" : "../Images/image_SelectServer04/*.png",
+				"image_path" : "../Images/houchi/0600_selectserver/0004_Server/*.png",
 				"interval_time" : 0.1,
 				"recognition_confidence" : 0.8,
 				"recognition_grayscale" : true
@@ -348,15 +595,15 @@
 		{
 			"name" : "HouchiServer05",
 			"type" : "Recognition",
-			"condition_list" : "Result_HouchiAccountClicked.detail = RESULT.OK,Result_HouchiAccountClicked.detail = RESULT.ALL_OK",
-			"result_name":"Result_HouchiServerClicked",
+			"condition_list" : "Result_HouchiAccountClick.detail = RESULT.OK,Result_HouchiAccountClick.detail = RESULT.ALL_OK",
+			"result_name":"Result_HouchiServerClick",
 			"settings" : {
 				"action" : "ACTION.DOUBLE_CLICK",
 				"end_condition" : "RESULT.OK",
 				"end_action" : "END_ACTION.BREAK",
 				"execute_number" : 2,
 				"retry_number" : 5,
-				"image_path" : "../Images/image_SelectServer05/*.png",
+				"image_path" : "../Images/houchi/0600_selectserver/0005_Server/*.png",
 				"interval_time" : 0.1,
 				"recognition_confidence" : 0.8,
 				"recognition_grayscale" : true
@@ -368,15 +615,15 @@
 		{
 			"name" : "HouchiServer06",
 			"type" : "Recognition",
-			"condition_list" : "Result_HouchiAccountClicked.detail = RESULT.OK,Result_HouchiAccountClicked.detail = RESULT.ALL_OK",
-			"result_name":"Result_HouchiServerClicked",
+			"condition_list" : "Result_HouchiAccountClick.detail = RESULT.OK,Result_HouchiAccountClick.detail = RESULT.ALL_OK",
+			"result_name":"Result_HouchiServerClick",
 			"settings" : {
 				"action" : "ACTION.DOUBLE_CLICK",
 				"end_condition" : "RESULT.OK",
 				"end_action" : "END_ACTION.BREAK",
 				"execute_number" : 2,
 				"retry_number" : 5,
-				"image_path" : "../Images/image_SelectServer06/*.png",
+				"image_path" : "../Images/houchi/0600_selectserver/0006_Server/*.png",
 				"interval_time" : 0.1,
 				"recognition_confidence" : 0.8,
 				"recognition_grayscale" : true
@@ -388,15 +635,15 @@
 		{
 			"name" : "HouchiServer07",
 			"type" : "Recognition",
-			"condition_list" : "Result_HouchiAccountClicked.detail = RESULT.OK,Result_HouchiAccountClicked.detail = RESULT.ALL_OK",
-			"result_name":"Result_HouchiServerClicked",
+			"condition_list" : "Result_HouchiAccountClick.detail = RESULT.OK,Result_HouchiAccountClick.detail = RESULT.ALL_OK",
+			"result_name":"Result_HouchiServerClick",
 			"settings" : {
 				"action" : "ACTION.DOUBLE_CLICK",
 				"end_condition" : "RESULT.OK",
 				"end_action" : "END_ACTION.BREAK",
 				"execute_number" : 2,
 				"retry_number" : 5,
-				"image_path" : "../Images/image_SelectServer07/*.png",
+				"image_path" : "../Images/houchi/0600_selectserver/0007_Server/*.png",
 				"interval_time" : 0.1,
 				"recognition_confidence" : 0.8,
 				"recognition_grayscale" : true
@@ -408,15 +655,15 @@
 		{
 			"name" : "HouchiServer08",
 			"type" : "Recognition",
-			"condition_list" : "Result_HouchiAccountClicked.detail = RESULT.OK,Result_HouchiAccountClicked.detail = RESULT.ALL_OK",
-			"result_name":"Result_HouchiServerClicked",
+			"condition_list" : "Result_HouchiAccountClick.detail = RESULT.OK,Result_HouchiAccountClick.detail = RESULT.ALL_OK",
+			"result_name":"Result_HouchiServerClick",
 			"settings" : {
 				"action" : "ACTION.DOUBLE_CLICK",
 				"end_condition" : "RESULT.OK",
 				"end_action" : "END_ACTION.BREAK",
 				"execute_number" : 2,
 				"retry_number" : 5,
-				"image_path" : "../Images/image_SelectServer08/*.png",
+				"image_path" : "../Images/houchi/0600_selectserver/0008_Server/*.png",
 				"interval_time" : 0.1,
 				"recognition_confidence" : 0.8,
 				"recognition_grayscale" : true
@@ -428,15 +675,15 @@
 		{
 			"name" : "HouchiServer09",
 			"type" : "Recognition",
-			"condition_list" : "Result_HouchiAccountClicked.detail = RESULT.OK,Result_HouchiAccountClicked.detail = RESULT.ALL_OK",
-			"result_name":"Result_HouchiServerClicked",
+			"condition_list" : "Result_HouchiAccountClick.detail = RESULT.OK,Result_HouchiAccountClick.detail = RESULT.ALL_OK",
+			"result_name":"Result_HouchiServerClick",
 			"settings" : {
 				"action" : "ACTION.DOUBLE_CLICK",
 				"end_condition" : "RESULT.OK",
 				"end_action" : "END_ACTION.BREAK",
 				"execute_number" : 2,
 				"retry_number" : 5,
-				"image_path" : "../Images/image_SelectServer09/*.png",
+				"image_path" : "../Images/houchi/0600_selectserver/0009_Server/*.png",
 				"interval_time" : 0.1,
 				"recognition_confidence" : 0.8,
 				"recognition_grayscale" : true
@@ -455,7 +702,7 @@
 				"end_action" : "END_ACTION.CONTINUE",
 				"execute_number" : 2,
 				"retry_number" : 2,
-				"image_path" : "../Images/image_end/*.png",
+				"image_path" : "../Images/houchi/0000_account/000_end/*.png",
 				"interval_time" : 1.8,
 				"recognition_confidence" : 0.95,
 				"recognition_grayscale" : true

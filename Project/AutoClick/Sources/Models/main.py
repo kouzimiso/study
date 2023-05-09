@@ -14,12 +14,12 @@ from enum import Enum
 
 sys.path.append("./Common")
 sys.path.append("../Common")
-import rename
-import log
-import adb
-import image_control
-import ocr
-import calculation
+import Rename
+import Log
+import ADB
+import ImageControl
+import OCR
+import Calculation
 
 #画像保存Folder
 message_list = []
@@ -87,7 +87,7 @@ def exec_input():
     global param_zero
     capture_data_and_crop(screenshot_file)
 
-    ocr_instance = ocr.OCR()
+    ocr_instance = OCR.OCR()
     ocr_instance.Setting_BuilderDigits()
     param_zero = ocr_instance.Recognition_ByFilePathList(pre_ss_files, "eng")
     #calcStatus.preParam = param_zero
@@ -111,7 +111,7 @@ def show_result():
     image = capture_data(screenshot_file)
     crop_image(image)
 
-    ocr_instance = ocr.OCR()
+    ocr_instance = OCR.OCR()
     ocr_instance.Setting_BuilderDigits()
     param_end = ocr_instance.Recognition_ByFilePathList(pre_ss_files, "eng")
     print("筋力：{:+}、敏捷：{:+}、知力：{:+}、体力：{:+}". format(int(param_end[0]) - int(param_zero[0]),
@@ -142,42 +142,47 @@ def set_data_position(data_x=130,
 
 def tap(n):
     #pyautogui.click(tapxy[n][0], tapxy[n][1])
-    adb.Tap(device_address , tapxy[n][0] , tapxy[n][1])
+    ADB.Tap(device_address , tapxy[n][0] , tapxy[n][1])
 
 
-def capture_data_and_crop():
+def capture_data_and_crop(screenshot_file,target_device = 1):
     if(target_device==0):
         image = capture_data(screenshot_file)
     else:    
         image = capture_data_adb(screenshot_file)
     time.sleep(IMAGE_WAITING)
     #画像をimgに読み込む
-    return image = cv2.imread(screenshot_file)
+    image = cv2.imread(screenshot_file)
     crop_image(image)
 
-def capture_data_adb(screenshot_file,target_device):
+def capture_data(screenshot_file):
+    global message_list
+    print("######")
+
+
+def capture_data_adb(screenshot_file):
     global device_address
     global message_list
-    #image_control.Image_Capture(screenshot_file)
+    #ImageControl.Image_Capture(screenshot_file)
     #画像をscreen captureする
-    device_address = adb.Get_DeviceAddress()
-    #log.Log_MessageAdd(message_list,str(screen_size))
-    adb.ScreenCapture(device_address,screenshot_file)
-    screen_size = adb.Get_ScreenSize(device_address)
+    device_address = ADB.Get_DeviceAddress()
+    #Log.Log_MessageAdd(message_list,str(screen_size))
+    ADB.ScreenCapture(device_address,screenshot_file)
+    screen_size = ADB.Get_ScreenSize(device_address)
 
 def crop_image(image):
     #cvtColorでグレースケール画像化し、thresholdで2値化する。
-    ret, img_gray = cv2.threshold(cv2.cvtColor(img, cv2.COLOR_BGR2GRAY), 160, 255, cv2.THRESH_BINARY)
+    ret, img_gray = cv2.threshold(cv2.cvtColor(image, cv2.COLOR_BGR2GRAY), 160, 255, cv2.THRESH_BINARY)
     #ret, img_gray = cv2.threshold(img, 100, 255, cv2.THRESH_BINARY)
     #imageのtrimming(img[top : bottom, left : right])
     #ScreenShootのData部分を画像に保存する
-    image_control.CVImageCrop_ByList(img_gray,pre_ss_files,data1_position)
-    image_control.CVImageCrop_ByList(img_gray,ss_files,data2_position)
+    ImageControl.CVImageCrop_ByList(img_gray,pre_ss_files,data1_position)
+    ImageControl.CVImageCrop_ByList(img_gray,ss_files,data2_position)
     time.sleep(IMAGE_WAITING2)
 
 def calcStatus(a,b,c,d):
     global message_list
-    ocr_instance = ocr.OCR()
+    ocr_instance = OCR.OCR()
     ocr_instance.Setting_BuilderDigits()
     count=0
     while(1):
@@ -188,7 +193,7 @@ def calcStatus(a,b,c,d):
         list_label=["筋力","敏捷","知力","体力"]
         #前回との差分による評価を計算
         try:
-            calc = calculation.differential_rating_value(param,calcStatus.preParam,data_rate,list_label)
+            calc = Calculation.differential_rating_value(param,calcStatus.preParam,data_rate,list_label)
         except ValueError:
             print("warn: 育成ステータスが読み込めません")
             #img = cv2.imread(r"%s\screen_1.png" %(ss_dir))
@@ -227,7 +232,7 @@ def calcStatus(a,b,c,d):
                 capture_data_and_crop(screenshot_file)
 
                 calcStatus.preParam = list()
-                ocr_instance = ocr.OCR()
+                ocr_instance = OCR.OCR()
                 ocr_instance.Setting_BuilderDigits()
                 parameter = ocr_instance.Recognition_ByFilePathList(pre_ss_files, "eng")
                 calcStatus.preParam = parameter

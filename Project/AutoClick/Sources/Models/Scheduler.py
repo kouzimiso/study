@@ -2,8 +2,7 @@
 import sys
 sys.path.append("./Common")
 sys.path.append("../Common")
-import auto
-import json_control
+import JSON_Control
 import threading
 import Task
 
@@ -26,7 +25,7 @@ class Schedule:
 
 def init():
     settings = {"Plans":{},"Actions":{}}
-    settings = json_control.ReadDictionary(file_path_setting,settings)
+    settings = JSON_Control.ReadDictionary(file_path_setting,settings)
     plans=settings["plans"]
 
 def StartUp(plan_list_name,file_path):
