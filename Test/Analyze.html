@@ -4,7 +4,7 @@
   <title>File Analyzer</title>
   <script src="json2.js"></script>
   <script>
-    //独自定義関数----------------------------------------
+    // 独自定義関数----------------------------------------
     function Analyze(string_data) {
       var dictionary_data = {};
       //if (string_data.includes("WF_EVENT arrive")) {
@@ -16,7 +16,8 @@
       
       return dictionary_data;
     }
-    //Process管理関数----------------------------------------
+
+    // Process管理関数----------------------------------------
     function HandleFileSelect() {
       if (BrowzerType() == "Internet Explorer"){
         ProcessIE();
@@ -63,7 +64,7 @@
       reader.readAsText(file);
     }
 
-    //IE用Process管理関数
+    // IE用Process管理関数
     //・引数にDefault値使用不能
     //・置換え:FileReader→ActiveXObject("Scripting.FileSystemObject")
     //・置換え:string_data.includes(string)→string_data.indexOf(stirng) !== -1
@@ -165,7 +166,7 @@
     }
 
     // リンク追記関数
-    function DisplayLink(path, label_text, element , search_id ) {
+    function DisplayLink(path, label_text, element, search_id ) {
       var display_element = search_id ? document.getElementById(element) : document.getElementsByTagName(element)[0];
       var link = document.createElement('a');
       link.href = path;
@@ -174,7 +175,7 @@
     }
     //ブラウザ種類判別関数
     function BrowzerType(){
-      var browzer_type =""; 
+      var browzer_type ="";
       if (navigator.appName === "Microsoft Internet Explorer" ) {
         return browzer_type = "Internet Explorer";
       }
