@@ -29,9 +29,9 @@ def validate_input(input_value, input_type, default_value):
         print(f"Invalid value for {input_type.__name__}. Please input a valid value.")
         return validate_input(input(), input_type, default_value)
 
-def user_input(key,default_value):
+def user_input(key,display_value,default_value=""):
     while True:
-        print(f"Please input {key} (Default: {default_value}): ", end="")
+        print(f"Please input {key} (Default: {display_value}): ", end="")
         user_input = input()
         value_type = type(default_value)
         input_value = validate_input(user_input, value_type, default_value)
@@ -40,7 +40,7 @@ def user_input(key,default_value):
     return input_value
 
 #一般化したProgramの引数取得部
-def ArgumentGet(default_data):
+def ArgumentGet(default_dictionary,option_dictionary = {}):
     """
     引数を受け取って辞書を返す関数。
     引数がない場合はユーザーからの入力を受け取る。
@@ -51,10 +51,17 @@ def ArgumentGet(default_data):
     except (IndexError, ValueError, TypeError, json.JSONDecodeError):
         # 引数がない場合やJSON形式に変換できない場合はユーザーからの入力を受け取る
         args = {}
-        for key, default_value in default_data.items():
-            args[key]=user_input(key,default_value)
+        option_check = False
+        for key, default_value in default_dictionary.items():
+            args[key]=user_input(key,default_value,default_value)
+            option_check =True
+        if option_check == True:
+            for key, value in option_dictionary.items():
+                input_value=user_input(key,value)
+                if input_value != "":
+                    args[key]=input_value
     # デフォルト値を上書き
-    for key, value in default_data.items():
+    for key, value in default_dictionary.items():
         if key not in args:
             args[key] = value
     return args
@@ -69,10 +76,10 @@ def Result(result_dictionary={}):
 
 if __name__ == '__main__':
     # Defaultの辞書Data
-    default_data = {"file_path": "./execute.png", "user": "iwao", "number": 2, "bool": True}
-    args_dictionary = ArgumentGet(default_data)
+    default_dictionary = {"file_path": "./execute.png", "user": "iwao", "number": 2, "bool": True}
+    args_dictionary = ArgumentGet(default_dictionary)
     print(args_dictionary)
 
-    default_data = {}
-    args_dictionary = ArgumentGet(default_data)
+    default_dictionary = {}
+    args_dictionary = ArgumentGet(default_dictionary)
     print(args_dictionary)

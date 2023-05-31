@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Parse and Save as JSON</title>
+  <script>
+    function parseAndSave() {
+      const text = document.getElementById('input').value;
+      const result = parseText(text);
+      const json = JSON.stringify(result, null, 2);
+      saveJSON(json, 'result.json');
+    }
+
+    function parseText(text) {
+  const stack = [];
+  const root = {};
+  let currentElement = [root]; // currentElementを配列として初期化
+
+  for (let i = 0; i < text.length; i++) {
+    const char = text[i];
+
+    if (char === '(' || char === '{' || char === '[' || char === '「') {
+      const element = { type: 'Opening bracket', children: [] };
+      currentElement.push(element); // 配列に要素を追加
+      stack.push(currentElement);
+      currentElement = element;
+    } else if (char === ')' || char === '}' || char === ']' || char === '」') {
+      currentElement = stack.pop();
+    } else if (char === '"') {
+      const endIndex = text.indexOf('"', i + 1);
+      const string = text.slice(i + 1, endIndex);
+      currentElement[currentElement.length - 1][char] = {
+        type: 'Unknown',
+        value: string,
+      };
+      i = endIndex;
+    } else if (char !== ' ') {
+      const endIndex = text.indexOf(' ', i + 1);
+      const word = text.slice(i, endIndex !== -1 ? endIndex : undefined);
+      const element = { [word]: { type: 'Unknown', children: [] } };
+      currentElement.push(element); // 配列に要素を追加
+      stack.push(currentElement);
+      currentElement = element[word];
+      i = endIndex !== -1 ? endIndex - 1 : text.length - 1;
+    }
+  }
+
+  return root;
+}
+
+
+    function saveJSON(json, filename) {
+      const blob = new Blob([json], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      link.click();
+      URL.revokeObjectURL(url);
+    }
+  </script>
+</head>
+<body>
+  <textarea id="input" rows="4" cols="50">if(A ="test"){ result = 1+1; for(i=0;i<10;i++){ result = 1+1; } }</textarea>
+  <button onclick="parseAndSave()">Parse and Save as JSON</button>
+</body>
+</html>

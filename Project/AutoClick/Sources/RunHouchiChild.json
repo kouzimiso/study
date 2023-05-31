@@ -214,11 +214,11 @@
 			"settings" : {
 				"file_path"  : "RunHouchiChild.json",
  		 		"plan_lists" : [
-					"HomeClick","PochiClick","PochiContinue","PochiContinue","PochiContinue",
-					"HomeClick","PochiClick","PochiContinue","PochiContinue","PochiContinue",
-					"HomeClick","PochiClick","PochiContinue","PochiContinue","PochiContinue",
-					"HomeClick","PochiClick","PochiContinue","PochiContinue","PochiContinue",
-					"HomeClick","PochiClick","PochiContinue","PochiContinue","PochiContinue",
+					"HomeClick","PochiClick","PochiContinue","PochiContinue","PochiContinue","PochiContinue",
+					"HomeClick","PochiClick","PochiContinue","PochiContinue","PochiContinue","PochiContinue",
+					"HomeClick","PochiClick","PochiContinue","PochiContinue","PochiContinue","PochiContinue",
+					"HomeClick","PochiClick","PochiContinue","PochiContinue","PochiContinue","PochiContinue",
+					"HomeClick","PochiClick","PochiContinue","PochiContinue","PochiContinue","PochiContinue",
 					"HomeClick","PochiClick","PochiContinue","PochiContinue","PochiContinue"
 				]
 			}
@@ -304,6 +304,9 @@
 					"HomeClick","HouchiUnderWareClick",
 					"HomeClick","HouchiUnderWareClick",
 					"HomeClick","HouchiHighSpeedClick",
+					"HomeClick","HouchiEvent08Click",
+					"HomeClick","HouchiEvent08Click",
+					"HomeClick","HouchiEvent08Click",
 					"HomeClick","HouchiEvent08Click"
 				]
 			}
@@ -328,7 +331,7 @@
 				"recognition_confidence" : 0.93,
 				"recognition_grayscale" : true,
 				"log_file_path_list": "../Log/log_recognition.json",
-				"log_function":true,"log_print_standardoutput": true
+				"log_function":true,"log_print_standardoutput": false
 			}
 		},
 		{
@@ -340,7 +343,7 @@
 				"day2": "Now",
 				"day3": "月曜日24:00",
 				"log_file_path_list": "../Log/log_houchi.json",
-				"log_function":true,"log_print_standardoutput": true
+				"log_function":true,"log_print_standardoutput": false
 			}
 		},
 		{
@@ -352,7 +355,7 @@
 				"day2": "Now",
 				"day3": "木曜日24:00",
 				"log_file_path_list": "../Log/log_houchi.json",
-				"log_function":true,"log_print_standardoutput": true
+				"log_function":true,"log_print_standardoutput": false
 			}
 		},
 		{
@@ -364,8 +367,7 @@
 					"Time_Check_ItemMaintenance1=True,Time_Check_ItemMaintenance2=True,ItemMax.detail = RESULT.OK,ItemMax.detail = RESULT.ALL_OK"
 				],
 				"log_file_path_list": "../Log/log_houchi.json",
-				"log_function":true,"log_print_standardoutput": true,
-				"#step_check_mode" : true
+				"#step_check_mode" : true,"log_function":true,"log_print_standardoutput": true
 
 			}
 		},
@@ -386,7 +388,7 @@
 				"recognition_confidence" : 0.93,
 				"recognition_grayscale" : true,
 				"log_file_path_list": "../Log/log_recognition.json",
-			"log_function":true,"log_print_standardoutput": true
+				"log_function":true,"log_print_standardoutput": false
 			}
 		},
 	   {
@@ -456,7 +458,7 @@
 				"recognition_confidence" : 0.93,
 				"recognition_grayscale" : true,
 				"log_file_path_list": "../Log/log_recognition.json",
-				"log_function":true,"log_print_standardoutput": true
+				"log_function":true,"log_print_standardoutput": false
 			}
 		}
 	],
@@ -480,7 +482,7 @@
 				"recognition_confidence" : 0.93,
 				"recognition_grayscale" : true,
 				"log_file_path_list": "../Log/log_recognition.json",
-				"log_function":true,"log_print_standardoutput": true
+				"log_function":true,"log_print_standardoutput": false
 			}
 		},
 
@@ -513,7 +515,7 @@
 				"execute_number" : 1,
 				"retry_number" : 5,
 				"image_path" : "../Images/houchi/1020_pochistart/*.png",
-				"interval_time" : 0.0,
+				"interval_time" : 0.6,
 				"recognition_confidence" : 0.93,
 				"recognition_grayscale" : true,
 				"log_file_path_list": "../Log/log_recognition.json",
@@ -532,7 +534,7 @@
 				"execute_number" : 1,
 				"retry_number" : 1,
 				"image_path" : "../Images/houchi/1021_pochi/*.png",
-				"interval_time" : 0.4,
+				"interval_time" : 0.1,
 				"recognition_confidence" : 0.93,
 				"recognition_grayscale" : false,
 				"log_file_path_list": "../Log/log_recognition.json",
@@ -551,7 +553,7 @@
 				"execute_number" : 1,
 				"retry_number" : 0,
 				"image_path" : "../Images/houchi/1022_pochilongstart/*.png",
-				"interval_time" : 0.4,
+				"interval_time" : 0.6,
 				"recognition_confidence" : 0.93,
 				"recognition_grayscale" : false,
 				"log_file_path_list": "../Log/log_recognition.json",
@@ -570,7 +572,7 @@
 				"execute_number" : 1,
 				"retry_number" : 1,
 				"image_path" : "../Images/houchi/1023_pochilong/*.png",
-				"interval_time" : 0.4,
+				"interval_time" : 0.1,
 				"recognition_confidence" : 0.93,
 				"recognition_grayscale" : false,
 				"log_file_path_list": "../Log/log_recognition.json",
@@ -612,7 +614,7 @@
 				"execute_number" : 1,
 				"retry_number" : 2,
 				"image_path" : "../Images/houchi/1400_event/0000_start/*.png",
-				"interval_time" : 1,
+				"interval_time" : 0.5,
 				"recognition_confidence" : 0.93,
 				"recognition_grayscale" : true,
 				"log_file_path_list": "../Log/log_recognition.json",
@@ -662,7 +664,7 @@
 				"execute_number" : 1,
 				"retry_number" : 2,
 				"image_path" : "../Images/houchi/1400_event/0010_start/*.png",
-				"interval_time" : 1,
+				"interval_time" : 0.6,
 				"recognition_confidence" : 0.93,
 				"recognition_grayscale" : true,
 				"log_file_path_list": "../Log/log_recognition.json",
@@ -681,7 +683,7 @@
 				"execute_number" : 1,
 				"retry_number" : 0,
 				"image_path" : "../Images/houchi/1400_event/0015_execute/*.png",
-				"interval_time" : 0.5,
+				"interval_time" : 0.2,
 				"recognition_confidence" : 0.93,
 				"recognition_grayscale" : true,
 				"log_file_path_list": "../Log/log_recognition.json",
@@ -1270,8 +1272,8 @@
 				"execute_number" : 1,
 				"retry_number" : 2,
 				"image_path" : "../Images/houchi/1520_tyuzo/*.png",
-				"interval_time" : 0.7,
-				"recognition_confidence" : 0.93,
+				"interval_time" : 0.8,
+				"recognition_confidence" : 0.95,
 				"recognition_grayscale" : true,
 				"log_file_path_list": "../Log/log_recognition.json",
 				"log_function":true,"log_print_standardoutput": false
@@ -1293,7 +1295,7 @@
 				"retry_number" : 0,
 				"image_path" : "../Images/houchi/2000_item/0005_execute/*.png",
 				"interval_time" : 0.7,
-				"recognition_confidence" : 0.93,
+				"recognition_confidence" : 0.95,
 				"recognition_grayscale" : true,
 				"log_file_path_list": "../Log/log_recognition.json",
 				"log_function":true,"log_print_standardoutput": false
@@ -1327,7 +1329,7 @@
 				"recognition_confidence" : 0.93,
 				"recognition_grayscale" : true,
 				"log_file_path_list": "../Log/log_recognition.json",
-				"log_function":true,"log_print_standardoutput": true
+				"log_function":true,"log_print_standardoutput": false
 			}
 		},
 		{
@@ -1427,7 +1429,7 @@
 				"execute_number" : 1,
 				"retry_number" : 2,
 				"image_path" : "../Images/houchi/1910_battle/*.png",
-				"interval_time" : 0.5,
+				"interval_time" : 0.8,
 				"recognition_confidence" : 0.93,
 				"recognition_grayscale" : true,
 				"log_file_path_list": "../Log/log_recognition.json",
@@ -1649,7 +1651,7 @@
 				"execute_number" : 1,
 				"retry_number" : 0,
 				"image_path" : "../Images/houchi/1010_Return/*.png",
-				"interval_time" : 0.5,
+				"interval_time" : 0.2,
 				"recognition_confidence" : 0.95,
 				"recognition_grayscale" : true,
 				"log_file_path_list": "../Log/log_recognition.json",
@@ -1670,7 +1672,7 @@
 				"execute_number" : 1,
 				"retry_number" : 0,
 				"image_path" : "../Images/houchi/1011_home/*.png",
-				"interval_time" : 0.5,
+				"interval_time" : 0.1,
 				"recognition_confidence" : 0.95,
 				"recognition_grayscale" : true,
 				"log_file_path_list": "../Log/log_recognition.json",
@@ -1689,7 +1691,7 @@
 				"execute_number" : 1,
 				"retry_number" : 0,
 				"image_path" : "../Images/houchi/1010_Return/*.png",
-				"interval_time" : 0.5,
+				"interval_time" : 0.3,
 				"recognition_confidence" : 0.95,
 				"recognition_grayscale" : true,
 				"log_file_path_list": "../Log/log_recognition.json",
@@ -1708,7 +1710,7 @@
 				"execute_number" : 1,
 				"retry_number" : 2,
 				"image_path" : "../Images/houchi/1011_home/*.png",
-				"interval_time" : 0.5,
+				"interval_time" : 0.2,
 				"recognition_confidence" : 0.95,
 				"recognition_grayscale" : true,
 				"log_file_path_list": "../Log/log_recognition.json",

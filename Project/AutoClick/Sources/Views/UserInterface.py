@@ -51,6 +51,11 @@ class EditorProcess(multiprocessing.Process):
         
 
 class DictionaryEditor:
+    #def __init__(self):
+    #    if Window:
+    #        gui=CloseApp()
+    #        gui.run()
+
     def run(self,data):
         queue = multiprocessing.Queue()
         process = EditorProcess(data, queue)
@@ -63,6 +68,11 @@ class DictionaryEditor:
         return queue
 
 class ValueEditor:
+    #def __init__(self):
+    #    if Window:
+    #        gui=CloseApp()
+    #        gui.run()
+
     def run(self, data):
         if type(data) == dict:
             self.data = data
@@ -82,32 +92,24 @@ class ValueEditor:
             return queue
 
 def main(argument_dictionary):
-    print("test")
+    program_type = argument_dictionary.get("type","")
     
-    editor = DictionaryEditor()
-    print("test")
-    result = editor.run(argument_dictionary)
-    print(result)
-
-    editor = DictionaryEditor()
-    result = editor.run(argument_dictionary)
-    print(result)
-
-    argument_dictionary = "test"
-    editor = ValueEditor()
-    result = editor.run(argument_dictionary)
-    print(result)
-
+    if program_type == "ValueEditor":
+        editor = ValueEditor()
+        result = editor.run(argument_dictionary)
+        print(result)
+    else:
+        editor = DictionaryEditor()
+        result = editor.run(argument_dictionary)
+        print(result)
 
 if __name__ == "__main__":
-    gui=CloseApp()
-    gui.run()
+    if Window:
+        gui=CloseApp()
+        gui.run()
+
     # Defaultの辞書Data
-    default_dictionary = {
-        'key1': 'value1',
-        'key2': 'value2',
-        'key3': 'value3',
-        'key4': 'value4'
-    }
-    argument_dictionary = FunctionUtility.ArgumentGet(default_dictionary)
+    default_dictionary = {}
+    option_dictionary = {"type":"ValueEditor"}
+    argument_dictionary = FunctionUtility.ArgumentGet(default_dictionary,option_dictionary)
     main(argument_dictionary)

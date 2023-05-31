@@ -10,7 +10,7 @@ import Auto
 import Judge
 import Log
 import JSON_Control
-import UserInterface
+#import UserInterface
 
 
 class Task(threading.Thread):
@@ -147,8 +147,8 @@ class Task(threading.Thread):
                     "data_name" : data_name,
                     "default_data" :default_data
                 }
-                editor = UserInterface.ValueEditor()
-                value = editor.input_data(setting)
+                #editor = UserInterface.ValueEditor()
+                #value = editor.input_data(setting)
         return value
 
     def StepCheck(self,flag_judge , details = {}):

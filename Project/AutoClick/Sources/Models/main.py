@@ -80,8 +80,8 @@ def init(args):
         data_rate[2]=float(args[4])
         data_rate[3]=float(args[5])
         loop_number=int(args[6])
-    data1_position=set_data_position(270,890+offset,126,60)
-    data2_position=set_data_position(700,890+offset,126,60)
+    data1_position=set_data_position(240,860+offset,126,60)
+    data2_position=set_data_position(750,860+offset,126,60)
 
 def exec_input():
     global param_zero

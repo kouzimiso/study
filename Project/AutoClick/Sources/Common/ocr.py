@@ -7,10 +7,12 @@ class OCR:
     #Optical Character Recognition(光学的文字認識)
     #tesseract(ocr)のディレクトリ
     pyocr.tesseract.TESSERACT_CMD = r"C:\\Program Files\\Tesseract-OCR\\tesseract.exe"
-    tool = pyocr.get_available_tools()[0]
-    builder=pyocr.builders.TextBuilder(tesseract_layout=6)
-    builder.tesseract_configs.append("-c")
-    builder.tesseract_configs.append("preserve_interword_spaces=1")
+    def __init__(self):
+        self.tool = pyocr.get_available_tools()[0]
+        self.builder=pyocr.builders.TextBuilder(tesseract_layout=6)
+        self.builder.tesseract_configs.append("-c")
+        self.builder.tesseract_configs.append("preserve_interword_spaces=1")
+
 
     def Setting_TesseractPath(self,application_path):
         pyocr.tesseract.TESSERACT_CMD=application_path

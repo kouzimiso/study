@@ -11,7 +11,7 @@ import json
 from pythonjsonlogger import jsonlogger
 import FileControl
 import LogMessage
-
+import FunctionUtility
 #class END_ACTION(Enum):
 #    BREAK = 0
 #    FOLDER_END_BREAK = 1
@@ -21,60 +21,58 @@ import LogMessage
 #LogはLog_append関数で現在の時間とメッセージとレベルを辞書形式でListに加えて貯める。
 #Log_append関数で貯めたLogをlog_write関数でloggingのレベルでフィルタリングし、1回のFile書き込みで複数のLogをまとめてJSON.Line形式でFileに追記する
 class Logs:
-    Log_Lists : list = []
-    Setting:dict = {}
-    default_log_console_level = "WARNING"
-    #MESSAGE_FORMAT ="%(asctime)s %(levelname)s %(message)s"
-    MESSAGE_FORMAT ="%(message)s"
-    TIME_FORMAT = "%Y/%m/%d %H:%M:%S"
-    FilePathList = ["../Log/log.json"]
-    DEFAULT_FORMATTER = {
-        #'()' : 'pythonjsonlogger.jsonlogger.JsonFormatter' , 
-        "format" : MESSAGE_FORMAT , 
-        "datefmt" : TIME_FORMAT , 
-        "json_default" : json.JSONEncoder.default , 
-    }
-    CONSOLE_HANDLER = {
-        "class" : "logging.StreamHandler" , 
-        "formatter" : "json" , 
-        "level" : "INFO"
-    }
-    FILE_HANDLERS = {
-        "file" : { 
-            "class" : "logging.FileHandler" , 
-            "filename" : "../Log/log2.json" , 
-            "formatter" : "json"
-        },
-        "console":CONSOLE_HANDLER
-    }
-    
-    # デフォルトのログ設定
-    DEFAULT_LOGGING_CONFIG = {
-        "version" : 1 , 
-        "disable_existing_loggers" : False , 
-        "handlers" : FILE_HANDLERS , 
-        "formatters" : {
-            "json" : DEFAULT_FORMATTER
-        } , 
-        "loggers" : {
-            "files" : {
-               "handlers" : ["file"] , 
-                "level" : "INFO"
-            } , 
-            "default" : {
-               "handlers" : ["file"] , 
-                "level" : "INFO"
-            },
-            "console" : {
-                "handlers" : ["console"] , 
-                "level" : "INFO"
-            } 
-
-        }
-    }
-    
-    
     def __init__(self , setting_dictionary = {}):
+        self.Log_Lists = []
+        self.Setting = {}
+        self.default_log_console_level : str = "WARNING"
+        #self.MESSAGE_FORMAT ="%(asctime)s %(levelname)s %(message)s"
+        self.MESSAGE_FORMAT = "%(message)s"
+        self.TIME_FORMAT = "%Y/%m/%d %H:%M:%S"
+        self.FilePathList = ["../Log/log.json"]
+        self.DEFAULT_FORMATTER = {
+            "class": "pythonjsonlogger.jsonlogger.JsonFormatter",
+            #"json_default" : json.JSONEncoder.default , 
+            #'()' : 'pythonjsonlogger.jsonlogger.JsonFormatter' , 
+            "format" : self.MESSAGE_FORMAT , 
+            "datefmt" : self.TIME_FORMAT 
+        }
+        self.CONSOLE_HANDLER = {
+            "class" : "logging.StreamHandler" , 
+            "formatter" : "json" , 
+            "level" : "INFO"
+        }
+        self.FILE_HANDLERS = {
+            "file" : { 
+                "class" : "logging.FileHandler" , 
+                "filename" : "../Log/log2.json" , 
+                "formatter" : "json"
+            },
+            "console":self.CONSOLE_HANDLER
+        }
+        
+        # デフォルトのログ設定
+        self.DEFAULT_LOGGING_CONFIG = {
+            "version" : 1 , 
+            "disable_existing_loggers" : False , 
+            "handlers" : self.FILE_HANDLERS , 
+            "formatters" : {
+                "json" : self.DEFAULT_FORMATTER
+            } , 
+            "loggers" : {
+                "files" : {
+                "handlers" : ["file"] , 
+                    "level" : "INFO"
+                } , 
+                "default" : {
+                "handlers" : ["file"] , 
+                    "level" : "INFO"
+                },
+                "console" : {
+                    "handlers" : ["console"] , 
+                    "level" : "INFO"
+                } 
+            }
+        }
         self.Setup(setting_dictionary)
         
     def Setup(self , setting_dictionary = {}):
@@ -87,6 +85,7 @@ class Logs:
             self.FilePathList = file_path_list
         # ログ設定ファイルの読み込み
         try:
+            #path指定が無ければDefault設定、有れば設定をDictionary形式で読み込む
             if log_setting_path is None:
                 config = self.DEFAULT_LOGGING_CONFIG
             else:
@@ -141,8 +140,12 @@ class Logs:
     def Log_Level_Get(self , log_level_string , default_log_level=logging.WARNING):
         try:            
             log_level=logging.getLevelName(log_level_string)
+            if not isinstance(log_level, int):
+                log_level=default_log_level
         except:
             log_level=default_log_level
+        if not isinstance(log_level, int):
+            log_level = logging.WARNING
         return log_level
 
 
@@ -213,7 +216,9 @@ class Logs:
                         file.write(json.dumps(message , ensure_ascii=False)+"\n")
         #self.log("","INFO",details = message_list)
                 
-    def MessageList_Clear(self , message_lists = Log_Lists):
+    def MessageList_Clear(self , message_lists = None):
+        if message_lists is None:
+            message_lists = self.Log_Lists
         message_lists.clear()
 
 def Log_MessageFormat(message):
@@ -242,4 +247,40 @@ def Write_MessageList(file_path , message_list):
     file = open(file_path , 'a')
     file.writelines(message_list)
     file.close()
+
+def main(argument_dictionary):
+    argument_dictionary["message"]= "test message"
+    logger=Logs(argument_dictionary)
+    logger.log("","",argument_dictionary)
+    logger.MessageList_Write()
+    #logger.MessageList_Clear()
+
+    argument_dictionary["message"]= "test message2"
+    argument_dictionary["log_file_path_list"]= ["../Log/log2.json","../Log/log3.json"]
+
+    logger2=Logs(argument_dictionary)
+    logger2.log("","",argument_dictionary)
+    logger2.log("","",argument_dictionary)
+    logger2.MessageList_Write()
+    #logger2.MessageList_Clear()
+
+    result_dictionary={"result" : True}
+    FunctionUtility.Result(result_dictionary)
+
+if __name__ == '__main__':
+    # Defaultの辞書Data
+    default_dictionary = {
+        "log_setting_path": "./setting_log.json",
+        "log_file_path_list": ["../Log/log.json"]
+
+    }
+    option_dictionary ={
+        "message": "test message",
+        "date": datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S"),
+        "level": "INFO",
+        "log_print_standardoutput":True
+    }
+    argument_dictionary = FunctionUtility.ArgumentGet(default_dictionary,option_dictionary)
+    main(argument_dictionary)
+
 

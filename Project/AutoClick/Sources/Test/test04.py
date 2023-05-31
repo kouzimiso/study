@@ -1,55 +1,29 @@
-import multiprocessing
-from kivy.app import App
-from kivy.uix.label import Label
+import readline
+import os
+from unittest.mock import patch, MagicMock
 
+def input_with_hint(prompt, hint=''):
+    def hook():
+        readline.insert_text(hint)
+        readline.redisplay()
+    readline.set_pre_input_hook(hook)
+    result = input(prompt)
+    readline.set_pre_input_hook()
+    return result
 
-class GUIProcess(multiprocessing.Process):
-    def __init__(self, data, queue):
-        super().__init__()
-        self.data = data
-        self.queue = queue
-
-    def run(self):
-        app = MyApp(self.data, self.queue)
-        app.run()
-
-class MyApp(App):
-    def __init__(self, data, queue):
-        super().__init__()
-        self.data = data
-        self.queue = queue
-
-    def build(self):
-        return Label(text="Hello World")
-
-    def on_stop(self):
-        self.queue.put(self.data)
-
-
-class GUI:
-    def run(self,data):
-        result = {}
-        queue = multiprocessing.Queue()
-        process = GUIProcess(data, queue)
-        process.start()
-        process.join()
-        result = queue.get()
-        return result
-
+def test_input_with_hint():
+    prompt = 'Please enter your name: '
+    hint = 'e.g. John Doe'
+    expected_output = 'John'
     
-if __name__ == '__main__':
-    data = {"key": "value"}
-    queue = multiprocessing.Queue()
-    process = GUIProcess(data, queue)
-    process.start()
-    process.join()
-    result = queue.get()
-    print(result)
+    # Mock user input
+    user_input = 'John'
+    with patch('builtins.input', return_value=user_input):
+        with patch('sys.stdout', new_callable=MagicMock()) as mock_stdout:
+            result = input_with_hint(prompt, hint)
+    
+    # Ensure the hint is displayed and the result is correct
+    assert result == expected_output
+    assert mock_stdout.getvalue() == f'{prompt}{hint}{user_input}\n'
 
-
-    data = {"key": "value"}
-    result = {}
-    process = GUI()
-    result = process.run(data)
-    print(result)
-
+test_input_with_hint()
