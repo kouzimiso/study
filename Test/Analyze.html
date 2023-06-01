@@ -11,15 +11,36 @@
       if (string_data.indexOf("WF_EVENT arrive") !== -1) {//IE9対策
         dictionary_data["eventName"] = "WF_EVENT arrive";
         dictionary_data["rowData"] = string_data;
-
       }
-      
       return dictionary_data;
+    }
+    function StringToAnalyzeData(string_data,browser_IE){
+      //List化
+      var lines = string_data.split('\r\n');
+      var result_list = [];
+
+      for (var i = 0; i < lines.length; i++) {
+         //不要なSpaces削除
+         var line = lines[i]
+         line = browser_IE? line.replace(/^\s+|\s+$/g, ''): line.trim();
+
+         //解析しDictionary Data化
+         var result = Analyze(line);
+         //解析Dataが有ればListに加える。
+         //var data_exist = browser_IE? !IsObjectEmpty(result) :Object.keys(result).length;
+         //if (data_exist) {//条件式を変数で受けると動作が遅くなった。
+         //if(IsObjectExist(result,browser_IE)){//複数browserを立ち上げると遅い。
+         if (browser_IE? !IsObjectEmpty(result) :Object.keys(result).length){//速度はOK。3項演算子使うのは微妙
+            result.row = i + 1;
+            result_list.push(result);
+         }
+       }
+      return result_list
     }
 
     // Process管理関数----------------------------------------
     function HandleFileSelect() {
-      if (BrowzerType() == "Internet Explorer"){
+      if (BrowserType() == "Internet Explorer"){
         ProcessIE();
       } else {
         Process();
@@ -27,32 +48,20 @@
     }
 
     function Process() {
+      //File読込
       var file_input = document.getElementById('FileInput');
       var file = file_input.files[0];
       var reader = new FileReader();
-
+      //File読込Event登録
       reader.onload = function(e) {
         var file_content = e.target.result;
-        //List化
-        var lines = file_content.split('\n');
-        var result = [];
-
-        for (var i = 0; i < lines.length; i++) {
-          //不要なSpaces削除
-          var line = lines[i].trim();
-          //解析しDictionary Data化
-          var analyzed_data = Analyze(line);
-
-          if (Object.keys(analyzed_data).length !== 0) {
-            analyzed_data.row = i + 1;
-            result.push(analyzed_data);
-          }
-        }
-
-        var json_result = result.map(function(data) {
+        //FileData処理
+        var analyzed_data = StringToAnalyzeData(file_content,false);
+        //JSON Data化
+        var json_result = analyzed_data.map(function(data) {
           return JSON.stringify(data);
         }).join('\n');
-
+        //File保存
         SaveToFile(file.name + '.json', json_result);
 
         // ブラウザに表示
@@ -70,40 +79,33 @@
     //・置換え:string_data.includes(string)→string_data.indexOf(stirng) !== -1
     //・window.navigator.userAgent.toLowerCase();→agent = window.navigator.userAgent; agent.toLowerCase();
     function ProcessIE() {
+      //File読込
       var file_input = document.getElementById('FileInput');
       var file = file_input.value;
-
       var file_system = new ActiveXObject("Scripting.FileSystemObject");
       var file_stream = file_system.OpenTextFile(file, 1);
       var file_content = file_stream.ReadAll();
       file_stream.Close();
-
-      var lines = file_content.split('\r\n');
-      var results = [];
-
-      for (var i = 0; i < lines.length; i++) {
-        var line = lines[i];
-        // 空白文字を手動で削除
-        line = line.replace(/^\s+|\s+$/g, '');
-        var result = Analyze(line);
-        if (!IsEmpty(result)) {
-          result.row = i + 1;
-          results.push(result);
-        }
-      }
-
+      
+      //FileData処理
+      var analyzed_data = StringToAnalyzeData(file_content,true);
+      //JSON Data化
       var json_result = '';
-      for (var j = 0; j < results.length; j++) {
-        json_result += DictionaryToJSON(results[j]) + '\r\n';
+      for (var j = 0; j < analyzed_data.length; j++) {
+        json_result += DictionaryToJSON(analyzed_data[j]) + '\r\n';
       }
+      //File保存
 
       SaveToFileIE(file + '.json', json_result);
+      //IEはDownload出来ないので保存場所を表示する。
       DisplayLink(file + '.json', file + '.json', 'body', false);
-      
+      // ブラウザに表示
       var json_lines = json_result.split('\n');
       // json_lines = json_lines.slice(0, 3);
       DisplayArray(json_lines, 'Display', true);
     }
+
+
     //汎用クラス-----------------------------------
     //(JavaScriptのfunctionは全てクラス。メソッドとクラス変数を持つもの)
     function StringTokenizer(str, delimiter) {
@@ -123,15 +125,26 @@
     }
     //汎用関数----------------------------------------
     // オブジェクトが空かどうかをチェックする関数
-    function IsEmpty(obj) {
+    function IsObjectEmpty(obj) {
       for (var key in obj) {
-        if (obj.hasOwnProperty(key)) {
-          return false;
-        }
+         if (obj.hasOwnProperty(key)) {
+           return false;
+         }
       }
       return true;
     }
-
+    function IsObjectExist(obj,browser_IE) {
+      if(browser_IE){
+        for (var key in obj) {
+           if (obj.hasOwnProperty(key)) {
+             return true;
+           }
+        }
+       return false;
+     }else{
+       return Object.keys(obj).length != 0;
+     }
+    }
     // 辞書のJSON文字列化関数
     function DictionaryToJSON(obj) {
       var json_string = '{';
@@ -174,29 +187,29 @@
       display_element.appendChild(link);
     }
     //ブラウザ種類判別関数
-    function BrowzerType(){
-      var browzer_type ="";
+    function BrowserType(){
+      var browser_type ="";
       if (navigator.appName === "Microsoft Internet Explorer" ) {
-        return browzer_type = "Internet Explorer";
+        return browser_type = "Internet Explorer";
       }
       var agent = window.navigator.userAgent;
       agent = agent.toLowerCase();
       if (agent.indexOf("msie") != -1 || agent.indexOf("trident") != -1) {
-        browzer_type = "Internet Explorer";
+        browser_type = "Internet Explorer";
       } else if (agent.indexOf("edg") != -1 || agent.indexOf("edge") != -1) {
-        browzer_type = "Edge";
+        browser_type = "Edge";
       } else if (agent.indexOf("opr") != -1 || agent.indexOf("opera") != -1) {
-        browzer_type = "Opera";
+        browser_type = "Opera";
       } else if (agent.indexOf("chrome") != -1) {
-        browzer_type = "Chrome";
+        browser_type = "Chrome";
       } else if (agent.indexOf("safari") != -1) {
-        browzer_type = "Safari";
+        browser_type = "Safari";
       } else if (agent.indexOf("firefox") != -1) {
-        browzer_type = "FireFox";
+        browser_type = "FireFox";
       } else if (agent.indexOf("opr") != -1 || agent.indexOf("opera") != -1) {
-        browzer_type = "Opera";
+        browser_type = "Opera";
       }
-      return browzer_type;
+      return browser_type;
     }
     // ファイル保存関数
     function SaveToFile(fileName, content) {
@@ -211,10 +224,11 @@
     // ファイル保存関数(IE専用)
     function SaveToFileIE(fileName, content) {
       var file_system = new ActiveXObject("Scripting.FileSystemObject");
-      var file_stream = fileSystem.CreateTextFile(fileName, true);
+      var file_stream = file_system.CreateTextFile(fileName, true);
       file_stream.Write(content);
       file_stream.Close();
     }
+
   </script>
 </head>
 <body>
