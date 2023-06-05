@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>String Processing</title>
+</head>
+<body>
+  <h1>String Processing</h1>
+  <label for="text-input">Text:</label>
+  <input type="text" id="text-input" placeholder="Enter text">
+
+  <label for="delimiter-input">Delimiter:</label>
+  <input type="text" id="delimiter-input" placeholder="Enter delimiter">
+
+  <label for="start-text-input">Start Text:</label>
+  <input type="text" id="start-text-input" placeholder="Enter start text">
+
+  <label for="element-list-input">Element List:</label>
+  <input type="text" id="element-list-input" placeholder="Enter element list">
+
+  <button onclick="processString()">Process</button>
+  <button onclick="saveResultAsJSON()">Save as JSON</button>
+
+  <div id="result"></div>
+
+  <script>
+    function splitTextToDictionary(text, delimiter, start_text, element_list, result_dictionary) {
+      this.previous_text = "";
+      this.after_text = "";
+      this.element_count = 0;
+      this.result_dictionary = result_dictionary;
+
+      this.execute = function() {
+        var startIndex = text.indexOf(start_text);
+        if (startIndex === -1) {
+          this.previous_text = text;
+          this.after_text = "";
+          this.element_count = 0;
+          this.result_dictionary = result_dictionary;
+          return;
+        }
+
+        this.previous_text = text.substring(0, startIndex );
+
+        var endIndex = startIndex;
+        var elementIndex = 0;
+
+        while (elementIndex < element_list.length && endIndex < text.length) {
+          var currentElement = element_list[elementIndex];
+          var nextDelimiterIndex = text.indexOf(delimiter, endIndex);
+
+          if (nextDelimiterIndex === -1) {
+            console.log("Element not found.");
+            break;
+          }
+
+          var value = text.substring(endIndex, nextDelimiterIndex).trim();
+
+          if (currentElement in this.result_dictionary && !isNaN(this.result_dictionary[currentElement])) {
+            value = parseFloat(value);
+            if (isNaN(value)) {
+              value = text.substring(endIndex, nextDelimiterIndex).trim();
+            }
+          }
+
+          this.result_dictionary[currentElement] = value;
+
+          endIndex = nextDelimiterIndex + delimiter.length;
+          elementIndex++;
+        }
+
+        this.element_count = elementIndex;
+
+        if (elementIndex < element_list.length) {
+          this.after_text = "";
+        } else {
+          this.after_text = text.substring(endIndex).trim();
+        }
+      };
+      this.getPreviousText = function() {
+          return this.previous_text;
+      };
+      this.getAfterText = function() {
+          return this.after_text;
+      };
+      this.getElementCount = function() {
+          return this.element_count;
+      };
+      this.getResultDictionary = function() {
+          return this.result_dictionary;
+      };
+
+    }
+
+    function processString() {
+      var text = document.getElementById("text-input").value;
+      var delimiter = document.getElementById("delimiter-input").value;
+      var start_text = document.getElementById("start-text-input").value;
+      var element_list = document.getElementById("element-list-input").value.split(",");
+      var result_dictionary = {"1": -1, "2": -1}
+
+      var string_processor = new splitTextToDictionary(text, delimiter, start_text, element_list, result_dictionary);
+      string_processor.execute();
+
+      var resultDiv = document.getElementById("result");
+      resultDiv.innerHTML = "Previous Text: " + string_processor.previous_text + "<br>" +
+                            "After Text: " + string_processor.after_text + "<br>" +
+                            "Element Count: " + string_processor.element_count;
+
+      // Save result in class variable
+      result_dictionary = string_processor.getResultDictionary();
+    }
+
+    function saveResultAsJSON() {
+      var filename = "result.json";
+      var jsonData = JSON.stringify(result_dictionary);
+      var blob = new Blob([jsonData], {type: "application/json"});
+      var url = URL.createObjectURL(blob);
+
+      var a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    }
+  </script>
+</body>
+</html>
