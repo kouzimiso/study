@@ -1,0 +1,17 @@
+<html>
+<head>
+  <title>AST Generator</title>
+</head>
+<body>
+  <h1>AST Generator</h1>
+  <p>Select a JavaScript file and see its AST in JSON format.</p>
+  <input type="file" id="file-input" accept=".js">
+  <pre id="output"></pre>
+  <script src="require.js"></script>
+  <script>
+    require(["astgen.js"], function(astgen) {
+      // Use astgen module here
+    });
+  </script>
+</body>
+</html>

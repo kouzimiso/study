@@ -270,7 +270,7 @@ class Test(unittest.TestCase):
                     "condition_list":["Condition_Execute = true","Result_ClickTest01.detail=RESULT.NG"],
                     "result_name":"",
                     "settings" : {
-                        "file_path"  : "RunHouchi.json",
+                        "file_path"  : "../Setting/RunHouchi.json",
                         "log_function":True,"log_print_standardoutput": True,"log_file_path_list": "../Log/log_RunPlanList.json.json",
                         "#step_check_mode" : True,
                         "plan_lists" : [

@@ -251,7 +251,7 @@ class Task(threading.Thread):
         self.task_condition = plan.get("condition_list",[])
         self.logger=Log.Logs(self.task_settings)
         details = plan
-        self.logger.log("Task Read","DEBUG",details=details)
+        #self.logger.log("Task Read","DEBUG",details=details)
         return True
 
 

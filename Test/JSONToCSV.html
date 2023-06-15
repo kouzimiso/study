@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>JSONLine to CSV</title>
+<style>
+th.sortable {
+  cursor: pointer;
+}
+th.sortable:hover {
+  text-decoration: underline;
+}
+th.draggable {
+  cursor: move;
+}
+table {
+  border-collapse: collapse;
+}
+th, td {
+  border: 1px solid black;
+  padding: 8px;
+}
+</style>
+</head>
+<body>
+<h1>JSONLine to CSV</h1>
+<input type="file" id="file-input" />
+<button onclick="convert()">Convert</button>
+<button onclick="saveCSV()">Save CSV</button>
+<div id="output"></div>
+</body>
+<script>
+var jsonData = [];
+var sortedColumn = null;
+var sortOrder = 1;
+
+function convert() {
+  var file = document.getElementById("file-input").files[0];
+  var reader = new FileReader();
+  reader.onload = function(event) {
+    var lines = event.target.result.split('\n');
+    jsonData = [];
+    for (var i = 0; i < lines.length; i++) {
+      if (lines[i]) {
+        jsonData.push(JSON.parse(lines[i]));
+      }
+    }
+    displayTable();
+  };
+  reader.readAsText(file);
+}
+
+function displayTable() {
+  var keys = [];
+  for (var j = 0; j < jsonData.length; j++) {
+    var objKeys = Object.keys(jsonData[j]);
+    keys = keys.concat(objKeys);
+  }
+  keys = Array.from(new Set(keys));
+  
+  var table = document.createElement("table");
+  var headerRow = document.createElement("tr");
+  for (var k = 0; k < keys.length; k++) {
+    var headerCell = document.createElement("th");
+    headerCell.textContent = keys[k];
+    headerCell.dataset.key = keys[k];
+    headerCell.classList.add("sortable", "draggable");
+    headerCell.addEventListener("click", function() {
+      sortTable(this.dataset.key);
+    });
+    headerCell.addEventListener("dragstart", function(event) {
+      event.dataTransfer.setData("text/plain", this.dataset.key);
+    });
+    headerCell.addEventListener("dragover", function(event) {
+      event.preventDefault();
+    });
+    headerCell.addEventListener("drop", function(event) {
+      event.preventDefault();
+      var draggedKey = event.dataTransfer.getData("text/plain");
+      var targetKey = this.dataset.key;
+      reorderColumns(draggedKey, targetKey);
+    });
+    headerRow.appendChild(headerCell);
+  }
+  table.appendChild(headerRow);
+  
+  for (var l = 0; l < jsonData.length; l++) {
+    var dataRow = document.createElement("tr");
+    for (var m = 0; m < keys.length; m++) {
+      var dataCell = document.createElement("td");
+      if (jsonData[l].hasOwnProperty(keys[m])) {
+        dataCell.textContent = jsonData[l][keys[m]];
+      }
+      dataRow.appendChild(dataCell);
+    }
+    table.appendChild(dataRow);
+  }
+  
+  var outputDiv = document.getElementById("output");
+  outputDiv.innerHTML = "";
+  outputDiv.appendChild(table);
+}
+
+function saveCSV() {
+  var table = document.querySelector("table");
+  var csv = convertTableToCSV(table);
+  var blob = new Blob([csv], {type: "text/csv"});
+  var link = document.createElement("a");
+  link.href = window.URL.createObjectURL(blob);
+  link.download = "output.csv";
+  link.click();
+}
+
+function convertTableToCSV(table) {
+  var csv = [];
+  var rows = table.querySelectorAll("tr");
+  for (var i = 0; i < rows.length; i++) {
+    var row = [];
+    var cells = rows[i].querySelectorAll("th, td");
+    for (var j = 0; j < cells.length; j++) {
+      row.push(cells[j].textContent);
+    }
+    csv.push(row.join(","));
+  }
+  return csv.join("\n");
+}
+
+function sortTable(key) {
+  if (sortedColumn === key) {
+    sortOrder *= -1;
+  } else {
+    sortedColumn = key;
+    sortOrder = 1;
+  }
+  
+  jsonData.sort(function(a, b) {
+    var valueA = a[key] ? a[key].toString().toLowerCase() : "";
+    var valueB = b[key] ? b[key].toString().toLowerCase() : "";
+    return valueA.localeCompare(valueB) * sortOrder;
+  });
+  
+  displayTable();
+}
+
+function reorderColumns(draggedKey, targetKey) {
+  var draggedIndex = -1;
+  var targetIndex = -1;
+  
+  var headerCells = document.querySelectorAll("th.draggable");
+  for (var i = 0; i < headerCells.length; i++) {
+    if (headerCells[i].dataset.key === draggedKey) {
+      draggedIndex = i;
+    } else if (headerCells[i].dataset.key === targetKey) {
+      targetIndex = i;
+    }
+  }
+  
+  if (draggedIndex !== -1 && targetIndex !== -1 && draggedIndex !== targetIndex) {
+    var keys = [];
+    for (var j = 0; j < headerCells.length; j++) {
+      if (j === draggedIndex) {
+        keys.push(headerCells[targetIndex].dataset.key);
+      } else if (j === targetIndex) {
+        keys.push(headerCells[draggedIndex].dataset.key);
+      } else {
+        keys.push(headerCells[j].dataset.key);
+      }
+    }
+    
+    var newJsonData = [];
+    for (var k = 0; k < jsonData.length; k++) {
+      var newData = {};
+      for (var m = 0; m < keys.length; m++) {
+        if (jsonData[k].hasOwnProperty(keys[m])) {
+          newData[keys[m]] = jsonData[k][keys[m]];
+        }
+      }
+      newJsonData.push(newData);
+    }
+    
+    jsonData = newJsonData;
+    displayTable();
+  }
+}
+</script>
+</html>

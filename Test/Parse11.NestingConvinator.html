@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>ParserConvinator</title>
+    <style>
+        #test-results {
+            margin-top: 10px;
+            border: 1px solid #ccc;
+            padding: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>ParserConvinator</h1>
+    <form id="parser-form">
+        <label for="nested-code">Enter nested code:</label><br>
+        <textarea id="nested-code" rows="10" cols="50">if(A){for(B){if(C){test();}}}</textarea><br>
+        <button type="button" onclick="saveData()">Save and Test</button>
+    </form>
+
+    <div id="test-results">
+        <h2>Test Results</h2>
+        <ul id="results-list"></ul>
+    </div>
+
+    <script>
+        function saveData() {
+            var nestedCode = document.getElementById('nested-code').value;
+
+            try {
+                var parsedData = parseNestedCode(nestedCode);
+                saveToLocalStorage(parsedData);
+                displayTestResult(parsedData);
+            } catch (error) {
+                alert('Error parsing nested code: ' + error);
+            }
+        }
+
+        function parseNestedCode(code) {
+    // パーサーロジックの実装
+
+    // 結果を格納するオブジェクト
+    var parsedData = {
+        ifStatements: [],
+        forLoops: []
+    };
+
+    // 入力コードを行ごとに分割
+    var lines = code.split('\n');
+
+    // 各行を解析
+    for (var i = 0; i < lines.length; i++) {
+        var line = lines[i].trim();
+
+        if (line.startsWith("if")) {
+            var condition = line.substring(line.indexOf('(') + 1, line.lastIndexOf(')')).trim();
+            var ifStatement = {
+                condition: condition,
+                body: []
+            };
+
+            // if文のボディを解析
+            var j = i + 1;
+            while (j < lines.length) {
+                var nestedLine = lines[j].trim();
+                if (nestedLine.startsWith("if") || nestedLine.startsWith("for")) {
+                    break;
+                }
+                ifStatement.body.push(nestedLine);
+                j++;
+            }
+
+            parsedData.ifStatements.push(ifStatement);
+            i = j - 1;
+        } else if (line.startsWith("for")) {
+            var expression = line.substring(line.indexOf('(') + 1, line.lastIndexOf(')')).trim();
+            var forLoop = {
+                expression: expression,
+                body: []
+            };
+
+            // forループのボディを解析
+            var j = i + 1;
+            while (j < lines.length) {
+                var nestedLine = lines[j].trim();
+                if (nestedLine.startsWith("if") || nestedLine.startsWith("for")) {
+                    break;
+                }
+                forLoop.body.push(nestedLine);
+                j++;
+            }
+
+            parsedData.forLoops.push(forLoop);
+            i = j - 1;
+        }
+    }
+
+    return parsedData;
+}
+        function saveToLocalStorage(data) {
+            var jsonData = JSON.stringify(data);
+            localStorage.setItem('parsedData', jsonData);
+        }
+
+        function displayTestResult(data) {
+            var resultsList = document.getElementById('results-list');
+            var listItem = document.createElement('li');
+            listItem.textContent = 'Parsed code: ' + data.nestedCode + ', Timestamp: ' + data.timestamp;
+            resultsList.appendChild(listItem);
+        }
+
+        // Load and display previous test results from local storage
+        window.onload = function() {
+            var jsonData = localStorage.getItem('parsedData');
+            if (jsonData) {
+                var data = JSON.parse(jsonData);
+                displayTestResult(data);
+            }
+        };
+    </script>
+</body>
+</html>

@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>括弧に対応した4則演算パーサー</title>
+</head>
+<body>
+  <h1>括弧に対応した4則演算パーサー</h1>
+  <input type="text" id="expressionInput" placeholder="式を入力してください">
+  <button onclick="parseExpression()">計算</button>
+  <p id="result"></p>
+
+  <script>
+    function parseExpression() {
+      const expression = document.getElementById("expressionInput").value;
+      const result = evaluateExpression(expression);
+      document.getElementById("result").innerText = "結果: " + result;
+    }
+
+    function evaluateExpression(expression) {
+      const tokens = tokenize(expression);
+      const postfix = convertToPostfix(tokens);
+      const result = evaluatePostfix(postfix);
+      return result;
+    }
+
+    function tokenize(expression) {
+      const tokens = [];
+      let currentToken = "";
+
+      for (let i = 0; i < expression.length; i++) {
+        const char = expression[i];
+
+        if (/\d/.test(char) || char === ".") {
+          currentToken += char;
+        } else if (/[\+\-\*\/\(\)]/.test(char)) {
+          if (currentToken !== "") {
+            tokens.push(parseFloat(currentToken));
+            currentToken = "";
+          }
+          tokens.push(char);
+        }
+      }
+
+      if (currentToken !== "") {
+        tokens.push(parseFloat(currentToken));
+      }
+
+      return tokens;
+    }
+
+    function convertToPostfix(tokens) {
+      const postfix = [];
+      const operatorStack = [];
+
+      const precedence = {
+        "+": 1,
+        "-": 1,
+        "*": 2,
+        "/": 2,
+      };
+
+      for (let i = 0; i < tokens.length; i++) {
+        const token = tokens[i];
+
+        if (typeof token === "number") {
+          postfix.push(token);
+        } else if (token === "(") {
+          operatorStack.push(token);
+        } else if (token === ")") {
+          while (
+            operatorStack.length > 0 &&
+            operatorStack[operatorStack.length - 1] !== "("
+          ) {
+            postfix.push(operatorStack.pop());
+          }
+          operatorStack.pop(); // Remove "("
+        } else {
+          while (
+            operatorStack.length > 0 &&
+            precedence[token] <= precedence[operatorStack[operatorStack.length - 1]]
+          ) {
+            postfix.push(operatorStack.pop());
+          }
+          operatorStack.push(token);
+        }
+      }
+
+      while (operatorStack.length > 0) {
+        postfix.push(operatorStack.pop());
+      }
+
+      return postfix;
+    }
+
+    function evaluatePostfix(postfix) {
+      const operandStack = [];
+
+      for (let i = 0; i < postfix.length; i++) {
+        const token = postfix[i];
+
+        if (typeof token === "number") {
+          operandStack.push(token);
+        } else {
+          const operand2 = operandStack.pop();
+          const operand1 = operandStack.pop();
+
+          let result;
+          switch (token) {
+            case "+":
+              result = operand1 + operand2;
+              break;
+            case "-":
+              result = operand1 - operand2;
+              break;
+            case "*":
+              result = operand1 * operand2;
+              break;
+            case "/":
+              result = operand1 / operand2;
+              break;
+          }
+
+          operandStack.push(result);
+        }
+      }
+
+      return operandStack.pop();
+    }
+  </script>
+</body>
+</html>

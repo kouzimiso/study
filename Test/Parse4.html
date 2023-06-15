@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>AST解析</title>
+</head>
+<body>
+  <input type="file" id="fileInput" />
+  <button id="analyzeButton">解析</button>
+
+  <script>
+    document.getElementById('analyzeButton').addEventListener('click', function() {
+      var fileInput = document.getElementById('fileInput');
+      var file = fileInput.files[0];
+
+      if (file) {
+        var reader = new FileReader();
+        reader.onload = function(e) {
+          var code = e.target.result;
+          try {
+            var ast = esprima.parse(code);
+            var astJson = JSON.stringify(ast, null, 2);
+            downloadFile('ast.json', astJson);
+            console.log('ASTをJSON形式で保存しました。');
+          } catch (err) {
+            console.error('解析エラー:', err);
+          }
+        };
+        reader.readAsText(file);
+      } else {
+        console.error('ファイルが選択されていません。');
+      }
+    });
+
+    function downloadFile(filename, content) {
+      var element = document.createElement('a');
+      element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(content));
+      element.setAttribute('download', filename);
+      element.style.display = 'none';
+      document.body.appendChild(element);
+      element.click();
+      document.body.removeChild(element);
+    }
+  </script>
+  <script src="esprima.js"></script>
+</body>
+</html>

@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>入れ子構造の解析</title>
+    <script>
+        function parseCode() {
+            var code = `
+                if (x > 0) {
+                    for (var i = 0; i < 10; i++) {
+                        console.log('x is positive and i is ' + i);
+                    }
+                }
+            `;
+
+            var ifStatements = [];
+            var forLoops = [];
+
+            var ifRegex = /if\s*\((.*?)\)\s*{([\s\S]*?)}/g;
+            var forRegex = /for\s*\((.*?);(.*?);(.*?)\)\s*{([\s\S]*?)}/g;
+
+            var ifMatches;
+            while ((ifMatches = ifRegex.exec(code)) !== null) {
+                var condition = ifMatches[1];
+                var ifBody = ifMatches[2];
+
+                var forMatches;
+                while ((forMatches = forRegex.exec(ifBody)) !== null) {
+                    var initialization = forMatches[1];
+                    var condition = forMatches[2];
+                    var increment = forMatches[3];
+                    var forBody = forMatches[4];
+
+                    forLoops.push({
+                        initialization: initialization,
+                        condition: condition,
+                        increment: increment,
+                        body: forBody
+                    });
+                }
+
+                ifStatements.push({
+                    condition: condition,
+                    forLoops: forLoops
+                });
+            }
+
+            var result = {
+                ifStatements: ifStatements
+            };
+
+            var json = JSON.stringify(result, null, 2);
+
+            // ファイルに出力
+            var blob = new Blob([json], { type: "application/json" });
+            var url = URL.createObjectURL(blob);
+            var link = document.createElement("a");
+            link.href = url;
+            link.download = "parsed_result.json";
+            link.click();
+        }
+    </script>
+</head>
+<body>
+    <h1>入れ子構造の解析</h1>
+    <button onclick="parseCode()">解析</button>
+</body>
+</html>

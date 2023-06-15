@@ -30,51 +30,49 @@
       this.result_dictionary = result_dictionary;
 
       this.execute = function() {
-        var startIndex = text.indexOf(start_text);
-        if (startIndex === -1) {
+        var start_index = text.indexOf(start_text);
+        if (start_index === -1) {
           this.previous_text = text;
-          this.after_text = "";
-          this.element_count = 0;
-          this.result_dictionary = result_dictionary;
-          return;
+          return this.result_dictionary;
         }
 
-        this.previous_text = text.substring(0, startIndex );
+        this.previous_text = text.substring(0, start_index);
 
-        var endIndex = startIndex;
-        var elementIndex = 0;
+        var end_index = start_index;
+        var element_index = 0;
 
-        while (elementIndex < element_list.length && endIndex < text.length) {
-          var currentElement = element_list[elementIndex];
-          var nextDelimiterIndex = text.indexOf(delimiter, endIndex);
+        while (element_index < element_list.length && end_index < text.length) {
+          var current_element = element_list[element_index];
+          var next_delimiter_index = text.indexOf(delimiter, end_index);
 
-          if (nextDelimiterIndex === -1) {
+          if (next_delimiter_index === -1) {
             console.log("Element not found.");
             break;
           }
 
-          var value = text.substring(endIndex, nextDelimiterIndex).trim();
+          var value = text.substring(end_index, next_delimiter_index).trim();
 
-          if (currentElement in this.result_dictionary && !isNaN(this.result_dictionary[currentElement])) {
+          if (current_element in this.result_dictionary && !isNaN(this.result_dictionary[current_element])) {
             value = parseFloat(value);
             if (isNaN(value)) {
-              value = text.substring(endIndex, nextDelimiterIndex).trim();
+              value = text.substring(end_index, next_delimiter_index).trim();
             }
           }
 
-          this.result_dictionary[currentElement] = value;
+          this.result_dictionary[current_element] = value;
 
-          endIndex = nextDelimiterIndex + delimiter.length;
-          elementIndex++;
+          end_index = next_delimiter_index + delimiter.length;
+          element_index++;
         }
 
-        this.element_count = elementIndex;
+        this.element_count = element_index;
 
-        if (elementIndex < element_list.length) {
+        if (element_index < element_list.length) {
           this.after_text = "";
         } else {
-          this.after_text = text.substring(endIndex).trim();
+          this.after_text = text.substring(end_index).trim();
         }
+        return this.result_dictionary
       };
       this.getPreviousText = function() {
           return this.previous_text;
@@ -96,7 +94,7 @@
       var delimiter = document.getElementById("delimiter-input").value;
       var start_text = document.getElementById("start-text-input").value;
       var element_list = document.getElementById("element-list-input").value.split(",");
-      var result_dictionary = {"1": -1, "2": -1}
+      var result_dictionary = {"1": -1, "2": -1};
 
       var string_processor = new splitTextToDictionary(text, delimiter, start_text, element_list, result_dictionary);
       string_processor.execute();
@@ -105,14 +103,20 @@
       resultDiv.innerHTML = "Previous Text: " + string_processor.previous_text + "<br>" +
                             "After Text: " + string_processor.after_text + "<br>" +
                             "Element Count: " + string_processor.element_count;
-
-      // Save result in class variable
-      result_dictionary = string_processor.getResultDictionary();
     }
 
     function saveResultAsJSON() {
+      var result_dictionary = {"1": -1, "2": -1};
+      var text = document.getElementById("text-input").value;
+      var delimiter = document.getElementById("delimiter-input").value;
+      var start_text = document.getElementById("start-text-input").value;
+      var element_list = document.getElementById("element-list-input").value.split(",");
+      
+      var string_processor = new splitTextToDictionary(text, delimiter, start_text, element_list, result_dictionary);
+      string_processor.execute();
+      
       var filename = "result.json";
-      var jsonData = JSON.stringify(result_dictionary);
+      var jsonData = JSON.stringify(string_processor.result_dictionary);
       var blob = new Blob([jsonData], {type: "application/json"});
       var url = URL.createObjectURL(blob);
 

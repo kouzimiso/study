@@ -1,0 +1,43 @@
+{
+    "version": 1,
+    "disable_existing_loggers": false,
+    "handlers": {
+        "file": {
+            "class": "logging.FileHandler",
+            "filename": "../Log/log2.json",
+            "formatter": "json"
+        },
+        "console": {
+            "class": "logging.StreamHandler",
+            "formatter": "json",
+            "level": "INFO"
+        }
+    },
+    "formatters": {
+        "json": {
+            "class": "pythonjsonlogger.jsonlogger.JsonFormatter",
+            "format": "%(message)s",
+            "datefmt": "%Y/%m/%d %H:%M:%S"
+        }
+    },
+    "loggers": {
+        "files": {
+            "handlers": [
+                "file"
+            ],
+            "level": "INFO"
+        },
+        "default": {
+            "handlers": [
+                "file"
+            ],
+            "level": "INFO"
+        },
+        "console": {
+            "handlers": [
+                "console"
+            ],
+            "level": "INFO"
+        }
+    }
+}

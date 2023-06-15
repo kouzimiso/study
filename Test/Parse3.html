@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Program</title>
+</head>
+<body>
+  <script>
+    class Program {
+      constructor() {
+        this.data = {};
+        this.result = {};
+        this.settings = {};
+        this.keywords = ["WF_EVENT arrive", "WF_EVENT cancel"];
+        this.inputString = "6/26 19: 0 41(    864937), to MMI: (WF_EVENT arrive 14 1 5 3 108 0)";
+
+        // Dictionary data settings initialization
+        this.initSettings();
+      }
+
+      initSettings() {
+        this.settings = {
+          "WF_EVENT arrive": {
+            "type": "splitTextToDictionary",
+            "settings": {
+              "format": "(EventName ModuleID Position PortID SlotID WaferID ModSlot)",
+              "delimiter": " ",
+              "bracket": ["(", ")"],
+              "format_dictionary": {
+                "EventName": "EventName",
+                "ModuleID": -1,
+                "Position": -1,
+                "PortID": -1,
+                "SlotID": -1,
+                "WaferID": -1,
+                "ModSlot": -1
+              },
+              "default_dictionary": {
+                "ModuleID": -1,
+                "Position": -1,
+                "PortID": -1,
+                "SlotID": -1,
+                "WaferID": -1,
+                "ModSlot": -1
+              },
+              "ignore_list": ["LOG_OUT"]
+            }
+          },
+          "WF_EVENT cancel": {
+            "type": "splitTextToDictionary",
+            "settings": {
+              "format": "(EventName ModuleID Position PortID SlotID WaferID ModSlot)",
+              "delimiter": " ",
+              "bracket": ["(", ")"],
+              "format_dictionary": {
+                "EventName": "EventName",
+                "ModuleID": -1,
+                "Position": -1,
+                "PortID": -1,
+                "SlotID": -1,
+                "WaferID": -1,
+                "ModSlot": -1
+              },
+              "default_dictionary": {
+                "ModuleID": -1,
+                "Position": -1,
+                "PortID": -1,
+                "SlotID": -1,
+                "WaferID": -1,
+                "ModSlot": -1
+              },
+              "ignore_list": ["LOG_OUT"]
+            }
+          },
+          "Test": {
+            "type": "splitTextToDictionary",
+            "settings": {
+              "format": "(EventName ModuleID[Position,PortID,SlotID,WaferID,ModSlot])",
+              "delimiter": [" ", ","],
+              "bracket": ["(", ")"],
+              "format_dictionary": {
+                "EventName": "EventName",
+                "ModuleID": -1,
+                "Position": -1,
+                "PortID": -1,
+                "SlotID": -1,
+                "WaferID": -1,
+                "ModSlot": -1
+              },
+              "default_dictionary": {
+                "ModuleID": -1,
+                "Position": -1,
+                "PortID": -1,
+                "SlotID": -1,
+                "WaferID": -1,
+                "ModSlot": -1
+              },
+              "ignore_list": ["LOG_OUT"]
+            }
+          }
+        };
+      }
+
+      run() {
+        let keywordFound = false;
+        let preText = "";
+        let afterText = "";
+
+        for (let i = 0; i < this.keywords.length; i++) {
+          const keyword = this.keywords[i];
+          const index = this.inputString.indexOf(keyword);
+
+          if (index !== -1) {
+            keywordFound = true;
+            preText = this.inputString.slice(0, index).trim();
+            afterText = this.inputString.slice(index + keyword.length).trim();
+            this.inputString = afterText;
+
+            if (keyword in this.settings) {
+              this.processKeyword(keyword);
+              break;
+            }
+          }
+        }
+
+        if (!keywordFound) {
+          this.result = {
+            "pre_text": this.inputString.trim(),
+            "after_text": ""
+          };
+        }
+
+        console.log(this.result);
+      }
+
+      processKeyword(keyword) {
+        const keywordSettings = this.settings[keyword];
+
+        if (keywordSettings && keywordSettings.type === "splitTextToDictionary") {
+          const settings = keywordSettings.settings;
+          const format = settings.format;
+          const delimiter = settings.delimiter;
+          const bracket = settings.bracket;
+          const formatDictionary = settings.format_dictionary;
+          const defaultDictionary = settings.default_dictionary;
+
+          let result = {};
+
+          const elements = format.split(" ");
+
+          for (let i = 0; i < elements.length; i++) {
+            const element = elements[i];
+            const value = this.inputString.split(delimiter)[i];
+
+            if (element in formatDictionary) {
+              if (formatDictionary[element] === "EventName") {
+                result[element] = keyword;
+              } else if (formatDictionary[element] in defaultDictionary) {
+                let elementValue = value;
+
+                if (!isNaN(defaultDictionary[formatDictionary[element]])) {
+                  elementValue = Number(value);
+                }
+
+                result[element] = elementValue;
+              }
+            }
+          }
+
+          this.result = {
+            "pre_text": preText,
+            "after_text": afterText,
+            ...result
+          };
+        }
+      }
+    }
+
+    const program = new Program();
+    program.run();
+  </script>
+</body>
+</html>

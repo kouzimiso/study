@@ -1,0 +1,24 @@
+{
+    "ShutDown": [
+        {
+            "name": "ShutDown",
+            "settings": {},
+            "type": "ShutDown"
+        }
+    ],
+    "Start": [
+        {
+            "name": "StartTask",
+            "settings": {
+                "file_path": "",
+                "plan_lists": [
+                    "HotSpotON",
+                    "Mementomori",
+                    "Houchi",
+                    "ShutDown"
+                ]
+            },
+            "type": "RunPlanLists"
+        }
+    ]
+}

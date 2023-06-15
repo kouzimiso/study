@@ -1,0 +1,100 @@
+{
+	"Start0": 
+	[
+		{
+			"name" : "Execute",
+			"type": "ExecuteProgram",
+			"result_name":"",
+			"condition_list":"",
+			"settings": {
+					"program_path": "../Resources/Camera.exe",
+					"file_path": "../Images/capture/capture.png",
+					"log_print_standardoutput": true,"log_function":true,"log_file_path_list": "../Log/log_ExecuteProgram.json",
+					"step_check_mode" : false,"step_check_comment":""
+			}
+		},
+		{
+			"name" : "Execute",
+			"type": "ExecuteProgram",
+			"result_name":"",
+			"condition_list":"",
+			"settings": {
+					"program_path": "../Resources/FileControl.exe",
+					"file_path":"../Images/capture" ,
+					"file_maxsize": 100,
+					"archivefolder_path": "../Images/capture",
+					"folder_maxsize" : 1048576,
+					"files_maxnumber" : 5,
+					"log_print_standardoutput": true,"log_function":true,"log_file_path_list": "../Log/log_ExecuteProgram.json",
+					"step_check_mode" : false,"step_check_comment":""
+			}
+		},
+		{
+			"name" : "Print",
+			"type": "PrintInformation",
+			"result_name":"",
+			"condition_list":"",
+			"settings": {
+					"file_path": "../Log/capture.png",
+					"log_print_standardoutput": true,"log_function":true,"log_file_path_list": "../Log/log_camera.json",
+					"step_check_mode" : false,"step_check_comment":""
+			}
+		}
+
+	],
+	"Start": 
+	[
+		{
+			"name" : "StartTask0",
+		 	"type" : "RunPlanLists",
+		 	"settings" : {
+				"file_path" : "RunGame.json",
+				"plan_lists" : [
+					"#DarkTails"
+				]
+			}
+		},
+		{
+			"name" : "StartTask1",
+		 	"type" : "RunPlanLists",
+		 	"settings" : {
+				"file_path" : "RunDarkTailsChild.json",
+				"plan_lists" : [
+					"#PlayContents","#PlayContents","#PlayContents"
+				]
+			}
+		},
+		{
+			"name" : "StartTask2",
+		 	"type" : "RunPlanLists",
+		 	"settings" : {
+				"file_path" : "RunHouchi.json",
+				"plan_lists" : [
+					"#HouchiACM","#DarkTailsClickGroup",
+					"#TimeCheck_Houchi_Chokyo","#Chokyo"
+				]
+			}
+		},
+		{
+			"name" : "StartTask3",
+		 	"type" : "RunPlanLists",
+		 	"settings" : {
+				"file_path" : "RunHouchiChild.json",
+				"plan_lists" : [
+					"#HomeClick","#Casting","#Item",
+					"#HouchiEvent01","#HouchiEvent02","HomeClick","HouchiEvent08Click",
+					"#HouchiIkusei","#Etc#"
+				]
+			}
+		}
+
+	],
+	"Reboot":
+	[
+		{
+			"name": "Reboot",
+			"type": "#Reboot",
+			"settings": {}
+		}
+	]	
+}

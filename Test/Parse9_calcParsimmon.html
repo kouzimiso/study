@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>括弧に対応した四則演算パーサーコンビネーター</title>
+</head>
+<body>
+  <h1>括弧に対応した四則演算パーサーコンビネーター</h1>
+  <input type="text" id="expressionInput" placeholder="式を入力してください">
+  <button onclick="calculateExpression()">計算</button>
+  <p id="result"></p>
+
+  <script>
+    // パーサーコンビネーター関数
+    function Parsers() {
+      function parse(input) {
+        let pos = 0;
+
+        function peek() {
+          return input[pos];
+        }
+
+        function consume() {
+          pos++;
+        }
+
+        function isDigit(char) {
+          return /\d/.test(char);
+        }
+
+        function isOperator(char) {
+          return /[\+\-\*\/]/.test(char);
+        }
+
+        function isParenthesis(char) {
+          return /[\(\)]/.test(char);
+        }
+
+        function number() {
+          let numStr = "";
+
+          while (pos < input.length && (isDigit(peek()) || peek() === ".")) {
+            numStr += peek();
+            consume();
+          }
+
+          return parseFloat(numStr);
+        }
+
+        function term() {
+          let result = factor();
+
+          while (pos < input.length && isOperator(peek())) {
+            const operator = peek();
+            consume();
+
+            if (operator === "*" || operator === "/") {
+              const nextFactor = factor();
+              if (operator === "*") {
+                result *= nextFactor;
+              } else if (operator === "/") {
+                result /= nextFactor;
+              }
+            } else {
+              pos--; // 他の演算子の場合、posを戻す
+              break;
+            }
+          }
+
+          return result;
+        }
+
+        function factor() {
+          if (peek() === "(") {
+            consume();
+
+            const result = expression();
+
+            if (peek() !== ")") {
+              throw new Error("Unexpected end of expression");
+            }
+
+            consume();
+
+            return result;
+          } else {
+            return number();
+          }
+        }
+
+        function expression() {
+          let result = term();
+
+          while (pos < input.length && isOperator(peek())) {
+            const operator = peek();
+            consume();
+
+            if (operator === "+" || operator === "-") {
+              const nextTerm = term();
+              if (operator === "+") {
+                result += nextTerm;
+              } else if (operator === "-") {
+                result -= nextTerm;
+              }
+            } else {
+              pos--; // 他の演算子の場合、posを戻す
+              break;
+            }
+          }
+
+          return result;
+        }
+
+        const result = expression();
+
+        if (pos < input.length) {
+          throw new Error("Unexpected end of expression");
+        }
+
+        return result;
+      }
+
+      return {
+        parse: parse
+      };
+    }
+
+    // パーサーのインスタンスを作成
+    const parser = Parsers();
+
+    function calculateExpression() {
+      const input = document.getElementById("expressionInput").value;
+
+      try {
+        const result = parser.parse(input);
+        document.getElementById("result").innerText = "結果: " + result;
+      } catch (error) {
+        document.getElementById("result").innerText = "エラー: " + error.message;
+      }
+    }
+  </script>
+</body>
+</html>

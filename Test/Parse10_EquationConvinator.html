@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Equation Parser</title>
+</head>
+<body>
+  <h1>Equation Parser</h1>
+  
+  <form id="equationForm">
+    <label for="equationInput">Enter an equation:</label>
+    <input type="text" id="equationInput" required>
+    <button type="submit">Calculate</button>
+  </form>
+  
+  <div id="resultContainer" style="display: none;">
+    <h2>Result</h2>
+    <p id="result"></p>
+  </div>
+  
+  <h2>Test Cases</h2>
+  <div id="testResults"></div>
+  
+  <script>
+    // Equation parser
+    function parseEquation(equation) {
+      // Remove whitespace
+      equation = equation.replace(/\s/g, '');
+      
+      // Split equation into left side and right side
+      var sides = equation.split('=');
+      var leftSide = sides[0];
+      var rightSide = sides[1];
+      
+      // Parse equation using regular expressions
+      var match = leftSide.match(/^([+-]?[0-9]*\.?[0-9]+)x([+-][0-9]*\.?[0-9]+)?$/);
+      if (match) {
+        var a = parseFloat(match[1]);
+        var b = match[2] ? parseFloat(match[2]) : 0;
+        
+        var operator = rightSide[0];
+        var c = parseFloat(rightSide.slice(1));
+        
+        if (operator === '+') {
+          return (c - b) / a;
+        } else if (operator === '-') {  // 追加: マイナスの演算子も処理する
+          return -(c + b) / a;
+        } else {
+          return NaN;  // 追加: 未対応の演算子の場合はNaNを返す
+        }
+      } else {
+        return NaN;  // 修正: 方程式の形式にマッチしない場合はNaNを返す
+      }
+    }
+    
+    // Test cases
+    var testCases = [
+      { equation: '2x+3=9', expectedResult: 3 },
+      { equation: '5x-2=-7', expectedResult: -1 },
+      { equation: '4x+2=-2', expectedResult: -1 },
+      { equation: '2x-3=5', expectedResult: 4 },
+      { equation: 'x+4=0', expectedResult: -4 }
+    ];
+    
+    // Perform tests
+    function performTests() {
+      var testResultsContainer = document.getElementById('testResults');
+      testResultsContainer.innerHTML = '';
+      
+      for (var i = 0; i < testCases.length; i++) {
+        var testCase = testCases[i];
+        var equation = testCase.equation;
+        var expectedResult = testCase.expectedResult;
+        
+        var solution = parseEquation(equation);
+        
+        var testResult = document.createElement('p');
+        testResult.textContent = 'Equation: ' + equation + ' | Expected: ' + expectedResult + ' | Result: ' + (isNaN(solution) ? 'Invalid' : solution);  // 修正: NaNの場合も'Invalid'と表示する
+        testResult.style.color = (solution === expectedResult || isNaN(solution) && isNaN(expectedResult)) ? 'green' : 'red';  // 修正: NaN同士の比較も考慮する
+        
+        testResultsContainer.appendChild(testResult);
+      }
+    }
+    
+    // Event handler for form submission
+    document.getElementById('equationForm').addEventListener('submit', function(event) {
+      event.preventDefault();
+      
+      var equationInput = document.getElementById('equationInput');
+      var resultContainer = document.getElementById('resultContainer');
+      var result = document.getElementById('result');
+      
+      var equation = equationInput.value;
+      var solution = parseEquation(equation);
+      
+      if (!isNaN(solution)) {  // 修正: 解がNaNでないことを確認する
+        result.textContent = 'Equation: ' + equation + ' | Expected: ' + equation.split('=')[1] + ' | Result: ' + solution;
+      } else {
+        result.textContent = 'Invalid equation or no solution';
+      }
+      
+      resultContainer.style.display = 'block';
+    });
+    
+    // Event handler for test button
+    document.addEventListener('DOMContentLoaded', function() {
+      var testButton = document.getElementById('testButton');
+      testButton.addEventListener('click', function(event) {
+        event.preventDefault();
+        performTests();
+      });
+    });
+  </script>
+  
+  <button id="testButton">Run Tests</button>
+</body>
+</html>

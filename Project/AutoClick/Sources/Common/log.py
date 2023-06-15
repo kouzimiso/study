@@ -184,12 +184,15 @@ class Logs:
                         arguments[key] = "<skip>"
                 function_information["arguments"] = arguments
             log_message.update(function_information)
-        
         if flag_print:
             #setting_log_level = setting_dictionary.get("log_level",self.default_log_console_level)
             log_level = self.Log_Level_Get(level) 
             message = json.dumps(log_message , ensure_ascii=False)
-            self.logger_console.log(log_level , message)
+            #self.logger_console.log(log_level , message)
+            message_level = self.Log_Level_Get(log_message.get("level"),logging.WARNING)
+            if log_level <= message_level:
+                print(log_message)
+                
             #print(self.logger_console.handlers)
         message_lists.append(log_message)
         return message_lists

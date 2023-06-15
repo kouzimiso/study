@@ -7,15 +7,101 @@
     //命名規則　Class:アッパーキャメルケース(先頭大文字)
     //命名規則　関数:ローワーキャメルケース(動詞(先頭小文字)＋目的語(先頭大文字))
     //命名規則　変数:スネークケース(小文字_小文字)
+    var analyze_setting={
+      "WF_EVENT arrive":{
+        "type":"splitTextToDictionary",
+        "settings":{
+          "format":"(EventName ModuleID Position PortID SlotID WaferID ModSlot)",
+          "delimiter":" ",
+          "bracket":["(",")"],
+          "format_dictionary":{"EventName":"EventName","ModuleID":-1,"Position":-1,"PortID":-1,"SlotID":-1,"WaferID":-1,"ModSlot":-1},
+          "default_dictionary":{"ModuleID":-1,"Position":-1,"PortID":-1,"SlotID":-1,"WaferID":-1,"ModSlot":-1},
+          "ignore_list":["LOG_OUT"]
+       }
+      },
+      "WF_EVENT cancel":{
+        "type":"splitTextToDictionary",
+        "delimiter":" ",
+        "bracket":["(",")"],
+        "format":["(","EventName"," ","ModuleID"," ","Position"," ","PortID"," ","SlotID"," ","WaferID"," ","ModSlot",")"],
+        "format_dictionary":[{"EventName":"EventName"},{"ModuleID":-1},{"Position":-1},{"PortID":-1},{"SlotID":-1},{"WaferID":-1},{"ModSlot":-1}],
+        "default_dictionary":{"ModuleID":-1,"Position":-1,"PortID":-1,"SlotID":-1,"WaferID":-1,"ModSlot":-1},
+        "ignore_list":["LOG_OUT"]
+        },
+      "Test":{
+        "type":"splitTextToDictionary",
+        "settings":{
+          "format":"(EventName ModuleID[Position,PortID,SlotID,WaferID,ModSlot])",
+          "delimiter":[" ",","],
+          "bracket":["(",")"],
+          "format_dictionary":{"EventName":"EventName","ModuleID":-1,"Position":-1,"PortID":-1,"SlotID":-1,"WaferID":-1,"ModSlot":-1},
+          "default_dictionary":{"ModuleID":-1,"Position":-1,"PortID":-1,"SlotID":-1,"WaferID":-1,"ModSlot":-1},
+          "ignore_list":["LOG_OUT"]
+        }
+      }
+    }
 
     // 独自定義関数----------------------------------------
     function analyzeStringLine(string_data) {
-      var dictionary_data = {};
+      var dictionary_data = {
+        "DateTime":"",
+        "EventName":"",
+        "ModuleID":-1,
+        "Position":-1,
+        "Step":-1,
+        "PortID":-1,
+        "SlotID":-1,
+        "WaferID":-1,
+        "ModSlot":-1
+      };
+      var element = ["EventName","ModuleID","Position","PortID","SlotID","WaferID","ModSlot"]
+
+      split_text_to_dictionary = new splitTextToDictionary(dictionary_data);
       //if (string_data.includes("WF_EVENT arrive")) {
+      string_data = string_data.trim();
       if (string_data.indexOf("WF_EVENT arrive") !== -1) {//IE9対策
-        dictionary_data["eventName"] = "WF_EVENT arrive";
-        dictionary_data["rowData"] = string_data;
+      //  dictionary_data["eventName"] = "WF_EVENT arrive";
+      //  dictionary_data["rowData"] = string_data;
+        dictionary_data = split_text_to_dictionary.execute(string_data, " ","WF_EVENT arrive",element);
+      }else if (string_data.indexOf("WF_EVENT cancel") !== -1) {
+        dictionary_data = split_text_to_dictionary.execute(string_data," ","WF_EVENT cancel",element);
+      }else if (string_data.indexOf("PR_STEP") !== -1) {
+        if(string_data.indexOf("LOG_OUT") !== -1){ //LOG_OUTを含む場合は対象外
+          return {};
+				}
+
+        element = ["EventName","ModuleID","Position","Step","PortID","SlotID","WaferID"];
+        dictionary_data = split_text_to_dictionary.execute(string_data," ","PR_STEP",element);
+        if(dictionary_data["PortID"] <= 0 || dictionary_data["SlotID"] < 0) { //ポートIDが0以下またはスロットIDが0未満の場合は対象外
+          return {};
+        }
+
+      }else if (string_data.indexOf("STAGE-STA") !== -1) {
+        element = ["EventName","ModuleID","Position","Step","PortID","SlotID","WaferID"];
+        dictionary_data = split_text_to_dictionary.execute(string_data," ","STAGE-STA",element);
+
+      } else if (string_data.indexOf("WF_UNLOAD") !== -1) {
+        element = ["EventName","-","-","PortID","SlotID"];
+        dictionary_data = split_text_to_dictionary.execute(string_data," ","WF_UNLOAD",element);
+
+      } else if (string_data.indexOf("SYSTEM BUG !!") !== -1) {
+        element = ["EventName","Detail"];
+        split_text_to_dictionary.setResultDictionary({"DateTime":""});
+        dictionary_data = split_text_to_dictionary.execute(string_data,"!!","SYSTEM BUG",element);
+
+      } else{
+        return {};
       }
+      //日付の追加
+      date_time = extractDateTime(string_data);
+      if(date_time !== null){dictionary_data["DateTime"]=date_time}
+      
+      //余った文字列の追加
+      pre_text = split_text_to_dictionary.getPreviousText();
+      if(pre_text !==""){dictionary_data["PreText"] = pre_text;}
+      after_text = split_text_to_dictionary.getAfterText();
+      if(after_text !==""){dictionary_data["AfterText"] = after_text;}
+
       return dictionary_data;
     }
     function analyzeStingLines(string_data,browser_IE){
@@ -112,6 +198,7 @@
 
     //汎用クラス-----------------------------------
     //(JavaScriptのfunctionは全てクラス。メソッドとクラス変数を持つもの)
+    //Token毎に1つずつ文字列を取得するClass
     function StringTokenizer(str, delimiter) {
       this.tokens = str.split(delimiter);
       this.index = 0;
@@ -127,7 +214,141 @@
         return null;
       };
     }
+    function analyzeStringLineBySetting(setting) {
+      this.executeFunction = function(string_data){
+      var keywords = Object.keys(setting);
+      for( keyword in keywords){
+        var ignore_list = setting[keyword].ignore_list;
+        if (string_data.indexOf(keyword) !== -1) {
+          if(string_data.indexOf("LOG_OUT") !== -1){ //LOG_OUTを含む場合は対象外
+            return {};
+          }
+          var element = setting["format"].ignore_list;
+
+          element = ["EventName","ModuleID","Position","Step","PortID","SlotID","WaferID"];
+          dictionary_data = split_text_to_dictionary.execute(string_data," ","PR_STEP",element);
+          if(dictionary_data["PortID"] <= 0 || dictionary_data["SlotID"] < 0) { //ポートIDが0以下またはスロットIDが0未満の場合は対象外
+            return {};
+          }
+        }
+      }
+    }
+    }
+
+// 文字列を分割して辞書形式で保存するクラス
+// クラスのインスタンス化後、executeメソッドを呼び出すことでテキストの処理が実行されます
+// 結果は各プロパティやメソッドを通じて取得できます
+    function splitTextToDictionary(dictionary_data) {
+      this.previous_text = "";
+      this.after_text = "";
+      this.element_count = 0;
+      this.result_dictionary = dictionary_data;
+      this.dictionary_format = dictionary_data;
+      this.element_count = 0;
+
+      this.execute = function(text,delimiter,start_text,element_list) {
+        var start_index = text.indexOf(start_text);
+        if (start_index === -1) {
+          this.previous_text = text;
+          return this.result_dictionary;
+        }
+
+        this.previous_text = text.substring(0, start_index);
+
+        var end_index = start_index + start_text.length;
+        var next_delimiter_index = text.indexOf(delimiter, start_index + start_text.length);
+        this.result_dictionary[element_list[0]] = text.substring(start_index, next_delimiter_index).trim();
+        var element_index = 1;
+        end_index = next_delimiter_index + delimiter.length
+
+        while (element_index <= element_list.length && end_index < text.length) {
+          var current_element = element_list[element_index];
+          next_delimiter_index = text.indexOf(delimiter, end_index);
+
+          if (next_delimiter_index === -1) {
+            //console.log("Element not found.");
+            //break;
+            next_delimiter_index = text.length
+          }
+          
+          var value = text.substring(end_index, next_delimiter_index).trim();
+          
+
+          if (current_element in this.dictionary_format && !isNaN(this.dictionary_format[current_element])) {
+            var numeric_value = parseFloat(value);
+            if (isNaN(numeric_value)) {
+              var numeric_value_string =extractNumbers(value);
+              var numeric_value_string_index = text.indexOf(numeric_value_string, end_index);
+              numeric_value = parseFloat(numeric_value_string);
+              if(isNaN(numeric_value)){ break;} 
+              end_index = numeric_value_string_index + numeric_value_string.length-1;
+            }else{
+              value = numeric_value;
+              end_index = next_delimiter_index + delimiter.length;
+            }
+          }else{
+            end_index = next_delimiter_index + delimiter.length;
+          }          
+
+
+          this.result_dictionary[current_element] = value;
+          element_index++;
+        }
+
+        this.element_count = element_index;
+
+        if (element_index < element_list.length) {
+          this.after_text = "";
+        } else {
+          this.after_text = text.substring(end_index).trim();
+        }
+        return this.result_dictionary
+      };
+      this.setResultDictionary = function(dictionary_data) {
+        this.result_dictionary = dictionary_data;
+      }
+      this.setDictionaryFormat = function(dictionary_data) {
+        this.dictionary_format = dictionary_data;
+      }
+      this.getPreviousText = function() {
+          return this.previous_text;
+      };
+      this.getAfterText = function() {
+          return this.after_text;
+      };
+      this.getElementCount = function() {
+          return this.element_count;
+      };
+      this.getResultDictionary = function() {
+          return this.result_dictionary;
+      };
+
+    }
+
     //汎用関数----------------------------------------
+    function extractDateTime(string_data) {
+      // 正規表現を使用して日付と時刻を抽出
+      var regex = /(\d{1,2}\/\d{1,2}(?:\/\d{2,4})?)\s+(\d{1,2}:\d{1,2}(?::\d{1,2})?)(?:\s+(\d+))?/;
+      var match = regex.exec(string_data);
+
+      if (match && match.length >= 3) {
+        var date = match[1]; // 日付の部分
+        var time = match[2]; // 時刻の部分
+
+        // 秒数を取得
+        var seconds = match[3] ? match[3] : '00';
+        var datetime = date + ' ' + time +":" + seconds;
+        return datetime;
+      }
+
+      return null; // 日付と時刻が見つからない場合はnullを返す
+    }
+
+    function extractNumbers(text) {
+      // 正規表現で数字のみを抽出
+      var numbers = text.match(/\b\d+\b/g);
+      return numbers;
+    }
     // オブジェクトが空かどうかをチェックする関数
     function isObjectEmpty(obj) {
       for (var key in obj) {
@@ -148,22 +369,6 @@
      }else{
        return Object.keys(obj).length != 0;
      }
-    }
-    // 辞書のJSON文字列化関数
-    function convertDictionaryToJSON(obj) {
-      var json_string = '{';
-      var is_first_property = true;
-      for (var key in obj) {
-        if (obj.hasOwnProperty(key)) {
-          if (!is_first_property) {
-            json_string += ',';
-          }
-          json_string += '"' + key + '":"' + obj[key] + '"';
-          is_first_property = false;
-        }
-      }
-      json_string += '}';
-      return json_string;
     }
     //文字列表示関数
     function displayString(line, element , search_id ) {
@@ -215,20 +420,36 @@
       }
       return browser_type;
     }
+    // 辞書のJSON文字列化関数
+    function convertDictionaryToJSON(obj) {
+      var json_string = '{';
+      var is_first_property = true;
+      for (var key in obj) {
+        if (obj.hasOwnProperty(key)) {
+          if (!is_first_property) {
+            json_string += ',';
+          }
+          json_string += '"' + key + '":"' + obj[key] + '"';
+          is_first_property = false;
+        }
+      }
+      json_string += '}';
+      return json_string;
+    }
     // ファイル保存関数
-    function saveToFile(fileName, content) {
+    function saveToFile(file_name, content) {
       var downloadLink = document.createElement('a');
       downloadLink.href = 'data:text/plain;charset=utf-8,' + encodeURIComponent(content);
-      downloadLink.download = fileName;
+      downloadLink.download = file_name;
       downloadLink.style.display = 'none';
       document.body.appendChild(downloadLink);
       downloadLink.click();
       document.body.removeChild(downloadLink);
     }
     // ファイル保存関数(IE専用)
-    function saveToFileIE(fileName, content) {
+    function saveToFileIE(file_name, content) {
       var file_system = new ActiveXObject("Scripting.FileSystemObject");
-      var file_stream = file_system.CreateTextFile(fileName, true);
+      var file_stream = file_system.CreateTextFile(file_name, true);
       file_stream.Write(content);
       file_stream.Close();
     }

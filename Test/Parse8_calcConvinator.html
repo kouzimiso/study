@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>括弧に対応した四則演算パーサー</title>
+</head>
+<body>
+  <h1>括弧に対応した四則演算パーサー</h1>
+  <input type="text" id="expressionInput" placeholder="式を入力してください">
+  <button onclick="calculateExpression()">計算</button>
+  <p id="result"></p>
+
+  <script>
+    // パーサー関数
+    function parseExpression(input) {
+      let pos = 0;
+
+      function peek() {
+        return input[pos];
+      }
+
+      function consume() {
+        pos++;
+      }
+
+      function isDigit(char) {
+        return /\d/.test(char);
+      }
+
+      function isOperator(char) {
+        return /[\+\-\*\/]/.test(char);
+      }
+
+      function isParenthesis(char) {
+        return /[\(\)]/.test(char);
+      }
+
+      function number() {
+        let numStr = "";
+
+        while (pos < input.length && (isDigit(peek()) || peek() === ".")) {
+          numStr += peek();
+          consume();
+        }
+
+        return parseFloat(numStr);
+      }
+
+      function term() {
+        let result = factor();
+
+        while (pos < input.length && isOperator(peek())) {
+          const operator = peek();
+          consume();
+
+          if (operator === "*" || operator === "/") {
+            const nextFactor = factor();
+            if (operator === "*") {
+              result *= nextFactor;
+            } else if (operator === "/") {
+              result /= nextFactor;
+            }
+          } else {
+            pos--; // 他の演算子の場合、posを戻す
+            break;
+          }
+        }
+
+        return result;
+      }
+
+      function factor() {
+        if (peek() === "(") {
+          consume();
+
+          const result = expression();
+
+          if (peek() !== ")") {
+            throw new Error("Unexpected end of expression");
+          }
+
+          consume();
+
+          return result;
+        } else {
+          return number();
+        }
+      }
+
+      function expression() {
+        let result = term();
+
+        while (pos < input.length && isOperator(peek())) {
+          const operator = peek();
+          consume();
+
+          const nextTerm = term();
+          if (operator === "+") {
+            result += nextTerm;
+          } else if (operator === "-") {
+            result -= nextTerm;
+          }
+        }
+
+        return result;
+      }
+
+      const result = expression();
+
+      if (pos < input.length) {
+        throw new Error("Unexpected end of expression");
+      }
+
+      return result;
+    }
+
+    // テスト関数
+    function testParser() {
+      const testCases = [
+        { input: "2+3*4", expected: 14 },
+        { input: "(2+3)*4", expected: 20 },
+        { input: "10/5-2", expected: 0 },
+        { input: "8/(4-2)", expected: 4 },
+        { input: "1.5*2.5+3.5", expected: 7.25 },
+        { input: "1.5+(2.5*3.5)", expected: 10.25 },
+        { input: "4*(2+3)", expected: 20 },
+        { input: "1+2+3+4+", expected: "Unexpected end of expression" },
+        { input: "1+2+(3+4))", expected: "Unexpected closing parenthesis" }
+      ];
+
+      const results = [];
+
+      for (let i = 0; i < testCases.length; i++) {
+        const testCase = testCases[i];
+
+        try {
+          const result = parseExpression(testCase.input);
+          const isPassed = result === testCase.expected;
+          results.push({ input: testCase.input, expected: testCase.expected, result: result, isPassed: isPassed });
+        } catch (error) {
+          const isPassed =
+            error.message === testCase.expected ||
+            (typeof testCase.expected === "string" &&
+              error.message.includes(testCase.expected));
+          results.push({ input: testCase.input, expected: testCase.expected, result: "Error: " + error.message, isPassed: isPassed });
+        }
+      }
+
+      return results;
+    }
+
+    function displayTestResults() {
+      const testResults = testParser();
+      const resultsElement = document.getElementById("testResults");
+
+      resultsElement.innerHTML = ""; // テスト結果をクリア
+
+      for (let i = 0; i < testResults.length; i++) {
+        const result = testResults[i];
+
+        const resultElement = document.createElement("p");
+        resultElement.textContent = `入力: ${result.input} - 期待値: ${result.expected} - 結果: ${result.result} - パス: ${result.isPassed}`;
+        resultsElement.appendChild(resultElement);
+      }
+    }
+
+function calculateExpression() {
+  const input = document.getElementById("expressionInput").value;
+
+  try {
+    const result = parseExpression(input);
+    document.getElementById("result").innerText = "結果: " + result.toFixed(2);
+  } catch (error) {
+    document.getElementById("result").innerText = "エラー: " + error.message;
+  }
+}
+  </script>
+
+  <h2>テスト結果</h2>
+  <button onclick="displayTestResults()">テスト実行</button>
+  <div id="testResults"></div>
+</body>
+</html>

@@ -35,7 +35,7 @@
 			"name" : "StartTask",
 		 	"type" : "RunPlanLists",
 		 	"settings" : {
-				"file_path" : "",
+				"file_path"  : "",
 				"plan_lists" : [
 					"HotSpotON",
 					"Capture",
@@ -86,7 +86,7 @@
 			"name" : "EventPlanStart",
 			"type" : "RunPlanLists",
 	 		"settings" : {
-		 		"file_path" : "RunHouchiChild.json",
+		 		"file_path"  : "../Setting/RunHouchiChild.json",
 		 		"plan_lists" : [
 					"TimeCheck_Houchi_Chokyo","Chokyo"
 					
@@ -97,7 +97,7 @@
 			"name" : "EventPlanStart",
 			"type" : "RunPlanLists",
 	 		"settings" : {
-		 		"file_path" : "RunHouchi.json",
+		 		"file_path"  : "../Setting/RunHouchi.json",
 		 		"plan_lists" : [
 					"Chokyo"
 					
@@ -111,7 +111,7 @@
 			"name" : "MementmoriPlanStart",
 			"type" : "RunPlanLists",
 	 		"settings" : {
-		 		"file_path" : "RunMementomori.json",
+		 		"file_path"  : "../Setting/RunMementomori.json",
 		 		"plan_lists" : [
 					"CloseWindow",
 					"MementomoriPlan"
@@ -125,7 +125,7 @@
 	 		"name" : "HouchiPlanStart",
 			"type" : "RunPlanLists",
 			"settings" : {
-				"file_path" : "RunHouchi.json",
+				"file_path"  : "../Setting/RunHouchi.json",
 				"plan_lists" : [
 					"HouchiPlan"
 				],
@@ -139,7 +139,7 @@
 	 		"name" : "DarkTailsPlanStart",
 			"type" : "RunPlanLists",
 			"settings" : {
-				"file_path" : "RunDarkTails.json",
+				"file_path"  : "../Setting/RunDarkTails.json",
 				"plan_lists" : [
 					"DarkTailsPlan"
 				],
