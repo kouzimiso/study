@@ -34,7 +34,7 @@ def StartUp(plan_list_name,file_path):
         
 def main():
     #init()
-    StartUp("Start","RunGame.json")
+    StartUp("Start","../Setting/RunGame.json")
 
 if __name__ == "__main__":
     sys.exit(main())

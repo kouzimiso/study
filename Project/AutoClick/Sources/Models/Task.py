@@ -1,8 +1,10 @@
 import enum
+import os
 import sys
 import threading
 import datetime
 import time
+sys.path.append("./Common")
 sys.path.append("../Common")
 sys.path.append("../../Common")
 import Action
@@ -172,7 +174,7 @@ class Task(threading.Thread):
                 details["file_path"] = plan_list_filepath
                 if details.get("result") == False:
                     self.logger.error("" , details)
-                    input("please push and skip")
+                    input("file error.please push and skip."+os.path.abspath(plan_list_filepath))
                 self.TaskStatusChange("Run PlanLists file" , details)
                 self.RunPlanLists(plan_list_names_new,read_plan_lists)  
                 result_details = {"file_path" : plan_list_filepath}

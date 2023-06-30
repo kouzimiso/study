@@ -81,7 +81,6 @@ class Test(unittest.TestCase):
 
 
     def test_Auto5_dictionarytodata(self):
-        recognition_information=Recognition.RecognitionInfomation(Auto.ACTION.DOUBLE_CLICK ,Auto.RESULT.OK, Auto.END_ACTION.BREAK , 2 , 5 ,'./Test/*.png' , 1.8 , 0.8 , True)
         setting_dictionary = {
             "action" : "ACTION.CLICK" ,
             "end_condition" : "RESULT.OK",
@@ -105,10 +104,6 @@ class Test(unittest.TestCase):
         read_setting_dictionary = recognition.Get_SettingDictionary()
         #読みだした設定で再度Instance作成
         recognition=Recognition.Recognition(read_setting_dictionary)
-        #設定のCheck
-        recognition.CheckSettingDictionary(setting_dictionary)
-        recognition.CheckSettingDictionary(read_setting_dictionary)
-        recognition.CheckSetting()
         #設定の実行
         recognition.Execute()
         

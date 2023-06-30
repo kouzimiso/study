@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>JSONLine to CSV Converter</title>
+  <script>
+    function processData() {
+      var fileInput = document.getElementById('fileInput');
+      var file = fileInput.files[0];
+      var reader = new FileReader();
+      reader.onload = function(e) {
+        var contents = e.target.result;
+        var lines = contents.split('\n');
+        var output = '';
+        var wafers_data={};
+        var data_list = [];
+        var data = {};
+
+        for (var i = 0; i < lines.length; i++) {
+          var line = lines[i].trim();
+          if (line.length > 0) {
+            var obj = JSON.parse(line);
+            var date = obj[0];
+            var action = obj[1];
+            var position_id = obj[2];
+            var slot_no = obj[3];
+            var wid = obj[4];
+
+
+            if (!data[date]) {
+              data[date] = {};
+            }
+
+            if (action === 'Add') {
+              addWafersData(position_id , slot_no , wid ,wafers_data);  
+              if (!data[date]) {
+                data[date] = {};
+              }
+              data[date] = wafers_data;
+              //data_list.append = deepCopy(data);  
+              data_list.append = data;  
+         
+
+            } else if (action === 'Clear') {
+                clearWafersData(position_id , slot_no  ,wafers_data);   
+                if (!data[date]) {
+                    data[date] = {};
+                }
+                data[date] = wafers_data;
+                //data_list.append = deepCopy(data);  
+                data_list.push(data);  
+            }
+
+            var output_obj = { "Date": date };
+            if (Object.keys(data[date]).length > 0) {
+              output_obj = { ...output_obj, ...data[date] };
+            }
+
+            output += JSON.stringify(output_obj) + '\n';
+          }
+        }
+
+        document.getElementById('output').innerText = output;
+      };
+      reader.readAsText(file);
+    }
+    function addWafersData(position_id,slot_no,wid,wafers_data){
+              // 同じWIDがある場合は前のSlotNoとWIDのペアを削除
+              for (var temp_position_id in wafers_data) {
+                for (var temp_slot_no in wafers_data[temp_position_id]) {
+                    if (wafers_data[temp_position_id][temp_slot_no] === wid) {
+                        delete wafers_data[temp_position_id][temp_slot_no];
+                        break;
+                    }
+                }
+              }
+              if (!wafers_data[position_id]) { wafers_data[position_id] = {};}
+              wafers_data[position_id][slot_no]= wid;
+    }
+
+    function clearWafersData(position_id,slot_no,wafers_data){
+      if (wafers_data.hasOwnProperty(position_id) && wafers_data[position_id].hasOwnProperty(slot_no)) {
+        delete wafers_data[position_id][slot_no];
+      } 
+
+    }
+
+    function downloadJsonLine() {
+      var data = document.getElementById('output').innerText;
+      var blob = new Blob([data], { type: 'application/json' });
+      var url = URL.createObjectURL(blob);
+      var link = document.createElement('a');
+      link.href = url;
+      link.download = 'data.jsonl';
+      link.click();
+    }
+
+    function convertToCsv() {
+      var data = document.getElementById('output').innerText;
+      var lines = data.split('\n');
+      var csvContent = 'Date,PositionID,SlotNo,WID\n';
+
+      for (var i = 0; i < lines.length; i++) {
+        var line = lines[i].trim();
+        if (line.length > 0) {
+          var obj = JSON.parse(line);
+          var date = obj.Date;
+          delete obj.Date;
+
+          for (var position_id in obj) {
+            var slot_nos = obj[position_id];
+
+            for (var slot_no in slot_nos) {
+              var wid = slot_nos[slot_no];
+              csvContent += date + ',' + position_id + ',' + slot_no + ',' + wid + '\n';
+            }
+          }
+        }
+      }
+
+      var blob = new Blob([csvContent], { type: 'text/csv' });
+      var url = URL.createObjectURL(blob);
+      var link = document.createElement('a');
+      link.href = url;
+      link.download = 'data.csv';
+      link.click();
+    }
+    function deepCopy(obj) {
+        if (typeof obj !== 'object' || obj === null) {
+            return obj;
+        }
+        
+        var newObj = Array.isArray(obj) ? [] : {};
+        
+        for (var key in obj) {
+            if (obj.hasOwnProperty(key)) {
+            newObj[key] = deepCopy(obj[key]);
+            }
+        }
+        
+        return newObj;
+    }
+
+
+  </script>
+</head>
+<body>
+  <h1>JSONLine to CSV Converter</h1>
+  <input type="file" id="fileInput" accept=".jsonl">
+  <button onclick="processData()">Process</button>
+  <button onclick="downloadJsonLine()">Export JSONLine</button>
+  <button onclick="convertToCsv()">Export CSV</button>
+  <pre id="output"></pre>
+</body>
+</html>

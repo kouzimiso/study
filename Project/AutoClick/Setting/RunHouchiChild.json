@@ -229,7 +229,7 @@
 		{
 	 		"name" : "PoochiPochi",
 			"type" : "RunPlanLists",
-			"condition_list" : "PochiStart.detail = RESULT.OK,PochiStart.detail = RESULT.ALL_OK",
+			"condition_list" : "PochiStart.detail = OK,PochiStart.detail = ALL_OK",
 			"result_name":"",
 			"settings" : {
 				"file_path"  : "../Setting/RunHouchiChild.json",
@@ -321,9 +321,9 @@
 			"result_name":"ItemMax",
 			"settings" : {
 				"#step_check_mode" : true,
-				"action" : "ACTION.CLICK",
-				"end_condition" : "RESULT.OK",
-				"end_action" : "END_ACTION.FOLDER_END_BREAK",
+				"action" : "CLICK",
+				"end_condition" : "OK",
+				"end_action" : "END_FOLDER_END_BREAK",
 				"execute_number" : 2,
 				"retry_number" : 2,
 				"image_path" : "../Images/houchi/2000_item/0000_start/*.png",
@@ -364,7 +364,7 @@
 			"type": "Judge",
 			"settings": {
 				"condition_list": [
-					"Time_Check_ItemMaintenance1=True,Time_Check_ItemMaintenance2=True,ItemMax.detail = RESULT.OK,ItemMax.detail = RESULT.ALL_OK"
+					"Time_Check_ItemMaintenance1=True,Time_Check_ItemMaintenance2=True,ItemMax.detail = OK,ItemMax.detail = ALL_OK"
 				],
 				"log_file_path_list": "../Log/log_houchi.json",
 				"#step_check_mode" : true,"log_function":true,"log_print_standardoutput": true
@@ -378,9 +378,9 @@
 			"result_name":"ItemMax",
 			"settings" : {
 				"#step_check_mode" : true,
-				"action" : "ACTION.CLICK",
-				"end_condition" : "RESULT.OK",
-				"end_action" : "END_ACTION.FOLDER_END_BREAK",
+				"action" : "CLICK",
+				"end_condition" : "OK",
+				"end_action" : "END_FOLDER_END_BREAK",
 				"execute_number" : 2,
 				"retry_number" : 2,
 				"image_path" : "../Images/houchi/2000_item/0000_start/*.png",
@@ -448,9 +448,9 @@
 			"result_name":"Result_HouchiStartClicked",
 			"settings" : {
 				"#step_check_mode" : true,
-				"action" : "ACTION.CLICK",
-				"end_condition" : "RESULT.OK",
-				"end_action" : "END_ACTION.FOLDER_END_BREAK",
+				"action" : "CLICK",
+				"end_condition" : "OK",
+				"end_action" : "END_FOLDER_END_BREAK",
 				"execute_number" : 2,
 				"retry_number" : 2,
 				"image_path" : "../Images/houchi/1000_start/Click0*.png",
@@ -472,9 +472,9 @@
 			"result_name":"Result_HouchiMaintClicked",
 			"settings" : {
 				"#step_check_mode" : true,
-				"action" : "ACTION.CLICK",
-				"end_condition" : "RESULT.NG",
-				"end_action" : "END_ACTION.FOLDER_END_BREAK",
+				"action" : "CLICK",
+				"end_condition" : "NG",
+				"end_action" : "END_FOLDER_END_BREAK",
 				"execute_number" : 2,
 				"retry_number" : 2,
 				"image_path" : "../Images/houchi/9999_mainte/*.png",
@@ -492,8 +492,8 @@
 			"type": "Judge",
 			"settings": {
 				"condition_list": [
-					"Result_HouchiStartClicked.detail = RESULT.OK,Result_HouchiStartClicked.detail = RESULT.ALL_OK",
-					"Result_HouchiMaintClicked.detail = RESULT.NG"					
+					"Result_HouchiStartClicked.detail = OK,Result_HouchiStartClicked.detail = ALL_OK",
+					"Result_HouchiMaintClicked.detail = NG"					
 				],
 				"log_file_path_list": "../Log/log_houchi.json",
 				"log_function":true,"log_print_standardoutput": true
@@ -509,9 +509,9 @@
 			"result_name":"PochiStart",
 			"settings" : {
 				"#step_check_mode" : true,"retry_check" : false,"sleep_time" : 0,
-				"action" : "ACTION.CLICK",
-				"end_condition" : "RESULT.OK",
-				"end_action" : "END_ACTION.BREAK",
+				"action" : "CLICK",
+				"end_condition" : "OK",
+				"end_action" : "END_BREAK",
 				"execute_number" : 1,
 				"retry_number" : 5,
 				"image_path" : "../Images/houchi/1020_pochistart/*.png",
@@ -525,12 +525,12 @@
 		{
 			"name" : "PochiClick02",
 			"type" : "Recognition",
-			"condition_list" : "PochiStart.detail = RESULT.OK,PochiStart.detail = RESULT.ALL_OK",
+			"condition_list" : "PochiStart.detail = OK,PochiStart.detail = ALL_OK",
 			"result_name":"",
 			"settings" : {
-				"action" : "ACTION.CLICK",
-				"end_condition" : "RESULT.OK",
-				"end_action" : "END_ACTION.FOLDER_END_BREAK",
+				"action" : "CLICK",
+				"end_condition" : "OK",
+				"end_action" : "FOLDER_END_BREAK",
 				"execute_number" : 1,
 				"retry_number" : 1,
 				"image_path" : "../Images/houchi/1021_pochi/*.png",
@@ -544,12 +544,12 @@
 		{
 			"name" : "PochiClick03",
 			"type" : "Recognition",
-			"condition_list" : "PochiStart.detail = RESULT.OK,PochiStart.detail = RESULT.ALL_OK",
+			"condition_list" : "PochiStart.detail = OK,PochiStart.detail = ALL_OK",
 			"result_name":"PochiLongStart",
 			"settings" : {
-				"action" : "ACTION.CLICK",
-				"end_condition" : "RESULT.OK",
-				"end_action" : "END_ACTION.BREAK",
+				"action" : "CLICK",
+				"end_condition" : "OK",
+				"end_action" : "END_BREAK",
 				"execute_number" : 1,
 				"retry_number" : 0,
 				"image_path" : "../Images/houchi/1022_pochilongstart/*.png",
@@ -563,12 +563,12 @@
 		{
 			"name" : "PochiClick04",
 			"type" : "Recognition",
-			"condition_list" : "PochiLongStart.detail = RESULT.OK,PochiLongStart.detail = RESULT.ALL_OK",
+			"condition_list" : "PochiLongStart.detail = OK,PochiLongStart.detail = ALL_OK",
 			"result_name":"",
 			"settings" : {
-				"action" : "ACTION.CLICK",
-				"end_condition" : "RESULT.OK",
-				"end_action" : "END_ACTION.FOLDER_END_BREAK",
+				"action" : "CLICK",
+				"end_condition" : "OK",
+				"end_action" : "FOLDER_END_BREAK",
 				"execute_number" : 1,
 				"retry_number" : 1,
 				"image_path" : "../Images/houchi/1023_pochilong/*.png",
@@ -582,12 +582,12 @@
 		{
 			"name" : "PochiClickEnd",
 			"type" : "Recognition",
-			"condition_list" : "PochiStart.detail = RESULT.OK,PochiStart.detail = RESULT.ALL_OK",
+			"condition_list" : "PochiStart.detail = OK,PochiStart.detail = ALL_OK",
 			"result_name":"",
 			"settings" : {
-				"action" : "ACTION.CLICK",
-				"end_condition" : "RESULT.OK",
-				"end_action" : "END_ACTION.CONTINUE",
+				"action" : "CLICK",
+				"end_condition" : "OK",
+				"end_action" : "END_CONTINUE",
 				"execute_number" : 1,
 				"retry_number" : 1,
 				"image_path" : "../Images/houchi/1029_pochiend/*.png",
@@ -608,9 +608,9 @@
 			"condition_list" : "",
 			"result_name":"Result_Click",
 			"settings" : {
-				"action" : "ACTION.DOUBLE_CLICK",
-				"end_condition" : "RESULT.OK",
-				"end_action" : "END_ACTION.CONTINUE",
+				"action" : "DOUBLE_CLICK",
+				"end_condition" : "OK",
+				"end_action" : "END_CONTINUE",
 				"execute_number" : 1,
 				"retry_number" : 2,
 				"image_path" : "../Images/houchi/1400_event/0000_start/*.png",
@@ -624,12 +624,12 @@
 		{
 			"name" : "HouchiEvent01Click05",
 			"type" : "Recognition",
-			"condition_list" : "Result_Click.detail=RESULT.OK,Result_Click.detail = RESULT.ALL_OK",
+			"condition_list" : "Result_Click.detail=OK,Result_Click.detail = ALL_OK",
 			"result_name":"Result_Click",
 			"settings" : {
-				"action" : "ACTION.CLICK",
-				"end_condition" : "RESULT.OK",
-				"end_action" : "END_ACTION.CONTINUE",
+				"action" : "CLICK",
+				"end_condition" : "OK",
+				"end_action" : "END_CONTINUE",
 				"execute_number" : 1,
 				"retry_number" : 2,
 				"image_path" : "../Images/houchi/1400_event/0005_execute/*.png",
@@ -643,7 +643,7 @@
 		{
 		   "name" : "Home",
 		   "type" : "RunPlanLists",
-		   "condition_list" : "Result_Click.detail = RESULT.OK,Result_Click.detail = RESULT.ALL_OK",
+		   "condition_list" : "Result_Click.detail = OK,Result_Click.detail = ALL_OK",
 		   "result_name":"",
 		   "settings" : {
 			   "file_path"  : "../Setting/RunHouchiChild.json",
@@ -658,9 +658,9 @@
 			"condition_list" : "",
 			"result_name":"Result_Click",
 			"settings" : {
-				"action" : "ACTION.DOUBLE_CLICK",
-				"end_condition" : "RESULT.OK",
-				"end_action" : "END_ACTION.CONTINUE",
+				"action" : "DOUBLE_CLICK",
+				"end_condition" : "OK",
+				"end_action" : "END_CONTINUE",
 				"execute_number" : 1,
 				"retry_number" : 2,
 				"image_path" : "../Images/houchi/1400_event/0010_start/*.png",
@@ -674,12 +674,12 @@
 		{
 			"name" : "HouchiEvent01Click15",
 			"type" : "Recognition",
-			"condition_list" : "Result_Click.detail = RESULT.OK,Result_Click.detail = RESULT.ALL_OK",
+			"condition_list" : "Result_Click.detail = OK,Result_Click.detail = ALL_OK",
 			"result_name":"",
 			"settings" : {
-				"action" : "ACTION.CLICK",
-				"end_condition" : "RESULT.OK",
-				"end_action" : "END_ACTION.CONTINUE",
+				"action" : "CLICK",
+				"end_condition" : "OK",
+				"end_action" : "END_CONTINUE",
 				"execute_number" : 1,
 				"retry_number" : 0,
 				"image_path" : "../Images/houchi/1400_event/0015_execute/*.png",
@@ -693,7 +693,7 @@
 		{
 			"name" : "Home",
 		   "type" : "RunPlanLists",
-		   "condition_list" : "Result_Click.detail = RESULT.OK,Result_Click.detail = RESULT.ALL_OK",
+		   "condition_list" : "Result_Click.detail = OK,Result_Click.detail = ALL_OK",
 		   "result_name":"",
 		   "settings" : {
 			   "file_path"  : "../Setting/RunHouchiChild.json",
@@ -708,9 +708,9 @@
 			"condition_list" : "",
 			"result_name":"Result_Click",
 			"settings" : {
-				"action" : "ACTION.DOUBLE_CLICK",
-				"end_condition" : "RESULT.OK",
-				"end_action" : "END_ACTION.CONTINUE",
+				"action" : "DOUBLE_CLICK",
+				"end_condition" : "OK",
+				"end_action" : "END_CONTINUE",
 				"execute_number" : 1,
 				"retry_number" : 2,
 				"image_path" : "../Images/houchi/1400_event/0020_start/*.png",
@@ -724,12 +724,12 @@
 		{
 			"name" : "HouchiEvent01Click25",
 			"type" : "Recognition",
-			"condition_list" : "Result_Click.detail = RESULT.OK,Result_Click.detail = RESULT.ALL_OK",
+			"condition_list" : "Result_Click.detail = OK,Result_Click.detail = ALL_OK",
 			"result_name":"",
 			"settings" : {
-				"action" : "ACTION.CLICK",
-				"end_condition" : "RESULT.OK",
-				"end_action" : "END_ACTION.CONTINUE",
+				"action" : "CLICK",
+				"end_condition" : "OK",
+				"end_action" : "END_CONTINUE",
 				"execute_number" : 1,
 				"retry_number" : 0,
 				"image_path" : "../Images/houchi/1400_event/0025_execute/*.png",
@@ -743,7 +743,7 @@
 		{
 		   "name" : "Home",
 		   "type" : "RunPlanLists",
-		   "condition_list" : "Result_Click.detail = RESULT.OK,Result_Click.detail = RESULT.ALL_OK",
+		   "condition_list" : "Result_Click.detail = OK,Result_Click.detail = ALL_OK",
 		   "result_name":"",
 		   "settings" : {
 			   "file_path"  : "../Setting/RunHouchiChild.json",
@@ -758,9 +758,9 @@
 			"condition_list" : "",
 			"result_name":"Result_Click",
 			"settings" : {
-				"action" : "ACTION.DOUBLE_CLICK",
-				"end_condition" : "RESULT.OK",
-				"end_action" : "END_ACTION.CONTINUE",
+				"action" : "DOUBLE_CLICK",
+				"end_condition" : "OK",
+				"end_action" : "END_CONTINUE",
 				"execute_number" : 1,
 				"retry_number" : 2,
 				"image_path" : "../Images/houchi/1400_event/0030_start/*.png",
@@ -774,12 +774,12 @@
 		{
 			"name" : "HouchiEvent01Click35",
 			"type" : "Recognition",
-			"condition_list" : "Result_Click.detail = RESULT.OK,Result_Click.detail = RESULT.ALL_OK",
+			"condition_list" : "Result_Click.detail = OK,Result_Click.detail = ALL_OK",
 			"result_name":"",
 			"settings" : {
-				"action" : "ACTION.CLICK",
-				"end_condition" : "RESULT.OK",
-				"end_action" : "END_ACTION.CONTINUE",
+				"action" : "CLICK",
+				"end_condition" : "OK",
+				"end_action" : "END_CONTINUE",
 				"execute_number" : 1,
 				"retry_number" : 0,
 				"image_path" : "../Images/houchi/1400_event/0035_execute/*.png",
@@ -796,9 +796,9 @@
 			"condition_list" : "",
 			"result_name":"Result_Click",
 			"settings" : {
-				"action" : "ACTION.DOUBLE_CLICK",
-				"end_condition" : "RESULT.OK",
-				"end_action" : "END_ACTION.BREAK",
+				"action" : "DOUBLE_CLICK",
+				"end_condition" : "OK",
+				"end_action" : "END_BREAK",
 				"execute_number" : 1,
 				"retry_number" : 2,
 				"image_path" : "../Images/houchi/1400_event/0040_start/*.png",
@@ -812,12 +812,12 @@
 		{
 			"name" : "HouchiEvent01Click45",
 			"type" : "Recognition",
-			"condition_list" : "Result_Click.detail = RESULT.OK,Result_Click.detail = RESULT.ALL_OK",
+			"condition_list" : "Result_Click.detail = OK,Result_Click.detail = ALL_OK",
 			"result_name":"",
 			"settings" : {
-				"action" : "ACTION.CLICK",
-				"end_condition" : "RESULT.OK",
-				"end_action" : "END_ACTION.CONTINUE",
+				"action" : "CLICK",
+				"end_condition" : "OK",
+				"end_action" : "END_CONTINUE",
 				"execute_number" : 1,
 				"retry_number" : 0,
 				"image_path" : "../Images/houchi/1400_event/0045_execute/*.png",
@@ -834,9 +834,9 @@
 			"condition_list" : "",
 			"result_name":"Result_Click",
 			"settings" : {
-				"action" : "ACTION.DOUBLE_CLICK",
-				"end_condition" : "RESULT.OK",
-				"end_action" : "END_ACTION.BREAK",
+				"action" : "DOUBLE_CLICK",
+				"end_condition" : "OK",
+				"end_action" : "END_BREAK",
 				"execute_number" : 1,
 				"retry_number" : 2,
 				"image_path" : "../Images/houchi/1400_event/0050_start/*.png",
@@ -850,12 +850,12 @@
 		{
 			"name" : "HouchiEvent01Click55",
 			"type" : "Recognition",
-			"condition_list" : "Result_Click.detail = RESULT.OK,Result_Click.detail = RESULT.ALL_OK",
+			"condition_list" : "Result_Click.detail = OK,Result_Click.detail = ALL_OK",
 			"result_name":"",
 			"settings" : {
-				"action" : "ACTION.CLICK",
-				"end_condition" : "RESULT.OK",
-				"end_action" : "END_ACTION.CONTINUE",
+				"action" : "CLICK",
+				"end_condition" : "OK",
+				"end_action" : "END_CONTINUE",
 				"execute_number" : 1,
 				"retry_number" : 0,
 				"image_path" : "../Images/houchi/1400_event/0055_execute/*.png",
@@ -875,9 +875,9 @@
 			"condition_list" : "",
 			"result_name":"Result_Click",
 			"settings" : {
-				"action" : "ACTION.DOUBLE_CLICK",
-				"end_condition" : "RESULT.OK",
-				"end_action" : "END_ACTION.CONTINUE",
+				"action" : "DOUBLE_CLICK",
+				"end_condition" : "OK",
+				"end_action" : "END_CONTINUE",
 				"execute_number" : 1,
 				"retry_number" : 2,
 				"image_path" : "../Images/houchi/1480_event/0000_start/*.png",
@@ -891,12 +891,12 @@
 		{
 			"name" : "HouchiEvent08Click05",
 			"type" : "Recognition",
-			"condition_list" : "Result_Click.detail=RESULT.OK,Result_Click.detail = RESULT.ALL_OK",
+			"condition_list" : "Result_Click.detail=OK,Result_Click.detail = ALL_OK",
 			"result_name":"Result_Click",
 			"settings" : {
-				"action" : "ACTION.CLICK",
-				"end_condition" : "RESULT.OK",
-				"end_action" : "END_ACTION.CONTINUE",
+				"action" : "CLICK",
+				"end_condition" : "OK",
+				"end_action" : "END_CONTINUE",
 				"execute_number" : 1,
 				"retry_number" : 2,
 				"image_path" : "../Images/houchi/1480_event/0005_execute/*.png",
@@ -913,9 +913,9 @@
 			"condition_list" : "",
 			"result_name":"Result_Click",
 			"settings" : {
-				"action" : "ACTION.DOUBLE_CLICK",
-				"end_condition" : "RESULT.OK",
-				"end_action" : "END_ACTION.CONTINUE",
+				"action" : "DOUBLE_CLICK",
+				"end_condition" : "OK",
+				"end_action" : "END_CONTINUE",
 				"execute_number" : 1,
 				"retry_number" : 2,
 				"image_path" : "../Images/houchi/1480_event/0010_start/*.png",
@@ -929,12 +929,12 @@
 		{
 			"name" : "HouchiEvent08Click15",
 			"type" : "Recognition",
-			"condition_list" : "Result_Click.detail = RESULT.OK,Result_Click.detail = RESULT.ALL_OK",
+			"condition_list" : "Result_Click.detail = OK,Result_Click.detail = ALL_OK",
 			"result_name":"",
 			"settings" : {
-				"action" : "ACTION.CLICK",
-				"end_condition" : "RESULT.OK",
-				"end_action" : "END_ACTION.CONTINUE",
+				"action" : "CLICK",
+				"end_condition" : "OK",
+				"end_action" : "END_CONTINUE",
 				"execute_number" : 1,
 				"retry_number" : 0,
 				"image_path" : "../Images/houchi/1480_event/0015_execute/*.png",
@@ -948,7 +948,7 @@
 		{
 			"name" : "HouchiIkusei",
 		   "type" : "RunPlanLists",
-		   "condition_list" : "Result_Click.detail=RESULT.OK,Result_Click.detail = RESULT.ALL_OK",
+		   "condition_list" : "Result_Click.detail=OK,Result_Click.detail = ALL_OK",
 		   "result_name":"",
 		   "settings" : {
 			   "file_path"  : "../Setting/RunHouchiChild.json",
@@ -960,7 +960,7 @@
 	   {
 		  "name" : "Home",
 		  "type" : "RunPlanLists",
-		  "condition_list" : "Result_Click.detail = RESULT.OK,Result_Click.detail = RESULT.ALL_OK",
+		  "condition_list" : "Result_Click.detail = OK,Result_Click.detail = ALL_OK",
 		  "result_name":"",
 		  "settings" : {
 			  "file_path"  : "../Setting/RunHouchiChild.json",
@@ -975,9 +975,9 @@
 		"condition_list" : "",
 		"result_name":"Result_Click",
 		"settings" : {
-			"action" : "ACTION.DOUBLE_CLICK",
-			"end_condition" : "RESULT.OK",
-			"end_action" : "END_ACTION.CONTINUE",
+			"action" : "DOUBLE_CLICK",
+			"end_condition" : "OK",
+			"end_action" : "END_CONTINUE",
 			"execute_number" : 1,
 			"retry_number" : 2,
 			"image_path" : "../Images/houchi/1480_event/0080_start/*.png",
@@ -991,12 +991,12 @@
 	{
 		"name" : "HouchiEvent08Click15",
 		"type" : "Recognition",
-		"condition_list" : "Result_Click.detail = RESULT.OK,Result_Click.detail = RESULT.ALL_OK",
+		"condition_list" : "Result_Click.detail = OK,Result_Click.detail = ALL_OK",
 		"result_name":"",
 		"settings" : {
-			"action" : "ACTION.CLICK",
-			"end_condition" : "RESULT.OK",
-			"end_action" : "END_ACTION.CONTINUE",
+			"action" : "CLICK",
+			"end_condition" : "OK",
+			"end_action" : "END_CONTINUE",
 			"execute_number" : 1,
 			"retry_number" : 0,
 			"image_path" : "../Images/houchi/1480_event/0085_execute/*.png",
@@ -1017,9 +1017,9 @@
 			"condition_list" : "",
 			"result_name":"Result_Click",
 			"settings" : {
-				"action" : "ACTION.DOUBLE_CLICK",
-				"end_condition" : "RESULT.OK",
-				"end_action" : "END_ACTION.FOLDER_END_BREAK",
+				"action" : "DOUBLE_CLICK",
+				"end_condition" : "OK",
+				"end_action" : "FOLDER_END_BREAK",
 				"execute_number" : 1,
 				"retry_number" : 2,
 				"image_path" : "../Images/houchi/1490_event/0000_start/*.png",
@@ -1036,9 +1036,9 @@
 			"condition_list" : "",
 			"result_name":"Result_Click",
 			"settings" : {
-				"action" : "ACTION.DOUBLE_CLICK",
-				"end_condition" : "RESULT.OK",
-				"end_action" : "END_ACTION.FOLDER_END_BREAK",
+				"action" : "DOUBLE_CLICK",
+				"end_condition" : "OK",
+				"end_action" : "FOLDER_END_BREAK",
 				"execute_number" : 1,
 				"retry_number" : 1,
 				"image_path" : "../Images/houchi/1490_event/0002_execute/*.png",
@@ -1052,17 +1052,17 @@
 		{
 			"name" : "HouchiZikai",
 			"type" : "Recognition",
-			"condition_list" : "Result_Click.detail = RESULT.OK,Result_Click.detail = RESULT.ALL_OK",
+			"condition_list" : "Result_Click.detail = OK,Result_Click.detail = ALL_OK",
 			"result_name":"Execute02",
 			"settings" : {
-				"action" : "ACTION.DOUBLE_CLICK",
-				"end_condition" : "RESULT.OK",
-				"end_action" : "END_ACTION.FOLDER_END_BREAK",
+				"action" : "DOUBLE_CLICK",
+				"end_condition" : "OK",
+				"end_action" : "FOLDER_END_BREAK",
 				"execute_number" : 1,
 				"retry_number" : 1,
 				"image_path" : "../Images/houchi/1490_event/0003_check/*.png",
 				"interval_time" : 0.8,
-				"recognition_confidence" : 0.98,
+				"recognition_confidence" : 1,
 				"recognition_grayscale" : false,
 				"log_file_path_list": "../Log/log_recognition.json",
 				"log_function":true,"log_print_standardoutput": false
@@ -1071,12 +1071,12 @@
 		{
 			"name" : "HouchiZikai",
 			"type" : "Recognition",
-			"condition_list" : "Execute02.detail = RESULT.OK,Execute02.detail = RESULT.ALL_OK",
+			"condition_list" : "Execute02.detail = OK,Execute02.detail = ALL_OK",
 			"result_name":"",
 			"settings" : {
-				"action" : "ACTION.CLICK",
-				"end_condition" : "RESULT.OK",
-				"end_action" : "END_ACTION.CONTINUE",
+				"action" : "CLICK",
+				"end_condition" : "OK",
+				"end_action" : "END_CONTINUE",
 				"execute_number" : 1,
 				"retry_number" : 1,
 				"image_path" : "../Images/houchi/1490_event/0005_execute/*.png",
@@ -1090,12 +1090,12 @@
 		{
 			"name" : "HouchiZikaiClick11",
 			"type" : "Recognition",
-			"condition_list" : "",
+			"condition_list" : "Execute02.detail = OK,Execute02.detail = ALL_OK",
 			"result_name":"Result_Click",
 			"settings" : {
-				"action" : "ACTION.DOUBLE_CLICK",
-				"end_condition" : "RESULT.OK",
-				"end_action" : "END_ACTION.CONTINUE",
+				"action" : "DOUBLE_CLICK",
+				"end_condition" : "OK",
+				"end_action" : "END_CONTINUE",
 				"execute_number" : 1,
 				"retry_number" : 0,
 				"image_path" : "../Images/houchi/1490_event/0010_start/*.png",
@@ -1109,12 +1109,12 @@
 		{
 			"name" : "HouchiZikaiClick13",
 			"type" : "Recognition",
-			"condition_list" : "Result_Click.detail = RESULT.OK,Result_Click.detail = RESULT.ALL_OK",
+			"condition_list" : "Result_Click.detail = OK,Result_Click.detail = ALL_OK",
 			"result_name":"",
 			"settings" : {
-				"action" : "ACTION.CLICK",
-				"end_condition" : "RESULT.NG",
-				"end_action" : "END_ACTION.CONTINUE",
+				"action" : "CLICK",
+				"end_condition" : "NG",
+				"end_action" : "END_CONTINUE",
 				"execute_number" : 1,
 				"retry_number" : 5,
 				"image_path" : "../Images/houchi/1490_event/0015_execute/*.png",
@@ -1128,12 +1128,12 @@
 		{
 			"name" : "HouchiZikaiClick21",
 			"type" : "Recognition",
-			"condition_list" : "",
+			"condition_list" : "Execute02.detail = OK,Execute02.detail = ALL_OK",
 			"result_name":"Result_Click",
 			"settings" : {
-				"action" : "ACTION.DOUBLE_CLICK",
-				"end_condition" : "RESULT.OK",
-				"end_action" : "END_ACTION.CONTINUE",
+				"action" : "DOUBLE_CLICK",
+				"end_condition" : "OK",
+				"end_action" : "END_CONTINUE",
 				"execute_number" : 1,
 				"retry_number" : 0,
 				"image_path" : "../Images/houchi/1490_event/0020_start/*.png",
@@ -1147,12 +1147,12 @@
 		{
 			"name" : "HouchiZikaiClick23",
 			"type" : "Recognition",
-			"condition_list" : "Result_Click.detail = RESULT.OK,Result_Click.detail = RESULT.ALL_OK",
+			"condition_list" : "Result_Click.detail = OK,Result_Click.detail = ALL_OK",
 			"result_name":"",
 			"settings" : {
-				"action" : "ACTION.CLICK",
-				"end_condition" : "RESULT.OK",
-				"end_action" : "END_ACTION.CONTINUE",
+				"action" : "CLICK",
+				"end_condition" : "OK",
+				"end_action" : "END_CONTINUE",
 				"execute_number" : 2,
 				"retry_number" : 0,
 				"image_path" : "../Images/houchi/1490_event/0025_execute/*.png",
@@ -1168,12 +1168,12 @@
 		{
 			"name" : "HouchiZikaiEnd",
 			"type" : "Recognition",
-			"condition_list" : "Result_Click.detail = RESULT.OK,Result_Click.detail = RESULT.ALL_OK",
+			"condition_list" : "Result_Click.detail = OK,Result_Click.detail = ALL_OK",
 			"result_name":"",
 			"settings" : {
-				"action" : "ACTION.CLICK",
-				"end_condition" : "RESULT.NG",
-				"end_action" : "END_ACTION.CONTINUE",
+				"action" : "CLICK",
+				"end_condition" : "NG",
+				"end_action" : "END_CONTINUE",
 				"execute_number" : 1,
 				"retry_number" : 2,
 				"image_path" : "../Images/houchi/1490_event/0019_end/*.png",
@@ -1193,9 +1193,9 @@
 			"condition_list" : "",
 			"result_name":"Result_Click",
 			"settings" : {
-				"action" : "ACTION.DOUBLE_CLICK",
-				"end_condition" : "RESULT.OK",
-				"end_action" : "END_ACTION.CONTINUE",
+				"action" : "DOUBLE_CLICK",
+				"end_condition" : "OK",
+				"end_action" : "END_CONTINUE",
 				"execute_number" : 1,
 				"retry_number" : 2,
 				"image_path" : "../Images/houchi/1500_dairy/*.png",
@@ -1209,12 +1209,12 @@
 		{
 			"name" : "Dairy02",
 			"type" : "Recognition",
-			"condition_list" : "Result_Click.detail = RESULT.OK,Result_Click.detail = RESULT.ALL_OK",
+			"condition_list" : "Result_Click.detail = OK,Result_Click.detail = ALL_OK",
 			"result_name":"",
 			"settings" : {
-				"action" : "ACTION.CLICK",
-				"end_condition" : "RESULT.OK",
-				"end_action" : "END_ACTION.CONTINUE",
+				"action" : "CLICK",
+				"end_condition" : "OK",
+				"end_action" : "END_CONTINUE",
 				"execute_number" : 1,
 				"retry_number" : 0,
 				"image_path" : "../Images/houchi/1510_dairy/*.png",
@@ -1228,12 +1228,12 @@
 		{
 			"name" : "Dairy03",
 			"type" : "Recognition",
-			"condition_list" : "Result_Click.detail = RESULT.OK,Result_Click.detail = RESULT.ALL_OK",
+			"condition_list" : "Result_Click.detail = OK,Result_Click.detail = ALL_OK",
 			"result_name":"Dairy",
 			"settings" : {
-				"action" : "ACTION.CLICK",
-				"end_condition" : "RESULT.OK",
-				"end_action" : "END_ACTION.CONTINUE",
+				"action" : "CLICK",
+				"end_condition" : "OK",
+				"end_action" : "END_CONTINUE",
 				"execute_number" : 1,
 				"retry_number" : 0,
 				"image_path" : "../Images/houchi/1511_dairy/*.png",
@@ -1247,7 +1247,7 @@
 		{
 			"name" : "HouchiIkusei",
 			"type" : "RunPlanLists",
-			"condition_list" : "Dairy.detail = RESULT.OK,Dairy.detail = RESULT.ALL_OK",
+			"condition_list" : "Dairy.detail = OK,Dairy.detail = ALL_OK",
 			"result_name":"",
 			"settings" : {
 				"file_path"  : "../Setting/RunHouchiChild.json",
@@ -1266,9 +1266,9 @@
 			"condition_list" : "",
 			"result_name":"Result_Click",
 			"settings" : {
-				"action" : "ACTION.CLICK",
-				"end_condition" : "RESULT.OK",
-				"end_action" : "END_ACTION.CONTINUE",
+				"action" : "CLICK",
+				"end_condition" : "OK",
+				"end_action" : "END_CONTINUE",
 				"execute_number" : 1,
 				"retry_number" : 2,
 				"image_path" : "../Images/houchi/1520_tyuzo/*.png",
@@ -1288,9 +1288,9 @@
 			"condition_list" : "",
 			"result_name":"Result_Click",
 			"settings" : {
-				"action" : "ACTION.CLICK",
-				"end_condition" : "RESULT.OK",
-				"end_action" : "END_ACTION.CONTINUE",
+				"action" : "CLICK",
+				"end_condition" : "OK",
+				"end_action" : "END_CONTINUE",
 				"execute_number" : 1,
 				"retry_number" : 0,
 				"image_path" : "../Images/houchi/2000_item/0005_execute/*.png",
@@ -1319,9 +1319,9 @@
 			"condition_list" : "",
 			"result_name":"Result_Click",
 			"settings" : {
-				"action" : "ACTION.CLICK",
-				"end_condition" : "RESULT.OK",
-				"end_action" : "END_ACTION.CONTINUE",
+				"action" : "CLICK",
+				"end_condition" : "OK",
+				"end_action" : "END_CONTINUE",
 				"execute_number" : 1,
 				"retry_number" : 2,
 				"image_path" : "../Images/houchi/2000_item/0010_start/*.png",
@@ -1335,12 +1335,12 @@
 		{
 			"name" : "ItemMaintenance",
 			"type" : "Recognition",
-			"condition_list" : "Result_Click.detail = RESULT.OK,Result_Click.detail = RESULT.ALL_OK",
+			"condition_list" : "Result_Click.detail = OK,Result_Click.detail = ALL_OK",
 			"result_name":"Result_Click",
 			"settings" : {
-				"action" : "ACTION.CLICK",
-				"end_condition" : "RESULT.OK",
-				"end_action" : "END_ACTION.CONTINUE",
+				"action" : "CLICK",
+				"end_condition" : "OK",
+				"end_action" : "END_CONTINUE",
 				"execute_number" : 1,
 				"retry_number" : 0,
 				"image_path" : "../Images/houchi/2000_item/0015_execute/*.png",
@@ -1360,9 +1360,9 @@
 			"condition_list" : "",
 			"result_name":"Result_Click",
 			"settings" : {
-				"action" : "ACTION.CLICK",
-				"end_condition" : "RESULT.OK",
-				"end_action" : "END_ACTION.CONTINUE",
+				"action" : "CLICK",
+				"end_condition" : "OK",
+				"end_action" : "END_CONTINUE",
 				"execute_number" : 1,
 				"retry_number" : 2,
 				"image_path" : "../Images/houchi/1100_mail/*.png",
@@ -1382,9 +1382,9 @@
 			"condition_list" : "",
 			"result_name":"Result_Click",
 			"settings" : {
-				"action" : "ACTION.DOUBLE_CLICK",
-				"end_condition" : "RESULT.OK",
-				"end_action" : "END_ACTION.CONTINUE",
+				"action" : "DOUBLE_CLICK",
+				"end_condition" : "OK",
+				"end_action" : "END_CONTINUE",
 				"execute_number" : 1,
 				"retry_number" : 1,
 				"image_path" : "../Images/houchi/1901_ikusei/0000_start/*.png",
@@ -1401,9 +1401,9 @@
 			"condition_list" : "",
 			"result_name":"Result_Click",
 			"settings" : {
-				"action" : "ACTION.DOUBLE_CLICK",
-				"end_condition" : "RESULT.OK",
-				"end_action" : "END_ACTION.CONTINUE",
+				"action" : "DOUBLE_CLICK",
+				"end_condition" : "OK",
+				"end_action" : "END_CONTINUE",
 				"execute_number" : 1,
 				"retry_number" : 0,
 				"image_path" : "../Images/houchi/1901_ikusei/0005_execute/*.png",
@@ -1423,9 +1423,9 @@
 			"condition_list" : "",
 			"result_name":"Result_Click",
 			"settings" : {
-				"action" : "ACTION.DOUBLE_CLICK",
-				"end_condition" : "RESULT.OK",
-				"end_action" : "END_ACTION.CONTINUE",
+				"action" : "DOUBLE_CLICK",
+				"end_condition" : "OK",
+				"end_action" : "END_CONTINUE",
 				"execute_number" : 1,
 				"retry_number" : 2,
 				"image_path" : "../Images/houchi/1910_battle/*.png",
@@ -1442,9 +1442,9 @@
 			"condition_list" : "",
 			"result_name":"ItemError_Click",
 			"settings" : {
-				"action" : "ACTION.CLICK",
-				"end_condition" : "RESULT.OK",
-				"end_action" : "END_ACTION.CONTINUE",
+				"action" : "CLICK",
+				"end_condition" : "OK",
+				"end_action" : "END_CONTINUE",
 				"execute_number" : 1,
 				"retry_number" : 2,
 				"image_path" : "../Images/houchi/1910_battle/0006error/*.png",
@@ -1458,7 +1458,7 @@
 		{
 			"name" : "Item",
 			"type" : "RunPlanLists",
-			"condition_list" : "ItemError_Click.detail = RESULT.OK,ItemError_Click.detail = RESULT.ALL_OK",
+			"condition_list" : "ItemError_Click.detail = OK,ItemError_Click.detail = ALL_OK",
 			"result_name":"",
 			"settings" : {
 				"file_path"  : "../Setting/RunHouchiChild.json",
@@ -1472,43 +1472,6 @@
 
 	"TimeEventClick":
 	[
-		{
-			"name" : "TimeEventClick1",
-			"type" : "Recognition",
-			"result_name":"Condition_TimeEvent",
-			"settings" : {
-				"action" : "ACTION.CLICK",
-				"end_condition" : "RESULT.OK",
-				"end_action" : "END_ACTION.CONTINUE",
-				"execute_number" : 2,
-				"retry_number" : 2,
-				"image_path" : "../Images/houchi/1650_timeevent/0010_start/*.png",
-				"interval_time" : 0.5,
-				"recognition_confidence" : 0.95,
-				"recognition_grayscale" : true,
-				"log_file_path_list": "../Log/log_recognition.json",
-				"log_function":true,"log_print_standardoutput": false
-			}
-		},
-		{
-			"name" : "TimeEventClick2",
-			"type" : "Recognition",
-			"condition_list" : "Condition_TimeEvent.detail = RESULT.OK,Condition_TimeEvent.detail = RESULT.ALL_OK",
-			"result_name":"",
-			"settings" : {
-				"action" : "ACTION.CLICK",
-				"end_condition" : "RESULT.OK",
-				"end_action" : "END_ACTION.CONTINUE",
-				"execute_number" : 1,
-				"retry_number" : 1,
-				"image_path" : "../Images/houchi/1650_timeevent/0015_execute/*.png",
-				"interval_time" : 0.5,
-				"recognition_confidence" : 0.95,
-				"recognition_grayscale" : true,
-				"log_file_path_list": "../Log/log_recognition.json",
-				"log_function":true,"log_print_standardoutput": false
-			}
-		},
 		{
 			"name" : "TimeCheck_HimePlay",
 		   "type" : "RunPlanLists",
@@ -1525,7 +1488,7 @@
 	   {
 			"name" : "HimePlay",
 			"type" : "RunPlanLists",
-			"condition_list" : ["Time_Check_Houchi_HimePlay = true","Condition_TimeEvent.detail = RESULT.OK,Condition_TimeEvent.detail = RESULT.ALL_OK"],
+			"condition_list" : ["Time_Check_Houchi_HimePlay = true","Condition_TimeEvent.detail = OK,Condition_TimeEvent.detail = ALL_OK"],
 			"result_name":"",
 			"settings" : {
 				"file_path"  : "../Setting/RunHouchiChild.json",
@@ -1533,6 +1496,44 @@
 				"plan_lists" : [
 					"HimePlayClick"
 				]
+			}
+		},
+	
+		{
+			"name" : "TimeEventClick1",
+			"type" : "Recognition",
+			"result_name":"Condition_TimeEvent",
+			"settings" : {
+				"action" : "CLICK",
+				"end_condition" : "OK",
+				"end_action" : "END_CONTINUE",
+				"execute_number" : 2,
+				"retry_number" : 2,
+				"image_path" : "../Images/houchi/1650_timeevent/0010_start/*.png",
+				"interval_time" : 0.5,
+				"recognition_confidence" : 0.95,
+				"recognition_grayscale" : true,
+				"log_file_path_list": "../Log/log_recognition.json",
+				"log_function":true,"log_print_standardoutput": false
+			}
+		},
+		{
+			"name" : "TimeEventClick2",
+			"type" : "Recognition",
+			"condition_list" : "Condition_TimeEvent.detail = OK,Condition_TimeEvent.detail = ALL_OK",
+			"result_name":"",
+			"settings" : {
+				"action" : "CLICK",
+				"end_condition" : "OK",
+				"end_action" : "END_CONTINUE",
+				"execute_number" : 1,
+				"retry_number" : 1,
+				"image_path" : "../Images/houchi/1650_timeevent/0015_execute/*.png",
+				"interval_time" : 0.5,
+				"recognition_confidence" : 0.95,
+				"recognition_grayscale" : true,
+				"log_file_path_list": "../Log/log_recognition.json",
+				"log_function":true,"log_print_standardoutput": false
 			}
 		}
 	],
@@ -1544,9 +1545,9 @@
 			"condition_list" : "",
 			"result_name":"Result_HimePlayClick",
 			"settings" : {
-				"action" : "ACTION.CLICK",
-				"end_condition" : "RESULT.OK",
-				"end_action" : "END_ACTION.CONTINUE",
+				"action" : "CLICK",
+				"end_condition" : "OK",
+				"end_action" : "END_CONTINUE",
 				"execute_number" : 1,
 				"retry_number" : 1,
 				"image_path" : "../Images/houchi/1650_timeevent/0000_start/*.png",
@@ -1560,12 +1561,12 @@
 		{
 			"name" : "HimeClick",
 			"type" : "Recognition",
-			"condition_list" : "Result_HimePlayClick.detail = RESULT.OK,Result_HimePlayClick.detail = RESULT.ALL_OK",
+			"condition_list" : "Result_HimePlayClick.detail = OK,Result_HimePlayClick.detail = ALL_OK",
 			"result_name":"",
 			"settings" : {
-				"action" : "ACTION.CLICK",
-				"end_condition" : "RESULT.OK",
-				"end_action" : "END_ACTION.CONTINUE",
+				"action" : "CLICK",
+				"end_condition" : "OK",
+				"end_action" : "END_CONTINUE",
 				"execute_number" : 1,
 				"retry_number" : 1,
 				"image_path" : "../Images/houchi/1650_timeevent/0005_execute/*.png",
@@ -1586,9 +1587,9 @@
 			"condition_list" : "",
 			"result_name":"Result_Click",
 			"settings" : {
-				"action" : "ACTION.DOUBLE_CLICK",
-				"end_condition" : "RESULT.OK",
-				"end_action" : "END_ACTION.FOLDER_END_BREAK",
+				"action" : "DOUBLE_CLICK",
+				"end_condition" : "OK",
+				"end_action" : "FOLDER_END_BREAK",
 				"execute_number" : 1,
 				"retry_number" : 2,
 				"image_path" : "../Images/houchi/1200_infomation/0000_start/*.png",
@@ -1602,12 +1603,12 @@
 		{
 			"name" : "InformationClick02",
 			"type" : "Recognition",
-			"condition_list" : "Result_Click.detail = RESULT.OK,Result_Click.detail = RESULT.ALL_OK",
+			"condition_list" : "Result_Click.detail = OK,Result_Click.detail = ALL_OK",
 			"result_name":"Result_Click",
 			"settings" : {
-				"action" : "ACTION.DOUBLE_CLICK",
-				"end_condition" : "RESULT.OK",
-				"end_action" : "END_ACTION.FOLDER_END_BREAK",
+				"action" : "DOUBLE_CLICK",
+				"end_condition" : "OK",
+				"end_action" : "FOLDER_END_BREAK",
 				"execute_number" : 1,
 				"retry_number" : 3,
 				"image_path" : "../Images/houchi/1200_infomation/0003_check/*.png",
@@ -1621,12 +1622,12 @@
 		{
 			"name" : "InformationClick03",
 			"type" : "Recognition",
-			"condition_list" : "Result_Click.detail = RESULT.OK,Result_Click.detail = RESULT.ALL_OK",
+			"condition_list" : "Result_Click.detail = OK,Result_Click.detail = ALL_OK",
 			"result_name":"Result_Click",
 			"settings" : {
-				"action" : "ACTION.DOUBLE_CLICK",
-				"end_condition" : "RESULT.OK",
-				"end_action" : "END_ACTION.FOLDER_END_BREAK",
+				"action" : "DOUBLE_CLICK",
+				"end_condition" : "OK",
+				"end_action" : "FOLDER_END_BREAK",
 				"execute_number" : 1,
 				"retry_number" : 2,
 				"image_path" : "../Images/houchi/1200_infomation/0005_execute/*.png",
@@ -1645,9 +1646,9 @@
 			"type" : "Recognition",
 			"result_name":"",
 			"settings" : {
-				"action" : "ACTION.DOUBLE_CLICK",
-				"end_condition" : "RESULT.OK",
-				"end_action" : "END_ACTION.FOLDER_END_BREAK",
+				"action" : "DOUBLE_CLICK",
+				"end_condition" : "OK",
+				"end_action" : "FOLDER_END_BREAK",
 				"execute_number" : 1,
 				"retry_number" : 0,
 				"image_path" : "../Images/houchi/1010_Return/*.png",
@@ -1666,9 +1667,9 @@
 			"type" : "Recognition",
 			"result_name":"HomeClick",
 			"settings" : {
-				"action" : "ACTION.DOUBLE_CLICK",
-				"end_condition" : "RESULT.OK",
-				"end_action" : "END_ACTION.BREAK",
+				"action" : "DOUBLE_CLICK",
+				"end_condition" : "OK",
+				"end_action" : "END_BREAK",
 				"execute_number" : 1,
 				"retry_number" : 0,
 				"image_path" : "../Images/houchi/1011_home/*.png",
@@ -1682,12 +1683,12 @@
 		{
 			"name" : "ReturnClick",
 			"type" : "Recognition",
-			"condition_list" :"HomeClick.detail = RESULT.NG",
+			"condition_list" :"HomeClick.detail = NG",
 			"result_name":"",
 			"settings" : {
-				"action" : "ACTION.DOUBLE_CLICK",
-				"end_condition" : "RESULT.OK",
-				"end_action" : "END_ACTION.FOLDER_END_BREAK",
+				"action" : "DOUBLE_CLICK",
+				"end_condition" : "OK",
+				"end_action" : "FOLDER_END_BREAK",
 				"execute_number" : 1,
 				"retry_number" : 0,
 				"image_path" : "../Images/houchi/1010_Return/*.png",
@@ -1695,18 +1696,18 @@
 				"recognition_confidence" : 0.95,
 				"recognition_grayscale" : true,
 				"log_file_path_list": "../Log/log_recognition.json",
-				"log_function":false,"log_print_standardoutput": false
+				"log_function":true,"log_print_standardoutput": false
 			}
 		},
 		{
 			"name" : "HomeClick",
 			"type" : "Recognition",
-			"condition_list" :"HomeClick.detail = RESULT.NG",
+			"condition_list" :"HomeClick.detail = NG",
 			"result_name":"",
 			"settings" : {
-				"action" : "ACTION.DOUBLE_CLICK",
-				"end_condition" : "RESULT.OK",
-				"end_action" : "END_ACTION.BREAK",
+				"action" : "DOUBLE_CLICK",
+				"end_condition" : "OK",
+				"end_action" : "END_BREAK",
 				"execute_number" : 1,
 				"retry_number" : 2,
 				"image_path" : "../Images/houchi/1011_home/*.png",
@@ -1714,7 +1715,7 @@
 				"recognition_confidence" : 0.95,
 				"recognition_grayscale" : true,
 				"log_file_path_list": "../Log/log_recognition.json",
-				"log_function":false,"log_print_standardoutput": false
+				"log_function":true,"log_print_standardoutput": false
 			}
 		}
 	],
@@ -1725,9 +1726,9 @@
 			"type" : "Recognition",
 			"result_name":"",
 			"settings" : {
-				"action" : "ACTION.CLICK",
-				"end_condition" : "RESULT.OK",
-				"end_action" : "END_ACTION.CONTINUE",
+				"action" : "CLICK",
+				"end_condition" : "OK",
+				"end_action" : "END_CONTINUE",
 				"execute_number" : 2,
 				"retry_number" : 2,
 				"image_path" : "../Images/image_end/*.png",

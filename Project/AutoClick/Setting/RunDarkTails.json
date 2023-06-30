@@ -127,7 +127,7 @@
 	 		"name" : "DarkTailsClickGroup",
 			"type" : "RunPlanLists",
 			"comment" : "",
-			"condition_list" : "Result_DarkTailsServerClick.detail = RESULT.OK,Result_DarkTailsServerClick.detail = RESULT.ALL_OK",
+			"condition_list" : "Result_DarkTailsServerClick.detail = OK,Result_DarkTailsServerClick.detail = ALL_OK",
 			"settings" : {
 				"file_path" : "../Setting/RunDarkTailsChild.json",
 				"#step_check_mode" : true,
@@ -158,7 +158,7 @@
 		{
 	 		"name" : "TimeEventClickGroup",
 			"type" : "RunPlanLists",
-			"condition_list" : "Result_DarkTailsServerClick.detail = RESULT.OK,Result_DarkTailsServerClick.detail = RESULT.ALL_OK",
+			"condition_list" : "Result_DarkTailsServerClick.detail = OK,Result_DarkTailsServerClick.detail = ALL_OK",
 			"result_name":"",
 			"settings" : {
 				"file_path" : "../Setting/RunDarkTailsChild.json",
@@ -176,9 +176,9 @@
 			"condition_list":["Condition_Execute = true"],
 			"result_name":"Result_DarkTailsAccountClick",
 			"settings": {
-				"action": "ACTION.DOUBLE_CLICK",
-				"end_condition": "RESULT.OK",
-				"end_action": "END_ACTION.BREAK",
+				"action": "DOUBLE_CLICK",
+				"end_condition": "OK",
+				"end_action": "BREAK",
 				"execute_number": 2,
 				"retry_number": 0,
 				"image_path": "../Images/DarkTails/0000_account/0000/*.png",
@@ -196,12 +196,12 @@
 		{
 			"name" : "DarkTailsWaiting",
 			"type" : "Recognition",
-			"condition_list" : "Result_DarkTailsAccountClick.detail = RESULT.OK,Result_DarkTailsAccountClick.detail = RESULT.ALL_OK",
+			"condition_list" : "Result_DarkTailsAccountClick.detail = OK,Result_DarkTailsAccountClick.detail = ALL_OK",
 			"result_name":"Result_DarkTailsAccountClick",
 			"settings" : {
-				"action" : "ACTION.CLICK",
-				"end_condition" : "RESULT.NG",
-				"end_action" : "END_ACTION.CONTINUE",
+				"action" : "CLICK",
+				"end_condition" : "NG",
+				"end_action" : "CONTINUE",
 				"execute_number" :1,
 				"retry_number" : 10,
 				"image_path" : "../Images/DarkTails/0500_waiting/*.png",
@@ -213,12 +213,12 @@
 		{
 			"name" : "DarkTailsWaitingEnd",
 			"type" : "Recognition",
-			"condition_list" : ["Result_DarkTailsAccountClick.detail = RESULT.OK,Result_DarkTailsAccountClick.detail = RESULT.ALL_OK"],
+			"condition_list" : ["Result_DarkTailsAccountClick.detail = OK,Result_DarkTailsAccountClick.detail = ALL_OK"],
 			"result_name":"Result_DarkTailsWaitEndClick",
 			"settings" : {
-				"action" : "ACTION.CLICK",
-				"end_condition" : "RESULT.OK",
-				"end_action" : "END_ACTION.BREAK",
+				"action" : "CLICK",
+				"end_condition" : "OK",
+				"end_action" : "BREAK",
 				"execute_number" :1,
 				"retry_number" : 2,
 				"image_path" : "../Images/DarkTails/0509_waitingend/*.png",
@@ -231,13 +231,13 @@
 			"name" : "DarkTailsWaiting",
 			"type" : "Recognition",
 			"condition_list" : [
-				"Result_DarkTailsAccountClick.detail = RESULT.OK,Result_DarkTailsAccountClick.detail = RESULT.ALL_OK",
-				"Result_DarkTailsWaitEndClick.detail = RESULT.NG"
+				"Result_DarkTailsAccountClick.detail = OK,Result_DarkTailsAccountClick.detail = ALL_OK",
+				"Result_DarkTailsWaitEndClick.detail = NG"
 			],
 			"settings" : {
-				"action" : "ACTION.CLICK",
-				"end_condition" : "RESULT.NG",
-				"end_action" : "END_ACTION.CONTINUE",
+				"action" : "CLICK",
+				"end_condition" : "NG",
+				"end_action" : "CONTINUE",
 				"execute_number" :1,
 				"retry_number" : 20,
 				"image_path" : "../Images/DarkTails/0500_waiting/*.png",
@@ -250,14 +250,14 @@
 			"name" : "DarkTailsWaitingEnd",
 			"type" : "Recognition",
 			"condition_list" : [
-				"Result_DarkTailsAccountClick.detail = RESULT.OK,Result_DarkTailsAccountClick.detail = RESULT.ALL_OK",
-				"Result_DarkTailsWaitEndClick.detail = RESULT.NG"
+				"Result_DarkTailsAccountClick.detail = OK,Result_DarkTailsAccountClick.detail = ALL_OK",
+				"Result_DarkTailsWaitEndClick.detail = NG"
 			],
 			"result_name":"Result_DarkTailsWaitEndClick",
 			"settings" : {
-				"action" : "ACTION.CLICK",
-				"end_condition" : "RESULT.OK",
-				"end_action" : "END_ACTION.BREAK",
+				"action" : "CLICK",
+				"end_condition" : "OK",
+				"end_action" : "BREAK",
 				"execute_number" :1,
 				"retry_number" : 2,
 				"image_path" : "../Images/DarkTails/0509_waitingend/*.png",
@@ -270,13 +270,13 @@
 			"name" : "DarkTailsWaiting",
 			"type" : "Recognition",
 			"condition_list" : [
-				"Result_DarkTailsAccountClick.detail = RESULT.OK,Result_DarkTailsAccountClick.detail = RESULT.ALL_OK",
-				"Result_DarkTailsWaitEndClick.detail = RESULT.NG"
+				"Result_DarkTailsAccountClick.detail = OK,Result_DarkTailsAccountClick.detail = ALL_OK",
+				"Result_DarkTailsWaitEndClick.detail = NG"
 			],
 			"settings" : {
-				"action" : "ACTION.CLICK",
-				"end_condition" : "RESULT.NG",
-				"end_action" : "END_ACTION.CONTINUE",
+				"action" : "CLICK",
+				"end_condition" : "NG",
+				"end_action" : "CONTINUE",
 				"execute_number" :1,
 				"retry_number" : 10,
 				"image_path" : "../Images/DarkTails/0500_waiting/*.png",
@@ -289,14 +289,14 @@
 			"name" : "DarkTailsWaitingEnd",
 			"type" : "Recognition",
 			"condition_list" : [
-				"Result_DarkTailsAccountClick.detail = RESULT.OK,Result_DarkTailsAccountClick.detail = RESULT.ALL_OK",
-				"Result_DarkTailsWaitEndClick.detail = RESULT.NG"
+				"Result_DarkTailsAccountClick.detail = OK,Result_DarkTailsAccountClick.detail = ALL_OK",
+				"Result_DarkTailsWaitEndClick.detail = NG"
 			],
 			"result_name":"Result_DarkTailsWaitEndClick",
 			"settings" : {
-				"action" : "ACTION.CLICK",
-				"end_condition" : "RESULT.OK",
-				"end_action" : "END_ACTION.BREAK",
+				"action" : "CLICK",
+				"end_condition" : "OK",
+				"end_action" : "BREAK",
 				"execute_number" :1,
 				"retry_number" : 2,
 				"image_path" : "../Images/DarkTails/0509_waitingend/*.png",
@@ -311,13 +311,13 @@
 		{
 			"name" : "DarkTailsServer00",
 			"type" : "Recognition",
-			"condition_list" : "Result_DarkTailsAccountClick.detail = RESULT.OK,Result_DarkTailsAccountClick.detail = RESULT.ALL_OK",
+			"condition_list" : "Result_DarkTailsAccountClick.detail = OK,Result_DarkTailsAccountClick.detail = ALL_OK",
 			"result_name":"Result_DarkTailsServerClick",
 			"settings" : {
 				"#step_check_mode" : true,
-				"action" : "ACTION.DOUBLE_CLICK",
-				"end_condition" : "RESULT.OK",
-				"end_action" : "END_ACTION.BREAK",
+				"action" : "DOUBLE_CLICK",
+				"end_condition" : "OK",
+				"end_action" : "BREAK",
 				"execute_number" : 2,
 				"retry_number" : 5,
 				"image_path" : "../Images/DarkTails/0600_selectserver/0000_Server/*.png",
@@ -332,13 +332,13 @@
 		{
 			"name" : "DarkTailsServer01",
 			"type" : "Recognition",
-			"condition_list" : "Result_DarkTailsAccountClick.detail = RESULT.OK,Result_DarkTailsAccountClick.detail = RESULT.ALL_OK",
+			"condition_list" : "Result_DarkTailsAccountClick.detail = OK,Result_DarkTailsAccountClick.detail = ALL_OK",
 			"result_name":"Result_DarkTailsServerClick",
 			"settings" : {
 				"#step_check_mode" : true,
-				"action" : "ACTION.DOUBLE_CLICK",
-				"end_condition" : "RESULT.OK",
-				"end_action" : "END_ACTION.BREAK",
+				"action" : "DOUBLE_CLICK",
+				"end_condition" : "OK",
+				"end_action" : "BREAK",
 				"execute_number" : 2,
 				"retry_number" : 5,
 				"image_path" : "../Images/DarkTails/0600_selectserver/0001_Server/*.png",
@@ -355,9 +355,9 @@
 			"type" : "Recognition",
 			"condition_list" : "",
 			"settings" : {
-				"action" : "ACTION.CLICK",
-				"end_condition" : "RESULT.OK",
-				"end_action" : "END_ACTION.CONTINUE",
+				"action" : "CLICK",
+				"end_condition" : "OK",
+				"end_action" : "CONTINUE",
 				"execute_number" : 2,
 				"retry_number" : 2,
 				"image_path" : "../Images/DarkTails/0000_account/000_end/*.png",

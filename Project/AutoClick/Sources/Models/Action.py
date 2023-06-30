@@ -2,6 +2,7 @@ import enum
 import sys
 import os
 import platform
+sys.path.append("Common")
 sys.path.append("../Common")
 sys.path.append("../../Common")
 import Recognition

@@ -48,7 +48,7 @@
 			"name" : "StartTask0",
 		 	"type" : "RunPlanLists",
 		 	"settings" : {
-				"file_path" : "RunGame.json",
+				"file_path" : "../Setting/RunGame.json",
 				"plan_lists" : [
 					"#DarkTails"
 				]
@@ -58,7 +58,7 @@
 			"name" : "StartTask1",
 		 	"type" : "RunPlanLists",
 		 	"settings" : {
-				"file_path" : "RunDarkTailsChild.json",
+				"file_path" : "../Setting/RunDarkTailsChild.json",
 				"plan_lists" : [
 					"#PlayContents","#PlayContents","#PlayContents"
 				]
@@ -68,7 +68,7 @@
 			"name" : "StartTask2",
 		 	"type" : "RunPlanLists",
 		 	"settings" : {
-				"file_path" : "RunHouchi.json",
+				"file_path" : "../Setting/RunHouchi.json",
 				"plan_lists" : [
 					"#HouchiACM","#DarkTailsClickGroup",
 					"#TimeCheck_Houchi_Chokyo","#Chokyo"
@@ -79,10 +79,10 @@
 			"name" : "StartTask3",
 		 	"type" : "RunPlanLists",
 		 	"settings" : {
-				"file_path" : "RunHouchiChild.json",
+				"file_path" : "../Setting/RunHouchiChild.json",
 				"plan_lists" : [
 					"#HomeClick","#Casting","#Item",
-					"#HouchiEvent01","#HouchiEvent02","HomeClick","HouchiEvent08Click",
+					"#HouchiEvent01","HouchiEvent02","HomeClick","HouchiEvent08Click",
 					"#HouchiIkusei","#Etc#"
 				]
 			}

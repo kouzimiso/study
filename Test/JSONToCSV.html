@@ -24,104 +24,228 @@ th, td {
 <body>
 <h1>JSONLine to CSV</h1>
 <input type="file" id="file-input" />
-<button onclick="convert()">Convert</button>
+<button onclick="convertJSONLineToDictionary()">Convert</button>
 <button onclick="saveCSV()">Save CSV</button>
+<button onclick="saveJSONLine()">Convert to JSON LineData</button>
 <div id="output"></div>
 </body>
 <script>
-var jsonData = [];
+var dictionary_data_list = [];
 var sortedColumn = null;
 var sortOrder = 1;
 
-function convert() {
+function convertJSONLineToDictionary() {
   var file = document.getElementById("file-input").files[0];
   var reader = new FileReader();
   reader.onload = function(event) {
     var lines = event.target.result.split('\n');
-    jsonData = [];
+    dictionary_data_list = [];
     for (var i = 0; i < lines.length; i++) {
       if (lines[i]) {
-        jsonData.push(JSON.parse(lines[i]));
+        var parsedData = JSON.parse(lines[i]);
+        dictionary_data_list.push(parsedData);
       }
     }
-    displayTable();
+    displayTable(dictionary_data_list);
   };
   reader.readAsText(file);
 }
 
-function displayTable() {
-  var keys = [];
-  for (var j = 0; j < jsonData.length; j++) {
-    var objKeys = Object.keys(jsonData[j]);
-    keys = keys.concat(objKeys);
-  }
-  keys = Array.from(new Set(keys));
-  
-  var table = document.createElement("table");
-  var headerRow = document.createElement("tr");
-  for (var k = 0; k < keys.length; k++) {
-    var headerCell = document.createElement("th");
-    headerCell.textContent = keys[k];
-    headerCell.dataset.key = keys[k];
-    headerCell.classList.add("sortable", "draggable");
-    headerCell.addEventListener("click", function() {
-      sortTable(this.dataset.key);
-    });
-    headerCell.addEventListener("dragstart", function(event) {
-      event.dataTransfer.setData("text/plain", this.dataset.key);
-    });
-    headerCell.addEventListener("dragover", function(event) {
-      event.preventDefault();
-    });
-    headerCell.addEventListener("drop", function(event) {
-      event.preventDefault();
-      var draggedKey = event.dataTransfer.getData("text/plain");
-      var targetKey = this.dataset.key;
-      reorderColumns(draggedKey, targetKey);
-    });
-    headerRow.appendChild(headerCell);
-  }
-  table.appendChild(headerRow);
-  
-  for (var l = 0; l < jsonData.length; l++) {
-    var dataRow = document.createElement("tr");
-    for (var m = 0; m < keys.length; m++) {
-      var dataCell = document.createElement("td");
-      if (jsonData[l].hasOwnProperty(keys[m])) {
-        dataCell.textContent = jsonData[l][keys[m]];
-      }
-      dataRow.appendChild(dataCell);
-    }
-    table.appendChild(dataRow);
-  }
-  
+function displayTable(dictionary_data_list) {
+  var table = createTable(dictionary_data_list);
   var outputDiv = document.getElementById("output");
   outputDiv.innerHTML = "";
   outputDiv.appendChild(table);
 }
 
+function createTable(data) {
+  var table = document.createElement("table");
+
+  var keys = getKeys(data);
+  keys.sort(); // Sort column names in ascending order
+
+  var headerRow = document.createElement("tr");
+  for (var i = 0; i < keys.length; i++) {
+    var headerCell = document.createElement("th");
+    headerCell.textContent = keys[i];
+    headerCell.classList.add("sortable");
+    headerCell.addEventListener("click", function() {
+      sortTable(this.textContent);
+    });
+    headerRow.appendChild(headerCell);
+  }
+  table.appendChild(headerRow);
+
+  if (Array.isArray(data)) {
+    for (var j = 0; j < data.length; j++) {
+      var dataRow = document.createElement("tr");
+      for (var k = 0; k < keys.length; k++) {
+        var dataCell = document.createElement("td");
+        var value = data[j][keys[k]];
+        if (typeof value === "object" && value !== null) {
+          var subTable = createTable(value);
+          dataCell.appendChild(subTable);
+        } else {
+          dataCell.textContent = value;
+        }
+        dataRow.appendChild(dataCell);
+      }
+      table.appendChild(dataRow);
+    }
+  } else if (typeof data === "object" && data !== null) {
+    var dataRow = document.createElement("tr");
+    for (var k = 0; k < keys.length; k++) {
+      var dataCell = document.createElement("td");
+      var value = data[keys[k]];
+      if (typeof value === "object" && value !== null) {
+        var subTable = createTable(value);
+        dataCell.appendChild(subTable);
+      } else {
+        dataCell.textContent = value;
+      }
+      dataRow.appendChild(dataCell);
+    }
+    table.appendChild(dataRow);
+  } else {
+    var dataRow = document.createElement("tr");
+    var dataCell = document.createElement("td");
+    dataCell.colSpan = keys.length;
+    dataCell.textContent = data;
+    dataRow.appendChild(dataCell);
+    table.appendChild(dataRow);
+  }
+
+  return table;
+}
+
+function getKeys(data) {
+  var keys = [];
+  if (Array.isArray(data)) {
+    for (var i = 0; i < data.length; i++) {
+      var objKeys = Object.keys(data[i]);
+      keys = keys.concat(objKeys);
+    }
+  } else if (typeof data === "object" && data !== null) {
+    keys = Object.keys(data);
+  }
+  keys = Array.from(new Set(keys));
+  return keys;
+}
+
 function saveCSV() {
   var table = document.querySelector("table");
-  var csv = convertTableToCSV(table);
+  var dictionary = convertTableToDictionary(table);
+  var csv = convertDictionaryToCSV(dictionary);
   var blob = new Blob([csv], {type: "text/csv"});
   var link = document.createElement("a");
   link.href = window.URL.createObjectURL(blob);
   link.download = "output.csv";
   link.click();
 }
+function convertTableToDictionary(table) {
+  var keys = [];
+  var data = [];
+  var headerRow = table.querySelector("tr");
+  var headerCells = headerRow.querySelectorAll("th");
 
-function convertTableToCSV(table) {
-  var csv = [];
-  var rows = table.querySelectorAll("tr");
-  for (var i = 0; i < rows.length; i++) {
-    var row = [];
-    var cells = rows[i].querySelectorAll("th, td");
-    for (var j = 0; j < cells.length; j++) {
-      row.push(cells[j].textContent);
-    }
-    csv.push(row.join(","));
+  for (var i = 0; i < headerCells.length; i++) {
+    keys.push(headerCells[i].textContent);
   }
-  return csv.join("\n");
+
+  var rowElement = headerRow.nextElementSibling; // 最初の行以外の行を取得
+  while (rowElement) {
+    var row = {};
+    var cell = rowElement.querySelector("td");
+
+    for (var k = 0; k < keys.length && cell; k++) {
+      var value = cell.textContent;
+      var key = keys[k];
+
+      if (cell.querySelector("table")) {
+        var nestedTable = cell.querySelector("table");
+        var nestedRow = convertTableToDictionary(nestedTable)[0]; // 入れ子のテーブルの辞書を取得し、最初の要素を使用
+        row[key]  = nestedRow ; // 入れ子の辞書を現在の行にマージ
+      } else if (value.startsWith("{") && value.endsWith("}")) {
+        try {
+          var parsedValue = JSON.parse(value);
+          row[key] = parsedValue;
+        } catch (error) {
+          row[key] = value;
+        }
+      } else {
+        row[key] = value;
+      }
+
+      cell = cell.nextElementSibling; // 次のセルを取得
+    }
+
+    if (Object.keys(row).length > 0) {
+      data.push(row);
+    }
+
+    rowElement = rowElement.nextElementSibling; // 次の行を取得
+  }
+
+  return data;
+}
+
+
+function convertDictionaryToCSV(dictionary) {
+  var csv = "";
+  var keys = Object.keys(dictionary[0]);
+  csv += keys.map(key => '"' + key.replace(/"/g, '""') + '"').join(",") + "\n";
+
+  for (var i = 0; i < dictionary.length; i++) {
+    var values = [];
+    for (var j = 0; j < keys.length; j++) {
+      var key = keys[j];
+      var value = dictionary[i][key];
+      if (typeof value === "object") {
+        value = JSON.stringify(value);
+      }
+      values.push('"' + value.replace(/"/g, '""') + '"');
+    }
+    csv += values.join(",") + "\n";
+  }
+
+  return csv;
+}
+
+
+function saveJSONLine() {
+  var table = document.querySelector("table");
+  var dictionary = convertTableToDictionary(table);
+  var json_data = dictionary.map(JSON.stringify).join("\n");
+
+  // ファイルに保存
+  var blob = new Blob([json_data], {type: "application/json"});
+  var link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = "output.jsonl";
+  link.click();
+}
+
+
+function loadJSONLineData(jsonLineData) {
+  var table = document.querySelector("table");
+  var dictionary_data_list = parseJSONLineData(jsonLineData);
+  displayTable(dictionary_data_list);
+}
+
+function parseJSONLineData(jsonLineData) {
+  var lines = jsonLineData.split("\n");
+  var dictionary_data_list = [];
+  for (var i = 0; i < lines.length; i++) {
+    if (lines[i]) {
+      dictionary_data_list.push(JSON.parse(lines[i]));
+    }
+  }
+  return dictionary_data_list;
+}
+
+function clearOutput() {
+  var outputDiv = document.getElementById("output");
+  outputDiv.textContent = "";
 }
 
 function sortTable(key) {
@@ -131,20 +255,20 @@ function sortTable(key) {
     sortedColumn = key;
     sortOrder = 1;
   }
-  
-  jsonData.sort(function(a, b) {
+
+  dictionary_data_list.sort(function (a, b) {
     var valueA = a[key] ? a[key].toString().toLowerCase() : "";
     var valueB = b[key] ? b[key].toString().toLowerCase() : "";
     return valueA.localeCompare(valueB) * sortOrder;
   });
-  
-  displayTable();
+
+  displayTable(dictionary_data_list);
 }
 
 function reorderColumns(draggedKey, targetKey) {
   var draggedIndex = -1;
   var targetIndex = -1;
-  
+
   var headerCells = document.querySelectorAll("th.draggable");
   for (var i = 0; i < headerCells.length; i++) {
     if (headerCells[i].dataset.key === draggedKey) {
@@ -153,7 +277,7 @@ function reorderColumns(draggedKey, targetKey) {
       targetIndex = i;
     }
   }
-  
+
   if (draggedIndex !== -1 && targetIndex !== -1 && draggedIndex !== targetIndex) {
     var keys = [];
     for (var j = 0; j < headerCells.length; j++) {
@@ -165,20 +289,20 @@ function reorderColumns(draggedKey, targetKey) {
         keys.push(headerCells[j].dataset.key);
       }
     }
-    
-    var newJsonData = [];
-    for (var k = 0; k < jsonData.length; k++) {
+
+    var newdictionary_data_list = [];
+    for (var k = 0; k < dictionary_data_list.length; k++) {
       var newData = {};
       for (var m = 0; m < keys.length; m++) {
-        if (jsonData[k].hasOwnProperty(keys[m])) {
-          newData[keys[m]] = jsonData[k][keys[m]];
+        if (dictionary_data_list[k].hasOwnProperty(keys[m])) {
+          newData[keys[m]] = dictionary_data_list[k][keys[m]];
         }
       }
-      newJsonData.push(newData);
+      newdictionary_data_list.push(newData);
     }
-    
-    jsonData = newJsonData;
-    displayTable();
+
+    dictionary_data_list = newdictionary_data_list;
+    displayTable(dictionary_data_list);
   }
 }
 </script>

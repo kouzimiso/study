@@ -22,7 +22,7 @@ logfile_path='../Log/log_test_auto.json'#準備必要問題:Folder
 
 class Test(unittest.TestCase):
     def test_Auto5_JsonExecute(self):
-        Scheduler.StartUp("Start","RunTest.json")
+        Scheduler.StartUp("Start","../Setting/RunTest.json")
 
 #Main Program実行部
 def main():

@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>ログ結果</title>
+  <style>
+    table {
+      border-collapse: collapse;
+      width: 100%;
+    }
+    
+    th, td {
+      text-align: left;
+      padding: 8px;
+      border-bottom: 1px solid #ddd;
+    }
+  </style>
+</head>
+<body>
+  <h1>ログ結果</h1>
+
+  <input type="file" id="logFileInput">
+  <div id="resultContainer"></div>
+
+  <script>
+    var i;
+    var countMap = {};
+
+    function countImagePaths(logs, countProperty) {
+      for (i = 0; i < logs.length; i++) {
+        try {
+          var log = JSON.parse(logs[i]);
+          var imagePath = log.image_path;
+
+          if (!countMap.hasOwnProperty(imagePath)) {
+            countMap[imagePath] = {};
+            countProperty.forEach(function(property) {
+              countMap[imagePath][property] = 0;
+            });
+          }
+
+          var message = log.message;
+
+          if (countProperty.includes(message)) {
+            countMap[imagePath][message]++;
+          } else {
+            if (!countMap[imagePath].hasOwnProperty(message)) {
+              countMap[imagePath][message] = 0;
+            }
+            countMap[imagePath][message]++;
+          }
+        } catch (error) {
+          console.error("JSON parse failed at line:", i + 1);
+          console.error("Partial result:", countMap);
+          throw error;
+        }
+      }
+
+      return countMap;
+    }
+
+    function handleLogFile(event) {
+      var file = event.target.files[0];
+
+      var reader = new FileReader();
+
+      reader.onload = function(e) {
+        var logs = e.target.result.split('\n');
+
+        var countProperty = ['ImageSearchAndMove', 'cannotFindImage'];
+
+        var countResult;
+
+        try {
+          countResult = countImagePaths(logs, countProperty);
+        } catch (error) {
+          var errorContainer = document.createElement('div');
+          errorContainer.style.color = 'red';
+          errorContainer.textContent = 'JSON parse failed at line: ' + (i + 1) + '\nPartial result: ' + JSON.stringify(countMap);
+          document.body.appendChild(errorContainer);
+          throw error;
+        }
+
+        var resultContainer = document.getElementById('resultContainer');
+
+        var table = document.createElement('table');
+        var headerRow = table.insertRow();
+        var headerCell1 = headerRow.insertCell();
+        headerCell1.textContent = 'image_path';
+
+        countProperty.forEach(function(property) {
+          var headerCell = headerRow.insertCell();
+          headerCell.textContent = property + ' Count';
+        });
+
+        for (var imagePath in countResult) {
+          var countData = countResult[imagePath];
+          var row = table.insertRow();
+          var cell1 = row.insertCell();
+          cell1.textContent = imagePath;
+
+          countProperty.forEach(function(property) {
+            var cell = row.insertCell();
+            cell.textContent = countData[property] || 0;
+          });
+
+          for (var message in countData) {
+            if (!countProperty.includes(message)) {
+              var cell = row.insertCell();
+              cell.textContent = countData[message];
+            }
+          }
+        }
+
+        resultContainer.innerHTML = '';
+        resultContainer.appendChild(table);
+
+        // CSV出力
+        var csvContent = "data:text/csv;charset=utf-8,";
+
+        // ヘッダ行を作成
+        var headers = ['image_path'].concat(countProperty);
+        csvContent += headers.join(",") + "\r\n";
+
+        // データ行を作成
+        for (var imagePath in countResult) {
+          var countData = countResult[imagePath];
+          var dataRow = [imagePath];
+          countProperty.forEach(function(property) {
+            dataRow.push(countData[property] || 0);
+          });
+
+          csvContent += dataRow.join(",") + "\r\n";
+        }
+
+        // CSVファイルをダウンロードするリンクを作成
+        var encodedUri = encodeURI(csvContent);
+        var link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", "log_result.csv");
+        link.innerHTML = "Download CSV";
+        resultContainer.appendChild(document.createElement("br"));
+        resultContainer.appendChild(link);
+      };
+
+      reader.readAsText(file, 'UTF-8');
+    }
+
+    var logFileInput = document.getElementById('logFileInput');
+    logFileInput.addEventListener('change', handleLogFile);
+  </script>
+</body>
+</html>
