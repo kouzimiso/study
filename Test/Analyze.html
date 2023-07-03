@@ -16,164 +16,98 @@
     //STATE EXECUTING
     //ERR TROUBLE SET
     //STATE***
-    var position_setting={
-      "mode":2,
-      "1":"SP1",
-      "2":"SP2",
-      "3":"SP3",
-      "4":"SP4",
-      "40":"SP5",
-      "41":"SP6",
-      "42":"SP7",
-      "43":"SP8",
-      "39":"BF1",
-      "9":"CM1",
-      "10":"CM2",
-      "11":"CM3",
-      "12":"CM4",
-      "13":"TM1",
-      "14":"TM2"
-    }
-
-    var analyze_setting={
-      "WF_EVENT arrive":{
-        "type":"splitTextToDictionary",
-        "settings":{
-          "format":"(EventName ModuleID Position PortID SlotID WaferID ModSlot)",
-          "delimiter":" ",
-          "bracket":["(",")"],
-          "format_dictionary":{"EventName":"EventName","ModuleID":-1,"Position":-1,"PortID":-1,"SlotID":-1,"WaferID":-1,"ModSlot":-1},
-          "default_dictionary":{"ModuleID":-1,"Position":-1,"PortID":-1,"SlotID":-1,"WaferID":-1,"ModSlot":-1},
-          "ignore_list":["LOG_OUT"]
-       }
+    var settings ={
+      "configuration":{
+        "mode":2,
+        "1":"SP1",
+        "2":"SP2",
+        "3":"SP3",
+        "4":"SP4",
+        "40":"SP5",
+        "41":"SP6",
+        "42":"SP7",
+        "43":"SP8",
+        "39":"BF1",
+        "9":"CM1",
+        "10":"CM2",
+        "11":"CM3",
+        "12":"CM4",
+        "13":"TM1",
+        "14":"TM2"
       },
-      "WF_EVENT cancel":{
-        "type":"splitTextToDictionary",
-        "settings":{
-
-          "delimiter":" ",
-          "bracket":["(",")"],
-          "format":["(","EventName"," ","ModuleID"," ","Position"," ","PortID"," ","SlotID"," ","WaferID"," ","ModSlot",")"],
-          "format_dictionary":{"EventName":"EventName","ModuleID":-1,"Position":-1,"PortID":-1,"SlotID":-1,"WaferID":-1,"ModSlot":-1},
-          "default_dictionary":{"ModuleID":-1,"Position":-1,"PortID":-1,"SlotID":-1,"WaferID":-1,"ModSlot":-1},
-          "ignore_list":["LOG_OUT"]
+      "analyze":{
+        "WF_EVENT arrive":{
+          "type":"splitTextToDictionary",
+          "settings":{
+            "format":"(EventName ModuleID Position PortID SlotID WaferID ModSlot)",
+            "delimiter":" ",
+            "bracket":["(",")"],
+            "format_dictionary":{"EventName":"EventName","ModuleID":-1,"Position":-1,"PortID":-1,"SlotID":-1,"WaferID":-1,"ModSlot":-1},
+            "default_dictionary":{"ModuleID":-1,"Position":-1,"PortID":-1,"SlotID":-1,"WaferID":-1,"ModSlot":-1},
+            "ignore_list":["LOG_OUT"]
         }
-      },
-      "PR_STEP":{
-        "type":"splitTextToDictionary",
-        "settings":{
-          "delimiter":" ",
-          "bracket":["(",")"],
-          "format":["(","EventName"," ","ModuleID"," ","Position"," ","PortID"," ","SlotID"," ","WaferID"," ","ModSlot",")"],
-          "format_dictionary":{"EventName":"EventName","ModuleID":-1,"Position":-1,"Step":-1,"PortID":-1,"SlotID":-1,"WaferID":-1},
-          "default_dictionary":{"ModuleID":-1,"Position":-1,"Step":-1,"PortID":-1,"SlotID":-1,"WaferID":-1},
-          "ignore_list":["LOG_OUT"]
-        }
-      },
+        },
+        "WF_EVENT cancel":{
+          "type":"splitTextToDictionary",
+          "settings":{
 
-      "STAGE-STA":{
-        "type":"splitTextToDictionary",
-        "settings":{
-          "delimiter":" ",
-          "bracket":["(",")"],
-          "format":["(","EventName"," ","ModuleID"," ","Position"," ","PortID"," ","SlotID"," ","WaferID"," ","ModSlot",")"],
-          "format_dictionary":{"EventName":"EventName","ModuleID":-1,"Position":-1,"Step":-1,"PortID":-1,"SlotID":-1,"WaferID":-1},
-          "default_dictionary":{"ModuleID":-1,"Position":-1,"Step":-1,"PortID":-1,"SlotID":-1,"WaferID":-1},
-          "ignore_list":["LOG_OUT"]
-        }
-      },
-
-      "WF_UNLOAD":{
-        "type":"splitTextToDictionary",
-        "settings":{
-
-          "delimiter":" ",
-          "bracket":["(",")"],
-          "format":["(","EventName"," ","NotNeed01"," ","NotNeed02"," ","PortID"," ","SlotID",")"],
-          "format_dictionary":{"EventName":"EventName","NotNeed01":"","NotNeed02":"","PortID":-1,"SlotID":-1},
-          "default_dictionary":{"PortID":-1,"SlotID":-1},
-          "ignore_list":["LOG_OUT"]
-        }
-      },
-      "Test":{
-        "type":"splitTextToDictionary",
-        "settings":{
-          "format":"(EventName ModuleID[Position,PortID,SlotID,WaferID,ModSlot])",
-          "delimiter":[" ",","],
-          "bracket":["(",")"],
-          "format_dictionary":{"EventName":"EventName","ModuleID":-1,"Position":-1,"PortID":-1,"SlotID":-1,"WaferID":-1,"ModSlot":-1},
-          "default_dictionary":{"ModuleID":-1,"Position":-1,"PortID":-1,"SlotID":-1,"WaferID":-1,"ModSlot":-1},
-          "ignore_list":["LOG_OUT"]
+            "delimiter":" ",
+            "bracket":["(",")"],
+            "format":["(","EventName"," ","ModuleID"," ","Position"," ","PortID"," ","SlotID"," ","WaferID"," ","ModSlot",")"],
+            "format_dictionary":{"EventName":"EventName","ModuleID":-1,"Position":-1,"PortID":-1,"SlotID":-1,"WaferID":-1,"ModSlot":-1},
+            "default_dictionary":{"ModuleID":-1,"Position":-1,"PortID":-1,"SlotID":-1,"WaferID":-1,"ModSlot":-1},
+            "ignore_list":["LOG_OUT"]
+          }
+        },
+        "PR_STEP":{
+          "type":"splitTextToDictionary",
+          "settings":{
+            "delimiter":" ",
+            "bracket":["(",")"],
+            "format":["(","EventName"," ","ModuleID"," ","Position"," ","PortID"," ","SlotID"," ","WaferID"," ","ModSlot",")"],
+            "format_dictionary":{"EventName":"EventName","ModuleID":-1,"Position":-1,"Step":-1,"PortID":-1,"SlotID":-1,"WaferID":-1},
+            "default_dictionary":{"ModuleID":-1,"Position":-1,"Step":-1,"PortID":-1,"SlotID":-1,"WaferID":-1},
+            "ignore_list":["LOG_OUT"]
+          }
+        },
+        "STAGE-STA":{
+          "type":"splitTextToDictionary",
+          "settings":{
+            "delimiter":" ",
+            "bracket":["(",")"],
+            "format":["(","EventName"," ","ModuleID"," ","Position"," ","PortID"," ","SlotID"," ","WaferID"," ","ModSlot",")"],
+            "format_dictionary":{"EventName":"EventName","ModuleID":-1,"Position":-1,"Step":-1,"PortID":-1,"SlotID":-1,"WaferID":-1},
+            "default_dictionary":{"ModuleID":-1,"Position":-1,"Step":-1,"PortID":-1,"SlotID":-1,"WaferID":-1},
+            "ignore_list":["LOG_OUT"]
+          }
+        },
+        "WF_UNLOAD":{
+          "type":"splitTextToDictionary",
+          "settings":{
+            "delimiter":" ",
+            "bracket":["(",")"],
+            "format":["(","EventName"," ","NotNeed01"," ","NotNeed02"," ","PortID"," ","SlotID",")"],
+            "format_dictionary":{"EventName":"EventName","NotNeed01":"","NotNeed02":"","PortID":-1,"SlotID":-1},
+            "default_dictionary":{"PortID":-1,"SlotID":-1},
+            "ignore_list":["LOG_OUT"]
+          }
+        },
+        "Test":{
+          "type":"splitTextToDictionary",
+          "settings":{
+            "format":"(EventName ModuleID[Position,PortID,SlotID,WaferID,ModSlot])",
+            "delimiter":[" ",","],
+            "bracket":["(",")"],
+            "format_dictionary":{"EventName":"EventName","ModuleID":-1,"Position":-1,"PortID":-1,"SlotID":-1,"WaferID":-1,"ModSlot":-1},
+            "default_dictionary":{"ModuleID":-1,"Position":-1,"PortID":-1,"SlotID":-1,"WaferID":-1,"ModSlot":-1},
+            "ignore_list":["LOG_OUT"]
+          }
         }
       }
     }
-    
+  
     // 独自定義関数----------------------------------------
-    function analyzeStringLine(string_data) {
-      var dictionary_data = {
-        "DateTime":"",
-        "EventName":"",
-        "ModuleID":-1,
-        "Position":-1,
-        "Step":-1,
-        "PortID":-1,
-        "SlotID":-1,
-        "WaferID":-1,
-        "ModSlot":-1,
-        "WafersData":{}
-      };
-      var element = ["EventName","ModuleID","Position","PortID","SlotID","WaferID","ModSlot"]
-
-      split_text_to_dictionary = new splitTextToDictionary(dictionary_data);
-      //if (string_data.includes("WF_EVENT arrive")) {
-      string_data = string_data.trim();
-      if (string_data.indexOf("WF_EVENT arrive") !== -1) {//IE9対策
-        //  dictionary_data["eventName"] = "WF_EVENT arrive";
-        //  dictionary_data["rowData"] = string_data;
-        dictionary_data = split_text_to_dictionary.execute(string_data, " ","WF_EVENT arrive",element);
-
-      }else if (string_data.indexOf("WF_EVENT cancel") !== -1) {
-        dictionary_data = split_text_to_dictionary.execute(string_data," ","WF_EVENT cancel",element);
-
-      }else if (string_data.indexOf("PR_STEP") !== -1) {
-        if(string_data.indexOf("LOG_OUT") !== -1){ //LOG_OUTを含む場合は対象外
-          return {};
-				}
-
-        element = ["EventName","ModuleID","Position","Step","PortID","SlotID","WaferID"];
-        dictionary_data = split_text_to_dictionary.execute(string_data," ","PR_STEP",element);
-        if(dictionary_data["PortID"] <= 0 || dictionary_data["SlotID"] < 0) { //ポートIDが0以下またはスロットIDが0未満の場合は対象外
-          return {};
-        }
-
-      }else if (string_data.indexOf("STAGE-STA") !== -1) {
-        element = ["EventName","ModuleID","Position","Step","PortID","SlotID","WaferID"];
-        dictionary_data = split_text_to_dictionary.execute(string_data," ","STAGE-STA",element);
-
-      } else if (string_data.indexOf("WF_UNLOAD") !== -1) {
-        element = ["EventName","-","-","PortID","SlotID"];
-        dictionary_data = split_text_to_dictionary.execute(string_data," ","WF_UNLOAD",element);
-
-      } else if (string_data.indexOf("SYSTEM BUG !!") !== -1) {
-        element = ["EventName","Detail"];
-        split_text_to_dictionary.setResultDictionary({"DateTime":""});
-        dictionary_data = split_text_to_dictionary.execute(string_data,"!!","SYSTEM BUG",element);
-
-      } else{
-        return {};
-      }
-      //日付の追加
-      date_time = extractDateTime(string_data);
-      if(date_time !== null){dictionary_data["DateTime"]=date_time}
-      
-      //余った文字列の追加
-      pre_text = split_text_to_dictionary.getPreviousText();
-      if(pre_text !==""){dictionary_data["PreText"] = pre_text;}
-      after_text = split_text_to_dictionary.getAfterText();
-      if(after_text !==""){dictionary_data["AfterText"] = after_text;}
-      return dictionary_data;
-    }
-    function analyzeStingLines(string_data , browser_IE){
+    function analyzeStingLines(string_data ,settings, browser_IE){
       //List化
       var lines = string_data.split('\r\n');
       var result_list = [];
@@ -185,8 +119,17 @@
          line = browser_IE? line.replace(/^\s+|\s+$/g, ''): line.trim();
 
          //解析しDictionary Data化
-         //var result = analyzeStringLine(line);
-         var result = analyzeStringLineBySetting(line,this.analyze_setting,this.position_setting,wafers_data);
+         var result = analyzeStringLineBySetting(line,settings["analyze"],settings["configuration"],wafers_data);
+         if(result.hasOwnProperty("Position") && result.hasOwnProperty("Position") && result.hasOwnProperty("WaferID")){
+            key = String(result.ModuleID);
+            var  configuration_setting = settings["configuration"] 
+            addWafersData(
+              module_id = key in  configuration_setting ? configuration_setting[key]:key,
+              slot_id = result.SlotID,
+              wafer_id = result.WaferID,
+              wafers_data = wafers_data);
+            dictionary_data["WafersData"] = wafers_data;
+          }
          //解析Dataが有ればListに加える。
          //var data_exist = browser_IE? !isObjectEmpty(result) :Object.keys(result).length;
          //if (data_exist) {//条件式を変数で受けると動作が遅くなった。
@@ -220,12 +163,35 @@
 
     }
     // Process管理関数----------------------------------------
+    function readSettingSelect() {
+      if (getBrowserType() == "Internet Explorer"){
+        readSettingIE();
+      } else {
+        readSetting();
+      }
+    }
     function readSetting(){
       var setting_input = document.getElementById('SettingInput');
       var setting = setting_input.files[0];
-     
+      var reader = new FileReader();
+      reader.onload = function(event) {
+        settings = JSON.parse(event.target.result);
+      };
+      reader.readAsText(setting);
     }
-    function handleFileSelect() {
+    function readSettingIE(){
+      var setting_input = document.getElementById('SettingInput');
+      var setting = setting_input.value;
+      file_system = new ActiveXObject("Scripting.FileSystemObject");
+      file_stream = file_system.OpenTextFile(setting, 1);
+      var setting_content = eval('(' + file_stream.ReadAll() + ')');
+      file_stream.Close();
+      settings = parseJSON(setting_content);
+  }
+
+
+
+    function processSelect() {
       if (getBrowserType() == "Internet Explorer"){
         executeProcessIE();
       } else {
@@ -235,35 +201,27 @@
 
     function executeProcess() {
       //File読込
-      var setting_input = document.getElementById('SettingInput');
-      var setting = setting_input.files[0];
       var file_input = document.getElementById('FileInput');
       var file = file_input.files[0];
-      var setting_reader = new FileReader();
-      setting_reader.onload = function(event) {
-        var setting_content = JSON.parse(event.target.result);
-        var reader = new FileReader();
-        //File読込Event登録
-        reader.onload = function(e) {
-          var file_content = e.target.result;
-          //FileData処理
-          var analyzed_data = analyzeStingLines(file_content,false);
+      var reader = new FileReader();
+      //File読込Event登録
+      reader.onload = function(e) {
+        var file_content = e.target.result;
+        //FileData処理
+        var analyzed_data = analyzeStingLines(file_content,settings,false);
 
-          //JSON Data化
-          var json_result = analyzed_data.map(function(data) {
-            return JSON.stringify(data);
-          }).join('\n');
-          //File保存(Download)
-          saveToFile(file.name + '.json', json_result);
-          // ブラウザに内容を表示
-          var json_lines = json_result.split('\n');
-          // json_lines = json_lines.slice(0, 3);
-          displayArray(json_lines,"display",true);
-        };
-
-        reader.readAsText(file);
+        //JSON Data化
+        var json_result = analyzed_data.map(function(data) {
+          return JSON.stringify(data);
+        }).join('\n');
+        //File保存(Download)
+        saveToFile(file.name + '.json', json_result);
+        // ブラウザに内容を表示
+        var json_lines = json_result.split('\n');
+        // json_lines = json_lines.slice(0, 3);
+        displayArray(json_lines,"display",true);
       };
-      setting_reader.readAsText(setting);
+      reader.readAsText(file);
     }
 
     // IE用Process管理関数
@@ -273,14 +231,6 @@
     //・window.navigator.userAgent.toLowerCase();→agent = window.navigator.userAgent; agent.toLowerCase();
     function executeProcessIE() {
       //File読込
-      var setting_input = document.getElementById('SettingInput');
-      var setting = setting_input.value;
-      file_system = new ActiveXObject("Scripting.FileSystemObject");
-      file_stream = file_system.OpenTextFile(setting, 1);
-      var setting_content = eval('(' + file_stream.ReadAll() + ')');
-      file_stream.Close();
-
-
       var file_input = document.getElementById('FileInput');
       var file = file_input.value;
       file_system = new ActiveXObject("Scripting.FileSystemObject");
@@ -289,7 +239,7 @@
       file_stream.Close();
       
       //FileData処理
-      var analyzed_data = analyzeStingLines(file_content,setting_content,true);
+      var analyzed_data = analyzeStingLines(file_content,settings,true);
       //JSON Data化
       var json_result = '';
       for (var j = 0; j < analyzed_data.length; j++) {
@@ -304,7 +254,6 @@
       // json_lines = json_lines.slice(0, 3);
       displayArray(json_lines, 'display', true);
     }
-
     //汎用クラス-----------------------------------
     //(JavaScriptのfunctionは全てクラス。メソッドとクラス変数を持つもの)
     //Token毎に1つずつ文字列を取得するClass
@@ -323,42 +272,33 @@
         return null;
       };
     }
-    function analyzeStringLineBySetting(string_data , analyze_setting , position_setting, wafers_data) {
-        var keywords = Object.keys(analyze_setting);
-        for( number in keywords){
-          var keyword = keywords[number];
-          var temp_setting = analyze_setting[keyword]["settings"];
-          var ignore_list = temp_setting.ignore_list;
-          if (string_data.indexOf(keyword) !== -1) {
-            for( ignore_number in ignore_list){
-              if(string_data.indexOf(ignore_list.ignore_number) !== -1){ //LOG_OUTを含む場合は対象外
-                return {};
-              }
-            }
-            split_text_to_dictionary = new splitTextToDictionary(analyze_setting[keyword]);
-            split_text_to_dictionary.result_dictionary = temp_setting.default_dictionary; 
-            split_text_to_dictionary.dictionary_format = temp_setting.format_dictionary;
-            element = Object.keys(split_text_to_dictionary.dictionary_format);
-            dictionary_data = split_text_to_dictionary.execute(string_data," ",keyword,element);
-            if(dictionary_data["PortID"] <= 0 || dictionary_data["SlotID"] < 0) { 
-              //ポートIDが0以下またはスロットIDが0未満の場合は対象外
+    function analyzeStringLineBySetting(string_data , analyze_setting ) {
+      var keywords = Object.keys(analyze_setting);
+      for( number in keywords){
+        var keyword = keywords[number];
+        var temp_setting = analyze_setting[keyword]["settings"];
+        var ignore_list = temp_setting.ignore_list;
+        if (string_data.indexOf(keyword) !== -1) {
+          for( ignore_number in ignore_list){
+            if(string_data.indexOf(ignore_list.ignore_number) !== -1){ //LOG_OUTを含む場合は対象外
               return {};
             }
-            if(dictionary_data.hasOwnProperty("Position") && dictionary_data.hasOwnProperty("Position") && dictionary_data.hasOwnProperty("WaferID")){
-              key = String(dictionary_data.ModuleID);
-              addWafersData(
-                module_id = key in  position_setting ? position_setting[key]:key,
-                slot_id = dictionary_data.SlotID,
-                wafer_id = dictionary_data.WaferID,
-                wafers_data = wafers_data);
-              dictionary_data["WafersData"] = wafers_data;
-            }
-            return dictionary_data;
           }
+          split_text_to_dictionary = new splitTextToDictionary(analyze_setting[keyword]);
+          split_text_to_dictionary.result_dictionary = temp_setting.default_dictionary; 
+          split_text_to_dictionary.dictionary_format = temp_setting.format_dictionary;
+          element = Object.keys(split_text_to_dictionary.dictionary_format);
+          dictionary_data = split_text_to_dictionary.execute(string_data," ",keyword,element);
+          if(dictionary_data["PortID"] <= 0 || dictionary_data["SlotID"] < 0) { 
+            //ポートIDが0以下またはスロットIDが0未満の場合は対象外
+            return {};
+          }
+          return dictionary_data;
         }
-        return {};
-
       }
+      return {};
+
+    }
 
 // 文字列を分割して辞書形式で保存するクラス
 // クラスのインスタンス化後、executeメソッドを呼び出すことでテキストの処理が実行されます
@@ -542,6 +482,24 @@
       }
       return browser_type;
     }
+
+    function parseJSON(jsonString) {
+      if (typeof jsonString !== 'string' || jsonString === '') {
+        return null;
+      }
+
+      // JSONをパースするためにevalを使用します
+      // evalは注意が必要なので、信頼できるソースからのみ使用してください
+      try {
+        // JSON文字列をJavaScriptのオブジェクトに変換するため、
+        // 先頭と末尾に括弧を追加してevalします
+        return eval('(' + jsonString + ')');
+      } catch (error) {
+        console.error('JSONのパース中にエラーが発生しました:', error);
+        return null;
+      }
+    }
+
     // 辞書のJSON文字列化関数
     function convertDictionaryToJSON(obj) {
       var json_string = '{';
@@ -573,6 +531,31 @@
         
         return newObj;
     }
+    //ファイル読込関数
+    async function ReadFromFile(file) {
+      if (file) {
+        try {
+          const text = await new Promise((resolve, reject) => {
+            const reader = new FileReader();
+
+            reader.onload = function(e) {
+              resolve(e.target.result);
+            };
+
+            reader.onerror = function(e) {
+              reject(e);
+            };
+
+            reader.readAsText(file);
+          });
+
+          // テキストを使って処理を行う
+          return text;
+        } catch (error) {
+          return "";
+        }
+      }
+    }
     // ファイル保存関数
     function saveToFile(file_name, content) {
       var downloadLink = document.createElement('a');
@@ -598,12 +581,13 @@
   <a>InternetExplorerで実行する場合はjson2.jsを同じFolderに置いて実行してください。</a><br>
   <a href="https://cdnjs.cloudflare.com/ajax/libs/json2/20160511/json2.js">https://cdnjs.cloudflare.com/ajax/libs/json2/20160511/json2.js</a>
   <br>
+  <a>解析設定変更:</a>
   <input type="file" id="SettingInput" />
-  <button onclick="readSetting()">Setting</button>
+  <button onclick="readSettingSelect()">Setting</button>
   <br>
+  <a>解析File:</a>
   <input type="file" id="FileInput" />
-  <br>
-  <button onclick="handleFileSelect()">Read</button>
+  <button onclick="processSelect()">Analyze</button>
   <br>
   <div id="display"></div>
   <br>

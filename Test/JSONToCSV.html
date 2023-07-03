@@ -38,99 +38,13 @@ function convertJSONLineToDictionary() {
   var file = document.getElementById("file-input").files[0];
   var reader = new FileReader();
   reader.onload = function(event) {
-    var lines = event.target.result.split('\n');
-    dictionary_data_list = [];
-    for (var i = 0; i < lines.length; i++) {
-      if (lines[i]) {
-        var parsedData = JSON.parse(lines[i]);
-        dictionary_data_list.push(parsedData);
-      }
-    }
-    displayTable(dictionary_data_list);
+    var lines = event.target.result;
+    dictionary_data_list = parseJSONLineData(lines);
+    displayTable(dictionary_data_list,"output");
   };
   reader.readAsText(file);
 }
 
-function displayTable(dictionary_data_list) {
-  var table = createTable(dictionary_data_list);
-  var outputDiv = document.getElementById("output");
-  outputDiv.innerHTML = "";
-  outputDiv.appendChild(table);
-}
-
-function createTable(data) {
-  var table = document.createElement("table");
-
-  var keys = getKeys(data);
-  keys.sort(); // Sort column names in ascending order
-
-  var headerRow = document.createElement("tr");
-  for (var i = 0; i < keys.length; i++) {
-    var headerCell = document.createElement("th");
-    headerCell.textContent = keys[i];
-    headerCell.classList.add("sortable");
-    headerCell.addEventListener("click", function() {
-      sortTable(this.textContent);
-    });
-    headerRow.appendChild(headerCell);
-  }
-  table.appendChild(headerRow);
-
-  if (Array.isArray(data)) {
-    for (var j = 0; j < data.length; j++) {
-      var dataRow = document.createElement("tr");
-      for (var k = 0; k < keys.length; k++) {
-        var dataCell = document.createElement("td");
-        var value = data[j][keys[k]];
-        if (typeof value === "object" && value !== null) {
-          var subTable = createTable(value);
-          dataCell.appendChild(subTable);
-        } else {
-          dataCell.textContent = value;
-        }
-        dataRow.appendChild(dataCell);
-      }
-      table.appendChild(dataRow);
-    }
-  } else if (typeof data === "object" && data !== null) {
-    var dataRow = document.createElement("tr");
-    for (var k = 0; k < keys.length; k++) {
-      var dataCell = document.createElement("td");
-      var value = data[keys[k]];
-      if (typeof value === "object" && value !== null) {
-        var subTable = createTable(value);
-        dataCell.appendChild(subTable);
-      } else {
-        dataCell.textContent = value;
-      }
-      dataRow.appendChild(dataCell);
-    }
-    table.appendChild(dataRow);
-  } else {
-    var dataRow = document.createElement("tr");
-    var dataCell = document.createElement("td");
-    dataCell.colSpan = keys.length;
-    dataCell.textContent = data;
-    dataRow.appendChild(dataCell);
-    table.appendChild(dataRow);
-  }
-
-  return table;
-}
-
-function getKeys(data) {
-  var keys = [];
-  if (Array.isArray(data)) {
-    for (var i = 0; i < data.length; i++) {
-      var objKeys = Object.keys(data[i]);
-      keys = keys.concat(objKeys);
-    }
-  } else if (typeof data === "object" && data !== null) {
-    keys = Object.keys(data);
-  }
-  keys = Array.from(new Set(keys));
-  return keys;
-}
 
 function saveCSV() {
   var table = document.querySelector("table");
@@ -160,7 +74,6 @@ function convertTableToDictionary(table) {
     for (var k = 0; k < keys.length && cell; k++) {
       var value = cell.textContent;
       var key = keys[k];
-
       if (cell.querySelector("table")) {
         var nestedTable = cell.querySelector("table");
         var nestedRow = convertTableToDictionary(nestedTable)[0]; // 入れ子のテーブルの辞書を取得し、最初の要素を使用
@@ -175,17 +88,13 @@ function convertTableToDictionary(table) {
       } else {
         row[key] = value;
       }
-
       cell = cell.nextElementSibling; // 次のセルを取得
     }
-
     if (Object.keys(row).length > 0) {
       data.push(row);
     }
-
     rowElement = rowElement.nextElementSibling; // 次の行を取得
   }
-
   return data;
 }
 
@@ -229,7 +138,7 @@ function saveJSONLine() {
 function loadJSONLineData(jsonLineData) {
   var table = document.querySelector("table");
   var dictionary_data_list = parseJSONLineData(jsonLineData);
-  displayTable(dictionary_data_list);
+  displayTable(dictionary_data_list,"output");
 }
 
 function parseJSONLineData(jsonLineData) {
@@ -262,48 +171,130 @@ function sortTable(key) {
     return valueA.localeCompare(valueB) * sortOrder;
   });
 
-  displayTable(dictionary_data_list);
+  displayTable(dictionary_data_list,"output");
 }
 
-function reorderColumns(draggedKey, targetKey) {
-  var draggedIndex = -1;
-  var targetIndex = -1;
+  function reorderColumns(draggedKey, targetKey) {
+    var draggedIndex = -1;
+    var targetIndex = -1;
 
-  var headerCells = document.querySelectorAll("th.draggable");
-  for (var i = 0; i < headerCells.length; i++) {
-    if (headerCells[i].dataset.key === draggedKey) {
-      draggedIndex = i;
-    } else if (headerCells[i].dataset.key === targetKey) {
-      targetIndex = i;
-    }
-  }
-
-  if (draggedIndex !== -1 && targetIndex !== -1 && draggedIndex !== targetIndex) {
-    var keys = [];
-    for (var j = 0; j < headerCells.length; j++) {
-      if (j === draggedIndex) {
-        keys.push(headerCells[targetIndex].dataset.key);
-      } else if (j === targetIndex) {
-        keys.push(headerCells[draggedIndex].dataset.key);
-      } else {
-        keys.push(headerCells[j].dataset.key);
+    var headerCells = document.querySelectorAll("th.draggable");
+    for (var i = 0; i < headerCells.length; i++) {
+      if (headerCells[i].dataset.key === draggedKey) {
+        draggedIndex = i;
+      } else if (headerCells[i].dataset.key === targetKey) {
+        targetIndex = i;
       }
     }
 
-    var newdictionary_data_list = [];
-    for (var k = 0; k < dictionary_data_list.length; k++) {
-      var newData = {};
-      for (var m = 0; m < keys.length; m++) {
-        if (dictionary_data_list[k].hasOwnProperty(keys[m])) {
-          newData[keys[m]] = dictionary_data_list[k][keys[m]];
+    if (draggedIndex !== -1 && targetIndex !== -1 && draggedIndex !== targetIndex) {
+      var keys = [];
+      for (var j = 0; j < headerCells.length; j++) {
+        if (j === draggedIndex) {
+          keys.push(headerCells[targetIndex].dataset.key);
+        } else if (j === targetIndex) {
+          keys.push(headerCells[draggedIndex].dataset.key);
+        } else {
+          keys.push(headerCells[j].dataset.key);
         }
       }
-      newdictionary_data_list.push(newData);
+
+      var newdictionary_data_list = [];
+      for (var k = 0; k < dictionary_data_list.length; k++) {
+        var newData = {};
+        for (var m = 0; m < keys.length; m++) {
+          if (dictionary_data_list[k].hasOwnProperty(keys[m])) {
+            newData[keys[m]] = dictionary_data_list[k][keys[m]];
+          }
+        }
+        newdictionary_data_list.push(newData);
+      }
+
+      dictionary_data_list = newdictionary_data_list;
+      displayTable(dictionary_data_list,"output");
     }
 
-    dictionary_data_list = newdictionary_data_list;
-    displayTable(dictionary_data_list);
-  }
 }
+
+function displayTable(dictionary_data_list,element) {
+    var table = createTable(dictionary_data_list);
+    var outputDiv = document.getElementById(element);
+    outputDiv.innerHTML = "";
+    outputDiv.appendChild(table);
+  }
+
+  function createTable(data) {
+    var table = document.createElement("table");
+
+    var keys = getKeys(data);
+    keys.sort(); // Sort column names in ascending order
+
+    var headerRow = document.createElement("tr");
+    for (var i = 0; i < keys.length; i++) {
+      var headerCell = document.createElement("th");
+      headerCell.textContent = keys[i];
+      headerCell.classList.add("sortable");
+      headerCell.addEventListener("click", function() {
+        sortTable(this.textContent);
+      });
+      headerRow.appendChild(headerCell);
+    }
+    table.appendChild(headerRow);
+
+    if (Array.isArray(data)) {
+      for (var j = 0; j < data.length; j++) {
+        var dataRow = document.createElement("tr");
+        for (var k = 0; k < keys.length; k++) {
+          var dataCell = document.createElement("td");
+          var value = data[j][keys[k]];
+          if (typeof value === "object" && value !== null) {
+            var subTable = createTable(value);
+            dataCell.appendChild(subTable);
+          } else {
+            dataCell.textContent = value;
+          }
+          dataRow.appendChild(dataCell);
+        }
+        table.appendChild(dataRow);
+      }
+    } else if (typeof data === "object" && data !== null) {
+      var dataRow = document.createElement("tr");
+      for (var k = 0; k < keys.length; k++) {
+        var dataCell = document.createElement("td");
+        var value = data[keys[k]];
+        if (typeof value === "object" && value !== null) {
+          var subTable = createTable(value);
+          dataCell.appendChild(subTable);
+        } else {
+          dataCell.textContent = value;
+        }
+        dataRow.appendChild(dataCell);
+      }
+      table.appendChild(dataRow);
+    } else {
+      var dataRow = document.createElement("tr");
+      var dataCell = document.createElement("td");
+      dataCell.colSpan = keys.length;
+      dataCell.textContent = data;
+      dataRow.appendChild(dataCell);
+      table.appendChild(dataRow);
+    }
+
+    return table;
+  }
+
+  function getKeys(data) {
+    var keys = [];
+    if (Array.isArray(data)) {
+      for (var i = 0; i < data.length; i++) {
+        var objKeys = Object.keys(data[i]);
+        keys = keys.concat(objKeys);
+      }
+    } else if (typeof data === "object" && data !== null) {
+      keys = Object.keys(data);
+    }
+    keys = Array.from(new Set(keys));
+    return keys;
+  }
 </script>
 </html>

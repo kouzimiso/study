@@ -1,0 +1,92 @@
+{
+      "configuration":{
+        "mode":2,
+        "1":"SP1",
+        "2":"SP2",
+        "3":"SP3",
+        "4":"SP4",
+        "40":"SP5",
+        "41":"SP6",
+        "42":"SP7",
+        "43":"SP8",
+        "39":"BF1",
+        "9":"CM1",
+        "10":"CM2",
+        "11":"CM3",
+        "12":"CM4",
+        "13":"TM1",
+        "14":"TM2"
+      },
+      "analyze":{
+        "WF_EVENT arrive":{
+          "type":"splitTextToDictionary",
+          "settings":{
+            "format":"(EventName ModuleID Position PortID SlotID WaferID ModSlot)",
+            "delimiter":" ",
+            "bracket":["(",")"],
+            "format_dictionary":{"EventName":"EventName","ModuleID":-1,"Position":-1,"PortID":-1,"SlotID":-1,"WaferID":-1,"ModSlot":-1},
+            "default_dictionary":{"ModuleID":-1,"Position":-1,"PortID":-1,"SlotID":-1,"WaferID":-1,"ModSlot":-1},
+            "ignore_list":["LOG_OUT"]
+        }
+        },
+        "WF_EVENT cancel":{
+          "type":"splitTextToDictionary",
+          "settings":{
+
+            "delimiter":" ",
+            "bracket":["(",")"],
+            "format":["(","EventName"," ","ModuleID"," ","Position"," ","PortID"," ","SlotID"," ","WaferID"," ","ModSlot",")"],
+            "format_dictionary":{"EventName":"EventName","ModuleID":-1,"Position":-1,"PortID":-1,"SlotID":-1,"WaferID":-1,"ModSlot":-1},
+            "default_dictionary":{"ModuleID":-1,"Position":-1,"PortID":-1,"SlotID":-1,"WaferID":-1,"ModSlot":-1},
+            "ignore_list":["LOG_OUT"]
+          }
+        },
+        "PR_STEP":{
+          "type":"splitTextToDictionary",
+          "settings":{
+            "delimiter":" ",
+            "bracket":["(",")"],
+            "format":["(","EventName"," ","ModuleID"," ","Position"," ","PortID"," ","SlotID"," ","WaferID"," ","ModSlot",")"],
+            "format_dictionary":{"EventName":"EventName","ModuleID":-1,"Position":-1,"Step":-1,"PortID":-1,"SlotID":-1,"WaferID":-1},
+            "default_dictionary":{"ModuleID":-1,"Position":-1,"Step":-1,"PortID":-1,"SlotID":-1,"WaferID":-1},
+            "ignore_list":["LOG_OUT"]
+          }
+        },
+
+        "STAGE-STA":{
+          "type":"splitTextToDictionary",
+          "settings":{
+            "delimiter":" ",
+            "bracket":["(",")"],
+            "format":["(","EventName"," ","ModuleID"," ","Position"," ","PortID"," ","SlotID"," ","WaferID"," ","ModSlot",")"],
+            "format_dictionary":{"EventName":"EventName","ModuleID":-1,"Position":-1,"Step":-1,"PortID":-1,"SlotID":-1,"WaferID":-1},
+            "default_dictionary":{"ModuleID":-1,"Position":-1,"Step":-1,"PortID":-1,"SlotID":-1,"WaferID":-1},
+            "ignore_list":["LOG_OUT"]
+          }
+        },
+
+        "WF_UNLOAD":{
+          "type":"splitTextToDictionary",
+          "settings":{
+
+            "delimiter":" ",
+            "bracket":["(",")"],
+            "format":["(","EventName"," ","NotNeed01"," ","NotNeed02"," ","PortID"," ","SlotID",")"],
+            "format_dictionary":{"EventName":"EventName","NotNeed01":"","NotNeed02":"","PortID":-1,"SlotID":-1},
+            "default_dictionary":{"PortID":-1,"SlotID":-1},
+            "ignore_list":["LOG_OUT"]
+          }
+        },
+        "Test":{
+          "type":"splitTextToDictionary",
+          "settings":{
+            "format":"(EventName ModuleID[Position,PortID,SlotID,WaferID,ModSlot])",
+            "delimiter":[" ",","],
+            "bracket":["(",")"],
+            "format_dictionary":{"EventName":"EventName","ModuleID":-1,"Position":-1,"PortID":-1,"SlotID":-1,"WaferID":-1,"ModSlot":-1},
+            "default_dictionary":{"ModuleID":-1,"Position":-1,"PortID":-1,"SlotID":-1,"WaferID":-1,"ModSlot":-1},
+            "ignore_list":["LOG_OUT"]
+          }
+        }
+      }
+    }
