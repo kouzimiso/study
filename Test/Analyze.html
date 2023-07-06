@@ -2,6 +2,33 @@
 <html>
 <head>
   <title>File Analyzer</title>
+  <style>
+    table {
+      border-collapse: collapse;
+    }
+    th,
+    td {
+      border: 1px solid black;
+      padding: 8px;
+    }
+  </style>
+</head>
+<body>
+  <h1>File Analyzer</h1>
+  <a>InternetExplorerで実行する場合はjson2.jsを同じFolderに置いて実行してください。</a><br>
+  <a href="https://cdnjs.cloudflare.com/ajax/libs/json2/20160511/json2.js">https://cdnjs.cloudflare.com/ajax/libs/json2/20160511/json2.js</a>
+  <br>
+  <a>解析設定変更:</a>
+  <input type="file" id="SettingInput" />
+  <button onclick="readSettingSelect()">Setting</button>
+  <br>
+  <a>解析File:</a>
+  <input type="file" id="FileInput" />
+  <button onclick="processSelect()">Analyze</button>
+  <br>
+  <button onclick="saveCSV()">Save CSV</button>
+  <div id="display"></div>
+  <br>
   <script src="json2.js"></script>
   <script>
     //命名規則　Class:アッパーキャメルケース(先頭大文字)
@@ -143,25 +170,25 @@
       return result_list
     }
     function addWafersData(module_id,slot_id,wafer_id,wafers_data){
-              // 同じwafer_idがある場合は前のSlotNoとwafer_idのペアを削除
-              for (var temp_module_id in wafers_data) {
-                for (var temp_slot_id in wafers_data[temp_module_id]) {
-                    if (wafers_data[temp_module_id][temp_slot_id] === wafer_id) {
-                        delete wafers_data[temp_module_id][temp_slot_id];
-                        break;
-                    }
-                }
-              }
-              if (!wafers_data[module_id]) { wafers_data[module_id] = {};}
-              wafers_data[module_id][slot_id]= wafer_id;
+      // 同じwafer_idがある場合は前のSlotNoとwafer_idのペアを削除
+      for (var temp_module_id in wafers_data) {
+        for (var temp_slot_id in wafers_data[temp_module_id]) {
+            if (wafers_data[temp_module_id][temp_slot_id] === wafer_id) {
+                delete wafers_data[temp_module_id][temp_slot_id];
+                break;
+            }
+        }
+      }
+      if (!wafers_data[module_id]) { wafers_data[module_id] = {};}
+      wafers_data[module_id][slot_id]= wafer_id;
     }
 
     function clearWafersData(module_id,slot_id,wafers_data){
       if (wafers_data.hasOwnProperty(module_id) && wafers_data[module_id].hasOwnProperty(slot_id)) {
         delete wafers_data[module_id][slot_id];
       } 
-
     }
+
     // Process管理関数----------------------------------------
     function readSettingSelect() {
       if (getBrowserType() == "Internet Explorer"){
@@ -187,9 +214,7 @@
       var setting_content = eval('(' + file_stream.ReadAll() + ')');
       file_stream.Close();
       settings = parseJSON(setting_content);
-  }
-
-
+    }
 
     function processSelect() {
       if (getBrowserType() == "Internet Explorer"){
@@ -219,7 +244,8 @@
         // ブラウザに内容を表示
         var json_lines = json_result.split('\n');
         // json_lines = json_lines.slice(0, 3);
-        displayArray(json_lines,"display",true);
+        //displayArray(json_lines,"display",true);
+        displayTable(analyzed_data,"display",true);
       };
       reader.readAsText(file);
     }
@@ -254,6 +280,173 @@
       // json_lines = json_lines.slice(0, 3);
       displayArray(json_lines, 'display', true);
     }
+
+    function saveCSV() {
+      var table = document.querySelector("table");
+      var dictionary = convertTableToDictionary(table);
+      var csv = convertDictionaryToCSV(dictionary);
+      var blob = new Blob([csv], { type: "text/csv" });
+      var link = document.createElement("a");
+      link.href = window.URL.createObjectURL(blob);
+      link.download = "output.csv";
+      link.click();
+    }
+    function convertTableToDictionary(table) {
+      var keys = [];
+      var data = [];
+      var headerRow = table.querySelector("tr");
+      var headerCells = headerRow.querySelectorAll("th");
+
+      for (var i = 0; i < headerCells.length; i++) {
+        keys.push(headerCells[i].textContent);
+      }
+
+      var rowElement = headerRow.nextElementSibling; // 最初の行以外の行を取得
+      while (rowElement) {
+        var row = {};
+        var cell = rowElement.querySelector("td");
+
+        for (var k = 0; k < keys.length && cell; k++) {
+          var value = cell.textContent;
+          var key = keys[k];
+          if (cell.querySelector("table")) {
+            var nestedTable = cell.querySelector("table");
+            var nestedRow = convertTableToDictionary(nestedTable)[0]; // 入れ子のテーブルの辞書を取得し、最初の要素を使用
+            row[key] = nestedRow; // 入れ子の辞書を現在の行にマージ
+          } else if (value.startsWith("{") && value.endsWith("}")) {
+            try {
+              var parsedValue = JSON.parse(value);
+              row[key] = parsedValue;
+            } catch (error) {
+              row[key] = value;
+            }
+          } else {
+            row[key] = value;
+          }
+          cell = cell.nextElementSibling; // 次のセルを取得
+        }
+        if (Object.keys(row).length > 0) {
+          data.push(row);
+        }
+        rowElement = rowElement.nextElementSibling; // 次の行を取得
+      }
+      return data;
+    }
+
+    // 辞書形式のリストをCSV形式に変換する
+    function convertDictionaryToCSV(dictionary_data_list) {
+      var csv = "";
+      var keys = getKeys(dictionary_data_list);
+      csv += keys.join(",") + "\n";
+      for (var i = 0; i < dictionary_data_list.length; i++) {
+        var values = [];
+        for (var j = 0; j < keys.length; j++) {
+          var key = keys[j];
+          var value = dictionary_data_list[i][key];
+          if (typeof value === "object") {
+            value = JSON.stringify(value);
+          }
+          values.push('"' + value.replace(/"/g, '""') + '"');
+        }
+        csv += values.join(",") + "\n";
+      }
+      return csv;
+    }
+
+
+    function saveJSONLine() {
+      var table = document.querySelector("table");
+      var dictionary = convertTableToDictionary(table);
+      var json_data = dictionary.map(JSON.stringify).join("\n");
+
+      // ファイルに保存
+      var blob = new Blob([json_data], { type: "application/json" });
+      var link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = "output.jsonl";
+      link.click();
+    }
+    // JSONLデータをテーブル形式で表示する
+    function displayTable(dictionary_data_list, element,flag_search_id) {
+      var table = createTable(dictionary_data_list);
+      var display_element = flag_search_id ? document.getElementById(element) : document.getElementsByTagName(element)[0];
+      display_element.innerHTML = "";
+      display_element.appendChild(table);
+    }
+
+    // 辞書形式のリストからテーブルを作成する
+    function createTable(data) {
+      var table = document.createElement("table");
+      var keys = getKeys(data);
+      keys.sort();
+      var headerRow = document.createElement("tr");
+      for (var i = 0; i < keys.length; i++) {
+        var headerCell = document.createElement("th");
+        headerCell.textContent = keys[i];
+        //headerCell.classList.add("sortable");
+        //headerCell.addEventListener("click", function() {
+        //  sortTable(this.textContent);
+        //});
+        headerRow.appendChild(headerCell);
+      }
+      table.appendChild(headerRow);
+
+      if (Array.isArray(data)) {
+        for (var j = 0; j < data.length; j++) {
+          var dataRow = document.createElement("tr");
+          for (var k = 0; k < keys.length; k++) {
+            var dataCell = document.createElement("td");
+            var value = data[j][keys[k]];
+            if (typeof value === "object" && value !== null) {
+              var subTable = createTable(value);
+              dataCell.appendChild(subTable);
+            } else {
+              dataCell.textContent = value;
+            }
+            dataRow.appendChild(dataCell);
+          }
+          table.appendChild(dataRow);
+        }
+      } else if (typeof data === "object" && data !== null) {
+        var dataRow = document.createElement("tr");
+        for (var k = 0; k < keys.length; k++) {
+          var dataCell = document.createElement("td");
+          var value = data[keys[k]];
+          if (typeof value === "object" && value !== null) {
+            var subTable = createTable(value);
+            dataCell.appendChild(subTable);
+          } else {
+            dataCell.textContent = value;
+          }
+          dataRow.appendChild(dataCell);
+        }
+        table.appendChild(dataRow);
+      } else {
+        var dataRow = document.createElement("tr");
+        var dataCell = document.createElement("td");
+        dataCell.colSpan = keys.length;
+        dataCell.textContent = data;
+        dataRow.appendChild(dataCell);
+        table.appendChild(dataRow);
+      }
+
+      return table;
+    }
+    // 辞書形式のリストからキーを取得する
+    function getKeys(data) {
+      var keys = [];
+      if (Array.isArray(data)) {
+        for (var i = 0; i < data.length; i++) {
+          var objKeys = Object.keys(data[i]);
+          keys = keys.concat(objKeys);
+        }
+      } else if (typeof data === "object" && data !== null) {
+        keys = Object.keys(data);
+      }
+      keys = Array.from(new Set(keys));
+      return keys;
+    }
+
     //汎用クラス-----------------------------------
     //(JavaScriptのfunctionは全てクラス。メソッドとクラス変数を持つもの)
     //Token毎に1つずつ文字列を取得するClass
@@ -293,6 +486,16 @@
             //ポートIDが0以下またはスロットIDが0未満の場合は対象外
             return {};
           }
+          //日付の追加
+          date_time = extractDateTime(string_data);
+          if(date_time !== null){dictionary_data["DateTime"]=date_time}
+          
+          //余った文字列の追加
+          pre_text = split_text_to_dictionary.getPreviousText();
+          if(pre_text !==""){dictionary_data["PreText"] = pre_text;}
+          after_text = split_text_to_dictionary.getAfterText();
+          if(after_text !==""){dictionary_data["AfterText"] = after_text;}
+
           return dictionary_data;
         }
       }
@@ -300,9 +503,9 @@
 
     }
 
-// 文字列を分割して辞書形式で保存するクラス
-// クラスのインスタンス化後、executeメソッドを呼び出すことでテキストの処理が実行されます
-// 結果は各プロパティやメソッドを通じて取得できます
+    // 文字列を分割して辞書形式で保存するクラス
+    // クラスのインスタンス化後、executeメソッドを呼び出すことでテキストの処理が実行されます
+    // 結果は各プロパティやメソッドを通じて取得できます
     function splitTextToDictionary(dictionary_data) {
       this.previous_text = "";
       this.after_text = "";
@@ -385,11 +588,12 @@
           return this.result_dictionary;
       };
 
-    }
+  }
 
     //汎用関数----------------------------------------
     function extractDateTime(string_data) {
       // 正規表現を使用して日付と時刻を抽出
+    
       var regex = /(\d{1,2}\/\d{1,2}(?:\/\d{2,4})?)\s+(\d{1,2}:\d{1,2}(?::\d{1,2})?)(?:\s+(\d+))?/;
       var match = regex.exec(string_data);
 
@@ -433,18 +637,18 @@
      }
     }
     //文字列表示関数
-    function displayString(line, element , search_id ) {
-      var display_element = search_id ? document.getElementById(element) : document.getElementsByTagName(element)[0];
+    function displayString(line, element , flag_search_id ) {
+      var display_element = flag_search_id ? document.getElementById(element) : document.getElementsByTagName(element)[0];
       display_element.innerHTML = "<p>" + line + "</p>";
     }
     //文字列追記関数
-    function displayAddString(line, element , search_id ) {
-      var display_element = search_id ? document.getElementById(element) : document.getElementsByTagName(element)[0];
+    function displayAddString(line, element , flag_search_id ) {
+      var display_element = flag_search_id ? document.getElementById(element) : document.getElementsByTagName(element)[0];
       display_element.innerHTML += "<p>" + line + "</p>";
     }
     //文字列表示関数(配列の表示。配列を変更すればいいので追記の関数は用意しない。)
-    function displayArray(lines, element , search_id ) {
-      var display_element = search_id ? document.getElementById(element) : document.getElementsByTagName(element)[0];
+    function displayArray(lines, element , flag_search_id ) {
+      var display_element = flag_search_id ? document.getElementById(element) : document.getElementsByTagName(element)[0];
       var displayLines = lines.join('<br>');
       display_element.innerHTML = displayLines;
     }
@@ -575,21 +779,5 @@
     }
 
   </script>
-</head>
-<body>
-  <h1>File Analyzer</h1>
-  <a>InternetExplorerで実行する場合はjson2.jsを同じFolderに置いて実行してください。</a><br>
-  <a href="https://cdnjs.cloudflare.com/ajax/libs/json2/20160511/json2.js">https://cdnjs.cloudflare.com/ajax/libs/json2/20160511/json2.js</a>
-  <br>
-  <a>解析設定変更:</a>
-  <input type="file" id="SettingInput" />
-  <button onclick="readSettingSelect()">Setting</button>
-  <br>
-  <a>解析File:</a>
-  <input type="file" id="FileInput" />
-  <button onclick="processSelect()">Analyze</button>
-  <br>
-  <div id="display"></div>
-  <br>
 </body>
 </html>
