@@ -593,8 +593,9 @@
     //汎用関数----------------------------------------
     function extractDateTime(string_data) {
       // 正規表現を使用して日付と時刻を抽出
-    
-      var regex = /(\d{1,2}\/\d{1,2}(?:\/\d{2,4})?)\s+(\d{1,2}:\d{1,2}(?::\d{1,2})?)(?:\s+(\d+))?/;
+      //var regex = /\s*(\d{1,2}\/\d{1,2}\s+\d{1,2}:\s*\d{1,2})\s+(\d+)/;
+      var regex = /\s*(\d{1,2}\/\d{1,2}(?:\/\d{2,4})?)\s+(\d{1,2}:\s*\d{1,2}(?::\s*\d{1,2})?)(?:\s+(\d+))?/;
+
       var match = regex.exec(string_data);
 
       if (match && match.length >= 3) {
