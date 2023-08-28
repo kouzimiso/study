@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>ファイルエディタ</title>
+</head>
+<body>
+    <h1>ファイルエディタ</h1>
+    
+    <!-- ファイル選択ボタン -->
+    <input type="file" id="file-input" accept=".txt">
+    <br><br>
+
+    <!-- ファイル内容の表示と編集 -->
+    <textarea id="file-content" rows="10" cols="40" readonly></textarea>
+    <br><br>
+    <button onclick="editFile()">編集</button>
+    <br><br>
+    <button onclick="saveFile()">保存</button>
+
+    <script>
+        var selectedFile = null;
+
+        // ファイル選択時の処理
+        document.getElementById("file-input").addEventListener("change", function(event) {
+            selectedFile = event.target.files[0];
+
+            // ファイルの内容を読み取り、エディットボックスに表示
+            if (selectedFile) {
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById("file-content").value = e.target.result;
+                };
+                reader.readAsText(selectedFile);
+            }
+        });
+
+        // 編集ボタンをクリックしたときの処理
+        function editFile() {
+            document.getElementById("file-content").readOnly = false;
+        }
+
+        // 保存ボタンをクリックしたときの処理
+        function saveFile() {
+            if (selectedFile) {
+                var editedContent = document.getElementById("file-content").value;
+
+                // ファイルに書き込み
+                var blob = new Blob([editedContent], { type: "text/plain" });
+                var url = window.URL.createObjectURL(blob);
+                var a = document.createElement("a");
+                a.href = url;
+                a.download = selectedFile.name;
+                a.click();
+                window.URL.revokeObjectURL(url);
+
+                document.getElementById("file-content").readOnly = true;
+            }
+        }
+    </script>
+</body>
+</html>
