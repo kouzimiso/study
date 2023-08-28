@@ -3,38 +3,53 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HTMLファイル一覧</title>
-</head>
-<body>
-    <h1>HTMLファイル一覧</h1>
-    <ul id="fileList">
-        <!-- ファイルリストがここに表示されます -->
-    </ul>
+    <title>GitHub HTMLファイルリスト</title>
+    <script>// GitHubリポジトリのユーザー名とリポジトリ名
+const username = 'kouzimiso';
+const repoName = 'study';
 
-    <script>
-        // GitHub リポジトリの URL
-        const repoURL = 'https://github.com/kouzimiso/study/tree/main/Test';
+// GitHub PagesのURLを生成する関数
+function generateGitHubPagesURL(fileName) {
+    return `https://${username}.github.io/${repoName}/Test/${fileName}`;
+}
 
-        // HTMLファイル一覧を取得してリストに追加する関数
-        async function listHTMLFiles() {
-            const response = await fetch(`${repoURL}?json=1`);
-            const data = await response.json();
-            const fileList = document.getElementById('fileList');
+// GitHub APIからHTMLファイルのリストを取得する関数
+async function fetchHTMLFileList() {
+    const apiUrl = `https://api.github.com/repos/${username}/${repoName}/contents/Test`;
+    
+    try {
+        const response = await fetch(apiUrl);
+        const data = await response.json();
 
-            data.tree.forEach(item => {
-                if (item.type === 'blob' && item.path.endsWith('.html')) {
+        if (Array.isArray(data)) {
+            const fileList = document.getElementById('file-list');
+            data.forEach(item => {
+                if (item.type === 'file' && item.name.endsWith('.html')) {
                     const listItem = document.createElement('li');
                     const link = document.createElement('a');
-                    link.href = `${repoURL}/${item.path}`;
-                    link.textContent = item.path.split('/').pop();
+                    link.href = generateGitHubPagesURL(item.name); // GitHub PagesのURLを生成
+                    link.textContent = item.name;
                     listItem.appendChild(link);
                     fileList.appendChild(listItem);
                 }
             });
+        } else {
+            console.error('GitHub APIからデータを取得できませんでした。');
         }
+    } catch (error) {
+        console.error('エラーが発生しました: ', error);
+    }
+}
 
-        // ページが読み込まれたときに HTML ファイル一覧を表示
-        window.addEventListener('load', listHTMLFiles);
+// ページが読み込まれたらHTMLファイルのリストを取得
+window.addEventListener('load', fetchHTMLFileList);
+
     </script>
+</head>
+<body>
+    <h1>GitHub HTMLファイルリスト</h1>
+    <ul id="file-list"></ul>
+
+    <script src="script.js"></script>
 </body>
 </html>
