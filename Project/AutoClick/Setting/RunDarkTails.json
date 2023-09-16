@@ -184,8 +184,8 @@
 				"image_path": "../Images/DarkTails/0000_account/0000/*.png",
 				"interval_time": 10,
 				"recognition_confidence": 0.99,
-				"recognition_grayscale": true,
-				"log_function":true,"log_print_standardoutput": true,"log_file_path_list": "../Log/log_recognition.json",
+				"recognition_gray_scale": true,
+				"log_function":true,"log_print_standard_output": true,"log_file_path_list": "../Log/log_recognition.json",
 				"#step_check_mode" : true
 
 			}
@@ -207,7 +207,7 @@
 				"image_path" : "../Images/DarkTails/0500_waiting/*.png",
 				"interval_time" : 2,
 				"recognition_confidence" : 0.99,
-				"recognition_grayscale" : false
+				"recognition_gray_scale" : false
 			}
 		},
 		{
@@ -224,7 +224,7 @@
 				"image_path" : "../Images/DarkTails/0509_waitingend/*.png",
 				"interval_time" : 2,
 				"recognition_confidence" : 0.99,
-				"recognition_grayscale" : false
+				"recognition_gray_scale" : false
 			}
 		},
 		{
@@ -243,7 +243,7 @@
 				"image_path" : "../Images/DarkTails/0500_waiting/*.png",
 				"interval_time" : 2,
 				"recognition_confidence" : 0.99,
-				"recognition_grayscale" : false
+				"recognition_gray_scale" : false
 			}
 		},
 		{
@@ -263,7 +263,7 @@
 				"image_path" : "../Images/DarkTails/0509_waitingend/*.png",
 				"interval_time" : 2,
 				"recognition_confidence" : 0.99,
-				"recognition_grayscale" : false
+				"recognition_gray_scale" : false
 			}
 		},
 		{
@@ -282,7 +282,7 @@
 				"image_path" : "../Images/DarkTails/0500_waiting/*.png",
 				"interval_time" : 2,
 				"recognition_confidence" : 0.99,
-				"recognition_grayscale" : false
+				"recognition_gray_scale" : false
 			}
 		},
 		{
@@ -302,7 +302,7 @@
 				"image_path" : "../Images/DarkTails/0509_waitingend/*.png",
 				"interval_time" : 2,
 				"recognition_confidence" : 0.99,
-				"recognition_grayscale" : false
+				"recognition_gray_scale" : false
 			}
 		}
 	],
@@ -323,7 +323,7 @@
 				"image_path" : "../Images/DarkTails/0600_selectserver/0000_Server/*.png",
 				"interval_time" : 0.1,
 				"recognition_confidence" : 0.8,
-				"recognition_grayscale" : true
+				"recognition_gray_scale" : true
 			}
 		}
 	],
@@ -344,7 +344,7 @@
 				"image_path" : "../Images/DarkTails/0600_selectserver/0001_Server/*.png",
 				"interval_time" : 0.1,
 				"recognition_confidence" : 0.8,
-				"recognition_grayscale" : true
+				"recognition_gray_scale" : true
 			}
 		}
 	],
@@ -363,7 +363,7 @@
 				"image_path" : "../Images/DarkTails/0000_account/000_end/*.png",
 				"interval_time" : 1.8,
 				"recognition_confidence" : 0.95,
-				"recognition_grayscale" : true
+				"recognition_gray_scale" : true
 			}
 		}
 	]

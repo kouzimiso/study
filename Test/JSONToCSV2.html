@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>JSONLine to CSV</title>
+<style>
+th.sortable {
+  cursor: pointer;
+}
+th.sortable:hover {
+  text-decoration: underline;
+}
+th.draggable {
+  cursor: move;
+}
+table {
+  border-collapse: collapse;
+}
+th, td {
+  border: 1px solid black;
+  padding: 8px;
+}
+</style>
+</head>
+<body>
+<h1>JSONLine to CSV</h1>
+<input type="file" id="file-input" />
+<button onclick="convert()">Convert</button>
+<button onclick="saveCSV()">Save CSV</button>
+<div id="output"></div>
+</body>
+<script>
+var jsonData = [];
+var sortedColumn = null;
+var sortOrder = 1;
+
+function convert() {
+  var file = document.getElementById("file-input").files[0];
+  var reader = new FileReader();
+  reader.onload = function(event) {
+    var lines = event.target.result.split('\n');
+    jsonData = [];
+    for (var i = 0; i < lines.length; i++) {
+      if (lines[i]) {
+        jsonData.push(JSON.parse(lines[i]));
+      }
+    }
+    displayTable(jsonData);
+  };
+  reader.readAsText(file);
+}
+
+function displayTable(jsonData) {
+  var table = createTable(jsonData);
+  var outputDiv = document.getElementById("output");
+  outputDiv.innerHTML = "";
+  outputDiv.appendChild(table);
+}
+
+function createTable(data) {
+  var table = document.createElement("table");
+
+  var keys = getKeys(data);
+  keys.sort(); // 列の題名を昇順にソートします
+
+  var headerRow = document.createElement("tr");
+  for (var i = 0; i < keys.length; i++) {
+    var headerCell = document.createElement("th");
+    headerCell.textContent = keys[i];
+    headerRow.appendChild(headerCell);
+  }
+  table.appendChild(headerRow);
+
+  if (Array.isArray(data)) {
+    for (var j = 0; j < data.length; j++) {
+      var dataRow = document.createElement("tr");
+      for (var k = 0; k < keys.length; k++) {
+        var dataCell = document.createElement("td");
+        var value = data[j][keys[k]];
+        if (typeof value === "object" && value !== null) {
+          var subTable = createTable(value);
+          dataCell.appendChild(subTable);
+        } else {
+          dataCell.textContent = value;
+        }
+        dataRow.appendChild(dataCell);
+      }
+      table.appendChild(dataRow);
+    }
+  } else if (typeof data === "object" && data !== null) {
+    var dataRow = document.createElement("tr");
+    for (var k = 0; k < keys.length; k++) {
+      var dataCell = document.createElement("td");
+      var value = data[keys[k]];
+      if (typeof value === "object" && value !== null) {
+        var subTable = createTable(value);
+        dataCell.appendChild(subTable);
+      } else {
+        dataCell.textContent = value;
+      }
+      dataRow.appendChild(dataCell);
+    }
+    table.appendChild(dataRow);
+  } else {
+    var dataRow = document.createElement("tr");
+    var dataCell = document.createElement("td");
+    dataCell.colSpan = keys.length;
+    dataCell.textContent = data;
+    dataRow.appendChild(dataCell);
+    table.appendChild(dataRow);
+  }
+
+  return table;
+}
+
+function getKeys(data) {
+  var keys = [];
+  if (Array.isArray(data)) {
+    for (var i = 0; i < data.length; i++) {
+      var objKeys = Object.keys(data[i]);
+      keys = keys.concat(objKeys);
+    }
+  } else if (typeof data === "object" && data !== null) {
+    keys = Object.keys(data);
+  }
+  keys = Array.from(new Set(keys));
+  return keys;
+}
+
+function saveCSV() {
+  var table = document.querySelector("table");
+  var csv = convertTableToCSV(table);
+  var blob = new Blob([csv], {type: "text/csv"});
+  var link = document.createElement("a");
+  link.href = window.URL.createObjectURL(blob);
+  link.download = "output.csv";
+  link.click();
+}
+
+function convertTableToCSV(table) {
+  var csv = [];
+  var rows = table.querySelectorAll("tr");
+  for (var i = 0; i < rows.length; i++) {
+    var row = [];
+    var cells = rows[i].querySelectorAll("th, td");
+    for (var j = 0; j < cells.length; j++) {
+      row.push(cells[j].textContent);
+    }
+    csv.push(row.join(","));
+  }
+  return csv.join("\n");
+}
+
+function sortTable(key) {
+  if (sortedColumn === key) {
+    sortOrder *= -1;
+  } else {
+    sortedColumn = key;
+    sortOrder = 1;
+  }
+  
+  jsonData.sort(function(a, b) {
+    var valueA = a[key] ? a[key].toString().toLowerCase() : "";
+    var valueB = b[key] ? b[key].toString().toLowerCase() : "";
+    return valueA.localeCompare(valueB) * sortOrder;
+  });
+  
+  displayTable(jsonData);
+}
+
+function reorderColumns(draggedKey, targetKey) {
+  var draggedIndex = -1;
+  var targetIndex = -1;
+  
+  var headerCells = document.querySelectorAll("th.draggable");
+  for (var i = 0; i < headerCells.length; i++) {
+    if (headerCells[i].dataset.key === draggedKey) {
+      draggedIndex = i;
+    } else if (headerCells[i].dataset.key === targetKey) {
+      targetIndex = i;
+    }
+  }
+  
+  if (draggedIndex !== -1 && targetIndex !== -1 && draggedIndex !== targetIndex) {
+    var keys = [];
+    for (var j = 0; j < headerCells.length; j++) {
+      if (j === draggedIndex) {
+        keys.push(headerCells[targetIndex].dataset.key);
+      } else if (j === targetIndex) {
+        keys.push(headerCells[draggedIndex].dataset.key);
+      } else {
+        keys.push(headerCells[j].dataset.key);
+      }
+    }
+    
+    var newJsonData = [];
+    for (var k = 0; k < jsonData.length; k++) {
+      var newData = {};
+      for (var m = 0; m < keys.length; m++) {
+        if (jsonData[k].hasOwnProperty(keys[m])) {
+          newData[keys[m]] = jsonData[k][keys[m]];
+        }
+      }
+      newJsonData.push(newData);
+    }
+    
+    jsonData = newJsonData;
+    displayTable(jsonData);
+  }
+}
+</script>
+</html>

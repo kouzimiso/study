@@ -1,1 +1,0 @@
-python -m kivy.tools.kviewer ./main.kv

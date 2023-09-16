@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>StringTokenizer</title>
+  <script>
+    function StringTokenizer(str, delimiter) {
+      this.tokens = str.split(delimiter);
+      this.index = 0;
+
+      this.hasMoreTokens = function() {
+        return this.index < this.tokens.length;
+      };
+
+      this.nextToken = function() {
+        if (this.hasMoreTokens()) {
+          return this.tokens[this.index++];
+        }
+        return null;
+      };
+    }
+
+    function tokenizeString() {
+      var str = document.getElementById("inputString").value;
+      var delimiter = document.getElementById("delimiter").value;
+      var tokenizer = new StringTokenizer(str, delimiter);
+      var outputDiv = document.getElementById("output");
+
+      outputDiv.innerHTML = "";
+
+      while (tokenizer.hasMoreTokens()) {
+        var token = tokenizer.nextToken();
+        var newLine = document.createElement("br");
+        outputDiv.appendChild(document.createTextNode(token));
+        outputDiv.appendChild(newLine);
+      }
+    }
+  </script>
+</head>
+<body>
+  <h1>StringTokenizer</h1>
+  <label for="inputString">Input String:</label>
+  <input type="text" id="inputString" placeholder="Enter a string">
+  <br>
+  <label for="delimiter">Delimiter:</label>
+  <input type="text" id="delimiter" placeholder="Enter a delimiter">
+  <br>
+  <button onclick="tokenizeString()">Tokenize</button>
+  <br>
+  <div id="output"></div>
+</body>
+</html>

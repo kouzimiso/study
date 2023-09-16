@@ -22,7 +22,11 @@ def ExecuteProgram(setting_dictionary):
             args_list.append(setting_dictionary.get(setting_dictionary.get("argument" + str(loop01) ,"") ,""))
             loop01 = loop01 + 1
     # プログラムを起動
-    result = subprocess.run([program_path] + args_list , capture_output = True , text = True)
+    file_extension = os.path.splitext(program_path)[-1].lower()
+    if file_extension == ".py":
+        result = subprocess.run(['python',program_path] + args_list , capture_output = True , text = True)
+    else:
+        result = subprocess.run([program_path] + args_list , capture_output = True , text = True)
     output = result.stdout #.decode('utf-8')
     try:
         json_dictionary = json.loads(output)

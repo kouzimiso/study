@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Table Column Reorder</title>
+  <style>
+    table {
+      border-collapse: collapse;
+    }
+    th, td {
+      border: 1px solid black;
+      padding: 5px;
+    }
+  </style>
+</head>
+<body>
+  <table id="myTable">
+    <thead>
+      <tr>
+        <th class="draggable" data-key="col1" draggable="true" ondragstart="handleDragStart(event)">Column 1</th>
+        <th class="draggable" data-key="col2" draggable="true" ondragstart="handleDragStart(event)">Column 2</th>
+        <th class="draggable" data-key="col3" draggable="true" ondragstart="handleDragStart(event)">Column 3</th>
+        <th class="draggable" data-key="col4" draggable="true" ondragstart="handleDragStart(event)">Column 4</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Value 1-1</td>
+        <td>Value 1-2</td>
+        <td>Value 1-3</td>
+        <td>Value 1-4</td>
+      </tr>
+      <tr>
+        <td>Value 2-1</td>
+        <td>Value 2-2</td>
+        <td>Value 2-3</td>
+        <td>Value 2-4</td>
+      </tr>
+      <tr>
+        <td>Value 3-1</td>
+        <td>Value 3-2</td>
+        <td>Value 3-3</td>
+        <td>Value 3-4</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <script>
+    var dictionary_data_list = [
+      {"col1": "Value 1-1", "col2": "Value 1-2", "col3": "Value 1-3", "col4": "Value 1-4"},
+      {"col1": "Value 2-1", "col2": "Value 2-2", "col3": "Value 2-3", "col4": "Value 2-4"},
+      {"col1": "Value 3-1", "col2": "Value 3-2", "col3": "Value 3-3", "col4": "Value 3-4"}
+    ];
+
+    function displayTable(data, tableId) {
+      var table = document.getElementById(tableId);
+      var tbody = table.getElementsByTagName('tbody')[0];
+      tbody.innerHTML = '';
+
+      for (var i = 0; i < data.length; i++) {
+        var row = document.createElement('tr');
+        for (var key in data[i]) {
+          var cell = document.createElement('td');
+          cell.appendChild(document.createTextNode(data[i][key]));
+          row.appendChild(cell);
+        }
+        tbody.appendChild(row);
+      }
+    }
+
+    function handleDragStart(event) {
+      event.dataTransfer.setData("text/plain", event.target.dataset.key);
+    }
+
+    function handleDrop(event) {
+      event.preventDefault();
+      var draggedKey = event.dataTransfer.getData("text/plain");
+      var targetKey = event.target.dataset.key;
+      reorderColumns(draggedKey, targetKey);
+    }
+
+    function handleDragOver(event) {
+      event.preventDefault();
+    }
+
+    function reorderColumns(draggedKey, targetKey) {
+      var draggedIndex = -1;
+      var targetIndex = -1;
+
+      var headerRow = document.querySelector("thead tr");
+      var headerCells = headerRow.getElementsByClassName("draggable");
+      
+      for (var i = 0; i < headerCells.length; i++) {
+        if (headerCells[i].dataset.key === draggedKey) {
+          draggedIndex = i;
+        } else if (headerCells[i].dataset.key === targetKey) {
+          targetIndex = i;
+        }
+      }
+
+      if (draggedIndex !== -1 && targetIndex !== -1 && draggedIndex !== targetIndex) {
+        var keys = [];
+for (var j = 0; j < headerCells.length; j++) {
+  if (j === draggedIndex) {
+    keys.push(headerCells[targetIndex].dataset.key);
+  } else if (j === targetIndex) {
+    keys.push(headerCells[draggedIndex].dataset.key);
+  } else {
+    keys.push(headerCells[j].dataset.key);
+  }
+}
+
+
+var newdictionary_data_list = [];
+for (var k = 0; k < dictionary_data_list.length; k++) {
+  var newData = {};
+  for (var m = 0; m < keys.length; m++) {
+    var originalKey = headerCells[m].dataset.key;
+    var newKey = keys[m];
+    newData[newKey] = dictionary_data_list[k][originalKey];
+        }
+        newdictionary_data_list.push(newData);
+        }
+
+        dictionary_data_list = newdictionary_data_list;
+        displayTable(dictionary_data_list, "myTable");
+
+      }
+    }
+
+    displayTable(dictionary_data_list, "myTable");
+
+    var headerCells = document.querySelectorAll("th.draggable");
+    for (var i = 0; i < headerCells.length; i++) {
+      headerCells[i].addEventListener("dragover", handleDragOver);
+      headerCells[i].addEventListener("drop", handleDrop);
+    }
+  </script>
+</body>
+</html>

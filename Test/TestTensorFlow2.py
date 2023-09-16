@@ -2,12 +2,12 @@
 import tensorflow as tf
 
 # Helper libraries
-import numpy as np
+import numpy as numpy
 import matplotlib.pyplot as plt
 import matplotlib.pyplot
 
 #matplotlib.pyplotの動作確認
-x = np.linspace(-3,3)
+x = numpy.linspace(-3,3)
 print(x)
 y = x**2
 print(y)
@@ -72,7 +72,6 @@ test_images = test_images / 255.0
 
 plt.figure(figsize=(10,10))
 for i in range(25):
-    plt.title("train images")
     plt.subplot(5,5,i+1)
     plt.xticks([])
     plt.yticks([])
@@ -105,7 +104,7 @@ predictions = probability_model.predict(test_images)
 
 predictions[0]
 
-np.argmax(predictions[0])
+numpy.argmax(predictions[0])
 
 test_labels[0]
 
@@ -117,14 +116,14 @@ def plot_image(i, predictions_array, true_label, img):
 
   plt.imshow(img, cmap=plt.cm.binary)
 
-  predicted_label = np.argmax(predictions_array)
+  predicted_label = numpy.argmax(predictions_array)
   if predicted_label == true_label:
     color = 'blue'
   else:
     color = 'red'
 
   plt.xlabel("{} {:2.0f}% ({})".format(class_names[predicted_label],
-                                100*np.max(predictions_array),
+                                100*numpy.max(predictions_array),
                                 class_names[true_label]),
                                 color=color)
 
@@ -135,7 +134,7 @@ def plot_value_array(i, predictions_array, true_label):
   plt.yticks([])
   thisplot = plt.bar(range(10), predictions_array, color="#777777")
   plt.ylim([0, 1])
-  predicted_label = np.argmax(predictions_array)
+  predicted_label = numpy.argmax(predictions_array)
 
   thisplot[predicted_label].set_color('red')
   thisplot[true_label].set_color('blue')
@@ -193,7 +192,7 @@ img = test_images[1]
 print(img.shape)
 
 # Add the image to a batch where it's the only member.
-img = (np.expand_dims(img,0))
+img = (numpy.expand_dims(img,0))
 
 print(img.shape)
 
@@ -206,4 +205,4 @@ plot_value_array(1, predictions_single[0], test_labels)
 _ = plt.xticks(range(10), class_names, rotation=45)
 plt.show()
 
-np.argmax(predictions_single[0])
+numpy.argmax(predictions_single[0])

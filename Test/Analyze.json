@@ -1,0 +1,57 @@
+{
+      "Help": [
+            
+            "Javascript+htmlでprogramを作成。",
+            "Class、関数、変数の命名規則は次のようにします。Class:アッパーキャメルケース(先頭大文字),関数:ローワーキャメルケース(動詞(先頭小文字)＋目的語(先頭大文字)、変数:スネークケース(小文字_小文字)",
+            "Fileを文字列で読み込みます",
+            "文字列からKeywordを見つけた時に辞書Data内のtypeで指定した関数をsettingsの設定を引数に動作させます。",
+            "文字列からKeywordを見つけた時に辞書Dataではない場合、typeの指定が無い場合は内容をJSONの文字変換し表示する。",
+            "Keywordとは下記のWF_EVENT arrive,WF_EVENT cancelにあたります。",
+            "splitTextToDictionaryはformatを元に文字列を辞書Dataに分割します。",
+            "文字列内には要素(element)があり、delimiterやbracketで区切られています。",
+            "formatのそれぞれのelementは数字か、文字列です。format_dictionaryにそれぞれのelementのdefault値を記述しています。default値が数字なら、そのelementは数字文字列である必要があります。",
+            "まず、文字列を複数のKeyword(WF_EVENT arriveやWF_EVENT cancel)で検索します。以降は一番手前の位置で見つかったKeywordで処理を進めます。また、Keyword以前の文字列はpre_textに保存します。",
+            "result_dictionaryに先頭のelement:見つかったKeywordの形で保存します",
+            "一番手前の位置で見つかったKeyword以降の文字列を観ていき、format通りにelementが出現した場合はresult_dictionaryにelement:文字列を分割した値の形で保存します。formatが数字Dataのelementは数字に変換します。",
+            "もしもformat通りにelementが出現しなかった場合は以降の文字列をafter_textに保存します。",
+            "もしもformatが数字だが、元の文字列が数字文字列ではなかった場合も以降の文字列をafter_textに保存します。",
+            "文字列を全ての要素をresult_dictionaryに保存したら、result_dictionaryにpre_text、after_textを要素として加えます。",
+            " テストとして、「6/26 19: 0 41(    864937), to MMI: (WF_EVENT arrive 14 1 5 3 108 0)」を文字列の初期値としてください。",
+            "結果はResultHelpのようなDataになります。",
+
+            "「6/26 19: 0 41(    864937), to MMI: (WF_EVENT arrive 14 1 5 3 108 0)」の文字列をWF_EVENT arriveとWF_EVENT cancelで解析すると、下記ResultHelpになるようなプログラム"
+      
+      ],
+      "ResultHelp":{"EventName":"WF_EVENT arrive","ModuleID":14,"Position":1,"PortID":5,"SlotID":3,"WaferID":108,"ModSlot":0},
+      "WF_EVENT arrive":{
+            "type":"splitTextToDictionary",
+            "settings":{
+                  "format":"(EventName ModuleID Position PortID SlotID WaferID ModSlot)",
+                  "delimiter":" ",
+                  "bracket":["(",")"],
+                  "format_dictionary":{"EventName":"EventName","ModuleID":-1,"Position":-1,"PortID":-1,"SlotID":-1,"WaferID":-1,"ModSlot":-1},
+                  "default_dictionary":{"ModuleID":-1,"Position":-1,"PortID":-1,"SlotID":-1,"WaferID":-1,"ModSlot":-1},
+                  "ignore_list":["LOG_OUT"]
+            }
+      },
+      "WF_EVENT cancel":{
+            "type":"splitTextToDictionary",
+            "delimiter":" ",
+            "bracket":["(",")"],
+            "format":"(EventName ModuleID Position PortID SlotID WaferID ModSlot)",
+            "format_dictionary":{"EventName":"EventName","ModuleID":-1,"Position":-1,"PortID":-1,"SlotID":-1,"WaferID":-1,"ModSlot":-1},
+            "default_dictionary":{"ModuleID":-1,"Position":-1,"PortID":-1,"SlotID":-1,"WaferID":-1,"ModSlot":-1},
+            "ignore_list":["LOG_OUT"]
+      },
+      "Test":{
+            "type":"splitTextToDictionary",
+            "settings":{
+                  "format":"(EventName ModuleID[Position,PortID,SlotID,WaferID,ModSlot])",
+                  "delimiter":[" ",","],
+                  "bracket":["(",")"],
+                  "format_dictionary":{"EventName":"EventName","ModuleID":-1,"Position":-1,"PortID":-1,"SlotID":-1,"WaferID":-1,"ModSlot":-1},
+                  "default_dictionary":{"ModuleID":-1,"Position":-1,"PortID":-1,"SlotID":-1,"WaferID":-1,"ModSlot":-1},
+                  "ignore_list":["LOG_OUT"]
+            }
+      }
+}

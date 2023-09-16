@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>JSONファイルの処理</title>
+</head>
+<body>
+    <input type="file" id="fileInput" accept=".json">
+    <button id="convertButton">JSONを辞書データに変換</button>
+    <a id="downloadLink" style="display: none;">JSONファイルをダウンロード</a>
+    <div id="displayArea"></div>
+
+    <script>
+        // JSONファイルを読み出して辞書データに変換する関数
+        function jsonToDictionary(jsonData) {
+            const typeSettingsDict = {};
+
+            for (const key in jsonData) {
+                if (jsonData.hasOwnProperty(key)) {
+                    const typeData = jsonData[key];
+                    for (const item of typeData) {
+                        if ('type' in item && 'settings' in item) {
+                            const typeName = item.type;
+                            const settings = item.settings;
+                            if (!(typeName in typeSettingsDict)) {
+                                typeSettingsDict[typeName] = {};
+                            }
+                            typeSettingsDict[typeName] = { ...typeSettingsDict[typeName], ...settings };
+                        }
+                    }
+                }
+            }
+
+            return typeSettingsDict;
+        }
+
+        // 辞書データをJSON文字列に変換してダウンロードリンクを生成する関数
+        function dictionaryToJsonAndDownload(dictionaryData) {
+            // 辞書データをJSON文字列に変換
+            const typeSettingsJSON = JSON.stringify(dictionaryData, null, 4);
+
+            // ダウンロード用のBlobを作成
+            const blob = new Blob([typeSettingsJSON], { type: 'application/json' });
+
+            // ダウンロードリンクの設定
+            const downloadLink = document.getElementById('downloadLink');
+            downloadLink.href = URL.createObjectURL(blob);
+            downloadLink.download = 'settings.json';
+            downloadLink.style.display = 'block';
+        }
+
+        // ファイル選択ボタンのイベントハンドラ
+        document.getElementById('convertButton').addEventListener('click', function () {
+            const fileInput = document.getElementById('fileInput');
+            const selectedFile = fileInput.files[0];
+
+            if (selectedFile) {
+                const reader = new FileReader();
+
+                reader.onload = function (e) {
+                    try {
+                        const jsonData = JSON.parse(e.target.result);
+                        const dictionaryData = jsonToDictionary(jsonData);
+                        displayDictionary(dictionaryData);
+                        dictionaryToJsonAndDownload(dictionaryData);
+                    } catch (error) {
+                        alert('JSONデータの解析に失敗しました。正しいJSONファイルを選択してください。');
+                        console.error(error);
+                    }
+                };
+
+                reader.readAsText(selectedFile);
+            } else {
+                alert('JSONファイルを選択してください。');
+            }
+        });
+
+        // 辞書データを表示する関数
+        function displayDictionary(dictionaryData) {
+            const displayArea = document.getElementById('displayArea');
+            displayArea.innerHTML = JSON.stringify(dictionaryData, null, 4);
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>文字列送信</title>
+  <script>
+    function sendString() {
+      const ipAddress = document.getElementById('ip-address').value || 'localhost';
+      const message = document.getElementById('message').value;
+
+      const data = {
+        message: message
+      };
+
+      fetch(`http://${ipAddress}:8000`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+      })
+      .then(response => response.json())
+      .then(responseData => {
+        const receivedMessage = responseData.message;
+        document.getElementById('received-message').textContent = `受信文字列: ${receivedMessage}`;
+      })
+      .catch(error => {
+        console.log('送信エラー:', error);
+      });
+    }
+
+    function getIPAddresses() {
+      // ローカルIPアドレスを取得する処理
+      const path = location.href;
+
+      // グローバルIPアドレスを取得する処理
+      fetch('https://api.ipify.org/?format=json')
+        .then(response => response.json())
+        .then(data => {
+          const globalIPAddress = data.ip;
+          // 取得したIPアドレスをHTMLの要素に設定する
+          document.getElementById('path').textContent = `path: ${path}`;
+          document.getElementById('global-ip-address').textContent = `グローバルIPアドレス: ${globalIPAddress}`;
+        })
+        .catch(error => {
+          console.log('IPアドレスの取得に失敗しました:', error);
+        });
+    }
+  </script>
+</head>
+<body onload="getIPAddresses()">
+  <h1>IPアドレス</h1>
+  <p id="path"></p>
+  <p id="global-ip-address"></p>
+  <p>Local内での通信はLocal IPを使ってください。</p>
+
+  <h1>文字列送信</h1>
+  <label for="ip-address">送信先IPアドレス:</label>
+  <input type="text" id="ip-address" placeholder="情報">
+  <br>
+  <label for="message">送信する文字列:</label>
+  <input type="text" id="message" placeholder="文字列を入力">
+  <br>
+  <button onclick="sendString()">送信</button>
+  <br>
+  <p id="received-message"></p>
+</body>
+</html>

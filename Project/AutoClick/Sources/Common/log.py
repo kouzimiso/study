@@ -106,7 +106,7 @@ class Logs:
         if not self.logger_console.handlers:
             handler = logging.StreamHandler(sys.stdout)
             self.logger_console.addHandler(handler)
-        self.log_print_standardoutput =  setting_dictionary.get("log_print_standardoutput",False)
+        self.log_print_standard_output =  setting_dictionary.get("log_print_standard_output",False)
 
     def debug(self , message) :
         self.log(message , "DEBUG")
@@ -152,7 +152,7 @@ class Logs:
     #LogをListに貯める機能のあるLog
     def log(self , message , level = "INFO" , details={} , flag_print = None , setting_dictionary = None , message_lists = None):
         if flag_print is None:
-            flag_print = self.log_print_standardoutput 
+            flag_print = self.log_print_standard_output 
         if setting_dictionary is None:
             setting_dictionary = self.Setting
         if message_lists is None:
@@ -209,7 +209,7 @@ class Logs:
             temporary_list = [file_path_list]
         message_list=[]
         for file_path in temporary_list:
-            FileControl.Manage_File(file_path,message_list=message_list)
+            FileControl.ManageFile(file_path,message_list=message_list)
             # 辞書形式DataをJson形式のファイルに追記
             with open(file_path , 'a') as file:
                 for message in message_lists:
@@ -245,33 +245,34 @@ def Clear_MessageList(message_list):
 
 #Message ListをFileに書き込む
 def Write_MessageList(file_path , message_list):
-    FileControl.Manage_File(file_path , message_list = message_list)
+    FileControl.ManageFile(file_path , message_list = message_list)
     
     file = open(file_path , 'a')
     file.writelines(message_list)
     file.close()
 
-def main(argument_dictionary):
-    argument_dictionary["message"]= "test message"
-    logger=Logs(argument_dictionary)
-    logger.log("","",argument_dictionary)
+def Execute(setting_dictionary):
+    setting_dictionary["message"]= "test message"
+    logger=Logs(setting_dictionary)
+    logger.log("","",setting_dictionary)
     logger.MessageList_Write()
     #logger.MessageList_Clear()
 
-    argument_dictionary["message"]= "test message2"
-    argument_dictionary["log_file_path_list"]= ["../Log/log2.json","../Log/log3.json"]
+    setting_dictionary["message"]= "test message2"
+    setting_dictionary["log_file_path_list"]= ["../Log/log2.json","../Log/log3.json"]
 
-    logger2=Logs(argument_dictionary)
-    logger2.log("","",argument_dictionary)
-    logger2.log("","",argument_dictionary)
+    logger2=Logs(setting_dictionary)
+    logger2.log("","",setting_dictionary)
+    logger2.log("","",setting_dictionary)
     logger2.MessageList_Write()
     #logger2.MessageList_Clear()
 
     result_dictionary={"result" : True}
-    FunctionUtility.Result(result_dictionary)
+    return result_dictionary
 
-if __name__ == '__main__':
-    # Defaultの辞書Data
+#command lineから機能を利用する。
+def main():
+    # Defaultの辞書Dataを設定。
     default_dictionary = {
         "log_setting_path": "./setting_log.json",
         "log_file_path_list": ["../Log/log.json"]
@@ -281,9 +282,17 @@ if __name__ == '__main__':
         "message": "test message",
         "date": datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S"),
         "level": "INFO",
-        "log_print_standardoutput":True
+        "log_print_standard_output":True
     }
-    argument_dictionary = FunctionUtility.ArgumentGet(default_dictionary,option_dictionary)
-    main(argument_dictionary)
+    # Command lineの引数を得てから機能を実行し、標準出力を出力IFとして動作する。
+    # 単体として動作するように実行部のExecuteは辞書を入出力IFとして動作する。
+    setting_dictionary = FunctionUtility.ArgumentGet(default_dictionary,option_dictionary)
+    result_dictionary = Execute(setting_dictionary)
+    FunctionUtility.Result(result_dictionary)
+
+
+
+if __name__ == '__main__':
+    main()
 
 

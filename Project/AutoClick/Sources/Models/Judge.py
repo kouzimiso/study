@@ -46,6 +46,8 @@ class Judge:
             information = self.information
         if default_result is None:
             default_result = self.default_result
+        if type(condition_list) is bool:
+            return condition_list
 
         result = self.Results_ByDictionaryInformation(condition_list,information,default_result,result_details)
         return result
@@ -142,7 +144,7 @@ class Judge:
             details["text"]= text
             details["value"]= temp_dictionary
             details["text_type"]= str(type(temp_dictionary))
-            self.logger.log("ChangeToData","INFO",details=details)
+            #self.logger.log("ChangeToData","INFO",details=details)
             if temp_dictionary is None :
                 #Error:There is not the specified dictionary 
                 #Dataがdictionary内に無い場合は引数は文字列比較と判断し、そのまま引数を返す。
@@ -161,7 +163,7 @@ class Judge:
             trace_list.append(expression+"("+ str(temp_dictionary) + ")")
             return temp_dictionary
         else:
-            self.logger.log("ChangeToData None","INFO",details=details)
+            #self.logger.log("ChangeToData None","INFO",details=details)
             trace_list.append(expression+"(Change data is None)")
             return temp_dictionary
         

@@ -9,7 +9,7 @@
 			"settings": {
 					"program_path": "../Resources/Camera.exe",
 					"file_path": "../Images/capture/capture.png",
-					"log_print_standardoutput": true,"log_function":true,"log_file_path_list": "../Log/log_ExecuteProgram.json",
+					"log_print_standard_output": true,"log_function":true,"log_file_path_list": "../Log/log_ExecuteProgram.json",
 					"step_check_mode" : false,"step_check_comment":""
 			}
 		},
@@ -25,7 +25,7 @@
 					"archivefolder_path": "../Images/capture",
 					"folder_maxsize" : 1048576,
 					"files_maxnumber" : 5,
-					"log_print_standardoutput": true,"log_function":true,"log_file_path_list": "../Log/log_ExecuteProgram.json",
+					"log_print_standard_output": true,"log_function":true,"log_file_path_list": "../Log/log_ExecuteProgram.json",
 					"step_check_mode" : false,"step_check_comment":""
 			}
 		},
@@ -36,7 +36,7 @@
 			"condition_list":"",
 			"settings": {
 					"file_path": "../Log/capture.png",
-					"log_print_standardoutput": true,"log_function":true,"log_file_path_list": "../Log/log_camera.json",
+					"log_print_standard_output": true,"log_function":true,"log_file_path_list": "../Log/log_camera.json",
 					"step_check_mode" : false,"step_check_comment":""
 			}
 		}
@@ -44,6 +44,47 @@
 	],
 	"Start": 
 	[
+
+		{
+			"name" : "StartTest",
+				"type" : "RunPlanLists",
+				"settings" : {
+				"file_path" : "../Setting/RunTest01.json",
+				"plan_lists" : [
+					"Start","Print Test"
+				]
+			}
+		},
+		{
+			"name" : "StartTest",
+		 	"type" : "RunPlanLists",
+		 	"settings" : {
+				"file_path" : "../Setting/TemplateRunApply.json",
+				"plan_lists" : [
+					"Scroll_Click"
+				]
+			}
+		},
+		{
+			"name" : "StartTest",
+		 	"type" : "RunPlanLists",
+		 	"settings" : {
+				"file_path" : "../Setting/RunTest01.json",
+				"plan_lists" : [
+					"#DarkTails"
+				]
+			}
+		},
+		{
+			"name" : "StartTest",
+		 	"type" : "RunPlanLists",
+		 	"settings" : {
+				"file_path" : "../Setting/RunTest01.json",
+				"plan_lists" : [
+					"#DarkTails"
+				]
+			}
+		},
 		{
 			"name" : "StartTask0",
 		 	"type" : "RunPlanLists",
@@ -59,6 +100,9 @@
 		 	"type" : "RunPlanLists",
 		 	"settings" : {
 				"file_path" : "../Setting/RunDarkTailsChild.json",
+				"loop_condition":true,
+                "terminate_condition":false,
+                "loop_limit_count":5,
 				"plan_lists" : [
 					"#PlayContents","#PlayContents","#PlayContents"
 				]
@@ -69,6 +113,9 @@
 		 	"type" : "RunPlanLists",
 		 	"settings" : {
 				"file_path" : "../Setting/RunHouchi.json",
+				"loop_condition":true,
+                "terminate_condition":false,
+                "loop_limit_count":5,
 				"plan_lists" : [
 					"#HouchiACM","#DarkTailsClickGroup",
 					"#TimeCheck_Houchi_Chokyo","#Chokyo"
@@ -80,9 +127,12 @@
 		 	"type" : "RunPlanLists",
 		 	"settings" : {
 				"file_path" : "../Setting/RunHouchiChild.json",
+                "loop_condition":true,
+                "terminate_condition":false,
+                "loop_limit_count":5,
 				"plan_lists" : [
-					"#HomeClick","#Casting","#Item",
-					"#HouchiEvent01","HouchiEvent02","HomeClick","HouchiEvent08Click",
+					"#ReturnHome","#Casting","#Item",
+					"#HouchiEvent01","#HouchiEvent02","#ReturnHome","HouchiEvent08",
 					"#HouchiIkusei","#Etc#"
 				]
 			}

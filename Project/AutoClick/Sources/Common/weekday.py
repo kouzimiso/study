@@ -104,7 +104,7 @@ class DayOfTheWeek:
                 return date_time_after
         return -1
     
-    def Check_Day(self, setting_dictionary):
+    def CheckDay(self, setting_dictionary):
         day1 = setting_dictionary.get("day1")
         day2 = setting_dictionary.get("day2")
         day3 = setting_dictionary.get("day3")

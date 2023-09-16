@@ -5,6 +5,7 @@ import xmltodict
 import dicttoxml
 import xml.dom.minidom
 
+
 def XML_Read(file_path):
     information_dictionary={}
     
@@ -70,41 +71,3 @@ def XML_ToDictionary(file_path):
     file.close()
     return information_dictionary
 
-def RecognitionXML_Read(information_dictionary):
-    #処理
-    self.action = action
-    #終了条件
-    self.end_condition = end_condition
-    #実行回数
-    self.execute_number = execute_number
-    #再試行回数
-    self.retry_number = retry_number
-    #終了処理
-    self.end_action = end_action
-    #クリックする画像を保存するフォルダ
-    self.image_path = image_path
-    #画像をClickした後の待ち時間(秒)
-    self.interval_time = interval_time
-    #画像認識のあいまい設定
-    self.recognition_confidence = recognition_confidence
-    #GrayScale設定(高速化)
-    self.recognition_grayscale = recognition_grayscale
-
-def Image_MouseAround(file_path,flag_overwrite=False,wide=0,height=0,dupplicate_format="{}({:0=3}){}"):
-    x,y = pyautogui.position()
-    
-    Image_PointAround(file_path,flag_overwrite,x,y,wide,height,dupplicate_format)
-
-def Image_PointAround(file_path,flag_overwrite=False,x=0,y=0,wide=0,height=0,dupplicate_format="{}({:0=3}){}"):
-    if flag_overwrite == False:
-        path = Rename.duplicate_rename(file_path,dupplicate_format)
-    else:
-        path=file_path
-    if wide==0 or height==0 :
-        PIL.ImageGrab.grab().save(path)
-    else:
-        bbox_w=wide
-        bbox_h=height
-        bbox_x=max(0,x - bbox_w/2)
-        bbox_y=max(0,y - bbox_h/2)
-        PIL.ImageGrab.grab(bbox=(bbox_x,  bbox_y,bbox_x + bbox_w , bbox_y + bbox_h)).save(path)

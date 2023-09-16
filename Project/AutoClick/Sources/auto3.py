@@ -80,9 +80,9 @@ y_offset_dictionary = {'../Images/image_ikusei\Click9254.png': "-60", '../Images
 # Imageを探してMouse pointerを移動させる
 
 
-def Image_SearchAndMove(image_path, x_offset_dictionary, y_offset_dictionary, recognition_grayscale, recognition_confidence):
+def Image_SearchAndMove(image_path, x_offset_dictionary, y_offset_dictionary, recognition_gray_scale, recognition_confidence):
     try:
-        x, y = pyautogui.locateCenterOnScreen(image_path, grayscale=recognition_grayscale, confidence=recognition_confidence)
+        x, y = pyautogui.locateCenterOnScreen(image_path, grayscale=recognition_gray_scale, confidence=recognition_confidence)
         # x,y=pyautogui.locateCenterOnScreen(image_path)
         if image_path in x_offset_dictionary:
             x_offset = int(x_offset_dictionary[image_path])

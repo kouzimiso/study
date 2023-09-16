@@ -1,0 +1,282 @@
+replace_dictionaryはkeyが検索する文字列、valueが置換する文字列です。
+StatusDisplay(message)はmessageを標準出力します。
+GetDimension(array)は配列の次元数を返します。
+Array_GetStart(array, dimension)はdimensionで指定した次元の配列の要素のインデックスが何番から始まるのかを返します。
+Array_GetEnd(array, dimension)はdimensionで指定した次元の配列の要素のインデックスが何番で終わるのかを返します。
+
+
+文章を先頭から読んでいってreplace_dictionaryのkeyに一致する中で最も長い物に対応するvalueの値で置換する関数Replace_ByDictionaryを最適化してpythonにしてください。
+また、テスト関数としてMain関数を付けてください。
+
+
+
+Function ReplaceArray_ByDictionary(ByVal text As Variant, replace_dictionary As Object, Optional ByRef replace_dictionary_update_memory As Boolean = False, Optional option_space_delete As Long = 0, Optional ByVal option_char_size As String = "", Optional ByVal option_compare_setting As Long = 0, Optional ByVal option_target_number As Long = 0, Optional ByVal option_target_number_delete As Long = 0, Optional ByVal option_capital_letters As Long = 0, Optional ByVal option_numeric_pass As Long = 0, Optional ByVal option_exact_match_numeric = 0, Optional option_english_padding As Boolean = False, Optional id_row_start = -1, Optional id_column = -1, Optional item_value_row_start = -1, Optional item_value_column = -1) As Variant
+    Dim loop0 As Long
+    Dim loop0_start As Long
+    Dim loop0_end As Long
+            
+    Dim loop1 As Long
+    Dim loop1_start As Long
+    Dim loop1_end As Long
+    Dim value As Variant
+    Dim result_variant As Variant
+    Dim text_dimension As Long
+        
+    text_dimension = GetDimension(text)
+    
+    If text_dimension = 2 Then
+        loop0_start = Array_GetStart(text, 1)
+        loop0_end = Array_GetEnd(text, 1)
+        loop1_start = Array_GetStart(text, 2)
+        loop1_end = Array_GetEnd(text, 2)
+        For loop0 = loop0_start To loop0_end
+            For loop1 = loop1_start To loop1_end
+                value = text(loop0, loop1)
+                result_variant = Replace_ByDictionary(value, replace_dictionary, replace_dictionary_update_memory, option_space_delete, option_char_size, option_compare_setting, option_target_number, option_numeric_pass, option_exact_match_numeric, option_english_padding)
+                result_variant = CVar(OneWordConvert(CStr(result_variant), option_space_delete, option_char_size, option_target_number, option_target_number_delete, option_capital_letters))
+                text(loop0, loop1) = result_variant
+                Call StatusDisplay("ReplaceArray_ByDictionary(Row:" & loop0 & "/" & loop0_end & " Column:" & loop1 & "/" & loop1_end & " " & value & "→" & result_variant & ")")
+            Next
+        Next
+        ReplaceArray_ByDictionary = text
+    ElseIf text_dimension = 1 Then
+    
+        loop0_start = Array_GetStart(text, 1)
+        loop0_end = Array_GetEnd(text, 1)
+        For loop0 = loop0_start To loop0_end
+                value = text(loop0)
+                result_variant = Replace_ByDictionary(value, replace_dictionary, replace_dictionary_update_memory, option_space_delete, option_char_size, option_compare_setting, option_target_number, option_numeric_pass, option_exact_match_numeric, option_english_padding)
+                result_variant = CVar(OneWordConvert(CStr(result_variant), option_space_delete, option_char_size, option_target_number, option_target_number_delete, option_capital_letters))
+                text(loop0) = result_variant
+                Call StatusDisplay("ReplaceArray_ByDictionary(Row:" & loop0 & "/" & loop0_end & " " & value & "→" & result_variant & ")")
+
+        Next
+        ReplaceArray_ByDictionary = text
+    Else
+        ReplaceArray_ByDictionary = text
+    End If
+
+End Function
+
+Function Replace_ByDictionary(ByVal text As Variant, replace_dictionary As Object, Optional replace_dictionary_update_memory As Boolean = False, Optional option_space_delete As Long = 0, Optional ByVal option_char_size As String = 0, Optional ByVal option_compare_setting As Long = 0, Optional ByVal option_target_number As Long = 0, Optional ByVal option_numeric_pass As Long = 0, Optional ByVal option_exact_match_numeric = 0, Optional option_english_padding As Boolean = False, Optional id_row_start = -1, Optional id_column = -1, Optional item_value_row_start = -1, Optional item_value_column = -1) As Variant
+    Dim loop0 As Long
+    Dim loop0_start As Long
+    Dim loop0_end As Long
+    Dim loop0_length As Long
+            
+    Dim loop1 As Long
+    Dim loop1_start As Long
+    Dim loop1_end As Long
+    Dim loop1_length As Long
+    
+    Dim loop2 As Long
+    Dim loop2_start As Long
+    Dim loop2_end As Long
+    Dim loop2_length As Long
+
+    Dim initial_memory As Boolean
+    Dim dimension_number As Long
+    
+    Dim continue_flag As Boolean
+    continue_flag = True
+            
+    Dim judge_flag As Boolean
+    Dim english_flag As Boolean
+    Dim english_memory_flag As Boolean
+                 
+    Dim result_array As Variant
+    Dim replace_tokens() As TokenStructure
+    Dim search_word As Variant
+    Dim text_convert As Variant
+    Dim key_value As Variant
+    Dim value As Variant
+    Dim text_dimension As Long
+    
+    Dim search_word_length As Long
+    
+    Dim text_length As Long
+    Dim insert_end As Long
+    Dim text_insert_end As Long
+    Dim result_text As String
+    If text = "" Then
+        Replace_ByDictionary = text
+    Else
+       text = ReplaceArray_ByDictionary(text, replace_dictionary, replace_dictionary_update_memory, option_space_delete, option_char_size, option_compare_setting, option_target_number, option_exact_match_numeric)
+      
+       If 0 < GetDimension(text) Then
+           Replace_ByDictionary = text
+        End If
+        
+            
+    
+        'Step:元の文字列を先に半角、全角を1度変換する。
+        'If option_char_size = "半角" Then
+        '    text_convert = StrConv(text, vbNarrow)
+        'ElseIf option_char_size = "全角" Then
+        '    text_convert = StrConv(text, vbWide)
+        'Else
+        '    text_convert = text
+        'End If
+        'Step:大文字/小文字を区別しない為に検索Wordの大文字'/小文字を揃える。
+        '小文字/大文字を区別しないで置換(2)
+        '両方を区別しないで置換(3)
+        
+        If 2 <= option_compare_setting Then
+              text_convert = LCase(text)
+        Else
+              text_convert = text
+        End If
+ 
+        If option_compare_setting = 1 Or option_compare_setting = 3 Then
+              text_convert = StrConv(text_convert, vbNarrow)
+        End If
+        
+        If replace_dictionary_update_memory = False Then
+            
+            '半角/全角を区別しないで置換(1)
+            '小文字/大文字を区別しないで置換(2)
+            '両方を区別しないで置換(3)
+            
+            initial_memory = False
+            dimension_number = -1
+            
+            'Step:半角/全角を区別しない為に検索Wordの半角に揃える。
+            If option_compare_setting = 1 Or option_compare_setting = 3 Then
+                 'If option_char_size = "半角" Then
+                     For Each key_value In replace_dictionary.keys
+                       value = replace_dictionary.Item(key_value)
+                       key_value = StrConv(key_value, vbNarrow)
+                       Set replace_dictionary = Dictionary_Add(replace_dictionary, key_value, value)
+                       Call StatusDisplay("ReplaceArray_ByDictionary vbNarrow key:" & key_value & "item:" & value)
+                    Next
+                'ElseIf option_char_size = "全角" Then
+                '    For Each value In replace_dictionary.keys
+                '       value = StrConv(value, vbWide)
+                '       key_value = replace_dictionary.Item(value)
+                '       Set replace_dictionary = Dictionary_Add(replace_dictionary, value, key_value)
+                '       Call StatusDisplay("ReplaceArray_ByDictionary vbWide key:" & key_value & "item:" & value)
+                '    Next
+                'Else
+                '     For Each value In replace_dictionary.keys
+                '      value = StrConv(value, vbNarrow)
+                '       key_value = replace_dictionary.Item(value)
+                '       Set replace_dictionary = Dictionary_Add(replace_dictionary, value, key_value)
+                '       Call StatusDisplay("ReplaceArray_ByDictionary vbNarrow key:" & key_value & "item:" & value)
+                '    Next
+                'End If
+             End If
+             
+            'Step:大文字/小文字を区別しない為に検索Wordの大文字/小文字を揃える。
+            If 2 <= option_compare_setting Then
+                initial_memory = False
+                dimension_number = -1
+                 'Do While array1d_Next_AfterInitial(replace_dictionary.keys, loop0, loop0_start, loop0_length, initial_memory, value, 1)
+                 '   value = LCase(value)
+                 '   Set replace_dictionary = Dictionary_Add(replace_dictionary, value, replace_dictionary.Items()(loop0))
+                 '   Call StatusDisplay("ReplaceArray_ByDictionary LCase→" & value)
+                 'Loop
+                  For Each key_value In replace_dictionary.keys
+                    value = replace_dictionary.Item(key_value)
+                    key_value = LCase(key_value)
+                    Set replace_dictionary = Dictionary_Add(replace_dictionary, key_value, value)
+                    Call StatusDisplay("ReplaceArray_ByDictionary LCase key:" & key_value & "item:" & value)
+                 Next
+            End If
+            replace_dictionary_update_memory = True
+        End If
+        
+        If option_exact_match_numeric = 1 Then '完全一致検索(1)/部分検索
+            search_word = text_convert
+            Replace_ByDictionary = Dictionary_Read(replace_dictionary, search_word, search_word)
+         Else
+            
+            Call SeparateToken_ByDictionary(text_convert, replace_dictionary, -1, -1, True, True, result_array)
+            loop0_start = Array_GetStart(result_array)
+            loop0_end = Array_GetEnd(result_array)
+            search_word_length = 0
+            text_length = 0
+            result_text = CStr(text)
+            If text = "" Then
+                Replace_ByDictionary = text
+                Exit Function
+            End If
+            For loop0 = loop0_start To loop0_end
+                search_word = result_array(loop0)
+                search_word_length = Len(search_word)
+                
+                If option_numeric_pass = 0 Or IsNumeric(search_word) = False Then
+                    
+                    If replace_dictionary.exists(search_word) Then
+                        
+                        value = replace_dictionary.Item(search_word)
+                        'Step:英語の後に英語の翻訳を実施した場合、空白のパディングを行う
+                        If option_english_padding = True Then
+                            If value Like "[a-zA-Z]*" Then
+                                english_flag = True
+                            Else
+                                english_flag = False
+                            End If
+                            
+                            If english_memory_flag Then
+                               If search_word Like "[!a-zA-Z]*" And english_flag Then
+                                 
+                                 value = " " & value
+                                End If
+                            End If
+                            If value Like "*[a-zA-Z]" Then
+                                english_memory_flag = True
+                            Else
+                                english_memory_flag = False
+                            End If
+                        End If
+    
+                        result_array(loop0) = value
+                        result_text = Text_Insert(result_text, CStr(value), text_length, search_word_length, text_insert_end)
+                        text_length = text_length + Len(value)
+                        
+    
+    
+                        'Step:置換文字列の短縮文字数に到達したら中断。
+                        If 0 <= option_target_number Then
+                            'text_convert = JoinEX(result_array)
+                            If Len_Binary_Custom(result_text) <= option_target_number Then
+                                continue_flag = False
+                                Exit For
+                            End If
+                        End If
+                    Else
+                        text_length = text_length + search_word_length
+
+                    End If
+                    
+                Else
+                     text_length = text_length + search_word_length
+
+                End If
+                    
+            Next
+            
+            'Replace_ByDictionary = JoinEX(result_array)
+            'Step:文字列を半角、全角に変換する。
+            If option_char_size = "半角" Then
+                result_text = StrConv(result_text, vbNarrow)
+            ElseIf option_char_size = "全角" Then
+                result_text = StrConv(result_text, vbWide)
+            End If
+            
+            'Step:Space削除
+            If option_space_delete = 1 Then
+                result_text = Replace(result_text, " ", "", , , vbBinaryCompare)
+                result_text = Replace(result_text, "　", "", , , vbBinaryCompare)
+            ElseIf option_space_delete = 2 Then
+                result_text = Replace(result_text, "　", " ", , , vbBinaryCompare)
+                Do
+                    result_text = Replace(result_text, "  ", " ", , , vbBinaryCompare)
+                Loop While InStr(result_text, "  ")
+                result_text = Trim(result_text)
+            End If
+            
+            Replace_ByDictionary = result_text
+        End If
+    End If
+End Function

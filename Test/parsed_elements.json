@@ -1,0 +1,40 @@
+解析結果:
+if(A ="test"){ 
+  result = 1+1; for(i=0;i<10;i++){ result = 1+1; } }
+[
+  {
+     "if":{
+      "type"="Unknown",
+      	"children": [  
+          {
+            "(":{
+              "type":"Opening bracket",
+              "children":[
+                {"A =":{"type":"Unknown"}},
+                {
+                  "\"":{
+                    "type":"Opening bracket",
+                    "children":[{"test":{"type":"Unknown"}}]
+                  }
+                },
+                {"\"":{"type":"Closing bracket"}}
+              ]
+            },
+            {")":{"type":"Closing bracket"}},
+            {"{":{"type":"Opening bracket",
+            "children":[
+              {"result = 1+1;":{"type":"Unknown"}},
+              {"for":{
+                "type":"Unknown",
+                "children":[
+                  "(",")","{","}"//省略
+                ]
+              }}
+            ]}},
+            {"}":{"type":"Closing bracket"}}
+
+          ]
+     }
+    }
+  ]
+       

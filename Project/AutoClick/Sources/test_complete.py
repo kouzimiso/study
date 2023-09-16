@@ -3,7 +3,6 @@
 import sys
 import os
 import datetime
-import pyautogui
 import cv2
 import json
 #import clr
@@ -16,6 +15,7 @@ import difflib
 import logging
 import xml.dom.minidom
 import os
+
 sys.path.append("./Common")
 sys.path.append("./Models")
 sys.path.append("./ViewModels")
@@ -128,7 +128,7 @@ class Test(unittest.TestCase):
     def test_image_delete_duplicate(self):
         function_name=sys._getframe().f_code.co_name
         Log.Log_MessageAdd(message_list,"["+function_name+"]")
-        ImageDelete.Image_DeleteDuplicate("../Images/Test")#準備必要問題:Folder
+        ImageControl.DeleteDuplicateImage("../Images/Test")#準備必要問題:Folder
 
     def test_OCR(self):
         function_name=sys._getframe().f_code.co_name
@@ -398,7 +398,7 @@ class Test(unittest.TestCase):
                         "image_path":'./image00/*.png' ,
                         "interval_time":"10" ,
                         "recognition_confidence":"0.99" ,
-                        "recognition_grayscale":"True"
+                        "recognition_gray_scale":"True"
                     },
                     "search_sequence2":
                     {
@@ -411,7 +411,7 @@ class Test(unittest.TestCase):
                         "image_path":'./image00/*.png' ,
                         "interval_time":"10" ,
                         "recognition_confidence":"0.99" ,
-                        "recognition_grayscale":"True"
+                        "recognition_gray_scale":"True"
                     }
 
                 }

@@ -14,8 +14,8 @@
 				"image_path" : "../Images/mementomori/Click00*.png",
 				"interval_time" : 1.8,
 				"recognition_confidence" : 0.95,
-				"recognition_grayscale" : true,
-				"log_print_standardoutput": false,"log_function":true
+				"recognition_gray_scale" : true,
+				"log_print_standard_output": false,"log_function":true
 			}
 		},
 		{
@@ -31,8 +31,8 @@
 				"image_path" : "../Images/mementomori/Click05*.png",
 				"interval_time" : 5,
 				"recognition_confidence" : 0.95,
-				"recognition_grayscale" : true,
-				"log_print_standardoutput": false,"log_function":true
+				"recognition_gray_scale" : true,
+				"log_print_standard_output": false,"log_function":true
 			}
 		},
 		{
@@ -48,8 +48,8 @@
 				"image_path" : "../Images/mementomori/Click1*.png",
 				"interval_time" : 1.8,
 				"recognition_confidence" : 0.95,
-				"recognition_grayscale" : true,
-				"log_print_standardoutput": false,"log_function":true
+				"recognition_gray_scale" : true,
+				"log_print_standard_output": false,"log_function":true
 			}
 		},
 		{
@@ -86,8 +86,8 @@
 				"image_path" : "../Images/image_end/*.png",
 				"interval_time" : 1.8,
 				"recognition_confidence" : 0.95,
-				"recognition_grayscale" : true,
-				"log_print_standardoutput": false,"log_function":true
+				"recognition_gray_scale" : true,
+				"log_print_standard_output": false,"log_function":true
 			}
 		}
 	]

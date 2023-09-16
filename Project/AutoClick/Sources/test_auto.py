@@ -26,7 +26,7 @@ import Auto
 import Weekday
 import XML_Control
 import xml.dom.minidom
-import ImageDelete
+
 import ImageControl
 import JSON_Control
 import FileControl
@@ -90,10 +90,10 @@ class Test(unittest.TestCase):
             "image_path" : "../Images/test/*.png",
             "interval_time" : 1,
             "recognition_confidence" : 0.1,
-            "recognition_grayscale" : True,
+            "recognition_gray_scale" : True,
             "judge_default_result":True,
             "log_file_path_list":["../Log/log_test_all.log","../Log/log_test1-1.log"],
-            "log_print_standardoutput" : True,
+            "log_print_standard_output" : True,
             "log_function" : True,
             "log_arguments" : False,
             "step_check_mode" : True
@@ -148,7 +148,7 @@ class Test(unittest.TestCase):
                             "test2-1" ,
                             "test2-2"],
                         "log_file_path_list":["../Log/log_test_all.log","../Log/log_test2.log"],
-                        "log_print_standardoutput" : True,
+                        "log_print_standard_output" : True,
                         "step_check_mode" : True
 
                     }
@@ -158,24 +158,24 @@ class Test(unittest.TestCase):
             [
                 {
                     "name":"DayCondition1",
-                    "type":"Check_Day",
+                    "type":"CheckDay",
                     "comment":"比較する時刻に矛盾が無いことを確認する関数。Day1,Day2には特定の日付か曜日を含む時間を入れられる。day2には曜日は入れられない。day1かday3片方が曜日の場合は一週間回って必ず成立するのでTrue。",
                     "settings" : {
                         "day1" :"月曜日10:20",
                         "day2" :"Now",
                         "day3" :"水曜日22:30",
-                        "log_print_standardoutput" : True,
+                        "log_print_standard_output" : True,
                         "log_file_path_list":"../Log/log_test_all.log"
 
                     }
                 },
                 {
                     "name":"DayCondition2",
-                    "type":"Check_Day",
+                    "type":"CheckDay",
                     "comment":"比較する時刻に矛盾が無いことを確認する関数。Day1,Day2には特定の日付か曜日を含む時間を入れられる。day2には曜日は入れられない。day1かday3片方が曜日の場合は一週間回って必ず成立するのでTrue。",
 
                     "settings" : {
-                        "log_print_standardoutput" : True,
+                        "log_print_standard_output" : True,
                         "log_file_path_list":"../Log/log_test_all.log",
                         "day1" :"水曜日22:30",
                         "day2" :"Now",
@@ -184,9 +184,9 @@ class Test(unittest.TestCase):
                 },
                 {
                     "name":"DayCondition3",
-                    "type":"Check_Day",
+                    "type":"CheckDay",
                     "settings" : {
-                        "log_print_standardoutput" : True,
+                        "log_print_standard_output" : True,
                         "day1" :"木曜10:20",
                         "day2" :"2023/3/9 10:30:10",
                         "day3" :"Friday 22:30",
@@ -195,9 +195,9 @@ class Test(unittest.TestCase):
                 },
 {
                     "name":"DayCondition4",
-                    "type":"Check_Day",
+                    "type":"CheckDay",
                     "settings" : {
-                        "log_print_standardoutput" : True,
+                        "log_print_standard_output" : True,
                         "day1" :"10:20",
                         "day2" :"2023/3/9 10:30:10",
                         "day3" :"10:40:23",
@@ -209,7 +209,7 @@ class Test(unittest.TestCase):
                     "type":"Judge",
                     "result_name":"Condition_Execute",
                     "settings" : {
-                        "log_print_standardoutput" : True,
+                        "log_print_standard_output" : True,
                         "log_file_path_list":"../Log/log_test_all.log",
                         "condition_list":["Result_DayCondition1=True,Result_DayCondition2=True,Result_DayCondition3=True","Result_DayCondition3=True"]
                     }
@@ -217,14 +217,14 @@ class Test(unittest.TestCase):
                 {
                     "comment": "比較する時刻に矛盾が無いことを確認する関数。Day1,Day2には特定の日付か曜日を含む時間を入れられる。day2には曜日は入れられない。day1かday3片方が曜日の場合は一週間回って必ず成立するのでTrue。",
                     "name": "TimeCheck_Houchi1",
-                    "type": "Check_Day",
+                    "type": "CheckDay",
                     "result_name":"Houchi_Time_Check1",
                     "settings": {
                         "day1": "土曜日0:00",
                         "day2": "Now",
                         "day3": "日曜日24:00",
                         "log_file_path_list": "../Log/log_houchi.json",
-                        "log_print_standardoutput": True,
+                        "log_print_standard_output": True,
                         "step_check_mode" : True
 
                 }
@@ -245,7 +245,7 @@ class Test(unittest.TestCase):
                 {
                     "name":"test2-1-3",
                     "type":"Recognition",
-                    "comment":"Check_Dayをconditionに入れたバージョン。符号が<=で良いかどうか微妙。",
+                    "comment":"CheckDayをconditionに入れたバージョン。符号が<=で良いかどうか微妙。",
                     "condition_list" : ["水曜日10:20<=Now<=月曜日22:30,木曜日10:20<=Now<=金曜日22:30","Result_test2-1-1=True"],
                     "settings" : setting_dictionary
                 }
@@ -267,7 +267,6 @@ class Test(unittest.TestCase):
 
         }
         JSON_Control.WriteDictionary("RunPlanLists_Test.json" , plan_lists_dictionary)
-        JSON_Control.WriteDictionary("PlanLists_CheckTest.json" , check_planlist)
         task = Task.Task("RunPlanLists_Test.json")
         print("task.Run( test1, , plan_lists_dictionary)")
         task.Run( "test1","" , plan_lists_dictionary)

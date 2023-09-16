@@ -4,105 +4,95 @@
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
   <title>IE6 Test</title>
   <script type="text/javascript">
-    function getKeysIE(data) {
-      var keys = [];
-      if (isArray(data)) {
-        for (var i = 0; i < data.length; i++) {
-          var objKeys = getObjectKeys(data[i]);
-          keys = keys.concat(objKeys);
+      function getKeysIE(data) {
+        var keys = [];
+        if (isArray(data)) {
+          for (var i = 0; i < data.length; i++) {
+            var objKeys = getObjectKeys(data[i]);
+            keys = keys.concat(objKeys);
+          }
+        } else if (typeof data === "object" && data !== null) {
+          keys = getObjectKeys(data);
         }
-      } else if (typeof data === "object" && data !== null) {
-        keys = getObjectKeys(data);
+        keys = getUniqueArray(keys);
+        return keys;
       }
-      keys = getUniqueArray(keys);
-      return keys;
-    }
-
-    function isArray(obj) {
-      return Object.prototype.toString.call(obj) === "[object Array]";
-    }
-
-    function getObjectKeys(obj) {
-      var keys = [];
-      for (var key in obj) {
-        if (obj.hasOwnProperty(key)) {
-          keys.push(key);
+      function isArray(obj) {
+        return Object.prototype.toString.call(obj) === "[object Array]";
+      }
+      function getObjectKeys(obj) {
+        var keys = [];
+        for (var key in obj) {
+          if (obj.hasOwnProperty(key)) {
+            keys.push(key);
+          }
         }
+        return keys;
       }
-      return keys;
-    }
 
-    function getUniqueArray(arr) {
-      var uniqueArr = [];
-      for (var i = 0; i < arr.length; i++) {
-        if (uniqueArr.indexOf(arr[i]) === -1) {
-          uniqueArr.push(arr[i]);
+      function getUniqueArray(arr) {
+        var uniqueArr = [];
+        for (var i = 0; i < arr.length; i++) {
+          var isDuplicate = false;
+          for (var j = 0; j < uniqueArr.length; j++) {
+            if (arr[i] === uniqueArr[j]) {
+              isDuplicate = true;
+              break;
+            }
+          }
+          if (!isDuplicate) {
+            uniqueArr.push(arr[i]);
+          }
         }
+        return uniqueArr;
       }
-      return uniqueArr;
-    }
 
-    function testGetKeysIE() {
+      function testGetKeysIE() {
       var data = [
         { name: "John", age: 30 },
         { name: "Jane", age: 25 },
         { name: "Bob", age: 40 }
       ];
-      var keys = getKeysIE(data);
-      var resultElement = document.getElementById("testResult");
-      resultElement.innerHTML = "<p>Keys: " + keys.join(", ") + "</p>";
-    }
+        var keys = getKeysIE(data);
+        var resultElement = document.getElementById("testResult");
+        resultElement.innerHTML = "<p>Keys: " + keys.join(", ") + "</p>";
+      }
+      function testFunctions() {
+        testGetKeysIE();
+        var element = "display";
+        var flag_search_id = true;
+        var dictionary_data_list = [{"key_test1":"test1-1","key_test2":"test1-2"},{"key_test2":"test2-2"}];
+        displayTable(dictionary_data_list, element,flag_search_id);
+        // Add tests for other functions here
+      }
+      // JSONLデータをテーブル形式で表示する
+      function displayTable(dictionary_data_list, element, flag_search_id) {
+        var table = createTable(dictionary_data_list);
+        var display_element = flag_search_id ? document.getElementById(element) : document.getElementsByTagName(element)[0];
+        display_element.innerHTML = "";
+        display_element.appendChild(table);
+      }
 
-    function testFunctions() {
-      testGetKeysIE();
-      var element="display";
-      var flag_search_id = true;
-      var dictionary_data_list=[{"key_test1":"test1-1","key_test2":"test1-2"},{"key_test2":"test2-2"}];
-      displayTable(dictionary_data_list, element,flag_search_id) 
-      // Add tests for other functions here
-    }
-            // JSONLデータをテーブル形式で表示する
-            function displayTable(dictionary_data_list, element,flag_search_id) {
-          var table = createTable(dictionary_data_list);
-          var display_element = flag_search_id ? document.getElementById(element) : document.getElementsByTagName(element)[0];
-          display_element.innerHTML = "";
-          display_element.appendChild(table);
+      // 辞書形式のリストからテーブルを作成する
+      function createTable(data) {
+        var table = document.createElement("table");
+        var tbody = document.createElement("tbody");
+        var keys = getKeysIE(data);
+        keys.sort();
+        var headerRow = document.createElement("tr");
+        for (var i = 0; i < keys.length; i++) {
+          var headerCell = document.createElement("th");
+          headerCell.innerText = keys[i];
+          headerRow.appendChild(headerCell);
         }
-
-        // 辞書形式のリストからテーブルを作成する
-        function createTable(data) {
-          var table = document.createElement("table");
-          var keys = getKeysIE(data);
-          keys.sort();
-          var headerRow = document.createElement("tr");
-          for (var i = 0; i < keys.length; i++) {
-            var headerCell = document.createElement("th");
-            headerCell.innerText = keys[i];
-            headerRow.appendChild(headerCell);
-          }
-          table.appendChild(headerRow);
-
-          if (isArray(data)) {
-            for (var j = 0; j < data.length; j++) {
-              var dataRow = document.createElement("tr");
-              for (var k = 0; k < keys.length; k++) {
-                var dataCell = document.createElement("td");
-                var value = data[j][keys[k]];
-                if (typeof value === "object" && value !== null) {
-                  var subTable = createTable(value);
-                  dataCell.appendChild(subTable);
-                } else {
-                  dataCell.innerText = value;
-                }
-                dataRow.appendChild(dataCell);
-              }
-              table.appendChild(dataRow);
-            }
-          } else if (typeof data === "object" && data !== null) {
+        tbody.appendChild(headerRow);
+        table.appendChild(tbody);
+        if (isArray(data)) {
+          for (var j = 0; j < data.length; j++) {
             var dataRow = document.createElement("tr");
             for (var k = 0; k < keys.length; k++) {
               var dataCell = document.createElement("td");
-              var value = data[keys[k]];
+              var value = data[j][keys[k]];
               if (typeof value === "object" && value !== null) {
                 var subTable = createTable(value);
                 dataCell.appendChild(subTable);
@@ -111,34 +101,50 @@
               }
               dataRow.appendChild(dataCell);
             }
-            table.appendChild(dataRow);
-          } else {
-            var dataRow = document.createElement("tr");
+            tbody.appendChild(dataRow);
+            table.appendChild(tbody);
+          }
+        } else if (typeof data === "object" && data !== null) {
+          var dataRow = document.createElement("tr");
+          for (var k = 0; k < keys.length; k++) {
             var dataCell = document.createElement("td");
-            dataCell.colSpan = keys.length;
-            dataCell.innerText = data;
-            dataRow.appendChild(dataCell);
-            table.appendChild(dataRow);
-          }
-
-          return table;
-        }
-        // 辞書形式のリストからキーを取得する
-        function getKeys(data) {
-          var keys = [];
-          if (Array.isArray(data)) {
-            for (var i = 0; i < data.length; i++) {
-              var objKeys = Object.keys(data[i]);
-              keys = keys.concat(objKeys);
+            var value = data[keys[k]];
+            if (typeof value === "object" && value !== null) {
+              var subTable = createTable(value);
+              dataCell.appendChild(subTable);
+            } else {
+              dataCell.innerText = value;
             }
-          } else if (typeof data === "object" && data !== null) {
-            keys = Object.keys(data);
+            dataRow.appendChild(dataCell);
           }
-          keys = Array.from(new Set(keys));
-          return keys;
+          tbody.appendChild(dataRow);
+          table.appendChild(tbody);
+        } else {
+          var dataRow = document.createElement("tr");
+          var dataCell = document.createElement("td");
+          dataCell.colSpan = keys.length;
+          dataCell.innerText = data;
+          dataRow.appendChild(dataCell);
+          tbody.appendChild(dataRow);
+          table.appendChild(tbody);
         }
-     
-  </script>
+        return table;
+      }
+      // 辞書形式のリストからキーを取得する
+      function getKeys(data) {
+        var keys = [];
+        if (Array.isArray(data)) {
+          for (var i = 0; i < data.length; i++) {
+            var objKeys = Object.keys(data[i]);
+            keys = keys.concat(objKeys);
+          }
+        } else if (typeof data === "object" && data !== null) {
+          keys = Object.keys(data);
+        }
+        keys = Array.from(new Set(keys));
+        return keys;
+      }
+    </script>
 </head>
 <body>
   <h1>IE6 Test</h1>

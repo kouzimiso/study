@@ -25,7 +25,6 @@ import OCR
 import Auto
 import Weekday
 import xml.dom.minidom
-import ImageDelete
 import ImageControl
 import FileControl
 import Scheduler
@@ -136,14 +135,14 @@ class Test(unittest.TestCase):
         actual= result
         self.assertEqual(expected,actual)
         setting={
-            "log_print_standardoutput" : True,
+            "log_print_standard_output" : True,
             "log_file_path_list":"../Log/log_test_all.log",
             "log_function":True,
             "day1" :"木曜10:20",
             "day2" :"2023/3/9 10:30:10",
             "day3" :"Friday 22:30"
         }
-        result = week_day.Check_Day(setting)
+        result = week_day.CheckDay(setting)
         expected = True
         actual= result["result"]
         self.assertEqual(expected,actual)
@@ -154,37 +153,37 @@ class Test(unittest.TestCase):
             [
                 {
                     "name": "TimeCheck_Houchi2",
-                    "type": "Check_Day",
+                    "type": "CheckDay",
                     "result_name":"Houchi_Time_Check2",
                     "settings": {
                         "day1": "月曜日0:00",
                         "day2": "Now",
                         "day3": "月曜日24:00",
-                        "log_print_standardoutput": True,"log_function":True,"log_file_path_list": "../Log/log_unittest.json",
+                        "log_print_standard_output": True,"log_function":True,"log_file_path_list": "../Log/log_unittest.json",
                         "#step_check_mode" : True
                     }
                 },
                 {
                     "name": "TimeCheck_Houchi3",
-                    "type": "Check_Day",
+                    "type": "CheckDay",
                     "result_name":"Houchi_Time_Check3",
                     "settings": {
                         "day1": "火曜日0:00",
                         "day2": "Now",
                         "day3": "木曜日24:00",
-                        "log_print_standardoutput": False,"log_function":True,"log_file_path_list": "../Log/log_unittest.json",
+                        "log_print_standard_output": False,"log_function":True,"log_file_path_list": "../Log/log_unittest.json",
                         "#step_check_mode" : True,
                     }
                 },
                 {
                     "name": "TimeCheck_Houchi4",
-                    "type": "Check_Day",
+                    "type": "CheckDay",
                     "result_name":"Houchi_Time_Check4",
                     "settings": {
                         "day1": "金曜日0:00",
                         "day2": "Now",
                         "day3": "日曜日24:00",
-                        "log_print_standardoutput": True,"log_function":True,"log_file_path_list": "../Log/log_unittest.json",
+                        "log_print_standard_output": True,"log_function":True,"log_file_path_list": "../Log/log_unittest.json",
                         "#step_check_mode" : True
                     }
                 },
@@ -196,7 +195,7 @@ class Test(unittest.TestCase):
                         "condition_list": [
                             "Houchi_Time_Check1=True,Houchi_Time_Check2=True,Houchi_Time_Check3.result=True,Houchi_Time_Check4.result=True"
                         ],
-                        "log_print_standardoutput": True,"log_function":True,"log_file_path_list": "../Log/log_unittest.json",
+                        "log_print_standard_output": True,"log_function":True,"log_file_path_list": "../Log/log_unittest.json",
                         "step_check_mode" : True,"step_check_comment":"The following statement will always be true if it is currently Monday, Tuesday through Wednesday, or Friday through Sunday. "
                     }
                 },
@@ -209,7 +208,7 @@ class Test(unittest.TestCase):
                             "Houchi_Time_Check1=True,Houchi_Time_Check2=True,Houchi_Time_Check3.result=True,Houchi_Time_Check4.result=True",
                             "Condition_Execute01 = true"
                         ],
-                        "log_print_standardoutput": True,"log_function":True,"log_file_path_list": "../Log/log_unittest.json",
+                        "log_print_standard_output": True,"log_function":True,"log_file_path_list": "../Log/log_unittest.json",
                         "step_check_mode" : True,"step_check_comment":"The results Time check and Time check Judge are True and you should get a True result."
                     }
                 },
@@ -221,7 +220,7 @@ class Test(unittest.TestCase):
                     "settings": {
                         "program_path": "./Resources/Camera.exe",
                         "file_path": "../Log/capture.png",
-                        "log_print_standardoutput": False,"log_function":True,"log_file_path_list": "../Log/log_camera.json",
+                        "log_print_standard_output": False,"log_function":True,"log_file_path_list": "../Log/log_camera.json",
                         "step_check_mode" : False,"step_check_comment":""
                     }
                 },
@@ -240,8 +239,8 @@ class Test(unittest.TestCase):
                         "image_path": "../Images/image01/*.png",
                         "interval_time": 10,
                         "recognition_confidence": 0.99,
-                        "recognition_grayscale": True,
-                        "log_print_standardoutput": True,"log_function":True,"log_file_path_list": "../Log/log_recognition.json",
+                        "recognition_gray_scale": True,
+                        "log_print_standard_output": True,"log_function":True,"log_file_path_list": "../Log/log_recognition.json",
                         "step_check_mode" : True,"step_check_comment":"NGになる予定のClick Teskです。標準出力は有効。"
                     }
                 },
@@ -259,8 +258,8 @@ class Test(unittest.TestCase):
                         "image_path": "../Images/image01/*.png",
                         "interval_time": 10,
                         "recognition_confidence": 0.99,
-                        "recognition_grayscale": True,
-                        "log_print_standardoutput": False,"log_function":True,"log_file_path_list": "../Log/log_recognition.json",
+                        "recognition_gray_scale": True,
+                        "log_print_standard_output": False,"log_function":True,"log_file_path_list": "../Log/log_recognition.json",
                         "step_check_mode" : True,"step_check_comment":"同じくNGになる予定のClick Teskです。標準出力は無効。"
                     }
                 },
@@ -271,7 +270,7 @@ class Test(unittest.TestCase):
                     "result_name":"",
                     "settings" : {
                         "file_path"  : "../Setting/RunHouchi.json",
-                        "log_function":True,"log_print_standardoutput": True,"log_file_path_list": "../Log/log_RunPlanList.json.json",
+                        "log_function":True,"log_print_standard_output": True,"log_file_path_list": "../Log/log_RunPlanList.json.json",
                         "#step_check_mode" : True,
                         "plan_lists" : [
                             "CallSetting"
@@ -295,8 +294,8 @@ class Test(unittest.TestCase):
                         "image_path": "../Images/image01/*.png",
                         "interval_time": 10,
                         "recognition_confidence": 0.99,
-                        "recognition_grayscale": True,
-                        "log_print_standardoutput": False,"log_function":True,"log_file_path_list": "../Log/log_recognition.json",
+                        "recognition_gray_scale": True,
+                        "log_print_standard_output": False,"log_function":True,"log_file_path_list": "../Log/log_recognition.json",
                         "step_check_mode" : True,"step_check_comment":"同じくNGになる予定のClick Teskです。標準出力は無効。"
                     }
                 }

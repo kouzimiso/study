@@ -136,7 +136,7 @@
 				"image_path" : "../Images/hotspot/*.png",
 				"interval_time" : 1.8,
 				"recognition_confidence" : 0.95,
-				"recognition_grayscale" : true
+				"recognition_gray_scale" : true
 			}
 		}
 	],
@@ -155,7 +155,7 @@
 				"image_path" : "../Images/image_end/*.png",
 				"interval_time" : 1.8,
 				"recognition_confidence" : 0.95,
-				"recognition_grayscale" : true
+				"recognition_gray_scale" : true
 			}
 		}
 	],
@@ -175,7 +175,7 @@
 				"image_path" : "../Images/mementomori/Click00*.png",
 				"interval_time" : 1.8,
 				"recognition_confidence" : 0.95,
-				"recognition_grayscale" : true
+				"recognition_gray_scale" : true
 			}
 		},
 		{
@@ -191,7 +191,7 @@
 				"image_path" : "../Images/mementomori/Click05*.png",
 				"interval_time" : 5,
 				"recognition_confidence" : 0.95,
-				"recognition_grayscale" : true
+				"recognition_gray_scale" : true
 			}
 		},
 		{
@@ -207,7 +207,7 @@
 				"image_path" : "../Images/mementomori/Click1*.png",
 				"interval_time" : 1.8,
 				"recognition_confidence" : 0.95,
-				"recognition_grayscale" : true
+				"recognition_gray_scale" : true
 			}
 		},
 		{
@@ -245,7 +245,7 @@
 				"image_path": "../Images/image00/*.png",
 				"interval_time": 10,
 				"recognition_confidence": 0.99,
-				"recognition_grayscale": true
+				"recognition_gray_scale": true
 			}
 		}
 	],
@@ -264,7 +264,7 @@
 				"image_path": "../Images/image02/*.png",
 				"interval_time": 10,
 				"recognition_confidence": 0.99,
-				"recognition_grayscale": true
+				"recognition_gray_scale": true
 			}
 		}
 	],
@@ -283,7 +283,7 @@
 				"image_path": "../Images/image03/*.png",
 				"interval_time": 10,
 				"recognition_confidence": 0.99,
-				"recognition_grayscale": true
+				"recognition_gray_scale": true
 			}
 		}
 	],
@@ -302,7 +302,7 @@
 				"image_path": "../Images/image04/*.png",
 				"interval_time": 10,
 				"recognition_confidence": 0.99,
-				"recognition_grayscale": true
+				"recognition_gray_scale": true
 			}
 		}
 	],
@@ -321,7 +321,7 @@
 				"image_path": "../Images/image05/*.png",
 				"interval_time": 10,
 				"recognition_confidence": 0.99,
-				"recognition_grayscale": true
+				"recognition_gray_scale": true
 			}
 		}
 	],
@@ -340,7 +340,7 @@
 				"image_path": "../Images/image06/*.png",
 				"interval_time": 10,
 				"recognition_confidence": 0.99,
-				"recognition_grayscale": true
+				"recognition_gray_scale": true
 			}
 		}
 	],
@@ -358,7 +358,7 @@
 				"image_path" : "../Images/image_waiting/*.png",
 				"interval_time" : 4,
 				"recognition_confidence" : 0.99,
-				"recognition_grayscale" : false
+				"recognition_gray_scale" : false
 			}
 		}
 	],
@@ -376,7 +376,7 @@
 				"image_path" : "../Images/image_start/Click0*.png",
 				"interval_time" : 1.8,
 				"recognition_confidence" : 0.93,
-				"recognition_grayscale" : true
+				"recognition_gray_scale" : true
 			}
 		}
 	],
@@ -394,7 +394,7 @@
 				"image_path" : "../Images/image_start/Click0*.png",
 				"interval_time" : 1.8,
 				"recognition_confidence" : 0.93,
-				"recognition_grayscale" : true
+				"recognition_gray_scale" : true
 			}
 		}
 	],
@@ -412,7 +412,7 @@
 				"image_path" : "'../Images/image/*.png",
 				"interval_time" : 0.5,
 				"recognition_confidence" : 0.93,
-				"recognition_grayscale" : true
+				"recognition_gray_scale" : true
 			}
 		}
 	],

@@ -10,7 +10,7 @@ sys.path.append("../Views")
 import Auto
 import OCR
 
-Flag_Image_Capture = False
+Flag_CaptureImage = False
 FilePath="../../Images/image_capture/Image_screen.png"
 CaptureHeight=100
 CaptureWidth=100
@@ -73,11 +73,11 @@ def move(x, y):
     print('マウスポインターは {0} へ移動しました'.format((x, y)))
 
 def click(x, y, button, pressed):
-    global Flag_Image_Capture
-    if Flag_Image_Capture == True:
+    global Flag_CaptureImage
+    if Flag_CaptureImage == True:
         Auto.Image_AroundMouse(file_path = FilePath ,wide=CaptureWidth , height=CaptureHeight)
-        Flag_Image_Capture = False
-        show_image()OCR
+        Flag_CaptureImage = False
+        show_image()
 
     #if not pressed:     # クリックを離したら
     #    mouse_listener_stop()
@@ -88,8 +88,8 @@ def scroll(x, y, dx, dy):
         'down' if dy < 0 else 'up',(x, y)))
 
 def on_pushed_capture():
-    global Flag_Image_Capture
-    Flag_Image_Capture = True
+    global Flag_CaptureImage
+    Flag_CaptureImage = True
 
 def on_pushed_ocr():
     # 画面Captureの文字認識

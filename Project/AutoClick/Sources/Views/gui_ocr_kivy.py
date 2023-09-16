@@ -159,7 +159,7 @@ def capture_end(x, y):
         global CaptureHeight
         #2pointを1pointと大きさに変換
         CaptureX, CaptureY,CaptureWidth,CaptureHeight = ImageControl.point2ToXYWH(x,y,CaptureX,CaptureY)
-        ImageControl.Image_Capture(FilePath ,True ,CaptureX,CaptureY,CaptureWidth ,CaptureHeight)
+        ImageControl.CaptureImage(FilePath ,True ,CaptureX,CaptureY,CaptureWidth ,CaptureHeight)
         print( "touch up x:"+str(CaptureX)+"y:"+str(CaptureY)+"w:"+str(CaptureWidth)+"h:"+str(CaptureHeight))
         return
         

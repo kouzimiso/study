@@ -30,6 +30,8 @@
   <div id="display"></div>
   <br>
   <script src="json2.js"></script>
+  <script src="Common.js"></script>
+  <script src="Analyze.js"></script>
   <script>
     //命名規則　Class:アッパーキャメルケース(先頭大文字)
     //命名規則　関数:ローワーキャメルケース(動詞(先頭小文字)＋目的語(先頭大文字))
@@ -61,7 +63,7 @@
         "12":"CM4",
         "13":"TM1",
         "14":"TM2"
-      },
+       },
       "analyze":{
         "WF_EVENT arrive":{
           "type":"splitTextToDictionary",
@@ -72,7 +74,7 @@
             "format_dictionary":{"EventName":"EventName","ModuleID":-1,"Position":-1,"PortID":-1,"SlotID":-1,"WaferID":-1,"ModSlot":-1},
             "default_dictionary":{"ModuleID":-1,"Position":-1,"PortID":-1,"SlotID":-1,"WaferID":-1,"ModSlot":-1},
             "ignore_list":["LOG_OUT"]
-        }
+          }
         },
         "WF_EVENT cancel":{
           "type":"splitTextToDictionary",
@@ -131,129 +133,78 @@
           }
         }
       }
-    }
-  
+    };
     // 独自定義関数----------------------------------------
-    function analyzeStingLines(string_data ,settings, browser_IE){
+    function analyzeStringLines(string_data, settings, browser_IE) {
       //List化
       var lines = string_data.split('\r\n');
       var result_list = [];
-      var wafers_data ={};
-
+      var wafers_data = {};
       for (var i = 0; i < lines.length; i++) {
-         //不要なSpaces削除
-         var line = lines[i]
-         line = browser_IE? line.replace(/^\s+|\s+$/g, ''): line.trim();
+        //不要なSpaces削除
+        var line = lines[i];
+        line = browser_IE ? line.replace(/^\s+|\s+$/g, '') : line.trim();
 
-         //解析しDictionary Data化
-         var result = analyzeStringLineBySetting(line,settings["analyze"],settings["configuration"],wafers_data);
-         if(result.hasOwnProperty("Position") && result.hasOwnProperty("Position") && result.hasOwnProperty("WaferID")){
-            key = String(result.ModuleID);
-            var  configuration_setting = settings["configuration"] 
-            addWafersData(
-              module_id = key in  configuration_setting ? configuration_setting[key]:key,
-              slot_id = result.SlotID,
-              wafer_id = result.WaferID,
-              wafers_data = wafers_data);
-            dictionary_data["WafersData"] = wafers_data;
-          }
-         //解析Dataが有ればListに加える。
-         //var data_exist = browser_IE? !isObjectEmpty(result) :Object.keys(result).length;
-         //if (data_exist) {//条件式を変数で受けると動作が遅くなった。
-         //if(isObjectExist(result,browser_IE)){//複数browserを立ち上げると遅い。
-         if (browser_IE? !isObjectEmpty(result) :Object.keys(result).length){//速度はOK。3項演算子使うのは微妙
-            result.row = i + 1;
-            temp = deepCopy(result)
-            result_list.push(temp);
-         }
-       }
-      return result_list
+        //解析しDictionary Data化
+        var result = analyzeStringLineBySettings(line, settings["analyze"], settings["configuration"], wafers_data);
+        if (result.hasOwnProperty("Position") && result.hasOwnProperty("Position") && result.hasOwnProperty("WaferID")) {
+          key = String(result.ModuleID);
+          var configuration_setting = settings["configuration"];
+          addWafersData(module_id = key in configuration_setting ? configuration_setting[key] : key, slot_id = result.SlotID, wafer_id = result.WaferID, wafers_data = wafers_data);
+          dictionary_data["WafersData"] = wafers_data;
+        }
+        //解析Dataが有ればListに加える。
+        //var data_exist = browser_IE? !isObjectEmpty(result) :Object.keys(result).length;
+        //if (data_exist) {//条件式を変数で受けると動作が遅くなった。
+        //if(isObjectExist(result,browser_IE)){//複数browserを立ち上げると遅い。
+        if (browser_IE ? !isObjectEmpty(result) : Object.keys(result).length) {
+          //速度はOK。3項演算子使うのは微妙
+          result.row = i + 1;
+          temp = deepCopy(result);
+          result_list.push(temp);
+        }
+      }
+      return result_list;
     }
-    function addWafersData(module_id,slot_id,wafer_id,wafers_data){
+    function addWafersData(module_id, slot_id, wafer_id, wafers_data) {
       // 同じwafer_idがある場合は前のSlotNoとwafer_idのペアを削除
       for (var temp_module_id in wafers_data) {
         for (var temp_slot_id in wafers_data[temp_module_id]) {
-            if (wafers_data[temp_module_id][temp_slot_id] === wafer_id) {
-                delete wafers_data[temp_module_id][temp_slot_id];
-                break;
-            }
+          if (wafers_data[temp_module_id][temp_slot_id] === wafer_id) {
+            delete wafers_data[temp_module_id][temp_slot_id];
+            break;
+          }
         }
       }
-      if (!wafers_data[module_id]) { wafers_data[module_id] = {};}
-      wafers_data[module_id][slot_id]= wafer_id;
+      if (!wafers_data[module_id]) {
+        wafers_data[module_id] = {};
+      }
+      wafers_data[module_id][slot_id] = wafer_id;
     }
-
-    function clearWafersData(module_id,slot_id,wafers_data){
+    function clearWafersData(module_id, slot_id, wafers_data) {
       if (wafers_data.hasOwnProperty(module_id) && wafers_data[module_id].hasOwnProperty(slot_id)) {
         delete wafers_data[module_id][slot_id];
       }
     }
-    function analyzeStringLineBySetting(string_data , analyze_setting ) {
-      //var keywords = Object.keys(analyze_setting);
-      var keywords = [];
-      for (var keyword in analyze_setting) {
-        if (analyze_setting.hasOwnProperty(keyword)) {
-          keywords.push(keyword);
-        }
-      }
-      for (var i = 0; i < keywords.length; i++) {
-        var keyword = keywords[i];
-        var temp_setting = analyze_setting[keyword]["settings"];
-        var ignore_list = temp_setting.ignore_list;
-        if (string_data.indexOf(keyword) !== -1) {
-          if (containsAny(string_data, ignore_list)) { 
-            return {};
-          }
-          dictionary_data = analyzeStringLineBySettingHelper(string_data, keyword, temp_setting);
-          return dictionary_data;
-        }
-      }
-      return {};
 
-    }         
-
-
-
-    function analyzeStringLineBySettingHelper(string_data, keyword, analyze_setting) {
-          split_text_to_dictionary = new splitTextToDictionary(analyze_setting[keyword]);
-          split_text_to_dictionary.result_dictionary = analyze_setting.default_dictionary; 
-          split_text_to_dictionary.dictionary_format = analyze_setting.format_dictionary;
-          element = Object.keys(split_text_to_dictionary.dictionary_format);
-          dictionary_data = split_text_to_dictionary.execute(string_data," ",keyword,element);
-          if(dictionary_data["PortID"] <= 0 || dictionary_data["SlotID"] < 0) { 
-            //ポートIDが0以下またはスロットIDが0未満の場合は対象外
-            return {};
-          }
-          //日付の追加
-          dictionary_data = extractAndAddToDictionary(string_data, dictionary_data,"DateTime",extractDateTime);
-          //余った文字列の追加(廃止）
-          //未処理の前後文は処理の上で大切だが、観る人には不要なので廃止。
-          //pre_text = split_text_to_dictionary.getPreviousText();
-          //if(pre_text !==""){dictionary_data["PreText"] = pre_text;}
-          //after_text = split_text_to_dictionary.getAfterText();
-          //if(after_text !==""){dictionary_data["AfterText"] = after_text;}
-          //全文の追加
-          dictionary_data["AllText"]=string_data;
-          return dictionary_data;
-    }
     // Process管理関数----------------------------------------
     function readSettingForMultiBrowsers() {
-      if (getBrowserType() == "Internet Explorer"){
+      if (getBrowserType() == "Internet Explorer") {
         readSettingIE();
       } else {
         readSetting();
       }
     }
-    function readSetting(){
+    function readSetting() {
       var setting_input = document.getElementById('SettingInput');
       var setting = setting_input.files[0];
       var reader = new FileReader();
-      reader.onload = function(event) {
+      reader.onload = function (event) {
         settings = JSON.parse(event.target.result);
       };
       reader.readAsText(setting);
     }
-    function readSettingIE(){
+    function readSettingIE() {
       var setting_input = document.getElementById('SettingInput');
       var setting = setting_input.value;
       var file_system = new ActiveXObject("Scripting.FileSystemObject");
@@ -262,28 +213,26 @@
       file_stream.Close();
       settings = parseJSON(setting_content);
     }
-
     function processForMultiBrowsers() {
-      if (getBrowserType() == "Internet Explorer"){
+      if (getBrowserType() == "Internet Explorer") {
         executeProcessIE();
       } else {
         executeProcess();
       }
     }
-
     function executeProcess() {
       //File読込
       var file_input = document.getElementById('FileInput');
       var file = file_input.files[0];
       var reader = new FileReader();
       //File読込Event登録
-      reader.onload = function(e) {
+      reader.onload = function (e) {
         var file_content = e.target.result;
         //FileData処理
-        var analyzed_data = analyzeStingLines(file_content,settings,false);
+        var analyzed_data = analyzeStringLines(file_content, settings, false);
 
         //JSON Data化
-        var json_result = analyzed_data.map(function(data) {
+        var json_result = analyzed_data.map(function (data) {
           return JSON.stringify(data);
         }).join('\n');
         //File保存(Download)
@@ -292,7 +241,7 @@
         var json_lines = json_result.split('\n');
         // json_lines = json_lines.slice(0, 3);
         //displayArray(json_lines,"display",true);
-        displayTable(analyzed_data,"display",true);
+        displayTable(analyzed_data, "display", true, false);
       };
       reader.readAsText(file);
     }
@@ -310,9 +259,9 @@
       var file_stream = file_system.OpenTextFile(file, 1);
       var file_content = file_stream.ReadAll();
       file_stream.Close();
-      
+
       //FileData処理
-      var analyzed_data = analyzeStingLines(file_content,settings,true);
+      var analyzed_data = analyzeStringLines(file_content, settings, true);
       //JSON Data化
       var json_result = '';
       for (var j = 0; j < analyzed_data.length; j++) {
@@ -325,13 +274,12 @@
       // ブラウザに内容を表示
       //var json_lines = json_result.split('\n');
       // json_lines = json_lines.slice(0, 3);
-      displayTable(analyzed_data,"display",true);
+      displayTable(analyzed_data, "display", true, true);
       //displayArray(json_lines, 'display', true);
     }
 
-
     function saveCSVForMultiBrowsers() {
-      if (getBrowserType() == "Internet Explorer"){
+      if (getBrowserType() == "Internet Explorer") {
         saveCSVIE();
       } else {
         saveCSV();
@@ -356,7 +304,9 @@
       var table = document.querySelector("table");
       var dictionary = convertTableToDictionary(table);
       var csv = convertDictionaryToCSV(dictionary);
-      var blob = new Blob([csv], { type: "text/csv" });
+      var blob = new Blob([csv], {
+        type: "text/csv"
+      });
       var link = document.createElement("a");
       link.href = window.URL.createObjectURL(blob);
       link.download = "output.csv";
@@ -365,7 +315,10 @@
     function convertTableToDictionary(table) {
       var keys = [];
       var data = [];
-      var headerRow = table.getElementsByTagName("tr")[0];
+      var tbody = table.getElementsByTagName("tbody")[0];
+      if (!tbody) tbody = table;
+
+      var headerRow = tbody.getElementsByTagName("tr")[0];
       var headerCells = headerRow.getElementsByTagName("th");
       for (var i = 0; i < headerCells.length; i++) {
         keys.push(headerCells[i].textContent);
@@ -374,9 +327,7 @@
       var rowElement = headerRow.nextElementSibling; // 最初の行以外の行を取得
       while (rowElement) {
         var row = {};
-        var cell = rowElement.rowElement.getElementsByTagName("td")[0];
-
-
+        var cell = rowElement.getElementsByTagName("td")[0];
         for (var k = 0; k < keys.length && cell; k++) {
           var value = cell.textContent;
           var key = keys[k];
@@ -396,13 +347,16 @@
           }
           cell = cell.nextElementSibling; // 次のセルを取得
         }
+
         if (Object.keys(row).length > 0) {
           data.push(row);
         }
         rowElement = rowElement.nextElementSibling; // 次の行を取得
       }
+
       return data;
     }
+
 
     // 辞書形式のリストをCSV形式に変換する
     function convertDictionaryToCSV(dictionary_data_list) {
@@ -423,114 +377,140 @@
       }
       return csv;
     }
-
-
     function saveJSONLine() {
       var table = document.querySelector("table");
       var dictionary = convertTableToDictionary(table);
       var json_data = dictionary.map(JSON.stringify).join("\n");
 
       // ファイルに保存
-      var blob = new Blob([json_data], { type: "application/json" });
+      var blob = new Blob([json_data], {
+        type: "application/json"
+      });
       var link = document.createElement("a");
       link.href = URL.createObjectURL(blob);
       link.download = "output.jsonl";
       link.click();
     }
-        // JSONLデータをテーブル形式で表示する
-        function displayTable(dictionary_data_list, element,flag_search_id) {
-          var table = createTable(dictionary_data_list);
-          var display_element = flag_search_id ? document.getElementById(element) : document.getElementsByTagName(element)[0];
-          display_element.innerHTML = "";
-          display_element.appendChild(table);
-        }
+    // JSONLデータをテーブル形式で表示する
+    function displayTable(dictionary_data_list, element, flag_search_id, browser_IE) {
+      var table = createTable(dictionary_data_list, browser_IE);
+      //var table = createTable(dictionary_data_list, true);
+      var display_element = flag_search_id ? document.getElementById(element) : document.getElementsByTagName(element)[0];
+      display_element.innerHTML = "";
+      display_element.appendChild(table);
+    }
 
-        // 辞書形式のリストからテーブルを作成する
-        function createTable(data) {
-          var table = document.createElement("table");
-          var keys = getKeysIE(data);
-          keys.sort();
-          var headerRow = document.createElement("tr");
-          for (var i = 0; i < keys.length; i++) {
-            var headerCell = document.createElement("th");
-            headerCell.innerText = keys[i];
-            headerRow.appendChild(headerCell);
-          }
-          table.appendChild(headerRow);
+    // 辞書形式のリストからテーブルを作成する
+    function createTable(data, browser_IE) {
+      var table = document.createElement("table");
+      var keys = getKeysIE(data);
+      keys.sort();
+      var headerRow = document.createElement("tr");
+      
+      for (var i = 0; i < keys.length; i++) {
+        var headerCell = document.createElement("th");
+        headerCell.innerText = keys[i];
+        headerRow.appendChild(headerCell);
+      }
 
-          if (isArray(data)) {
-            for (var j = 0; j < data.length; j++) {
-              var dataRow = document.createElement("tr");
-              for (var k = 0; k < keys.length; k++) {
-                var dataCell = document.createElement("td");
-                var value = data[j][keys[k]];
-                if (typeof value === "object" && value !== null) {
-                  var subTable = createTable(value);
-                  dataCell.appendChild(subTable);
-                } else {
-                  dataCell.innerText = value;
-                }
-                dataRow.appendChild(dataCell);
-              }
-              table.appendChild(dataRow);
-            }
-          } else if (typeof data === "object" && data !== null) {
-            var dataRow = document.createElement("tr");
-            for (var k = 0; k < keys.length; k++) {
-              var dataCell = document.createElement("td");
-              var value = data[keys[k]];
-              if (typeof value === "object" && value !== null) {
-                var subTable = createTable(value);
-                dataCell.appendChild(subTable);
-              } else {
-                dataCell.innerText = value;
-              }
-              dataRow.appendChild(dataCell);
-            }
-            table.appendChild(dataRow);
+      if (browser_IE) {
+        // IEの場合はtbodyを使用する
+        var tbody = document.createElement("tbody");
+        tbody.appendChild(headerRow);
+      } else {
+        // IE以外の場合はtbodyを使用しない
+        table.appendChild(headerRow);
+      }
+
+      if (isArray(data)) {
+        for (var j = 0; j < data.length; j++) {
+          array_read_data = data[j];
+          dataRow =createRowByDictionary(array_read_data,keys);
+          if (browser_IE) {
+            // IEの場合はtbodyを使用する
+            tbody.appendChild(dataRow);
           } else {
-            var dataRow = document.createElement("tr");
-            var dataCell = document.createElement("td");
-            dataCell.colSpan = keys.length;
-            dataCell.innerText = data;
-            dataRow.appendChild(dataCell);
+            // IE以外の場合はtbodyを使用しない
             table.appendChild(dataRow);
           }
+        }
+      } else if (typeof data === "object" && data !== null) {
+        dataRow =createRowByDictionary(data,keys)
 
-          return table;
+        if (browser_IE) {
+          // IEの場合はtbodyを使用する
+          tbody.appendChild(dataRow);
+        } else {
+          // IE以外の場合はtbodyを使用しない
+          table.appendChild(dataRow);
         }
-        // 辞書形式のリストからキーを取得する
-        function getKeys(data) {
-          var keys = [];
-          if (Array.isArray(data)) {
-            for (var i = 0; i < data.length; i++) {
-              var objKeys = Object.keys(data[i]);
-              keys = keys.concat(objKeys);
-            }
-          } else if (typeof data === "object" && data !== null) {
-            keys = Object.keys(data);
-          }
-          keys = Array.from(new Set(keys));
-          return keys;
-        }
-        function getKeysIE(data) {
-          var keys = [];
-          if (isArray(data)) {
-            for (var i = 0; i < data.length; i++) {
-              var objKeys = getObjectKeys(data[i]);
-              keys = keys.concat(objKeys);
-            }
-          } else if (typeof data === "object" && data !== null) {
-            keys = getObjectKeys(data);
-          }
-          keys = getUniqueArray(keys);
-          return keys;
-        }
+      } else {
+        var dataRow = document.createElement("tr");
+        var dataCell = document.createElement("td");
+        dataCell.colSpan = keys.length;
+        dataCell.innerText = data;
+        dataRow.appendChild(dataCell);
 
+        if (browser_IE) {
+          // IEの場合はtbodyを使用する
+          tbody.appendChild(dataRow);
+        } else {
+          // IE以外の場合はtbodyを使用しない
+          table.appendChild(dataRow);
+        }
+      }
+      if (browser_IE) {
+        table.appendChild(tbody);
+      }
+      return table;
+    }
+    function createRowByDictionary(data,keys){
+      var dataRow = document.createElement("tr");
+      for (var k = 0; k < keys.length; k++) {
+        var dataCell = document.createElement("td");
+        var value = data[keys[k]];
+        if (typeof value === "object" && value !== null) {
+          var subTable = createTable(value);
+          dataCell.appendChild(subTable);
+        } else {
+          dataCell.innerText = value;
+        }
+        dataRow.appendChild(dataCell);
+      }
+    return dataRow;
+  }
+
+
+    // 辞書形式のリストからキーを取得する
+    function getKeys(data) {
+      var keys = [];
+      if (Array.isArray(data)) {
+        for (var i = 0; i < data.length; i++) {
+          var objKeys = Object.keys(data[i]);
+          keys = keys.concat(objKeys);
+        }
+      } else if (typeof data === "object" && data !== null) {
+        keys = Object.keys(data);
+      }
+      keys = Array.from(new Set(keys));
+      return keys;
+    }
+    function getKeysIE(data) {
+      var keys = [];
+      if (isArray(data)) {
+        for (var i = 0; i < data.length; i++) {
+          var objKeys = getObjectKeys(data[i]);
+          keys = keys.concat(objKeys);
+        }
+      } else if (typeof data === "object" && data !== null) {
+        keys = getObjectKeys(data);
+      }
+      keys = getUniqueArray(keys);
+      return keys;
+    }
     function isArray(obj) {
       return Object.prototype.toString.call(obj) === "[object Array]";
     }
-
     function getObjectKeys(obj) {
       var keys = [];
       for (var key in obj) {
@@ -540,11 +520,17 @@
       }
       return keys;
     }
-
     function getUniqueArray(arr) {
       var uniqueArr = [];
       for (var i = 0; i < arr.length; i++) {
-        if (uniqueArr.indexOf(arr[i]) === -1) {
+        var isDuplicate = false;
+        for (var j = 0; j < uniqueArr.length; j++) {
+          if (arr[i] === uniqueArr[j]) {
+            isDuplicate = true;
+            break;
+          }
+        }
+        if (!isDuplicate) {
           uniqueArr.push(arr[i]);
         }
       }
@@ -556,12 +542,10 @@
     function StringTokenizer(str, delimiter) {
       this.tokens = str.split(delimiter);
       this.index = 0;
-
-      this.hasMoreTokens = function() {
+      this.hasMoreTokens = function () {
         return this.index < this.tokens.length;
       };
-
-      this.nextToken = function() {
+      this.nextToken = function () {
         if (this.hasMoreTokens()) {
           return this.tokens[this.index++];
         }
@@ -569,272 +553,10 @@
       };
     }
 
-    function extractAndAddToDictionary(string_data, dictionary_data,data_name,extract_function){
-      extract_data = extract_function(string_data);
-      if(extract_data !== null){dictionary_data[data_name] = extract_data}
-      return dictionary_data;
-    }
 
-    function containsAny(string_data, substrings) {
-      for (var i = 0 ; i < substrings.length ; i++) {
-        if (string_data.indexOf(substrings[i]) !== -1) {
-          return true;
-        }
-      }
-      return false;
-    }
 
-    // 文字列を分割して辞書形式で保存するクラス
-    // クラスのインスタンス化後、executeメソッドを呼び出すことでテキストの処理が実行されます
-    // 結果は各プロパティやメソッドを通じて取得できます
-    function splitTextToDictionary(dictionary_data) {
-      this.previous_text = "";
-      this.after_text = "";
-      this.element_count = 0;
-      this.result_dictionary = dictionary_data;
-      this.dictionary_format = dictionary_data;
-      this.element_count = 0;
 
-      this.execute = function(text,delimiter,start_text,element_list) {
-        var start_index = text.indexOf(start_text);
-        if (start_index === -1) {
-          this.previous_text = text;
-          return this.result_dictionary;
-        }
 
-        this.previous_text = text.substring(0, start_index);
-
-        var end_index = start_index + start_text.length;
-        var next_delimiter_index = text.indexOf(delimiter, start_index + start_text.length);
-        this.result_dictionary[element_list[0]] = text.substring(start_index, next_delimiter_index).trim();
-        var element_index = 1;
-        end_index = next_delimiter_index + delimiter.length
-
-        while (element_index <= element_list.length && end_index < text.length) {
-          var current_element = element_list[element_index];
-          next_delimiter_index = text.indexOf(delimiter, end_index);
-
-          if (next_delimiter_index === -1) {
-            //console.log("Element not found.");
-            //break;
-            next_delimiter_index = text.length
-          }
-          
-          var value = text.substring(end_index, next_delimiter_index).trim();
-
-          if (current_element in this.dictionary_format && !isNaN(this.dictionary_format[current_element])) {
-            var numeric_value = parseFloat(value);
-            if (isNaN(numeric_value)) {
-              var numeric_value_string =extractNumbers(value);
-              var numeric_value_string_index = text.indexOf(numeric_value_string, end_index);
-              numeric_value = parseFloat(numeric_value_string);
-              if(isNaN(numeric_value)){ break;} 
-              end_index = numeric_value_string_index + numeric_value_string.length-1;
-            }else{
-              value = numeric_value;
-              end_index = next_delimiter_index + delimiter.length;
-            }
-          }else{
-            end_index = next_delimiter_index + delimiter.length;
-          }
-          this.result_dictionary[current_element] = value;
-          element_index++;
-        }
-
-        this.element_count = element_index;
-
-        if (element_index < element_list.length) {
-          this.after_text = "";
-        } else {
-          this.after_text = text.substring(end_index).trim();
-        }
-        return this.result_dictionary
-      };
-      this.setResultDictionary = function(dictionary_data) {
-        this.result_dictionary = dictionary_data;
-      }
-      this.setDictionaryFormat = function(dictionary_data) {
-        this.dictionary_format = dictionary_data;
-      }
-      this.getPreviousText = function() {
-          return this.previous_text;
-      };
-      this.getAfterText = function() {
-          return this.after_text;
-      };
-      this.getElementCount = function() {
-          return this.element_count;
-      };
-      this.getResultDictionary = function() {
-          return this.result_dictionary;
-      };
-
-  }
-
-    //汎用関数----------------------------------------
-    function extractDateTime(string_data) {
-      // 正規表現を使用して日付と時刻を抽出
-      //var regex = /\s*(\d{1,2}\/\d{1,2}\s+\d{1,2}:\s*\d{1,2})\s+(\d+)/;
-      var regex = /\s*(\d{1,2}\/\d{1,2}(?:\/\d{2,4})?)\s+(\d{1,2}:\s*\d{1,2}(?::\s*\d{1,2})?)(?:\s+(\d+))?/;
-
-      var match = regex.exec(string_data);
-
-      if (match && match.length >= 3) {
-        var date = match[1]; // 日付の部分
-        var time = match[2]; // 時刻の部分
-
-        // 秒数を取得
-        var seconds = match[3] ? match[3] : '00';
-        var datetime = date + ' ' + time +":" + seconds;
-        return datetime;
-      }
-
-      return null; // 日付と時刻が見つからない場合はnullを返す
-    }
-
-    function extractNumbers(text) {
-      // 正規表現で数字のみを抽出
-      var numbers = text.match(/\b\d+\b/g);
-      return numbers;
-    }
-    // オブジェクトが空かどうかをチェックする関数
-    function isObjectEmpty(obj) {
-      for (var key in obj) {
-         if (obj.hasOwnProperty(key)) {
-           return false;
-         }
-      }
-      return true;
-    }
-    function isObjectExist(obj,browser_IE) {
-      if(browser_IE){
-        for (var key in obj) {
-           if (obj.hasOwnProperty(key)) {
-             return true;
-           }
-        }
-       return false;
-     }else{
-       return Object.keys(obj).length != 0;
-     }
-    }
-    //文字列表示関数
-    function displayString(line, element , flag_search_id ) {
-      var display_element = flag_search_id ? document.getElementById(element) : document.getElementsByTagName(element)[0];
-      display_element.innerHTML = "<p>" + line + "</p>";
-    }
-    //文字列追記関数
-    function displayAddString(line, element , flag_search_id ) {
-      var display_element = flag_search_id ? document.getElementById(element) : document.getElementsByTagName(element)[0];
-      display_element.innerHTML += "<p>" + line + "</p>";
-    }
-    //文字列表示関数(配列の表示。配列を変更すればいいので追記の関数は用意しない。)
-    function displayArray(lines, element , flag_search_id ) {
-      var display_element = flag_search_id ? document.getElementById(element) : document.getElementsByTagName(element)[0];
-      var displayLines = lines.join('<br>');
-      display_element.innerHTML = displayLines;
-    }
-
-    // リンク追記関数
-    function displayLink(path, label_text, element, search_id ) {
-      var display_element = search_id ? document.getElementById(element) : document.getElementsByTagName(element)[0];
-      var link = document.createElement('a');
-      link.href = path;
-      link.innerText = label_text;
-      display_element.appendChild(link);
-    }
-    //ブラウザ種類判別関数
-    function getBrowserType(){
-      var browser_type ="";
-      if (navigator.appName === "Microsoft Internet Explorer" ) {
-        return browser_type = "Internet Explorer";
-      }
-      var agent = window.navigator.userAgent;
-      agent = agent.toLowerCase();
-      if (agent.indexOf("msie") != -1 || agent.indexOf("trident") != -1) {
-        browser_type = "Internet Explorer";
-      } else if (agent.indexOf("edg") != -1 || agent.indexOf("edge") != -1) {
-        browser_type = "Edge";
-      } else if (agent.indexOf("opr") != -1 || agent.indexOf("opera") != -1) {
-        browser_type = "Opera";
-      } else if (agent.indexOf("chrome") != -1) {
-        browser_type = "Chrome";
-      } else if (agent.indexOf("safari") != -1) {
-        browser_type = "Safari";
-      } else if (agent.indexOf("firefox") != -1) {
-        browser_type = "FireFox";
-      } else if (agent.indexOf("opr") != -1 || agent.indexOf("opera") != -1) {
-        browser_type = "Opera";
-      }
-      return browser_type;
-    }
-
-    function parseJSON(jsonString) {
-      if (typeof jsonString !== 'string' || jsonString === '') {
-        return null;
-      }
-
-      // JSONをパースするためにevalを使用します
-      // evalは注意が必要なので、信頼できるソースからのみ使用してください
-      try {
-        // JSON文字列をJavaScriptのオブジェクトに変換するため、
-        // 先頭と末尾に括弧を追加してevalします
-        return eval('(' + jsonString + ')');
-      } catch (error) {
-        console.error('JSONのパース中にエラーが発生しました:', error);
-        return null;
-      }
-    }
-
-    // 辞書のJSON文字列化関数
-    function convertDictionaryToJSON(obj) {
-      var json_string = '{';
-      var is_first_property = true;
-      for (var key in obj) {
-        if (obj.hasOwnProperty(key)) {
-          if (!is_first_property) {
-            json_string += ',';
-          }
-          json_string += '"' + key + '":"' + obj[key] + '"';
-          is_first_property = false;
-        }
-      }
-      json_string += '}';
-      return json_string;
-    }
-    function deepCopy(obj) {
-        if (typeof obj !== 'object' || obj === null) {
-            return obj;
-        }
-        
-        var newObj = Array.isArray(obj) ? [] : {};
-        
-        for (var key in obj) {
-            if (obj.hasOwnProperty(key)) {
-            newObj[key] = deepCopy(obj[key]);
-            }
-        }
-        
-        return newObj;
-    }
-        
-    // ファイル保存関数
-      function saveToFile(file_name, content) {
-        var downloadLink = document.createElement('a');
-        downloadLink.href = 'data:text/plain;charset=utf-8,' + encodeURIComponent(content);
-        downloadLink.download = file_name;
-        downloadLink.style.display = 'none';
-        document.body.appendChild(downloadLink);
-        downloadLink.click();
-        document.body.removeChild(downloadLink);
-      }
-    // ファイル保存関数(IE専用)
-    function saveToFileIE(file_name, content) {
-      var file_system = new ActiveXObject("Scripting.FileSystemObject");
-      var file_stream = file_system.CreateTextFile(file_name, true);
-      file_stream.Write(content);
-      file_stream.Close();
-    }
 
   </script>
 </body>

@@ -16,15 +16,15 @@ function testFunction(){
   parser =new Parser();
   test_code="  test"
   expected_result = "test";
-  parser.input = test_code;
+  parser.source = test_code;
   parser.position = 0;
 
   parser.parseSkipWhitespace();
-  result = parser.getUnprocessedInput();
+  result = parser.getUnprocessedSource();
   testDisplay("result-output","parseSkipWhitespace_"+test_code,expected_result,result);
   var test_parse_setting = {
       "parsed_result":{"type":"IfStatement"},
-      "parsing_rules":[
+      "parsing_rule_list":[
         {"type":"key","key":"if", "must_element":true},
         {"type":"key","key":"(", "must_element":false},
         {"type":"condition_expression", "must_element":true ,"end_element_list":[")"]},
@@ -32,7 +32,7 @@ function testFunction(){
         /*
         {
           "type":"parts",
-          "parsing_rules":[
+          "parsing_rule_list":[
             {"type":"key","key":"(", "must_element":false},
             {"type":"condition_expression", "must_element":true ,"end_element_list":[")"]},
             {"type":"key","key":")", "must_element":false}
@@ -46,7 +46,7 @@ function testFunction(){
       ]
 
     }
-  test_code="if(a = 2){}"
+  test_code="if(a = 2){b = y + 1}"
   expected_result = {
     "token": [
       "if",
@@ -56,13 +56,33 @@ function testFunction(){
       "}"
     ]
   };
-  parser.input = test_code;
+  parser.source = test_code;
   parser.position = 0;
 
   result = parser.parseWithParseSetting(test_parse_setting);
   expected_result = JSON.stringify(expected_result, null, 2);
   result = JSON.stringify(result, null, 2);
   testDisplay("result-output","parseWithParseSetting_"+test_code,expected_result,result);
+
+
+
+  test_code="  2001年2月10日 10:24:51今日は海へ友達とお出かけしました";
+  expected_result = {
+    "token": [
+      "if",
+      "(",
+      ")",
+      "{",
+      "}"
+    ]
+  };
+  parser.source = test_code;
+  parser.position = 0;
+
+  result = parser.parseTime();
+  expected_result = JSON.stringify(expected_result, null, 2);
+  result = JSON.stringify(result, null, 2);
+  testDisplay("result-output","parseTime_"+test_code,expected_result,result);
 
   testFunction2();
 }
@@ -143,7 +163,7 @@ function testFunction(){
       parser =new Parser();
       for (const testCase of testCases) {
         const { code, expected, test_function, arguments } = testCase;
-        parser.input = code;
+        parser.source = code;
         parser.position = 0;
         let result = parser[test_function](...arguments);
         testDisplay(

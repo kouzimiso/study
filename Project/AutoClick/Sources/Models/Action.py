@@ -6,6 +6,7 @@ sys.path.append("Common")
 sys.path.append("../Common")
 sys.path.append("../../Common")
 import Recognition
+import ImageControl
 import Weekday
 import ExecuteProgram
 
@@ -24,10 +25,12 @@ class Action:
             result_dictionary = ExecuteProgram.ExecuteProgram(setting_dictionary)
         elif (type == "Recognition"):
             recognition = Recognition.Recognition(setting_dictionary)
-            result_dictionary=recognition.Execute()        
-        elif (type == "Check_Day"):
+            result_dictionary = recognition.Execute()
+        elif (type == "Image"):
+            result_dictionary=ImageControl.Execute(setting_dictionary)
+        elif (type == "CheckDay"):
             week_day = Weekday.DayOfTheWeek(setting_dictionary = setting_dictionary)
-            result_dictionary = week_day.Check_Day(setting_dictionary)
+            result_dictionary = week_day.CheckDay(setting_dictionary)
             
         elif (type == "ShutDown"):
             shutdown()
@@ -42,7 +45,6 @@ class Action:
             }
 
         return result_dictionary
-
 
 def shutdown():
     if platform.system() == "Windows":

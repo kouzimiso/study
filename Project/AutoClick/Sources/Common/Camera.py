@@ -13,9 +13,9 @@ def capture(file_path):
     if not ret:
         return False
     file_path = Rename.duplicate_rename(file_path)
-    result = cv2.imwrite(file_path,frame)    
+    result = cv2.imwrite(file_path,frame)
     # フレームを表示する
-    #cv2.imshow('frame', frame)
+    #cv2.imshow('frame', frame)eckDay
     # ウィンドウをすべて閉じます
     #cv2.destroyAllWindows()
     cap.release()
@@ -26,21 +26,31 @@ def capture(file_path):
         return False
 
     return True
-
-def main(argument_dictionary):
-    
-    file_path = argument_dictionary.get("file_path","")
+# Defaultの辞書Dataを設定
+default_dictionary = {
+    "file_path": "./execute.png"
+}
+# 辞書設定の読込と機能実行
+def Execute(setting_dictionary):
+    #設定の読込
+    file_path = setting_dictionary.get("file_path","")
+    #機能実行 
+    result_dictionary = {}
     if(file_path != ""):
         result = capture(file_path)
     else:
         result = False
-    result_dictionary={"result" : result}
+    result_dictionary["result"] = result
+    return result_dictionary
+
+#command lineから機能を利用する。
+def main():
+    # Command lineの引数を得てから機能を実行し、標準出力を出力IFとして動作する。
+    # 単体として動作するように実行部のExecuteは辞書を入出力IFとして動作する。
+    setting_dictionary = FunctionUtility.ArgumentGet(default_dictionary)
+    result_dictionary = Execute(setting_dictionary)
     FunctionUtility.Result(result_dictionary)
 
 if __name__ == '__main__':
-    # Defaultの辞書Data
-    default_dictionary = {
-        "file_path": "./execute.png"
-    }
-    argument_dictionary = FunctionUtility.ArgumentGet(default_dictionary)
-    main(argument_dictionary)
+    main()
+

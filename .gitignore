@@ -79,3 +79,4 @@ Project/AutoClick/Sources/Common/test/Image*.png
 Project/AutoClick/Log/log.json
 Project/AutoClick/Log/log*.json
 Project/AutoClick/Images/*
+Project/AutoClick/Log/*.log

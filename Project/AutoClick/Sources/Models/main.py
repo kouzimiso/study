@@ -42,8 +42,8 @@ offset=0
 target_device =0 ##0:PC 1:android
 
 tapxy=[
-        [400 , 1540 + offset],     #c級/cancel x,y
-        [760 , 1540 + offset]      #b級/accept x,y
+        [400 , 1580 + offset],     #c級/cancel x,y
+        [760 , 1580 + offset]      #b級/accept x,y
 ]
 screenshot_file="tmp\screen_1.png"
 pre_ss_files=["tmp\pre_status0.png","tmp\pre_status1.png","tmp\pre_status2.png","tmp\pre_status3.png"]
@@ -163,7 +163,7 @@ def capture_data(screenshot_file):
 def capture_data_adb(screenshot_file):
     global device_address
     global message_list
-    #ImageControl.Image_Capture(screenshot_file)
+    #ImageControl.CaptureImage(screenshot_file)
     #画像をscreen captureする
     device_address = ADB.Get_DeviceAddress()
     #Log.Log_MessageAdd(message_list,str(screen_size))

@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Results</title>
+    <style>
+        table {
+          border-collapse: collapse;
+        }
+        th,
+        td {
+          border: 1px solid black;
+          padding: 8px;
+        }
+      </style>
+</head>
+<body>
+    <div id="testResults"></div>
+    <script src = "Analyze.js"></script>
+    <script src = "Common.js"></script>
+    <script>
+
+
+        function runTest() {
+            var stringData = "Sample text with 10/10 12:30:45 date and 42 PortID";
+            var analyzeSetting = {
+                "Sample":{
+                    "type":"splitTextToDictionary",
+                    "settings":{
+                        "format":"(EventName ModuleID Position WaferID ModSlot)",
+                        "delimiter":" ",
+                        "bracket":["(",")"],
+                        "format_dictionary":{"EventName":"EventName","ModuleID":-1,"Position":-1,"WaferID":-1,"ModSlot":-1},
+                        "default_dictionary":{"ModuleID":-1,"Position":-1,"WaferID":-1,"ModSlot":-1},
+                        "ignore_list":["LOG_OUT"]
+                    }
+                },
+                "PortID": {
+                    "type":"splitTextToDictionary",
+                    "settings": {
+                        "delimiter":" ",
+                        "ignore_list": ["ignore"],
+                        "default_dictionary": {"Sample":"Sample"},
+                        "format_dictionary": {}
+                    }
+                }
+            };
+
+            var result = analyzeStringLineBySettings(stringData, analyzeSetting);
+            var browser_IE =false;
+            if ("Internet Explorer" == getBrowserType()){
+                browser_IE = true;
+            }
+
+            displayTable(result, "testResults", true , browser_IE)
+        }
+
+
+        // Call the test function when the page loads
+        window.onload = function() {
+            runTest();
+        };
+    </script>
+</body>
+</html>

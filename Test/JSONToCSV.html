@@ -1,185 +1,239 @@
 <!DOCTYPE html>
 <html>
+
 <head>
-<title>JSONLine to CSV</title>
-<style>
-th.sortable {
-  cursor: pointer;
-}
-th.sortable:hover {
-  text-decoration: underline;
-}
-th.draggable {
-  cursor: move;
-}
-table {
-  border-collapse: collapse;
-}
-th, td {
-  border: 1px solid black;
-  padding: 8px;
-}
-</style>
+  <title>JSONLine to CSV</title>
+  <style>
+    th.sortable {
+      cursor: pointer;
+    }
+
+    th.sortable:hover {
+      text-decoration: underline;
+    }
+
+    th.draggable {
+      cursor: move;
+    }
+
+    table {
+      border-collapse: collapse;
+    }
+
+    th,
+    td {
+      border: 1px solid black;
+      padding: 8px;
+    }
+  </style>
 </head>
+<thead>
+  <tr>
+    <th>Column 1 <input type="text" oninput="filterTable(this, 0)"></th>
+    <th>Column 2 <input type="text" oninput="filterTable(this, 1)"></th>
+    <th>Column 3 <input type="text" oninput="filterTable(this, 2)"></th>
+  </tr>
+</thead>
+
 <body>
-<h1>JSONLine to CSV</h1>
-<input type="file" id="file-input" />
-<button onclick="convertJSONLineToDictionary()">Convert</button>
-<button onclick="saveCSV()">Save CSV</button>
-<button onclick="saveJSONLine()">Convert to JSON LineData</button>
-<div id="output"></div>
+  <h1>JSONLine to CSV</h1>
+  <input type="file" id="file-input" />
+  <button onclick="readJSONLineFileAndConvertDictionary()">Convert</button>
+  <button onclick="saveCSV()">Save CSV</button>
+  <button onclick="saveJSONLine()">Convert to JSON LineData</button>
+  <div id="output"></div>
 </body>
 <script>
-var dictionary_data_list = [];
-var sortedColumn = null;
-var sortOrder = 1;
+  var dictionary_data_list = [];
+  var sortedColumn = null;
+  //var sortOrder = 1;
+  var sortOrder = 'asc'; // 変更: 初期値を 'asc' に設定
+  var draggedKey = null;
 
-function convertJSONLineToDictionary() {
-  var file = document.getElementById("file-input").files[0];
-  var reader = new FileReader();
-  reader.onload = function(event) {
-    var lines = event.target.result;
-    dictionary_data_list = parseJSONLineData(lines);
-    displayTable(dictionary_data_list,"output");
-  };
-  reader.readAsText(file);
-}
+  function readJSONLineFileAndConvertDictionary() {
+    var file = document.getElementById("file-input").files[0];
+    var reader = new FileReader();
+    reader.onload = function (event) {
+      var lines = event.target.result;
+      dictionary_data_list = parseJSONLineData(lines);
+      displayTable(dictionary_data_list, "output");
+    };
+    reader.readAsText(file);
+  }
+  // テーブルをフィルタリングする
+  function filterTable(input, column) {
+    var table = document.querySelector("table");
+    var rows = table.querySelectorAll("tbody tr");
+    var filterValue = input.value.toLowerCase();
 
-
-function saveCSV() {
-  var table = document.querySelector("table");
-  var dictionary = convertTableToDictionary(table);
-  var csv = convertDictionaryToCSV(dictionary);
-  var blob = new Blob([csv], {type: "text/csv"});
-  var link = document.createElement("a");
-  link.href = window.URL.createObjectURL(blob);
-  link.download = "output.csv";
-  link.click();
-}
-function convertTableToDictionary(table) {
-  var keys = [];
-  var data = [];
-  var headerRow = table.querySelector("tr");
-  var headerCells = headerRow.querySelectorAll("th");
-
-  for (var i = 0; i < headerCells.length; i++) {
-    keys.push(headerCells[i].textContent);
+    for (var i = 0; i < rows.length; i++) {
+      var cell = rows[i].querySelectorAll("td")[column];
+      if (cell) {
+        var cellValue = cell.textContent.toLowerCase();
+        if (cellValue.includes(filterValue)) {
+          rows[i].style.display = "";
+        } else {
+          rows[i].style.display = "none";
+        }
+      }
+    }
   }
 
-  var rowElement = headerRow.nextElementSibling; // 最初の行以外の行を取得
-  while (rowElement) {
-    var row = {};
-    var cell = rowElement.querySelector("td");
+  function saveCSV() {
+    var table = document.querySelector("table");
+    var dictionary = convertTableToDictionary(table);
+    var csv = convertDictionaryToCSV(dictionary);
+    var blob = new Blob([csv], { type: "text/csv" });
+    var link = document.createElement("a");
+    link.href = window.URL.createObjectURL(blob);
+    link.download = "output.csv";
+    link.click();
+  }
+  function convertTableToDictionary(table) {
+    var keys = [];
+    var data = [];
+    var headerRow = table.querySelector("tr");
+    var headerCells = headerRow.querySelectorAll("th");
 
-    for (var k = 0; k < keys.length && cell; k++) {
-      var value = cell.textContent;
-      var key = keys[k];
-      if (cell.querySelector("table")) {
-        var nestedTable = cell.querySelector("table");
-        var nestedRow = convertTableToDictionary(nestedTable)[0]; // 入れ子のテーブルの辞書を取得し、最初の要素を使用
-        row[key]  = nestedRow ; // 入れ子の辞書を現在の行にマージ
-      } else if (value.startsWith("{") && value.endsWith("}")) {
-        try {
-          var parsedValue = JSON.parse(value);
-          row[key] = parsedValue;
-        } catch (error) {
+    for (var i = 0; i < headerCells.length; i++) {
+      keys.push(headerCells[i].textContent);
+    }
+
+    var rowElement = headerRow.nextElementSibling; // 最初の行以外の行を取得
+    while (rowElement) {
+      var row = {};
+      var cell = rowElement.querySelector("td");
+
+      for (var k = 0; k < keys.length && cell; k++) {
+        var value = cell.textContent;
+        var key = keys[k];
+        if (cell.querySelector("table")) {
+          var nestedTable = cell.querySelector("table");
+          var nestedRow = convertTableToDictionary(nestedTable)[0]; // 入れ子のテーブルの辞書を取得し、最初の要素を使用
+          row[key] = nestedRow; // 入れ子の辞書を現在の行にマージ
+        } else if (value.startsWith("{") && value.endsWith("}")) {
+          try {
+            var parsedValue = JSON.parse(value);
+            row[key] = parsedValue;
+          } catch (error) {
+            row[key] = value;
+          }
+        } else {
           row[key] = value;
         }
-      } else {
-        row[key] = value;
+        cell = cell.nextElementSibling; // 次のセルを取得
       }
-      cell = cell.nextElementSibling; // 次のセルを取得
-    }
-    if (Object.keys(row).length > 0) {
-      data.push(row);
-    }
-    rowElement = rowElement.nextElementSibling; // 次の行を取得
-  }
-  return data;
-}
-
-
-function convertDictionaryToCSV(dictionary) {
-  var csv = "";
-  var keys = Object.keys(dictionary[0]);
-  csv += keys.map(key => '"' + key.replace(/"/g, '""') + '"').join(",") + "\n";
-
-  for (var i = 0; i < dictionary.length; i++) {
-    var values = [];
-    for (var j = 0; j < keys.length; j++) {
-      var key = keys[j];
-      var value = dictionary[i][key];
-      if (typeof value === "object") {
-        value = JSON.stringify(value);
+      if (Object.keys(row).length > 0) {
+        data.push(row);
       }
-      values.push('"' + value.replace(/"/g, '""') + '"');
+      rowElement = rowElement.nextElementSibling; // 次の行を取得
     }
-    csv += values.join(",") + "\n";
+    return data;
   }
 
-  return csv;
-}
+  // 辞書形式のリストをCSV形式に変換する
+  function convertDictionaryToCSV(dictionary_data_list) {
+    var csv = "";
+    var keys = getKeys(dictionary_data_list);
+    csv += keys.join(",") + "\n";
+    for (var i = 0; i < dictionary_data_list.length; i++) {
+      var values = [];
+      for (var j = 0; j < keys.length; j++) {
+        var key = keys[j];
+        var value = dictionary_data_list[i][key];
+        if (typeof value === "object") {
+          value = JSON.stringify(value);
+        }
+        values.push('"' + value.replace(/"/g, '""') + '"');
+      }
+      csv += values.join(",") + "\n";
+    }
+    return csv;
+  }
 
 
-function saveJSONLine() {
-  var table = document.querySelector("table");
-  var dictionary = convertTableToDictionary(table);
-  var json_data = dictionary.map(JSON.stringify).join("\n");
+  function saveJSONLine() {
+    var table = document.querySelector("table");
+    var dictionary = convertTableToDictionary(table);
+    var json_data = dictionary.map(JSON.stringify).join("\n");
 
-  // ファイルに保存
-  var blob = new Blob([json_data], {type: "application/json"});
-  var link = document.createElement("a");
-  link.href = URL.createObjectURL(blob);
-  link.download = "output.jsonl";
-  link.click();
-}
+    // ファイルに保存
+    var blob = new Blob([json_data], { type: "application/json" });
+    var link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = "output.jsonl";
+    link.click();
+  }
 
 
-function loadJSONLineData(jsonLineData) {
-  var table = document.querySelector("table");
-  var dictionary_data_list = parseJSONLineData(jsonLineData);
-  displayTable(dictionary_data_list,"output");
-}
+  function loadJSONLineData(jsonLineData) {
+    var table = document.querySelector("table");
+    var dictionary_data_list = parseJSONLineData(jsonLineData);
+    displayTable(dictionary_data_list, "output");
+  }
+  // JSONL形式のデータを辞書形式のリストにパースする
+  function parseJSONLineData(jsonLineData) {
+    var lines = jsonLineData.split("\n");
+    var dictionary_data_list = [];
+    for (var i = 0; i < lines.length; i++) {
+      if (lines[i]) {
+        dictionary_data_list.push(JSON.parse(lines[i]));
+      }
+    }
+    return dictionary_data_list;
+  }
+  // 出力エリアをクリアする
+  function clearOutput() {
+    document.getElementById("output").innerHTML = "";
+  }
 
-function parseJSONLineData(jsonLineData) {
-  var lines = jsonLineData.split("\n");
-  var dictionary_data_list = [];
-  for (var i = 0; i < lines.length; i++) {
-    if (lines[i]) {
-      dictionary_data_list.push(JSON.parse(lines[i]));
+  // テーブルをキーでソートする
+  function sortTable(key) {
+    if (sortedColumn === key) {
+      sortOrder = (sortOrder === 'asc') ? 'desc' : 'asc';
+    } else {
+      sortedColumn = key;
+      sortOrder = 'asc';
+    }
+
+    var table = document.querySelector("table");
+    var rows = Array.from(table.querySelectorAll("tr"));
+    var headerRow = rows.shift();
+    rows.sort(function (a, b) {
+      var aCell = a.querySelector("td:nth-child(" + (getKeys(a)[0] === key ? 1 : getKeys(a).indexOf(key) + 1) + ")");
+      var bCell = b.querySelector("td:nth-child(" + (getKeys(b)[0] === key ? 1 : getKeys(b).indexOf(key) + 1) + ")");
+
+      var aValue = aCell ? aCell.textContent : '';
+      var bValue = bCell ? bCell.textContent : '';
+
+      if (!isNaN(parseFloat(aValue)) && isFinite(aValue)) {
+        aValue = parseFloat(aValue);
+      }
+      if (!isNaN(parseFloat(bValue)) && isFinite(bValue)) {
+        bValue = parseFloat(bValue);
+      }
+      if (aValue < bValue) {
+        return -1;
+      }
+      if (aValue > bValue) {
+        return 1;
+      }
+      return 0;
+    });
+    table.innerHTML = "";
+    table.appendChild(headerRow);
+    for (var i = 0; i < rows.length; i++) {
+      table.appendChild(rows[i]);
     }
   }
-  return dictionary_data_list;
-}
-
-function clearOutput() {
-  var outputDiv = document.getElementById("output");
-  outputDiv.textContent = "";
-}
-
-function sortTable(key) {
-  if (sortedColumn === key) {
-    sortOrder *= -1;
-  } else {
-    sortedColumn = key;
-    sortOrder = 1;
-  }
-
-  dictionary_data_list.sort(function (a, b) {
-    var valueA = a[key] ? a[key].toString().toLowerCase() : "";
-    var valueB = b[key] ? b[key].toString().toLowerCase() : "";
-    return valueA.localeCompare(valueB) * sortOrder;
-  });
-
-  displayTable(dictionary_data_list,"output");
-}
 
   function reorderColumns(draggedKey, targetKey) {
     var draggedIndex = -1;
     var targetIndex = -1;
 
-    var headerCells = document.querySelectorAll("th.draggable");
-    for (var i = 0; i < headerCells.length; i++) {
+    var headerRow = document.querySelector("thead tr");
+    var headerCells = headerRow.getElementsByClassName("th.draggable");
+    for (var i = 0; i < headerCells.length - 1; i++) {
       if (headerCells[i].dataset.key === draggedKey) {
         draggedIndex = i;
       } else if (headerCells[i].dataset.key === targetKey) {
@@ -199,44 +253,68 @@ function sortTable(key) {
         }
       }
 
+
       var newdictionary_data_list = [];
       for (var k = 0; k < dictionary_data_list.length; k++) {
         var newData = {};
         for (var m = 0; m < keys.length; m++) {
-          if (dictionary_data_list[k].hasOwnProperty(keys[m])) {
-            newData[keys[m]] = dictionary_data_list[k][keys[m]];
-          }
+          var originalKey = headerCells[m + 1].dataset.key;
+          var newKey = keys[m + 1];
+          newData[newKey] = dictionary_data_list[k][originalKey];
         }
         newdictionary_data_list.push(newData);
       }
 
       dictionary_data_list = newdictionary_data_list;
-      displayTable(dictionary_data_list,"output");
+      displayTable(dictionary_data_list, "output");
+
     }
+  }
 
-}
 
-function displayTable(dictionary_data_list,element) {
+  // JSONLデータをテーブル形式で表示する
+  function displayTable(dictionary_data_list, element) {
     var table = createTable(dictionary_data_list);
     var outputDiv = document.getElementById(element);
     outputDiv.innerHTML = "";
     outputDiv.appendChild(table);
+    
+    // フィルタリング用の入力フィールドを取得
+    var filterInputs = outputDiv.querySelectorAll("thead input[type='text']");
+    filterInputs.forEach(function (input, index) {
+      input.addEventListener("input", function () {
+        filterTable(this, index);
+      });
+    });
+    // ヘッダーの列にドラッグアンドドロップのイベントリスナーを追加
+    var headerCells = document.querySelectorAll("th.draggable");
+    headerCells.forEach(function (cell) {
+      cell.addEventListener("dragstart", function (event) {
+        draggedKey = event.target.dataset.key; // ドラッグされた列のキーを保持
+      });
+      cell.addEventListener("dragover", function (event) {
+        event.preventDefault();
+      });
+      cell.addEventListener("drop", function (event) {
+        event.preventDefault();
+        reorderColumns(draggedKey, event.target.dataset.key); // 列の入換を実行
+      });
+    });
   }
 
+  // 辞書形式のリストからテーブルを作成する
   function createTable(data) {
     var table = document.createElement("table");
-
     var keys = getKeys(data);
-    keys.sort(); // Sort column names in ascending order
-
+    keys.sort();
     var headerRow = document.createElement("tr");
     for (var i = 0; i < keys.length; i++) {
       var headerCell = document.createElement("th");
       headerCell.textContent = keys[i];
-      headerCell.classList.add("sortable");
-      headerCell.addEventListener("click", function() {
-        sortTable(this.textContent);
-      });
+      //headerCell.classList.add("sortable");
+      //headerCell.addEventListener("click", function() {
+      //  sortTable(this.textContent);
+      //});
       headerRow.appendChild(headerCell);
     }
     table.appendChild(headerRow);
@@ -283,6 +361,7 @@ function displayTable(dictionary_data_list,element) {
     return table;
   }
 
+  // 辞書形式のリストからキーを取得する
   function getKeys(data) {
     var keys = [];
     if (Array.isArray(data)) {
@@ -296,5 +375,46 @@ function displayTable(dictionary_data_list,element) {
     keys = Array.from(new Set(keys));
     return keys;
   }
+
+
+
+
+
+  // CSV形式のデータを辞書形式のリストにパースする
+  function parseCSVData(csvData) {
+    var lines = csvData.split("\n");
+    var keys = lines[0].split(",");
+    var dictionary_data_list = [];
+    for (var i = 1; i < lines.length; i++) {
+      var values = lines[i].split(",");
+      var dictionary_data = {};
+      for (var j = 0; j < keys.length; j++) {
+        var key = keys[j];
+        var value = values[j].replace(/""/g, '"');
+        if (value[0] === '"' && value[value.length - 1] === '"') {
+          value = value.slice(1, -1);
+        }
+        if (value[0] === "{" && value[value.length - 1] === "}") {
+          value = JSON.parse(value);
+        }
+        dictionary_data[key] = value;
+      }
+      dictionary_data_list.push(dictionary_data);
+    }
+    return dictionary_data_list;
+  }
+
+  // 辞書形式のリストをJSONL形式に変換する
+  function convertDictionaryToJSONL(dictionary_data_list) {
+    var jsonLineData = "";
+    for (var i = 0; i < dictionary_data_list.length; i++) {
+      jsonLineData += JSON.stringify(dictionary_data_list[i]) + "\n";
+    }
+    return jsonLineData;
+  }
+
+
 </script>
+</body>
+
 </html>

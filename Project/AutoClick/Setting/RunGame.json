@@ -22,7 +22,7 @@
 				"",
 				""
 			],
-			"Check_Day":[
+			"CheckDay":[
 				"比較する時刻に矛盾が無いことを確認するTask。Day1,Day2には特定の日付か曜日を含む時間を入れられる。day2には曜日は入れられない。day1かday3片方が曜日の場合は一週間回って必ず成立するのでTrue。",
 				"",
 				""
@@ -58,7 +58,7 @@
 			"settings": {
 					"program_path": "../Resources/Camera.exe",
 					"file_path": "../Images/capture/capture.png",
-					"log_print_standardoutput": true,"log_function":true,"log_file_path_list": "../Log/log_ExecuteProgram.json",
+					"log_print_standard_output": true,"log_function":true,"log_file_path_list": "../Log/log_ExecuteProgram.json",
 					"step_check_mode" : false,"step_check_comment":""
 			}
 		},
@@ -74,7 +74,7 @@
 					"archivefolder_path": "../Images/capture",
 					"folder_maxsize" : 1048576,
 					"files_maxnumber" : 5,
-					"log_print_standardoutput": true,"log_function":true,"log_file_path_list": "../Log/log_ExecuteProgram.json",
+					"log_print_standard_output": true,"log_function":true,"log_file_path_list": "../Log/log_ExecuteProgram.json",
 					"step_check_mode" : false,"step_check_comment":""
 			}
 		}
@@ -161,8 +161,8 @@
 				"image_path" : "../Images/hotspot/*.png",
 				"interval_time" : 1.8,
 				"recognition_confidence" : 0.95,
-				"recognition_grayscale" : true,
-				"log_print_standardoutput":true,    "log_function" : true,
+				"recognition_gray_scale" : true,
+				"log_print_standard_output":true,    "log_function" : true,
 			    "log_arguments" : false,
  			    "#step_check_mode" : false
 			}
@@ -183,7 +183,7 @@
 				"image_path" : "../Images/image_end/*.png",
 				"interval_time" : 1.8,
 				"recognition_confidence" : 0.95,
-				"recognition_grayscale" : true
+				"recognition_gray_scale" : true
 			}
 		}
 	],
@@ -203,7 +203,7 @@
 				"image_path": "../Images/image00/*.png",
 				"interval_time": 10,
 				"recognition_confidence": 0.99,
-				"recognition_grayscale": true
+				"recognition_gray_scale": true
 			}
 		}
 	],
@@ -222,7 +222,7 @@
 				"image_path": "../Images/image02/*.png",
 				"interval_time": 10,
 				"recognition_confidence": 0.99,
-				"recognition_grayscale": true
+				"recognition_gray_scale": true
 			}
 		}
 	],
@@ -241,7 +241,7 @@
 				"image_path": "../Images/image03/*.png",
 				"interval_time": 10,
 				"recognition_confidence": 0.99,
-				"recognition_grayscale": true
+				"recognition_gray_scale": true
 			}
 		}
 	],
@@ -260,7 +260,7 @@
 				"image_path": "../Images/image04/*.png",
 				"interval_time": 10,
 				"recognition_confidence": 0.99,
-				"recognition_grayscale": true
+				"recognition_gray_scale": true
 			}
 		}
 	],
@@ -279,7 +279,7 @@
 				"image_path": "../Images/image05/*.png",
 				"interval_time": 10,
 				"recognition_confidence": 0.99,
-				"recognition_grayscale": true
+				"recognition_gray_scale": true
 			}
 		}
 	],
@@ -298,7 +298,7 @@
 				"image_path": "../Images/image06/*.png",
 				"interval_time": 10,
 				"recognition_confidence": 0.99,
-				"recognition_grayscale": true
+				"recognition_gray_scale": true
 			}
 		}
 	],
@@ -316,7 +316,7 @@
 				"image_path" : "../Images/image_waiting/*.png",
 				"interval_time" : 4,
 				"recognition_confidence" : 0.99,
-				"recognition_grayscale" : false
+				"recognition_gray_scale" : false
 			}
 		}
 	],
@@ -334,7 +334,7 @@
 				"image_path" : "../Images/image_start/Click0*.png",
 				"interval_time" : 1.8,
 				"recognition_confidence" : 0.93,
-				"recognition_grayscale" : true
+				"recognition_gray_scale" : true
 			}
 		}
 	],
@@ -352,7 +352,7 @@
 				"image_path" : "../Images/image_start/Click0*.png",
 				"interval_time" : 1.8,
 				"recognition_confidence" : 0.93,
-				"recognition_grayscale" : true
+				"recognition_gray_scale" : true
 			}
 		}
 	],
@@ -370,7 +370,7 @@
 				"image_path" : "'../Images/image/*.png",
 				"interval_time" : 0.5,
 				"recognition_confidence" : 0.93,
-				"recognition_grayscale" : true
+				"recognition_gray_scale" : true
 			}
 		}
 	],

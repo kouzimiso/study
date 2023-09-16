@@ -5,15 +5,13 @@ import datetime
 import sys
 import os
 import pyautogui
-import PIL
 import glob
 sys.path.append("../Common")
 sys.path.append("../../Common")
-import Rename
 import Log
 import JSON_Control
 import Auto
-
+import FunctionUtility
 # log関係
 
 logfile_path = os.path.dirname(__file__)+'/../../Log/log_auto.txt'
@@ -22,6 +20,12 @@ class Recognition:
     default_setting :dict = {
         # 処理
         "action" : "CLICK",#"double_CLICK",""
+        # 処理後input key
+        "input_key" : "",
+        # 処理後縦スクロール量
+        "scroll_distance_vertical" : 0,
+        # 処理後横スクロール量
+        "scroll_distance_horizontal" : 0,
         # 終了条件
         "end_condition" : "",
         # 実行回数
@@ -30,7 +34,6 @@ class Recognition:
         "retry_number" : 0,
         # 終了処理
         "end_action" : "continue",#
-     
         # クリックする画像を保存するフォルダ
         "image_path" : "",
         # 画像をClickした後の待ち時間(秒)
@@ -38,24 +41,27 @@ class Recognition:
         # 画像認識のあいまい設定
         "recognition_confidence" : 1.0,
         # GrayScale設定(高速化)
-        "recognition_grayscale" : 0
+        "recognition_gray_scale" : 0
     }
     def __init__(self, setting_dictionary={}):
-        self.logger = Log.Logs(setting_dictionary)
-        self.logger.log("Start Recognition","INFO",details=setting_dictionary)
         self.Set_BySettingDictionary(setting_dictionary)
+        self.logger.log("Start Recognition","INFO",details=setting_dictionary)
 
-  
+    def ArgumentGet(self):
+        setting_dictionary = FunctionUtility.ArgumentGet(self.default_setting,self.setting)
+        self.setting = {**self.setting, **setting_dictionary}
+        self.Set_BySettingDictionary(self.setting)
+
     def Get_SettingDictionary(self):
-
         return self.setting
 
-
     def Set_BySettingDictionary(self,input_dictionary):
-        self.setting = {**self.default_setting, **input_dictionary}
-        
+        self.setting = {**self.default_setting, **input_dictionary}       
+        self.logger = Log.Logs(input_dictionary)
 
+    # 辞書設定の読込と機能実行
     def Execute(self):
+        #機能実行
         result_dictionary={}
         result_action = self.Images_Action_ByInformation(self.setting)
         #Step:Set the result to the data.
@@ -78,15 +84,15 @@ class Recognition:
 
         return result_dictionary
 
-    def Image_SearchAndXY(self,image_path, recognition_grayscale, recognition_confidence):
-        result = pyautogui.locateCenterOnScreen(image_path, grayscale=recognition_grayscale, confidence=recognition_confidence)
+    def Image_SearchAndXY(self,image_path, recognition_gray_scale, recognition_confidence):
+        result = pyautogui.locateCenterOnScreen(image_path, grayscale=recognition_gray_scale, confidence=recognition_confidence)
         x, y = result
         return x, y
     
     # Imageを探してMouse pointerを移動させる
-    def Image_SearchAndMove(self,image_path, x_offset_dictionary, y_offset_dictionary, recognition_grayscale, recognition_confidence,detail_dictionary = {}):
+    def Image_SearchAndMove(self,image_path, x_offset_dictionary, y_offset_dictionary, recognition_gray_scale, recognition_confidence,detail_dictionary = {}):
         try:
-            result_detail = pyautogui.locateCenterOnScreen(image_path, grayscale=recognition_grayscale, confidence=recognition_confidence)
+            result_detail = pyautogui.locateCenterOnScreen(image_path, grayscale=recognition_gray_scale, confidence=recognition_confidence)
 
             if result_detail is not None:
                 x,y=result_detail
@@ -113,7 +119,7 @@ class Recognition:
             self.logger.error("image read error")
             return False
             exit
-    # Mouse Action
+    # Action実行
     def Action_Execute(self,action):
         if action == 'CLICK':
             pyautogui.click()
@@ -121,7 +127,21 @@ class Recognition:
         elif action == 'DOUBLE_CLICK':
             pyautogui.doubleClick()
             pyautogui.mouseUp()
-
+        elif action == 'RIGHT_CLICK':
+            pyautogui.rightClick()
+            pyautogui.mouseUp()
+        elif action == 'DRAG':
+            pyautogui.drag()
+        # 行儀悪いがself.settingから直接指示。元々、様々な動作を実行するなら引数指定は無理が有りそう。
+        key = self.setting.get("input_key","")
+        if key != "":
+            pyautogui.press(key)
+        scroll_distance_vertical = self.setting.get("scroll_distance_vertical",0)
+        if scroll_distance_vertical != 0:
+            pyautogui.scroll(scroll_distance_vertical)
+        scroll_distance_horizontal = self.setting.get("scroll_distance_horizontal",0)
+        if scroll_distance_horizontal != 0:
+            pyautogui.scroll(scroll_distance_horizontal)
 
     Images_Action_Result = {}
     def Images_Action_ResultInit(self,dictionary , detect = 0 , undetect = 0 , total_detect = 0 , total_undetect = 0):
@@ -178,7 +198,7 @@ class Recognition:
         return self.Images_Action_Result
 
     # Folder内のImageを探してMouse pointerを移動し、行動する
-    def Images_Action(self,action , end_action , end_condition , images_path , x_offset_dictionary , y_offset_dictionary , recognition_grayscale , recognition_confidence , interval_time):
+    def Images_Action(self,action , end_action , end_condition , images_path , x_offset_dictionary , y_offset_dictionary , recognition_gray_scale , recognition_confidence , interval_time):
         all_ok = True
         all_ng = True
         none = True
@@ -191,10 +211,10 @@ class Recognition:
             image_path = image_path.replace('\\', '/')
             none = False
             # 画像検索とPointer移動
-            end_result = self.Image_SearchAndMove(image_path , x_offset_dictionary , y_offset_dictionary , recognition_grayscale , recognition_confidence)
+            end_result = self.Image_SearchAndMove(image_path , x_offset_dictionary , y_offset_dictionary , recognition_gray_scale , recognition_confidence)
             if end_result:
-                self.Images_Action_Result=self.Images_Action_ResultSet(self.Images_Action_Result,image_path,1,0)        
-                self.Images_Action_Result=self.Images_Action_ResultSet(self.Images_Action_Result,"all_image",1,0)        
+                self.Images_Action_Result=self.Images_Action_ResultSet(self.Images_Action_Result,image_path,1,0)
+                self.Images_Action_Result=self.Images_Action_ResultSet(self.Images_Action_Result,"all_image",1,0)
                 all_ng = False
                 self.Action_Execute(action)
                 time.sleep(interval_time)
@@ -246,7 +266,7 @@ class Recognition:
                     "image_path": recognition_information.get("image_path")
                 }
                 self.logger.log(message,"INFO",details=details)
-                end_result = self.Images_Action(recognition_information.get("action") , recognition_information.get("end_action") , recognition_information.get("end_condition") , recognition_information.get("image_path"),x_offset_dictionary , y_offset_dictionary , recognition_information.get("recognition_grayscale") , recognition_information.get("recognition_confidence") , recognition_information.get("interval_time"))
+                end_result = self.Images_Action(recognition_information.get("action") , recognition_information.get("end_action") , recognition_information.get("end_condition") , recognition_information.get("image_path"),x_offset_dictionary , y_offset_dictionary , recognition_information.get("recognition_gray_scale") , recognition_information.get("recognition_confidence") , recognition_information.get("interval_time"))
                 if end_result == "NONE":
                     all_ok = False
                     all_ng = True
@@ -341,29 +361,14 @@ class Recognition:
             action_result = self.Images_Action_ByInformation(action_recognition_information , x_offset_dictionary , y_offset_dictionary)
         return action_result
 
-    def Image_AroundMouse(self,file_path , flag_overwrite=True , wide=0 , height=0 , dupplicate_format="{}({:0=3}){}"):
-        x , y = pyautogui.position()
-        self.Image_AroundPoint(file_path , flag_overwrite , x , y , wide , height , dupplicate_format)
-
-    def Image_AroundPoint(self,file_path , flag_overwrite=True , x=0 , y=0 , wide=0 , height=0 , dupplicate_format="{}({:0=3}){}"):
-        if flag_overwrite == False:
-            path = Rename.duplicate_rename(file_path , dupplicate_format)
-        else:
-            path = file_path
-        if wide == 0 or height == 0:
-            PIL.ImageGrab.grab().save(path)
-        else:
-            bbox_w = wide
-            bbox_h = height
-            bbox_x = max(0 , x - bbox_w/2)
-            bbox_y = max(0 , y - bbox_h/2)
-            PIL.ImageGrab.grab(bbox=(bbox_x , bbox_y , bbox_x +
-                            bbox_w , bbox_y + bbox_h)).save(path)
+#command lineから機能を利用する。
 def main():
-    setting_dictionary={}
-    recognition = Recognition(setting_dictionary)
-    result_dictionary=recognition.Execute()
-
-
-if __name__ == "__main__":
-    sys.exit(main())
+    # Command lineの引数を得てから機能を実行し、標準出力を出力IFとして動作する。
+    # 単体として動作するように実行部のExecuteは辞書を入出力IFとして動作する。
+    recognition = Recognition()
+    recognition.ArgumentGet()
+    result_dictionary = recognition.Execute()
+    FunctionUtility.Result(result_dictionary)
+    
+if __name__ == '__main__':
+    main()

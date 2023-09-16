@@ -1,0 +1,363 @@
+WindowsXPでも動く程度の
+JavaScript＋ブラウザプログラムで、下記の機能を満たすSource codeを教えてください。
+・[Read]ボタンを押すとファイルエクスプローラが開き、選択したテキストファイルを読み込む
+・読み込んだテキストファイルのデータの先頭3行をブラウザに表示する。
+・読み込んだテキストファイルのデータを一行ずつ読込み、Analize関数へStringDataで送る。
+・Analize関数はLocalに下記のような辞書Dataを持つ。
+　　{
+	"eventName": null, //イベント名 String
+	"eventCode" : null, //イベントコード String
+	
+	//WF_EVENT arriveイベントに使用
+	"moId":0, //対象のモジュールID int
+	"p_id":0, //描画位置 int
+	"port_id":0, //ポートID int
+	"slot_Id":0, //スロットID int
+	"wef_Id":0, //ウェハID int
+	"mod_slot":-1, //mod_slot int
+	//PR_STEPイベントに使用
+	"step": 0, //実行ステップ int
+	"p_Pid" : -1, //描画位置PortID int
+	"p_Sid" : -1, //描画位置SlotID int
+	
+	//ログ情報
+	"logFileName" : "", //ログファイル名 String
+	"logFilePath" : "", //ログファイルパス String
+	"row" : 0, //対象ログの行数 int
+	"rowData" : "" //対象ログ(1行分) String
+	}
+・Analyze関数は引数で受け取ったStringDataに"WF_EVENT arrive"が含まれていた場合、辞書データの"eventName"に"WF_EVENT arrive"を"rowData"に受け取ったままのStringDataを書き込む。
+　StringDataに"WF_EVENT arrive"が含まれていない場合は辞書Dataを空の{}のDataにする。
+・Analyze関数は辞書Dataを返す。
+・Analyze関数の結果が{}ではない場合、結果の辞書Dataの"step"にFileの行数を書き込み、結果の辞書Dataを結果のListに追加する。
+・ファイルのテキスト行を全て読み込と処理が終わったら結果のListをJSON形式(List無いのDictionaryData毎に改行。DictionaryDataは1行)に変換する。
+　ファイルエクスプローラが開き、選択したファイルに保存する。
+　ファイル保存はモダンブラウザではダウンロードフォルダに保存し、Internat explorerではダウンロードフォルダが使えないので代替の動作で対応する。
+
+
+エラー:'FileReader'は宣言されていません。
+
+下記のような機能のJavaをブラウザソフトに移植したい。ソースコードを教えてください。
+　・readFileで読み込んだファイルの文字列を解析する
+　・下記ソフトではArrayList<data.LogData>に解析結果を保存しているが、data.LogDataではなく、下記のLogDataの辞書Dataに保存するように変更。
+  ・最終的に解析結果を"result.json"にJSON形式に変換して出力する。
+
+ "LogData":{
+	"eventName": null, //イベント名 String
+	"eventCode" : null, //イベントコード String
+	
+	//WF_EVENT arriveイベントに使用
+	"moId":0, //対象のモジュールID int
+	"p_id":0, //描画位置 int
+	"port_id":0, //ポートID int
+	"slot_Id":0, //スロットID int
+	"wef_Id":0, //ウェハID int
+	"mod_slot":-1, //mod_slot int
+	//PR_STEPイベントに使用
+	"step": 0, //実行ステップ int
+	"p_Pid" : -1, //描画位置PortID int
+	"p_Sid" : -1, //描画位置SlotID int
+	
+	//ログ情報
+	"logFileName" : "", //ログファイル名 String
+	"logFilePath" : "", //ログファイルパス String
+	"row" : 0, //対象ログの行数 int
+	"rowData" : "" //対象ログ(1行分) String
+}
+
+下記のコードのlog.set名前(値);のコードはlog[名前]のDictionary dataに値を代入する作りにして簡単化したい。
+
+public class LogReader {
+	private ArrayList<data.LogData> list = new ArrayList<data.LogData>(); //ログを格納する
+	private int slotManage[] = {0, 0, 0 ,0}; //スロットマネージャ
+	
+	/** ログファイルを読み込む */
+	public boolean readFile(ArrayList<String> logFilePathList)
+	{
+		for(int fileCnt = 0; fileCnt < logFilePathList.size(); fileCnt++)
+		{
+			String logFilePath = logFilePathList.get(fileCnt); //ログファイルパス
+			String[] pathArray = logFilePath.split("\\\\"); //"\\\\"で分割
+			String logFileName = pathArray[pathArray.length - 1]; //ログファイル名を抽出
+			input.FileIn fi = new input.FileIn(logFilePath); //ファイルオープン
+			data.LogData wklog = null;
+			
+			//ファイル情報切り出しループ
+			for(int i = 0; ; i++)
+			{
+				data.LogData log = new data.LogData(); //１行用データを作成
+				String buf = fi.readLine(); //１行読み取り
+				String rowData = buf;
+				
+				if (buf == null) //ファイルの終端に達した場合は終了する
+				{
+					break;
+				}
+				
+				String logType = null;
+				int index = 0; //作業用インデックス
+				StringTokenizer stz = null;
+				String id = null; //イベント種別
+				
+				if(buf.indexOf("WF_EVENT arrive") != -1 || buf.indexOf("WF_EVENT cancel") != -1) //"WF_EVENT arrive"イベントまたは"WF_EVENT cancel"イベントの場合
+				{
+					if(buf.indexOf("WF_EVENT arrive") != -1)
+					{
+						logType = "WF_EVENT arrive";
+					}
+					else
+					{
+						logType = "WF_EVENT cancel";
+					}
+					
+					index =  buf.indexOf(logType);
+					
+					id = buf.substring(index, (index + logType.length())); 
+					//必要箇所の切り出し
+					buf = buf.substring(index + logType.length() + 1);
+					stz = new StringTokenizer(buf.substring(0, buf.indexOf(")")));
+					
+					try //設定情報の切り出し
+					{
+						if(stz.countTokens() == 5) //パラメータが5個の場合
+						{
+							log.setEventName(id); //イベント名を設定
+							log.setMoId(Integer.parseInt(stz.nextToken())); //モジュールIDを切り出し
+							log.setP_id(Integer.parseInt(stz.nextToken())); //描画位置の切り出し
+							log.setPort_id(Integer.parseInt(stz.nextToken())); //ポートIDの切り出し
+							log.setSlot_Id(Integer.parseInt(stz.nextToken())); //スロットIDの切り出し
+							log.setWef_Id(Integer.parseInt(stz.nextToken())); //ウェハIDの切り出し
+							
+							//BFM且つ未処理ウェハの場合、mod_slotがログに無い為、自動的に5~8の空きスロットを付与する
+							if(Execute.mm.isMode2Flg() && log.getMoId() == 39 && log.getP_id() == 2)
+							{
+								log.setMod_slot(this.slotManager(log.getWef_Id()));
+							}
+							
+							//TM1による搬送時(ウェハが未処理のままカセットへ搬送される場合に対応)
+							if(Execute.mm.isMode2Flg() && log.getMoId() == 13)
+							{
+								//BFMのスロット5~8に同じウェハIDが存在する場合は、TM1による搬送が開始された為、該当スロットを解放する
+								this.updateSlotManage(log.getWef_Id());
+							}
+						}
+						else if(Execute.mm.isMode2Flg() && stz.countTokens() == 6) //モード2且つパラメータが6個の場合
+						{
+							log.setEventName(id); //イベント名を設定
+							log.setMoId(Integer.parseInt(stz.nextToken())); //モジュールIDを切り出し
+							log.setP_id(Integer.parseInt(stz.nextToken())); //描画位置の切り出し
+							log.setPort_id(Integer.parseInt(stz.nextToken())); //ポートIDの切り出し
+							log.setSlot_Id(Integer.parseInt(stz.nextToken())); //スロットIDの切り出し
+							log.setWef_Id(Integer.parseInt(stz.nextToken())); //ウェハIDの切り出し
+							log.setMod_slot(Integer.parseInt(stz.nextToken())); //mod_slotの切り出し
+							
+							//TM2による搬送時
+							if(Execute.mm.isMode2Flg() && log.getMoId() == 14)
+							{
+								//BFMのスロット5~8に同じウェハIDが存在する場合は、TM2による搬送が開始された為、該当スロットを解放する
+								this.updateSlotManage(log.getWef_Id());
+							}
+						}
+						else
+						{
+							log.setEventName(id); //イベント名を設定
+							log.setMoId(Integer.parseInt(stz.nextToken())); //モジュールIDを切り出し
+							log.setP_id(Integer.parseInt(stz.nextToken())); //描画位置の切り出し
+							log.setPort_id(Integer.parseInt(stz.nextToken())); //ポートIDの切り出し
+							log.setSlot_Id(Integer.parseInt(stz.nextToken())); //スロットIDの設定
+							log.setWef_Id(-1); //ウェハIDは存在しないため、-1を設定する
+						}
+						
+						log.setLogFileName(logFileName); //ログファイル名
+						log.setLogFilePath(logFilePath); //ログファイルパス
+						log.setRow(i + 1); //行
+						log.setRowData(rowData); //ログ(1行分)
+						
+						list.add(log); //リストに１行分のデータを追加
+						wklog = log; //WF_EVENT_arriveのデータを作業用にコピー
+					}
+					catch(Exception e)
+					{
+						e.printStackTrace();
+						return false;
+					}
+				}
+				else if(buf.indexOf("PR_STEP") != -1) //"PR_STEP"イベントの場合
+				{
+					if(buf.indexOf("LOG_OUT") != -1) //LOG_OUTを含む場合は対象外
+					{
+						continue;
+					}
+					
+					logType = "PR_STEP";
+					index =  buf.indexOf(logType);
+					
+					id = buf.substring(index, (index + logType.length())); 
+					//必要箇所の切り出し
+					buf = buf.substring(index + logType.length() + 1);
+					stz = new StringTokenizer(buf.substring(0, buf.indexOf(")")));
+					
+					log.setEventName(id); //イベント名を設定
+					log.setMoId(Integer.parseInt(stz.nextToken())); //モジュールIDを切り出し
+					log.setP_id(Integer.parseInt(stz.nextToken())); //描画位置の切り出し
+					log.setStep(Integer.parseInt(stz.nextToken())); //ステップ数を切り出し
+					
+					if(log.getStep() == 0) //処理済みであれば追加する
+					{
+						if(stz.countTokens() == 3)
+						{
+							log.setPort_id(Integer.parseInt(stz.nextToken())); //ポートIDの切り出し
+							log.setSlot_Id(Integer.parseInt(stz.nextToken())); //スロットIDの切り出し
+							log.setWef_Id(Integer.parseInt(stz.nextToken())); //ウェハIDの切り出し
+						}
+						else
+						{
+							log.setPort_id(Integer.parseInt(stz.nextToken())); //ポートIDの切り出し
+							log.setSlot_Id(Integer.parseInt(stz.nextToken())); //スロットIDの切り出し
+							log.setWef_Id(-1);
+						}
+						
+						if(log.getPort_id() <= 0 || log.getSlot_Id() < 0) //ポートIDが0以下またはスロットIDが0未満の場合は対象外
+						{
+							continue;
+						}
+						
+						log.setLogFileName(logFileName); //ログファイル名
+						log.setLogFilePath(logFilePath); //ログファイルパス
+						log.setRow(i + 1); //行
+						log.setRowData(rowData); //ログ(1行分)
+						
+						list.add(log); //リストに１行分のデータを追加
+					}
+				}
+				else if(buf.indexOf("STAGE-STA") != -1) //"STAGE-STA"イベントの場合
+				{
+					logType = "STAGE-STA";
+					index =  buf.indexOf(logType);
+					
+					id = buf.substring(index, (index + logType.length()));
+					buf = buf.substring(index + logType.length() + 1);
+					stz = new StringTokenizer(buf.substring(0, buf.indexOf(")")));
+					
+					log.setEventName(id); //イベント名を設定
+					log.setPort_id(Integer.parseInt(stz.nextToken())); //ポートID
+					log.setEventCode(stz.nextToken());
+					
+					if(log.getEventCode().indexOf("IDLE") != -1) //IDLEならば追加する
+					{
+						log.setLogFileName(logFileName); //ログファイル名
+						log.setLogFilePath(logFilePath); //ログファイルパス
+						log.setRow(i + 1); //行
+						log.setRowData(rowData); //ログ(1行分)
+						
+						list.add(log);
+					}
+				}
+				else if(buf.indexOf("WF_UNLOAD") != -1) //"WF_UNLOAD"イベントの場合
+				{
+					logType = "WF_UNLOAD";
+					index =  buf.indexOf(logType);
+					
+					id = buf.substring(index,(index + logType.length()));
+					buf = buf.substring(index + logType.length() + 1);
+					stz = new StringTokenizer(buf.substring(0, buf.indexOf(")")));
+					
+					stz.nextToken();
+					stz.nextToken();
+					wklog.setP_Pid(Integer.parseInt(stz.nextToken())); //ポートID
+					wklog.setP_Sid(Integer.parseInt(stz.nextToken())); //スロットID
+					
+					list.set((list.size() - 1), wklog); //ポートとスロットを追加して上書き
+				}
+				else if(Execute.mm.isMode2Flg() && buf.indexOf("STATE EXECUTING") != -1) //"STATE EXECUTING"イベントの場合(モード2の場合のみ)
+				{
+					for(int j = 0; j < 4; j++)
+					{
+						log = new data.LogData(); //１行用データを作成
+						int slotId = j;
+						int wefId = 105 + j;
+						
+						log.setEventName("STATE EXECUTING"); //イベント名を設定
+						log.setMoId(39); //モジュールIDを設定（39固定）
+						log.setP_id(1); //描画位置を設定(1固定)
+						log.setPort_id(5); //ポートIDを設定(5固定)
+						log.setSlot_Id(slotId); //スロットIDを設定(1~4(0~3))
+						log.setWef_Id(wefId); //ウェハIDを設定(105~108)
+						
+						log.setLogFileName(logFileName); //ログファイル名
+						log.setLogFilePath(logFilePath); //ログファイルパス
+						log.setRow(i + 1); //行
+						log.setRowData(rowData); //ログ(1行分)
+						
+						list.add(log); //リストに１行分のデータを追加
+					}
+				}
+				else if(buf.indexOf("SYSTEM BUG !!") != -1) //"SYSTEM BUG !!"イベントの場合
+				{
+					log.setEventName("SYSTEM BUG !!"); //イベント名を設定
+					
+					log.setLogFileName(logFileName); //ログファイル名
+					log.setLogFilePath(logFilePath); //ログファイルパス
+					log.setRow(i + 1); //行
+					log.setRowData(rowData); //ログ(1行分)
+					
+					list.add(log); //リストに１行分のデータを追加
+				}
+				else if(buf.indexOf("ERR TROUBLE SET") != -1) //"ERR TROUBLE SET"イベントの場合
+				{
+					logType = "ERR TROUBLE SET";
+					index =  buf.indexOf(logType);
+					
+					id = buf.substring(index, (index + logType.length())); 
+					//必要箇所の切り出し
+					buf = buf.substring(index + logType.length() + 1);
+					stz = new StringTokenizer(buf.substring(0, buf.indexOf(")")));
+					
+					log.setEventName(id); //イベント名を設定
+					log.setMoId(Integer.parseInt(stz.nextToken())); //モジュールIDを切り出し
+					
+					log.setLogFileName(logFileName); //ログファイル名
+					log.setLogFilePath(logFilePath); //ログファイルパス
+					log.setRow(i + 1); //行
+					log.setRowData(rowData); //ログ(1行分)
+					
+					list.add(log); //リストに１行分のデータを追加
+				}
+				else if(buf.indexOf("(STATE") != -1) //"STATE ~~~"イベントの場合
+				{
+					log.setEventName("STATE"); //イベント名を設定
+					
+					log.setLogFileName(logFileName); //ログファイル名
+					log.setLogFilePath(logFilePath); //ログファイルパス
+					log.setRow(i + 1); //行
+					log.setRowData(rowData); //ログ(1行分)
+					
+					list.add(log); //リストに１行分のデータを追加
+				}
+				else
+				{
+					int keywordListCnt = Execute.properties.getKeywordList().size();
+					//キーワードファイルにキーワードが設定されている場合、対象文字列を含んでいるログを追加する
+					for(int j = 0; j < keywordListCnt; j++)
+					{
+						String keyword = Execute.properties.getKeywordList().get(j);
+						
+						if(buf.indexOf(keyword) != -1)
+						{
+							log.setEventName(keyword); //イベント名を設定
+							
+							log.setLogFileName(logFileName); //ログファイル名
+							log.setLogFilePath(logFilePath); //ログファイルパス
+							log.setRow(i + 1); //行
+							log.setRowData(rowData); //ログ(1行分)
+							
+							list.add(log); //リストに１行分のデータを追加
+						}
+					}
+				}
+			}
+		}
+		
+		return true;
+	}
+}

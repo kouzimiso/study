@@ -72,7 +72,7 @@ enum_dictionary={
 
 # log関係
 message_list = []
-logfile_path = os.path.dirname(__file__)+'/../../Log/log_auto.txt'
+logfile_path = os.path.dirname(__file__)+'/../../Log/log.txt'
 
 @dataclasses.dataclass
 class RecognitionInfomation:
@@ -84,7 +84,7 @@ class RecognitionInfomation:
     image_path : str = ""
     interval_time : float = 0.1
     recognition_confidence : float = 1.0
-    recognition_grayscale : float = 0
+    recognition_gray_scale : float = 0
     x_offset_dictionary : dict = None
     y_offset_dictionary : dict = None
     def __init__(
@@ -97,13 +97,13 @@ class RecognitionInfomation:
         image_path = "",
         interval_time = 0.1,
         recognition_confidence =1.0, 
-        recognition_grayscale = 0
+        recognition_gray_scale = 0
         ):
-        self.Set_Setting(action, end_condition, end_action, execute_number, retry_number, image_path, interval_time, recognition_confidence, recognition_grayscale)
+        self.Set_Setting(action, end_condition, end_action, execute_number, retry_number, image_path, interval_time, recognition_confidence, recognition_gray_scale)
         
         self.setting_initial_dictionary={}
 
-    def Set_Setting(self, action, end_condition, end_action, execute_number, retry_number, image_path, interval_time, recognition_confidence, recognition_grayscale):
+    def Set_Setting(self, action, end_condition, end_action, execute_number, retry_number, image_path, interval_time, recognition_confidence, recognition_gray_scale):
         # 処理
         self.action = action
         # 終了条件
@@ -121,7 +121,7 @@ class RecognitionInfomation:
         # 画像認識のあいまい設定
         self.recognition_confidence = recognition_confidence
         # GrayScale設定(高速化)
-        self.recognition_grayscale = recognition_grayscale
+        self.recognition_gray_scale = recognition_gray_scale
         # dictionary_setting
 
 #Dictionaryで設定したい時と個別設定値で設定したい場合がある。
@@ -151,7 +151,7 @@ class Recognition:
             "image_path" : self.Set_StringData(data.image_path,DATA_TYPE.STRING),
             "interval_time" : float(data.interval_time),
             "recognition_confidence" : float(data.recognition_confidence),
-            "recognition_grayscale" : float(data.recognition_grayscale)
+            "recognition_gray_scale" : float(data.recognition_gray_scale)
         }
         return setting_dictionary
 
@@ -164,27 +164,46 @@ class Recognition:
         image_path = self.Get_Data("image_path",DATA_TYPE.STRING,input_dictionary)
         interval_time = self.Get_Data("interval_time",DATA_TYPE.NUMBER,input_dictionary)
         recognition_confidence = self.Get_Data("recognition_confidence",DATA_TYPE.FLOAT,input_dictionary)
-        recognition_grayscale = self.Get_Data("recognition_grayscale",DATA_TYPE.FLOAT,input_dictionary)
-        self.setting = RecognitionInfomation(action, end_condition, end_action, execute_number, retry_number, image_path, interval_time, recognition_confidence, recognition_grayscale)
+        recognition_gray_scale = self.Get_Data("recognition_gray_scale",DATA_TYPE.FLOAT,input_dictionary)
+        self.setting = RecognitionInfomation(action, end_condition, end_action, execute_number, retry_number, image_path, interval_time, recognition_confidence, recognition_gray_scale)
 
-    def Get_Data(self,data_name,data_type=DATA_TYPE.ENUM,data_dictionary =None ):
-        if data_dictionary is None :
-            data_dictionary = self.Get_SettingDictionary()
-        if data_type == DATA_TYPE.ENUM:
-            parameter_name = data_dictionary[data_name]
-            return enum_dictionary[parameter_name]
-        elif data_type == DATA_TYPE.NUMBER:
-            return int(data_dictionary[data_name])
-        elif data_type == DATA_TYPE.FLOAT:
-            return float(data_dictionary[data_name])
-        elif data_type == DATA_TYPE.STRING:
-            return str(data_dictionary[data_name])
+    def Get_Data(self, data_name, data_type=DATA_TYPE.ENUM, data_dictionary={} ,default_value=""):
+        message="Get_Data_Start"
+        detail_dictionary = {"data_name" : data_name}
+        self.logger.log(message, "DEBUG", details=detail_dictionary)
+          
+        data_type_mapping = {
+            DATA_TYPE.ENUM: lambda x: enum_dictionary.get(data_dictionary.get(x,"")),
+            #DATA_TYPE.ENUM: enum_dictionary[data_dictionary.get(data_name,0)],
+            DATA_TYPE.NUMBER: lambda x:str(data_dictionary[x]),
+            DATA_TYPE.BOOL : lambda x: data_dictionary[x],
+            DATA_TYPE.STRING : lambda x: str(data_dictionary[x])
+        }
+        
+        if data_type in data_type_mapping:
+            try:
+
+                parameter_value = data_type_mapping[data_type](data_name)
+                message = "Get_Data_Result"
+                detail_dictionary = {
+                    "data_name": data_name,
+                    "data_value": str(parameter_value)
+                }
+                self.logger.log(message, "DEBUG", details = detail_dictionary)
+                return parameter_value
+            except:
+                return default_value
+            
         else:
-            return str(data_dictionary[data_name])
+            return str(data_dictionary.get(data_name,""))
+        
+    def Get_Enum(self,data_name,data_dictionary):
+        value = data_dictionary.get(data_name,0)
+        print(value)
+        return enum_dictionary[value]
 
     def Set_StringData(self,data,data_type=""):
         if data_type == DATA_TYPE.ENUM:
-            #return data.name#子要素しか返さなかった。
             return str(data)
             #return END_ACTION(data).name
         elif data_type == DATA_TYPE.NUMBER:
@@ -192,47 +211,48 @@ class Recognition:
         elif data_type == DATA_TYPE.FLOAT:
             return str(data)
         elif data_type == DATA_TYPE.STRING:
-            return  str(data)
+            return str(data)
         else:
-            return  str(data)
+            return str(data)
 
     def CheckSettingDictionary(self,input_dictionary):
-        result={}
-        result["action"]=type(input_dictionary["action"])
-        result["end_condition"]=type(input_dictionary["end_condition"])
-        result["end_action"]=type(input_dictionary["end_action"])
-        result["execute_number"]=type(input_dictionary["execute_number"])
-        result["retry_number"]=type(input_dictionary["retry_number"])
-        result["image_path"]=type(input_dictionary["image_path"])
-        result["interval_time"]=type(input_dictionary["interval_time"])
-        result["recognition_confidence"]=type(input_dictionary["recognition_confidence"])
-        result["recognition_grayscale"]=type(input_dictionary["recognition_grayscale"])
-        return result
+        result_type = {}
+        result_type["action"] = type(input_dictionary["action"])
+        result_type["end_condition"] = type(input_dictionary["end_condition"])
+        result_type["end_action"] = type(input_dictionary["end_action"])
+        result_type["execute_number"] = type(input_dictionary["execute_number"])
+        result_type["retry_number"] = type(input_dictionary["retry_number"])
+        result_type["image_path"] = type(input_dictionary["image_path"])
+        result_type["interval_time"] = type(input_dictionary["interval_time"])
+        result_type["recognition_confidence"] = type(input_dictionary["recognition_confidence"])
+        result_type["recognition_gray_scale"] = type(input_dictionary["recognition_gray_scale"])
+        return result_type
+    
 
-        
-    def CheckSetting(self,recognition_information=None):
-        result={}
+    def CheckSetting(self,recognition_information = None):
+        result_type = {}
         if(recognition_information==None):
             recognition_information = self.setting
-        result["action"]=type(recognition_information.action)
-        result["end_condition"]=type(recognition_information.end_condition)
-        result["end_action"]=type(recognition_information.end_action)
-        result["execute_number"]=type(recognition_information.execute_number)
-        result["retry_number"]=type(recognition_information.retry_number)
-        result["image_path"]=type(recognition_information.image_path)
-        result["interval_time"]=type(recognition_information.interval_time)
-        result["recognition_confidence"]=type(recognition_information.recognition_confidence)
-        result["recognition_grayscale"]=type(recognition_information.recognition_grayscale)
-        return result
+        result_type["action"] = type(recognition_information.action)
+        result_type["end_condition"] = type(recognition_information.end_condition)
+        result_type["end_action"] = type(recognition_information.end_action)
+        result_type["execute_number"] = type(recognition_information.execute_number)
+        result_type["retry_number"] = type(recognition_information.retry_number)
+        result_type["image_path"] = type(recognition_information.image_path)
+        result_type["interval_time"] = type(recognition_information.interval_time)
+        result_type["recognition_confidence"] = type(recognition_information.recognition_confidence)
+        result_type["recognition_gray_scale"] = type(recognition_information.recognition_gray_scale)
+        return result_type
+
     action : ACTION 
     end_condition : RESULT 
     end_action : END_ACTION
-    execute_number : int =0
-    retry_number : int =0 
+    execute_number : int = 0
+    retry_number : int = 0 
     image_path : str = ""
     interval_time : float = 0.1
     recognition_confidence : float = 1.0
-    recognition_grayscale : float = 0
+    recognition_gray_scale : float = 0
     x_offset_dictionary : dict = None
     y_offset_dictionary : dict = None
             
@@ -241,15 +261,15 @@ class Recognition:
         Images_Action_ByInformation(self.setting)
 
 
-def Image_SearchAndXY(image_path, recognition_grayscale, recognition_confidence):
-    result = pyautogui.locateCenterOnScreen(image_path, grayscale=recognition_grayscale, confidence=recognition_confidence)
+def Image_SearchAndXY(image_path, recognition_gray_scale, recognition_confidence):
+    result = pyautogui.locateCenterOnScreen(image_path, grayscale=recognition_gray_scale, confidence=recognition_confidence)
     x, y = result
     return x, y
 
 # Imageを探してMouse pointerを移動させる
-def Image_SearchAndMove(image_path, x_offset_dictionary, y_offset_dictionary, recognition_grayscale, recognition_confidence):
+def Image_SearchAndMove(image_path, x_offset_dictionary, y_offset_dictionary, recognition_gray_scale, recognition_confidence):
     try:
-        result = pyautogui.locateCenterOnScreen(image_path, grayscale=recognition_grayscale, confidence=recognition_confidence)
+        result = pyautogui.locateCenterOnScreen(image_path, grayscale=recognition_gray_scale, confidence=recognition_confidence)
         if result is not None:
             x,y=result
             if x_offset_dictionary is not None:
@@ -281,8 +301,8 @@ def Image_SearchAndMove(image_path, x_offset_dictionary, y_offset_dictionary, re
         print(x_offset_dictionary)
         print("y_offset_dictionary")
         print(y_offset_dictionary)
-        print("recognition_grayscale")
-        print(recognition_grayscale)
+        print("recognition_gray_scale")
+        print(recognition_gray_scale)
         print("recognition_confidence")
         print(recognition_confidence)
 
@@ -304,18 +324,28 @@ def Condition_Judge(condition1, condition2,details={}):
     if condition1 == condition2:
         result = True
     # 条件がOKで結果がALL_OKならOK
+    elif condition1 == "OK" and condition2 == "ALL_OK":
+        result =  True
+    # 条件がOKで結果がALL_OKならOK
     elif condition1 == RESULT.OK and condition2 == RESULT.ALL_OK:
         result =  True
     # それ以外はFalse
     else:
         result =  False
-    detail_dictionary = {
-        "result" : result,
-        "condition1": RESULT(condition1).name,
-        "condition1_type":str(type(condition1)),
-        "condition2":RESULT(condition2).name,
-        "condition2_type":str(type(condition2))
-    }
+    if isinstance(condition1,str):
+        detail_dictionary = {
+            "result" : result,
+            "condition1": condition1,
+            "condition2": condition2
+        }
+    else:
+        detail_dictionary = {
+            "result" : result,
+            "condition1": RESULT(condition1).name,
+            "condition1_type":str(type(condition1)),
+            "condition2":RESULT(condition2).name,
+            "condition2_type":str(type(condition2))
+        }
     details.update(detail_dictionary)
     return result
 
@@ -383,7 +413,7 @@ def ReadInfomationFromJson(file_path):
     return Images_Action_Result
 
 # Folder内のImageを探してMouse pointerを移動し、行動する
-def Images_Action(action, end_action, end_condition, images_path, x_offset_dictionary, y_offset_dictionary, recognition_grayscale, recognition_confidence, interval_time):
+def Images_Action(action, end_action, end_condition, images_path, x_offset_dictionary, y_offset_dictionary, recognition_gray_scale, recognition_confidence, interval_time):
     all_ok = True
     all_ng = True
     result = False
@@ -391,7 +421,7 @@ def Images_Action(action, end_action, end_condition, images_path, x_offset_dicti
 
     for image_path in glob.glob(images_path):
         # 画像検索とPointer移動
-        end_result = Image_SearchAndMove(image_path, x_offset_dictionary, y_offset_dictionary, recognition_grayscale, recognition_confidence)
+        end_result = Image_SearchAndMove(image_path, x_offset_dictionary, y_offset_dictionary, recognition_gray_scale, recognition_confidence)
         if end_result:
             Images_Action_Result=Images_Action_ResultSet(Images_Action_Result,image_path,1,0)        
             Images_Action_Result=Images_Action_ResultSet(Images_Action_Result,"all_image",1,0)        
@@ -439,7 +469,7 @@ def Images_Action_ByInformation(recognition_information, x_offset_dictionary=Non
         print(recognition_information.execute_number)
         for loop02 in range(recognition_information.execute_number):
             Log.Log_MessageAdd(message_list, "Execute_Number:"+str(loop02))
-            end_result = Images_Action(recognition_information.action, recognition_information.end_action, recognition_information.end_condition, recognition_information.image_path,x_offset_dictionary, y_offset_dictionary, recognition_information.recognition_grayscale, recognition_information.recognition_confidence, recognition_information.interval_time)
+            end_result = Images_Action(recognition_information.action, recognition_information.end_action, recognition_information.end_condition, recognition_information.image_path,x_offset_dictionary, y_offset_dictionary, recognition_information.recognition_gray_scale, recognition_information.recognition_confidence, recognition_information.interval_time)
             if end_result != RESULT.NG:
                 all_ng = False
                 print("Continue:loop" + RESULT(end_result).name + "/"+str(recognition_information.execute_number))
@@ -495,9 +525,7 @@ def Images_ConditionCheckAndAction(name, condition, action_recognition_informati
 
 def Image_AroundMouse(file_path, flag_overwrite=True, wide=0, height=0, dupplicate_format="{}({:0=3}){}"):
     x, y = pyautogui.position()
-
     Image_AroundPoint(file_path, flag_overwrite, x, y, wide, height, dupplicate_format)
-
 
 def Image_AroundPoint(file_path, flag_overwrite=True, x=0, y=0, wide=0, height=0, dupplicate_format="{}({:0=3}){}"):
     if flag_overwrite == False:

@@ -12,6 +12,7 @@ from kivy.core.window import Window
 from kivy.uix.label import Label
 from kivy.clock import Clock
 
+sys.path.append("./Common")
 sys.path.append("../Common")
 sys.path.append("../../Common")
 
@@ -91,25 +92,33 @@ class ValueEditor:
         else:
             return queue
 
-def main(argument_dictionary):
-    program_type = argument_dictionary.get("type","")
+def Execute(setting_dictionary):
+    program_type = setting_dictionary.get("type","")
     
     if program_type == "ValueEditor":
         editor = ValueEditor()
-        result = editor.run(argument_dictionary)
-        print(result)
+        result = editor.run(setting_dictionary)
     else:
         editor = DictionaryEditor()
-        result = editor.run(argument_dictionary)
-        print(result)
+        result = editor.run(setting_dictionary)
+    return result
 
-if __name__ == "__main__":
+#command lineから機能を利用する。
+def main():
     if Window:
         gui=CloseApp()
         gui.run()
 
-    # Defaultの辞書Data
+    # Defaultの辞書Dataを設定。
     default_dictionary = {}
     option_dictionary = {"type":"ValueEditor"}
-    argument_dictionary = FunctionUtility.ArgumentGet(default_dictionary,option_dictionary)
-    main(argument_dictionary)
+
+    # Command lineの引数を得てから機能を実行し、標準出力を出力IFとして動作する。
+    # 単体として動作するように実行部のExecuteは辞書を入出力IFとして動作する。
+    setting_dictionary = FunctionUtility.ArgumentGet(default_dictionary,option_dictionary)
+    result_dictionary = Execute(setting_dictionary)
+    FunctionUtility.Result(result_dictionary)
+
+if __name__ == "__main__":
+    main()
+
