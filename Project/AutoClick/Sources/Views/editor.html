@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>JSON Editor</title>
+    <style>
+        .nested {
+            margin-left: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>JSON Editor</h1>
+
+    <!-- Input for JSON file -->
+    <input type="file" id="fileInput">
+    <button onclick="readJson()">Read</button>
+
+    <!-- Display JSON data -->
+    <div id="jsonData"></div>
+
+    <script>
+        let jsonDataObject = null;
+
+        // Function to read JSON file
+        function readJson() {
+            const fileInput = document.getElementById('fileInput');
+            const jsonDataDisplay = document.getElementById('jsonData');
+
+            if (fileInput.files.length > 0) {
+                const file = fileInput.files[0];
+                const reader = new FileReader();
+
+                reader.onload = function (e) {
+                    try {
+                        jsonDataObject = JSON.parse(e.target.result);
+                        displayJsonObject(jsonDataObject, jsonDataDisplay, '');
+                    } catch (error) {
+                        jsonDataDisplay.innerHTML = 'Error parsing JSON file.';
+                    }
+                };
+
+                reader.readAsText(file);
+            }
+        }
+
+        // Function to display JSON object
+        function displayJsonObject(obj, container, indent) {
+            container.innerHTML = ''; // Clear previous content
+
+            const listItem = document.createElement('div');
+            listItem.className = 'nested';
+
+            for (const key in obj) {
+                if (typeof obj[key] === 'object') {
+                    const subListItem = document.createElement('div');
+                    subListItem.innerHTML = `<strong>${key}:</strong>`;
+
+                    const displayButton = document.createElement('button');
+                    displayButton.innerText = 'Display';
+                    displayButton.addEventListener('click', () => {
+                        displayJsonObject(obj[key], subListItem, indent + '  ');
+                    });
+
+                    subListItem.appendChild(displayButton);
+                    listItem.appendChild(subListItem);
+                } else {
+                    const editBox = document.createElement('input');
+                    editBox.type = 'text';
+                    editBox.value = obj[key];
+
+                    const deleteButton = document.createElement('button');
+                    deleteButton.innerText = 'Delete';
+                    deleteButton.addEventListener('click', () => {
+                        delete obj[key];
+                        displayJsonObject(obj, container, indent);
+                    });
+
+                    editBox.addEventListener('input', () => {
+                        obj[key] = editBox.value;
+                    });
+
+                    const subListItem = document.createElement('div');
+                    subListItem.innerHTML = `<strong>${key}:</strong>`;
+                    subListItem.appendChild(editBox);
+                    subListItem.appendChild(deleteButton);
+                    listItem.appendChild(subListItem);
+                }
+            }
+
+            // Add "Add" button
+            const addButton = document.createElement('button');
+            addButton.innerText = 'Add';
+            addButton.addEventListener('click', () => {
+                const newKey = prompt('Enter a new key:');
+                if (newKey) {
+                    const newValue = prompt('Enter a value:');
+                    if (newValue) {
+                        obj[newKey] = newValue;
+                        displayJsonObject(obj, container, indent);
+                    }
+                }
+            });
+
+            listItem.appendChild(addButton);
+            container.appendChild(listItem);
+        }
+
+        // Function to download JSON file
+        function downloadJson() {
+            if (jsonDataObject) {
+                const jsonDataStr = JSON.stringify(jsonDataObject, null, 4);
+                const blob = new Blob([jsonDataStr], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'edited.json';
+                a.click();
+
+                URL.revokeObjectURL(url);
+            }
+        }
+
+        // Display a 'Download' button
+        const downloadButton = document.createElement('button');
+        downloadButton.innerText = 'Download';
+        downloadButton.addEventListener('click', downloadJson);
+        document.body.appendChild(downloadButton);
+    </script>
+</body>
+</html>

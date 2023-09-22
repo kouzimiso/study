@@ -35,7 +35,7 @@ class RecognitionInfomation:
     image_path : str = ""
     interval_time : float = 0.1
     recognition_confidence : float = 1.0
-    recognition_grayscale : float = 0
+    recognition_gray_scale : float = 0
     x_offset_dictionary : dict = None
     y_offset_dictionary : dict = None
     def __init__(
@@ -48,13 +48,13 @@ class RecognitionInfomation:
         image_path = "",
         interval_time = 0.1,
         recognition_confidence =1.0 , 
-        recognition_grayscale = 0
+        recognition_gray_scale = 0
         ):
-        self.Set_Setting(action , end_condition , end_action , execute_number , retry_number , image_path , interval_time , recognition_confidence , recognition_grayscale)
+        self.Set_Setting(action , end_condition , end_action , execute_number , retry_number , image_path , interval_time , recognition_confidence , recognition_gray_scale)
         
         self.setting_initial_dictionary={}
 
-    def Set_Setting(self , action , end_condition , end_action , execute_number , retry_number , image_path, interval_time, recognition_confidence, recognition_grayscale):
+    def Set_Setting(self , action , end_condition , end_action , execute_number , retry_number , image_path, interval_time, recognition_confidence, recognition_gray_scale):
         # 処理
         self.action = action
         # 終了条件
@@ -72,7 +72,7 @@ class RecognitionInfomation:
         # 画像認識のあいまい設定
         self.recognition_confidence = recognition_confidence
         # GrayScale設定(高速化)
-        self.recognition_grayscale = recognition_grayscale
+        self.recognition_gray_scale = recognition_gray_scale
         # dictionary_setting
 
 #Dictionaryで設定したい時と個別設定値で設定したい場合がある。
@@ -108,7 +108,7 @@ class Recognition:
             "image_path" : self.Set_StringData(data.image_path,Auto.DATA_TYPE.STRING),
             "interval_time" : float(data.interval_time),
             "recognition_confidence" : float(data.recognition_confidence),
-            "recognition_grayscale" : data.recognition_grayscale
+            "recognition_gray_scale" : data.recognition_gray_scale
         }
         return setting_dictionary
 
@@ -121,8 +121,8 @@ class Recognition:
         image_path=self.Get_Data("image_path",Auto.DATA_TYPE.STRING,input_dictionary)
         interval_time=self.Get_Data("interval_time",Auto.DATA_TYPE.NUMBER,input_dictionary)
         recognition_confidence=self.Get_Data("recognition_confidence",Auto.DATA_TYPE.FLOAT,input_dictionary)
-        recognition_grayscale=self.Get_Data("recognition_grayscale",Auto.DATA_TYPE.BOOL,input_dictionary)
-        self.setting = RecognitionInfomation(action, end_condition, end_action, execute_number, retry_number, image_path, interval_time, recognition_confidence, recognition_grayscale)
+        recognition_gray_scale=self.Get_Data("recognition_gray_scale",Auto.DATA_TYPE.BOOL,input_dictionary)
+        self.setting = RecognitionInfomation(action, end_condition, end_action, execute_number, retry_number, image_path, interval_time, recognition_confidence, recognition_gray_scale)
 
  
     def Get_Data(self, data_name, data_type=Auto.DATA_TYPE.ENUM, data_dictionary=None):
@@ -171,7 +171,7 @@ class Recognition:
         result_type["image_path"] = type(input_dictionary["image_path"])
         result_type["interval_time"] = type(input_dictionary["interval_time"])
         result_type["recognition_confidence"] = type(input_dictionary["recognition_confidence"])
-        result_type["recognition_grayscale"] = type(input_dictionary["recognition_grayscale"])
+        result_type["recognition_gray_scale"] = type(input_dictionary["recognition_gray_scale"])
         return result_type
     
     def CheckSetting(self,recognition_information = None):
@@ -186,7 +186,7 @@ class Recognition:
         result_type["image_path"] = type(recognition_information.image_path)
         result_type["interval_time"] = type(recognition_information.interval_time)
         result_type["recognition_confidence"] = type(recognition_information.recognition_confidence)
-        result_type["recognition_grayscale"] = type(recognition_information.recognition_grayscale)
+        result_type["recognition_gray_scale"] = type(recognition_information.recognition_gray_scale)
         return result_type
 
     action : Auto.ACTION 
@@ -197,7 +197,7 @@ class Recognition:
     image_path : str = ""
     interval_time : float = 0.1
     recognition_confidence : float = 1.0
-    recognition_grayscale : float = 0
+    recognition_gray_scale : float = 0
     x_offset_dictionary : dict = None
     y_offset_dictionary : dict = None
             
@@ -223,15 +223,15 @@ class Recognition:
         return result_dictionary
 
 
-    def Image_SearchAndXY(self,image_path, recognition_grayscale, recognition_confidence):
-        result = pyautogui.locateCenterOnScreen(image_path, grayscale=recognition_grayscale, confidence=recognition_confidence)
+    def Image_SearchAndXY(self,image_path, recognition_gray_scale, recognition_confidence):
+        result = pyautogui.locateCenterOnScreen(image_path, grayscale=recognition_gray_scale, confidence=recognition_confidence)
         x, y = result
         return x, y
     
     # Imageを探してMouse pointerを移動させる
-    def Image_SearchAndMove(self,image_path, x_offset_dictionary, y_offset_dictionary, recognition_grayscale, recognition_confidence):
+    def Image_SearchAndMove(self,image_path, x_offset_dictionary, y_offset_dictionary, recognition_gray_scale, recognition_confidence):
         try:
-            result = pyautogui.locateCenterOnScreen(image_path, grayscale=recognition_grayscale, confidence=recognition_confidence)
+            result = pyautogui.locateCenterOnScreen(image_path, grayscale=recognition_gray_scale, confidence=recognition_confidence)
             if result is not None:
                 x,y=result
                 detail_dictionary={}
@@ -341,7 +341,7 @@ class Recognition:
         return self.Images_Action_Result
 
     # Folder内のImageを探してMouse pointerを移動し、行動する
-    def Images_Action(self,action , end_action , end_condition , images_path , x_offset_dictionary , y_offset_dictionary , recognition_grayscale , recognition_confidence , interval_time):
+    def Images_Action(self,action , end_action , end_condition , images_path , x_offset_dictionary , y_offset_dictionary , recognition_gray_scale , recognition_confidence , interval_time):
         all_ok = True
         all_ng = True
         result = False
@@ -349,7 +349,7 @@ class Recognition:
 
         for image_path in glob.glob(images_path):
             # 画像検索とPointer移動
-            end_result = self.Image_SearchAndMove(image_path , x_offset_dictionary , y_offset_dictionary , recognition_grayscale , recognition_confidence)
+            end_result = self.Image_SearchAndMove(image_path , x_offset_dictionary , y_offset_dictionary , recognition_gray_scale , recognition_confidence)
             if end_result:
                 self.Images_Action_Result=self.Images_Action_ResultSet(self.Images_Action_Result,image_path,1,0)        
                 self.Images_Action_Result=self.Images_Action_ResultSet(self.Images_Action_Result,"all_image",1,0)        
@@ -399,7 +399,7 @@ class Recognition:
                     "execute_number":str(loop02)+"/"+str(recognition_information.execute_number)
                 }
                 self.logger.Message_Add(message,"INFO")
-                end_result = self.Images_Action(recognition_information.action , recognition_information.end_action , recognition_information.end_condition , recognition_information.image_path,x_offset_dictionary , y_offset_dictionary , recognition_information.recognition_grayscale , recognition_information.recognition_confidence , recognition_information.interval_time)
+                end_result = self.Images_Action(recognition_information.action , recognition_information.end_action , recognition_information.end_condition , recognition_information.image_path,x_offset_dictionary , y_offset_dictionary , recognition_information.recognition_gray_scale , recognition_information.recognition_confidence , recognition_information.interval_time)
                 if end_result != Auto.RESULT.NG:
                     all_ng = False
                     message={
