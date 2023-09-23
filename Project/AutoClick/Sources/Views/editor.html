@@ -57,15 +57,17 @@
             renderData(data, container, [], indentLevel);
         }
 
-        function renderData(data, container, path, indentLevel) {
+        function renderData(data, container, path, parentIndentLevel) {
             if (typeof data === 'object') {
-                for (const key in data) {
+                const keys = Object.keys(data);
+
+                for (const key of keys) {
                     const value = data[key];
                     const newPath = [...path, key];
 
                     const div = document.createElement('div');
                     div.className = 'indent';
-                    div.style.marginLeft = `${indentLevel * 20}px`;
+                    div.style.marginLeft = `${parentIndentLevel * 20}px`;
 
                     const label = document.createElement('label');
                     label.textContent = key;
@@ -76,6 +78,7 @@
                         displayButton.textContent = 'Display';
                         displayButton.onclick = () => toggleDisplay(newPath);
                         div.appendChild(displayButton);
+                        const childIndentLevel = parentIndentLevel + 1;
 
                         if (value instanceof Array) {
                             const addValueInput = document.createElement('input');
@@ -85,6 +88,13 @@
                             addButton.onclick = () => addArrayValue(newPath, addValueInput.value);
                             div.appendChild(addValueInput);
                             div.appendChild(addButton);
+                            const deleteButton = document.createElement('button');
+                            deleteButton.textContent = 'Delete';
+                            deleteButton.onclick = () => deleteValue(newPath);
+                            div.appendChild(deleteButton);
+
+                            container.appendChild(div);
+
                         } else {
                             const addKeyInput = document.createElement('input');
                             addKeyInput.placeholder = 'New Key';
@@ -96,6 +106,19 @@
                             div.appendChild(addKeyInput);
                             div.appendChild(addValueInput);
                             div.appendChild(addButton);
+                            const deleteButton = document.createElement('button');
+                            deleteButton.textContent = 'Delete';
+                            deleteButton.onclick = () => deleteValue(newPath);
+                            div.appendChild(deleteButton);
+
+                            container.appendChild(div);
+
+                        }
+
+                        container.appendChild(div);
+
+                        if (value._displayed) {
+                            renderData(value, container, newPath, childIndentLevel);
                         }
                     } else {
                         const input = document.createElement('input');
@@ -103,26 +126,24 @@
                         input.value = value;
                         input.oninput = () => updateValue(newPath, input.value);
                         div.appendChild(input);
-                    }
+                        
 
-                    const deleteButton = document.createElement('button');
-                    deleteButton.textContent = 'Delete';
-                    deleteButton.onclick = () => deleteValue(newPath);
-                    div.appendChild(deleteButton);
+                        const deleteButton = document.createElement('button');
+                        deleteButton.textContent = 'Delete';
+                        deleteButton.onclick = () => deleteValue(newPath);
+                        div.appendChild(deleteButton);
 
-                    container.appendChild(div);
-
-                    if (typeof value === 'object' && value._displayed) {
-                        renderData(value, container, newPath, indentLevel + 1);
+                        container.appendChild(div);
                     }
                 }
             }
         }
 
+
         function toggleDisplay(path) {
             const current = getNestedValue(jsonData, path);
             current._displayed = !current._displayed;
-            renderEditor(jsonData, 'jsonEditor', path.length);
+            renderEditor(jsonData, 'jsonEditor', 0)//path.length);
         }
 
         function updateValue(path, newValue) {
@@ -133,7 +154,7 @@
         function deleteValue(path) {
             const parent = getNestedValue(jsonData, path.slice(0, -1));
             delete parent[path[path.length - 1]];
-            renderEditor(jsonData, 'jsonEditor', path.length - 1);
+            renderEditor(jsonData, 'jsonEditor', 0)//path.length - 1);
         }
 
         function addArrayValue(path, newValue) {
@@ -144,7 +165,7 @@
             } catch (error) {
                 current.push(newValue);
             }
-            renderEditor(jsonData, 'jsonEditor', path.length);
+            renderEditor(jsonData, 'jsonEditor', 0)//path.length);
         }
 
         function addObjectKeyValue(path, newKey, newValue) {
@@ -155,7 +176,7 @@
             } catch (error) {
                 current[newKey] = newValue;
             }
-            renderEditor(jsonData, 'jsonEditor', path.length);
+            renderEditor(jsonData, 'jsonEditor', 0)//path.length);
         }
 
         function getNestedValue(obj, path) {
