@@ -81,7 +81,7 @@ class Test(unittest.TestCase):
 
 
     def test_Auto5_dictionarytodata(self):
-        setting_dictionary = {
+        settings_dictionary = {
             "action" : "ACTION.CLICK" ,
             "end_condition" : "RESULT.OK",
             "execute_number" : 1,
@@ -99,11 +99,11 @@ class Test(unittest.TestCase):
             "step_check_mode" : True
         }
         #設定でInstance作成
-        recognition=Recognition.Recognition(setting_dictionary)
+        recognition=Recognition.Recognition(settings_dictionary)
         #設定を読みだす
-        read_setting_dictionary = recognition.Get_SettingDictionary()
+        read_settings_dictionary = recognition.Get_SettingsDictionary()
         #読みだした設定で再度Instance作成
-        recognition=Recognition.Recognition(read_setting_dictionary)
+        recognition=Recognition.Recognition(read_settings_dictionary)
         #設定の実行
         recognition.Execute()
         
@@ -120,13 +120,13 @@ class Test(unittest.TestCase):
                 {
                     "name":"test1-1",
                     "type":"Recognition",
-                    "settings" : setting_dictionary,
+                    "settings" : settings_dictionary,
                 },
                 {
                     "name":"test1-2",
                     "type":"Recognition",
                     "condition_list": ["Result_test1-1=True"],
-                    "settings" : setting_dictionary
+                    "settings" : settings_dictionary
                 }
                 
             ],
@@ -216,9 +216,9 @@ class Test(unittest.TestCase):
                 },
                 {
                     "comment": "比較する時刻に矛盾が無いことを確認する関数。Day1,Day2には特定の日付か曜日を含む時間を入れられる。day2には曜日は入れられない。day1かday3片方が曜日の場合は一週間回って必ず成立するのでTrue。",
-                    "name": "TimeCheck_Houchi1",
+                    "name": "TimeCheck_1",
                     "type": "CheckDay",
-                    "result_name":"Houchi_Time_Check1",
+                    "result_name":"Time_Check1",
                     "settings": {
                         "day1": "土曜日0:00",
                         "day2": "Now",
@@ -234,20 +234,20 @@ class Test(unittest.TestCase):
                     "name":"test2-1-1",
                     "type":"Recognition",
                     "condition_list" : ["Condition_Execute=True"],
-                    "settings" : setting_dictionary,
+                    "settings" : settings_dictionary,
                 },
                 {
                     "name":"test2-1-2",
                     "type":"Recognition",
                     "condition_list" : ["Result_DayCondition1=True,Result_DayCondition2=True"],
-                    "settings" : setting_dictionary,
+                    "settings" : settings_dictionary,
                 },
                 {
                     "name":"test2-1-3",
                     "type":"Recognition",
                     "comment":"CheckDayをconditionに入れたバージョン。符号が<=で良いかどうか微妙。",
                     "condition_list" : ["水曜日10:20<=Now<=月曜日22:30,木曜日10:20<=Now<=金曜日22:30","Result_test2-1-1=True"],
-                    "settings" : setting_dictionary
+                    "settings" : settings_dictionary
                 }
             ],
 
@@ -256,12 +256,12 @@ class Test(unittest.TestCase):
                 {
                     "name":"test2-2-1",
                     "type":"Recognition",
-                    "settings" : setting_dictionary,
+                    "settings" : settings_dictionary,
                 },
                 {
                     "name":"test2-2-2",
                     "type":"Recognition",
-                    "settings" : setting_dictionary
+                    "settings" : settings_dictionary
                 }
             ]
 

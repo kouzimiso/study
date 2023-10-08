@@ -8,7 +8,7 @@ import re
 
 class DayOfTheWeek:
     message_list=[]
-    def __init__(self , set_monday=0 , flag_sunday_start=False,setting_dictionary={}):
+    def __init__(self , set_monday=0 , flag_sunday_start=False,settings_dictionary={}):
         self.MonDay = set_monday+0
         self.TuesDay = set_monday+1
         self.WednesDay = set_monday+2
@@ -19,7 +19,7 @@ class DayOfTheWeek:
             self.SunDay = set_monday-1
         else:
             self.SunDay = set_monday+6
-        self.logger = Log.Logs(setting_dictionary)
+        self.logger = Log.Logs(settings_dictionary)
 
     
     def SetNowInformation(self):
@@ -104,10 +104,10 @@ class DayOfTheWeek:
                 return date_time_after
         return -1
     
-    def CheckDay(self, setting_dictionary):
-        day1 = setting_dictionary.get("day1")
-        day2 = setting_dictionary.get("day2")
-        day3 = setting_dictionary.get("day3")
+    def CheckDay(self, settings_dictionary):
+        day1 = settings_dictionary.get("day1")
+        day2 = settings_dictionary.get("day2")
+        day3 = settings_dictionary.get("day3")
 
         day_information = self.SetDayInformation()
         now_information = self.SetNowInformation()
@@ -235,9 +235,9 @@ class DayOfTheWeek:
         time_delta = day_after - day_before
         time_delta_7day= datetime.timedelta(days=7)
         details["time"] = str(time_delta )
-        details["checkdate"] = date_time.strftime ( '%Y/%m/%d(%A) %H:%M' ) 
-        details["settingzone"] = day_of_weekday1_string + time1.strftime ( '%H:%M' ) +"～"+ day_of_weekday2_string +time2.strftime ( '%H:%M' ) 
-        details["checkzone"] = day_before.strftime ( '%Y/%m/%d(%A) %H:%M' ) +"～"+day_after.strftime ( '%Y/%m/%d(%A) %H:%M' ) 
+        details["check_date"] = date_time.strftime ( '%Y/%m/%d(%A) %H:%M' ) 
+        details["setting_zone"] = day_of_weekday1_string + time1.strftime ( '%H:%M' ) +"～"+ day_of_weekday2_string +time2.strftime ( '%H:%M' ) 
+        details["check_zone"] = day_before.strftime ( '%Y/%m/%d(%A) %H:%M' ) +"～"+day_after.strftime ( '%Y/%m/%d(%A) %H:%M' ) 
         if time_delta < time_delta_7day:
             self.logger.log("day check true","INFO",details=details)     
             return True
@@ -274,8 +274,8 @@ def parse_time(string):
             second = 00
         else:
             return None
-    overday= int(hour//24)
+    over_day= int(hour//24)
     hour = int(hour % 24)
     time = datetime.time(hour,minute,second)
-    time_dictionary = {"hour": hour, "minute": minute, "second": second,"time":time,"overday":overday}
+    time_dictionary = {"hour": hour, "minute": minute, "second": second,"time":time,"over_day":over_day}
     return time_dictionary

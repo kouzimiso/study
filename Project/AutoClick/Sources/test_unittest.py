@@ -152,9 +152,9 @@ class Test(unittest.TestCase):
             "test1" :
             [
                 {
-                    "name": "TimeCheck_Houchi2",
+                    "name": "TimeCheck_2",
                     "type": "CheckDay",
-                    "result_name":"Houchi_Time_Check2",
+                    "result_name":"Time_Check2",
                     "settings": {
                         "day1": "月曜日0:00",
                         "day2": "Now",
@@ -164,9 +164,9 @@ class Test(unittest.TestCase):
                     }
                 },
                 {
-                    "name": "TimeCheck_Houchi3",
+                    "name": "TimeCheck_3",
                     "type": "CheckDay",
-                    "result_name":"Houchi_Time_Check3",
+                    "result_name":"Time_Check3",
                     "settings": {
                         "day1": "火曜日0:00",
                         "day2": "Now",
@@ -176,9 +176,9 @@ class Test(unittest.TestCase):
                     }
                 },
                 {
-                    "name": "TimeCheck_Houchi4",
+                    "name": "TimeCheck_4",
                     "type": "CheckDay",
-                    "result_name":"Houchi_Time_Check4",
+                    "result_name":"Time_Check4",
                     "settings": {
                         "day1": "金曜日0:00",
                         "day2": "Now",
@@ -193,7 +193,7 @@ class Test(unittest.TestCase):
                     "type": "Judge",
                     "settings": {
                         "condition_list": [
-                            "Houchi_Time_Check1=True,Houchi_Time_Check2=True,Houchi_Time_Check3.result=True,Houchi_Time_Check4.result=True"
+                            "Time_Check1=True,Time_Check2=True,Time_Check3.result=True,Time_Check4.result=True"
                         ],
                         "log_print_standard_output": True,"log_function":True,"log_file_path_list": "../Log/log_unittest.json",
                         "step_check_mode" : True,"step_check_comment":"The following statement will always be true if it is currently Monday, Tuesday through Wednesday, or Friday through Sunday. "
@@ -205,7 +205,7 @@ class Test(unittest.TestCase):
                     "type": "Judge",
                     "settings": {
                         "condition_list": [
-                            "Houchi_Time_Check1=True,Houchi_Time_Check2=True,Houchi_Time_Check3.result=True,Houchi_Time_Check4.result=True",
+                            "Time_Check1=True,Time_Check2=True,Time_Check3.result=True,Time_Check4.result=True",
                             "Condition_Execute01 = true"
                         ],
                         "log_print_standard_output": True,"log_function":True,"log_file_path_list": "../Log/log_unittest.json",
@@ -248,7 +248,7 @@ class Test(unittest.TestCase):
                     "name": "ClickTest02-1",
                     "type": "Recognition",
                     "condition_list":["Condition_Execute = true","Result_ClickTest01.detail=RESULT.NG"],
-                    "result_name":"Result_HouchiAccountClicked",
+                    "result_name":"Result_AccountClicked",
                     "settings": {
                         "action": "ACTION.DOUBLE_CLICK",
                         "end_condition": "RESULT.OK",
@@ -283,7 +283,7 @@ class Test(unittest.TestCase):
                 {
                     "name": "ClickTest02-2",
                     "type": "Recognition",
-                    "result_name":"Result_HouchiAccountClicked",
+                    "result_name":"Result_AccountClicked",
                     "condition_list":["Condition_Execute = true","Result_ClickTest01.detail=RESULT.NG"],
                     "settings": {
                         "action": "ACTION.DOUBLE_CLICK",

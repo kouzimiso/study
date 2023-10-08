@@ -6,7 +6,8 @@
 		 	"type" : "RunPlanLists",
              "comment": "起動開始のTaskは参照できるInformationが少ないので基本的にcondition無しになるかも。",
              "settings" : {
-                "log_function":true, "log_print_standard_output": false,"log_file_path_list": "../Log/log_test_all.json",
+                "check_result":{"result":true},
+                "log_function":true, "log_print_standard_output": false,"log_file_path_list": "../Log/log_all.json",
 				"file_path" : "../Setting/RunTest01.json",
 				"plan_lists" : [
 					"test0","test1","test2"
@@ -16,10 +17,11 @@
         {
             "name": "print_end_test",
             "type": "Print",
-            "step_check_mode": false,
             "settings": {
+                "check_result":{"result":true},
+                "step_check_mode": false,
                 "message": "End test",
-                "log_function":true,"log_print_standard_output": false,"log_file_path_list": "../Log/log_test_all.json"
+                "log_function":true,"log_print_standard_output": false,"log_file_path_list": "../Log/log_all.json"
             }
 
         }
@@ -29,10 +31,11 @@
         {
             "name": "print_test",
             "type": "Print",
-            "step_check_mode": false,
             "settings": {
+                "check_result":{"result":true},
+                "step_check_mode": false,
                 "message": "Print Test",
-                "log_function":true,"log_print_standard_output": false,"log_file_path_list": "../Log/log_test_all.json"
+                "log_function":true,"log_print_standard_output": false,"log_file_path_list": "../Log/log_all.json"
             }
 
         }
@@ -42,10 +45,10 @@
             "comment": "printと繰り返し動作のTest",
             "name": "plan_list_loop",
             "type": "Print",
-            "step_check_mode": false,
             "settings": {
-                "log_function":true,"log_print_standard_output": false,"log_file_path_list": "../Log/log_test_all.json",
-                "message": "printの繰り返し2回を4回に設定Overrideする動作のTest"
+                "step_check_mode": false,
+                "log_function":true,"log_print_standard_output": false,"log_file_path_list": "../Log/log_all.json",
+                "message": "printの繰り返し2回を4回に設定変更する動作のTest"
             }
 
         },
@@ -55,10 +58,11 @@
             "condition_list" : "",
             "result_name" : "Result_Test0",
             "settings" : {
-                "log_function" : true,"log_print_standard_output" : false,"log_file_path_list" : ["../Log/log_test_all.log.json","../Log/log_test_0.log.json"],
+                "log_function" : true,"log_print_standard_output" : false,"log_file_path_list" : ["../Log/log_all.json","../Log/log_test.json"],
                 "file_path" : "../Setting/RunTest01.json",
                 "loop_condition":true,
                 "terminate_condition":["Flag_Terminate.detail = OK,Flag_Terminate.detail = ALL_OK"],
+				"delete_condition_after_terminate":["Flag_Terminate"],
                 "loop_limit_count":2,
                 "#step_check_mode" : true,
                   "plan_lists" : [
@@ -67,15 +71,15 @@
             }
         },
         {
-            "name": "OverrideSettings",
+            "name": "ChangeSettings",
             "comment": "",
-            "type": "OverrideSettings",
-            "step_check_mode": false,
+            "type": "ChangeSettings",
             "settings": {
+                "step_check_mode": false,
                 "reset_settings": true,
-                "override_settings":{
+                "change_settings_by_name":{
                     "Common":{
-                        "log_function":true,"#log_print_standard_output": false,"#log_file_path_list": ["../Log/log_test_all.log.json","../Log/log_test_0.log.json"]
+                        "log_function":true,"#log_print_standard_output": false,"#log_file_path_list": ["../Log/log_all.json","../Log/log_test.json"]
                     },
                     "judge_loop":{
                         "loop_limit_count":4
@@ -88,9 +92,9 @@
             "name": "judge_loop",
             "comment": "",
             "type": "Judge",
-            "step_check_mode": false,
             "settings": {
-                "log_function":true,"log_print_standard_output": false,"log_file_path_list": ["../Log/log_test_all.log.json","../Log/log_test_0.log.json"],
+                "check_result":{"result":true},
+                "log_function":true,"log_print_standard_output": false,"log_file_path_list": ["../Log/log_all.json","../Log/log_test.json"],
                 "loop_condition":true,
                 "loop_limit_count":2,
                 "terminate_condition":["Flag_Terminate = true"],
@@ -105,23 +109,71 @@
             "name": "judge_non_loop",
             "comment": "",
             "type": "Judge",
-            "step_check_mode": false,
             "settings": {
+                "check_result":{"result":true},
                 "terminate_condition":["Flag_Terminate = true"],
                 "delete_condition_after_terminate":["Flag_Terminate"],
                 "retry_number": 1,
                 "step_check_mode": false,
-                "log_function":true,"log_print_standard_output": false,"log_file_path_list": ["../Log/log_test_all.log.json","../Log/log_test_0.log.json"]
+                "log_function":true,"log_print_standard_output": false,"log_file_path_list": ["../Log/log_all.json","../Log/log_test.json"]
             }
 
         },
         {
+            "name": "Copy_plan_list",
+            "type" : "CopyPlanLists",
+            "condition_list" : "",
+            "result_name" : "",
+            "settings" : {
+                "check_result":{"result":true},
+                "log_function" : true,"log_print_standard_output" : false,"log_file_path_list" : ["../Log/log_all.json","../Log/log_test.json"],
+                "file_path" : "../Setting/RunTest01.json",
+                "copy_plan_lists" : [
+                    {
+                        "source_plan_list_name" : "test_print",
+                        "copy_plan_list_name": "Print_PlanListCopy01",
+                        "change_plan_names":{"Print":"Print_PlanCopy01"}
+                    },
+                    {
+                        "source_plan_list_name" : "test_print",
+                        "copy_plan_list_name": "Print_PlanListCopy02",
+                        "change_plan_names":{"Print":"Print_PlanCopy02"}
+                    }
+                ]
+            }
+        },
+        {
+            "name": "SettingChange",
+            "type" : "ChangeSettings",
+            "condition_list" : "",
+            "result_name" : "",
+            "settings" : {
+                "log_function" : true,"log_print_standard_output" : false,"log_file_path_list" : ["../Log/log_all.json","../Log/log_test.json"],
+                "change_settings_by_name" : {
+                    "Print_PlanCopy01":{
+                        "message":"It changed settings from test_print to Print_PlanCopy01"
+                    },
+                    "Print_PlanCopy02":{
+                        "message":"It changed settings from test_print to Print_PlanCopy02"
+                    }
+                }
+                
+            }
+        },
+        "Call_TimeCheck",
+        "SubAccount",
+        "CloseWindowByName",
+        "#Call_CloseWindowByName",
+        "Print_PlanListCopy01", 
+        "test_print_result_check",      
+        "Print_PlanListCopy02",
+        "test_print_result_check",
+        {
             "name": "print_end_test",
             "type": "Print",
-            "step_check_mode": false,
             "settings": {
                 "message": "End loop test",
-                "log_function":true,"log_print_standard_output": false,"log_file_path_list": "../Log/log_test_all.json"
+                "log_function":true,"log_print_standard_output": false,"log_file_path_list": "../Log/log_all.json"
             }
 
         }
@@ -131,13 +183,38 @@
         {
             "name": "Print",
             "type": "Print",
-            "step_check_mode": false,
+            "result_name":"result_print",
             "settings": {
                 "message": "test child 2 loop print",
-                "log_function":true,"log_print_standard_output": false,"log_file_path_list": "../Log/log_test_all.json"
+                "log_function":true,"log_print_standard_output": false,"log_file_path_list": "../Log/log_all.json"
             }
 
         }
+    ],
+    "test_print_result_check":[
+        {
+            "name": "Print_Result_True_Check",
+            "type": "Print",
+            "condition_list":"result_print.result = True",
+            "result_name":"",
+            "settings": {
+                "message": "result_print is true",
+                "log_function":true,"log_print_standard_output": false,"log_file_path_list": "../Log/log_all.json"
+            }
+
+        },
+        {
+            "name": "Print_Result_False_Check",
+            "type": "Print",
+            "condition_list":"result_print.result = False",
+            "result_name":"",
+            "settings": {
+                "message": "result_print is false",
+                "log_function":true,"log_print_standard_output": false,"log_file_path_list": "../Log/log_all.json"
+            }
+
+        }
+
     ],
     "test1": [
         {
@@ -151,7 +228,7 @@
                 "day1": "月曜日10:20",
                 "day2": "Now",
                 "day3": "水曜日22:30",
-                "log_file_path_list": "../Log/log_test_all.log",
+                "log_file_path_list": "../Log/log_all.log",
                 "log_print_standard_output":  false
             },
             "type": "CheckDay"
@@ -163,7 +240,7 @@
                 "day1": "水曜日22:30",
                 "day2": "Now",
                 "day3": "月曜日10:20",
-                "log_file_path_list": "../Log/log_test_all.log",
+                "log_file_path_list": "../Log/log_all.log",
                 "log_print_standard_output":  false
             },
             "type": "CheckDay"
@@ -174,30 +251,30 @@
                 "day1": "木曜10:20",
                 "day2": "2023/3/9 10:30:10",
                 "day3": "Friday 22:30",
-                "log_file_path_list": "../Log/log_test_all.log",
+                "log_file_path_list": "../Log/log_all.log",
                 "log_print_standard_output":  false
             },
             "type": "CheckDay"
         },
         {
             "name": "DayCondition4",
+            "type": "CheckDay",
             "settings": {
                 "day1": "10:20",
                 "day2": "2023/3/9 10:30:10",
                 "day3": "10:40:23",
-                "log_file_path_list": "../Log/log_test_all.log",
+                "log_file_path_list": "../Log/log_all.log",
                 "log_print_standard_output":  false
-            },
-            "type": "CheckDay"
+            }
         },
         {
             "name": "Print",
             "type": "Print",
 			"condition_list" : "Result_DayCondition1=True",            
-            "step_check_mode": false,
             "settings": {
+                "step_check_mode": false,
                 "message": "Result_DayCondition1=True",
-                "log_function":true,"log_print_standard_output": false,"log_file_path_list": "../Log/log_test_all.json"
+                "log_function":true,"log_print_standard_output": false,"log_file_path_list": "../Log/log_all.json"
             }
 
         },
@@ -205,10 +282,10 @@
             "name": "Print",
             "type": "Print",
 			"condition_list" : "Result_DayCondition2=True",            
-            "step_check_mode": false,
             "settings": {
+                "step_check_mode": false,
                 "message": "Result_DayCondition2=True",
-                "log_function":true,"log_print_standard_output": false,"log_file_path_list": "../Log/log_test_all.json"
+                "log_function":true,"log_print_standard_output": false,"log_file_path_list": "../Log/log_all.json"
             }
 
         },
@@ -217,10 +294,10 @@
             "name": "Print",
             "type": "Print",
 			"condition_list" : "Result_DayCondition3=True",            
-            "step_check_mode": false,
             "settings": {
+                "step_check_mode": false,
                 "message": "Result_DayCondition3=True",
-                "log_function":true,"log_print_standard_output": false,"log_file_path_list": "../Log/log_test_all.json"
+                "log_function":true,"log_print_standard_output": false,"log_file_path_list": "../Log/log_all.json"
             }
 
         },
@@ -229,10 +306,10 @@
             "name": "Print",
             "type": "Print",
 			"condition_list" : "Result_DayCondition4=True",            
-            "step_check_mode": false,
             "settings": {
+                "step_check_mode": false,
                 "message": "Result_DayCondition4=True",
-                "log_function":true,"log_print_standard_output": false,"log_file_path_list": "../Log/log_test_all.json"
+                "log_function":true,"log_print_standard_output": false,"log_file_path_list": "../Log/log_all.json"
             }
 
         },
@@ -247,7 +324,7 @@
                     "Result_DayCondition1=True,Result_DayCondition2=True,Result_DayCondition3=True",
                     "Result_DayCondition3=True"
                 ],
-                "log_file_path_list": "../Log/log_test_all.log",
+                "log_file_path_list": "../Log/log_all.log",
                 "log_print_standard_output":  false
             }
         },
@@ -293,7 +370,7 @@
                 "judge_default_result": true,
                 "log_arguments": false,
                 "log_file_path_list": [
-                    "../Log/log_test_all.log",
+                    "../Log/log_all.log",
                     "../Log/log_test1-1.log"
                 ],
                 "log_function": true,
@@ -341,7 +418,7 @@
                 "judge_default_result": true,
                 "log_arguments": false,
                 "log_file_path_list": [
-                    "../Log/log_test_all.log",
+                    "../Log/log_all.log",
                     "../Log/log_test2.log"
                 ],
                 "log_function": true,
@@ -356,7 +433,6 @@
             "comment": "ExecuteProgramの動作確認",
             "name": "ExecuteProgram_test",
             "type": "ExecuteProgram",
-            "step_check_mode": false,
             "settings": {
                 "program_path": "./Common/ImageControl.py",
                 "action" : "GENERATE_RANDOM_IMAGE",
@@ -373,7 +449,6 @@
             "comment": "ExecuteProgramの動作確認",
             "name": "ExecuteProgram_test",
             "type": "ExecuteProgram",
-            "step_check_mode": false,
             "settings": {
                 "program_path": "./Common/Window.py",
                 "action":"DELETE",
@@ -382,5 +457,71 @@
             }
 
         }
-    ]
+        
+    ],
+    
+	"CloseWindowByName":
+	[
+		{
+            "name": "ExecuteProgram_test",
+            "type": "ExecuteProgram",
+            "settings": {
+                "program_path": "./Common/Window.py",
+                "action":"DELETE",
+                "target_text":"Z", 
+                "flag_exact_match":false
+            }
+
+        }
+	],
+
+    "Call_CloseWindowByName" : [
+		{
+			"name" : "CloseWindowByName",
+			"type" : "RunPlanLists",
+			"settings" : {
+				"file_path" : "../Setting/TemplateRunApply.json",
+				"loop_condition":false,
+				"terminate_condition":false,
+				"loop_limit_count":1,
+				"plan_lists" : [
+					"CloseWindowByName"
+				]
+			}
+		}
+
+	],
+    "Call_TimeCheck":[
+        {
+            "name" : "Condition_TimeEvent",
+            "type" : "RunPlanLists",
+            "comment" : "",
+            "condition_list" : "",
+            "settings" : {
+                "file_path" : "../Setting/RunHouchiChild.json",
+                "log_function" : true,"log_print_standard_output" : true,"log_file_path_list" : "../Log/log_houchi.json",
+                "#step_check_mode" : true,
+                    "plan_lists" : [
+                    "TimeCheck_TimeEvent01"
+                ]
+            }
+        }
+    ],
+    "SubAccount" : 
+	[
+		{
+	 		"name" : "AccountPlanSub",
+			"type" : "RunPlanLists",
+			"condition_list" : "",
+			"settings" : {
+				"file_path" : "../Setting/RunHouchi.json",
+				"log_function" : true,"log_print_standard_output" : true,"log_file_path_list" : ["../Log/log_manage.json","../Log/log_all.json"],
+				"#step_check_mode" : true,
+ 		 		"plan_lists" : [
+					"CloseWindow","Condition_SubAccount","Account00",
+					"CloseWindow","Condition_SubAccount","Account01"
+				]
+			}
+		}
+	]
 }

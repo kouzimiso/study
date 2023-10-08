@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>JSON Editor</title>
     <style>
+        /* インデントのスタイル設定 */
         .indent {
             margin-left: 20px;
         }
@@ -20,6 +21,7 @@
     <script>
         let jsonData = {};
 
+        // ファイルの読み込みとJSONデータの表示を行う関数
         function loadFile() {
             const fileInput = document.getElementById('fileInput');
             fileInput.addEventListener('change', function (event) {
@@ -29,7 +31,7 @@
                     reader.onload = function (e) {
                         try {
                             jsonData = JSON.parse(e.target.result);
-                            renderEditor(jsonData, 'jsonEditor', 0);
+                            renderEditor(jsonData, 'jsonEditor', [], 0);
                         } catch (error) {
                             alert('Invalid JSON file.');
                         }
@@ -40,9 +42,12 @@
             fileInput.click();
         }
 
+        // JSONデータをファイルとしてダウンロードする関数
         function downloadFile() {
+            // Data変換 Dictionary Data → JSON文字列Data → Binary
             const data = JSON.stringify(jsonData, null, 2);
             const blob = new Blob([data], { type: 'application/json' });
+            // Memory上のBinaryへの仮想のURLを作成
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
@@ -51,18 +56,22 @@
             URL.revokeObjectURL(url);
         }
 
-        function renderEditor(data, elementId, indentLevel = 0) {
+        // JSONデータをエディタに表示する関数
+        function renderEditor(data, elementId, display_path = [], indentLevel = 0) {
             const container = document.getElementById(elementId);
             container.innerHTML = '';
-            renderData(data, container, [], indentLevel);
+            renderData(data, container, [], display_path, indentLevel);
         }
 
-        function renderData(data, container, path, parentIndentLevel) {
+        // JSONデータを再帰的に表示する関数
+        function renderData(data, container, path, display_path, parentIndentLevel) {
+            // オブジェクトの場合
             if (typeof data === 'object') {
                 const keys = Object.keys(data);
 
                 for (const key of keys) {
                     const value = data[key];
+                    // pathの末尾にkeyを加えてnewPathとする
                     const newPath = [...path, key];
 
                     const div = document.createElement('div');
@@ -73,14 +82,16 @@
                     label.textContent = key;
                     div.appendChild(label);
 
+                    // オブジェクトの場合、
                     if (typeof value === 'object') {
+                        //"Display" ボタンを表示
                         const displayButton = document.createElement('button');
                         displayButton.textContent = 'Display';
                         displayButton.onclick = () => toggleDisplay(newPath);
                         div.appendChild(displayButton);
-                        const childIndentLevel = parentIndentLevel + 1;
-
                         if (value instanceof Array) {
+                            // Arrayの場合、
+                            //値入力用Editboxと"Add Value" ボタンを表示
                             const addValueInput = document.createElement('input');
                             addValueInput.placeholder = 'New Value';
                             const addButton = document.createElement('button');
@@ -88,14 +99,8 @@
                             addButton.onclick = () => addArrayValue(newPath, addValueInput.value);
                             div.appendChild(addValueInput);
                             div.appendChild(addButton);
-                            const deleteButton = document.createElement('button');
-                            deleteButton.textContent = 'Delete';
-                            deleteButton.onclick = () => deleteValue(newPath);
-                            div.appendChild(deleteButton);
-
-                            container.appendChild(div);
-
                         } else {
+                            // Dictionaryの場合、
                             const addKeyInput = document.createElement('input');
                             addKeyInput.placeholder = 'New Key';
                             const addValueInput = document.createElement('input');
@@ -106,56 +111,76 @@
                             div.appendChild(addKeyInput);
                             div.appendChild(addValueInput);
                             div.appendChild(addButton);
-                            const deleteButton = document.createElement('button');
-                            deleteButton.textContent = 'Delete';
-                            deleteButton.onclick = () => deleteValue(newPath);
-                            div.appendChild(deleteButton);
-
-                            container.appendChild(div);
-
                         }
-
-                        container.appendChild(div);
-
-                        if (value._displayed) {
-                            renderData(value, container, newPath, childIndentLevel);
+                        //Object 共通動作
+                        const deleteButton = document.createElement('button');
+                        deleteButton.textContent = 'Delete';
+                        deleteButton.onclick = () => deleteValue(newPath);
+                        div.appendChild(deleteButton);
+                        //console.log("path:");
+                        //console.log(display_path);
+                        //console.log(path);
+                        //console.log(newPath);
+                        if (compareArrays(display_path,newPath)) {
+                            const childIndentLevel = parentIndentLevel + 1;
+                            renderData(value, div, newPath, display_path, childIndentLevel);
                         }
                     } else {
+                        // 値の場合、テキスト入力と削除ボタンを表示
                         const input = document.createElement('input');
                         input.type = 'text';
                         input.value = value;
                         input.oninput = () => updateValue(newPath, input.value);
                         div.appendChild(input);
-                        
 
                         const deleteButton = document.createElement('button');
                         deleteButton.textContent = 'Delete';
                         deleteButton.onclick = () => deleteValue(newPath);
                         div.appendChild(deleteButton);
-
-                        container.appendChild(div);
                     }
+                    container.appendChild(div); // 子要素を最後に追加
                 }
             }
         }
 
+        function compareArrays(source, target) {
+            // Target配列がSource配列よりも長い場合、すぐにfalseを返す
+            if (target.length > source.length) {
+                return false;
+            }
 
+            // Source配列とTarget配列を先頭から比較
+            for (let i = 0; i < target.length; i++) {
+                if (source[i] !== target[i]) {
+                // 違う要素が見つかった場合、falseを返す
+                return false;
+                }
+            }
+            return true;
+        }
+        // "Display" ボタンのクリックにより、要素の表示状態を切り替える関数
         function toggleDisplay(path) {
-            const current = getNestedValue(jsonData, path);
-            current._displayed = !current._displayed;
-            renderEditor(jsonData, 'jsonEditor', 0)//path.length);
+            const display_path = path;//.join('.');
+
+            renderEditor(jsonData, 'jsonEditor', display_path); // トグル後にエディタを再レンダリング
         }
 
-        function updateValue(path, newValue) {
-            const current = getNestedValue(jsonData, path);
-            current[path[path.length - 1]] = newValue;
+        // "Display" ボタンのクリックにより、要素の表示状態を切り替える関数
+        function toggleDisplay_(path) {
+            const displayPathString = path.join('.');
+            const displayPathArray = path.slice();
+
+            const filteredDisplayPaths = display_path.filter((displayPath) => {
+                return (
+                    displayPath === displayPathString || // 完全一致の場合
+                    (displayPath.startsWith(displayPathString) && displayPath !== displayPathString) // 親要素の場合
+                );
+            });
+
+            renderEditor(jsonData, 'jsonEditor', filteredDisplayPaths); // トグル後にエディタを再レンダリング
         }
 
-        function deleteValue(path) {
-            const parent = getNestedValue(jsonData, path.slice(0, -1));
-            delete parent[path[path.length - 1]];
-            renderEditor(jsonData, 'jsonEditor', 0)//path.length - 1);
-        }
+
 
         function addArrayValue(path, newValue) {
             const current = getNestedValue(jsonData, path);
@@ -165,9 +190,11 @@
             } catch (error) {
                 current.push(newValue);
             }
-            renderEditor(jsonData, 'jsonEditor', 0)//path.length);
+            // 新しい要素に対して親のインデントレベル + 1 のインデントを設定
+            renderEditor(jsonData, 'jsonEditor', path, 0);
         }
 
+        // オブジェクトにキーと値を追加する関数
         function addObjectKeyValue(path, newKey, newValue) {
             const current = getNestedValue(jsonData, path);
             try {
@@ -176,9 +203,25 @@
             } catch (error) {
                 current[newKey] = newValue;
             }
-            renderEditor(jsonData, 'jsonEditor', 0)//path.length);
+            // 新しい要素に対して親のインデントレベル + 1 のインデントを設定
+            renderEditor(jsonData, 'jsonEditor', path, 0);
         }
 
+        // 値を更新する関数
+        function updateValue(path, newValue) {
+            const current = getNestedValue(jsonData, path);
+            current[path[path.length - 1]] = newValue;
+        }
+
+        // 要素を削除する関数
+        function deleteValue(path) {
+            const parent = getNestedValue(jsonData, path.slice(0, -1));
+            delete parent[path[path.length - 1]];
+            // エディタを再レンダリング
+            renderEditor(jsonData, 'jsonEditor', path, 0);
+        }
+
+        // ネストされた値を取得する関数
         function getNestedValue(obj, path) {
             let current = obj;
             for (const key of path) {

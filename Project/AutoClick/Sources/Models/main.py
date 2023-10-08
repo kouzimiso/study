@@ -61,7 +61,7 @@ def main(args):
     offset = int(input("Please input the offset of screen position"))
     init(args)
     exec_input()
-    exec_ikusei(nurture_rank,data_rate,loop_number)
+    exec_grouth(nurture_rank,data_rate,loop_number)
     show_result()
     os.system("pause")
 
@@ -95,7 +95,7 @@ def exec_input():
     for parameter in param_zero:
         calcStatus.preParam.append(parameter)
 
-def exec_ikusei(nurture_rank,data_rate,loop_number):
+def exec_grouth(nurture_rank,data_rate,loop_number):
     for loop in range(loop_number):
         print("%d/%d" %(loop+1,int(loop_number)))
         if(nurture_rank == 'c'):

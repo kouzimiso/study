@@ -56,10 +56,10 @@
 			"result_name":"",
 			"condition_list":"",
 			"settings": {
-					"program_path": "../Resources/Camera.exe",
-					"file_path": "../Images/capture/capture.png",
-					"log_print_standard_output": true,"log_function":true,"log_file_path_list": "../Log/log_ExecuteProgram.json",
-					"step_check_mode" : false,"step_check_comment":""
+				"program_path": "../Resources/Camera.exe",
+				"file_path": "../Images/capture/capture.png",
+				"log_print_standard_output": true,"log_function":true,"log_file_path_list": "../Log/log_ExecuteProgram.json",
+				"step_check_mode" : false,"step_check_comment":""
 			}
 		},
 		{
@@ -68,14 +68,14 @@
 			"result_name":"",
 			"condition_list":"",
 			"settings": {
-					"program_path": "../Resources/FileControl.exe",
-					"file_path":"../Images/capture/capture.png" ,
-					"file_maxsize": 100,
-					"archivefolder_path": "../Images/capture",
-					"folder_maxsize" : 1048576,
-					"files_maxnumber" : 5,
-					"log_print_standard_output": true,"log_function":true,"log_file_path_list": "../Log/log_ExecuteProgram.json",
-					"step_check_mode" : false,"step_check_comment":""
+				"program_path": "../Resources/FileControl.exe",
+				"file_path":"../Images/capture/capture.png" ,
+				"file_maxsize": 100,
+				"archivefolder_path": "../Images/capture",
+				"folder_maxsize" : 1048576,
+				"files_maxnumber" : 5,
+				"log_print_standard_output": true,"log_function":true,"log_file_path_list": "../Log/log_ExecuteProgram.json",
+				"step_check_mode" : false,"step_check_comment":""
 			}
 		}
 	],
@@ -88,7 +88,7 @@
 	 		"settings" : {
 		 		"file_path"  : "../Setting/RunHouchiChild.json",
 		 		"plan_lists" : [
-					"TimeCheck_Houchi_Chokyo","Chokyo"
+					"TimeCheck_TimeEvent01","TimeEventPlay"
 					
 				]
 			}
@@ -99,8 +99,7 @@
 	 		"settings" : {
 		 		"file_path"  : "../Setting/RunHouchi.json",
 		 		"plan_lists" : [
-					"Chokyo"
-					
+					"TimeEventPlay"
 				]
 			}
 		}
@@ -122,12 +121,12 @@
 	"Houchi" : 
 	[
 		{
-	 		"name" : "HouchiPlanStart",
+	 		"name" : "PlanStart",
 			"type" : "RunPlanLists",
 			"settings" : {
 				"file_path"  : "../Setting/RunHouchi.json",
 				"plan_lists" : [
-					"HouchiPlan"
+					"PlanStart"
 				],
 				"#step_check_mode" : true
 			}
@@ -136,12 +135,12 @@
 	"DarkTails" : 
 	[
 		{
-	 		"name" : "DarkTailsPlanStart",
+	 		"name" : "PlanStart",
 			"type" : "RunPlanLists",
 			"settings" : {
 				"file_path"  : "../Setting/RunDarkTails.json",
 				"plan_lists" : [
-					"DarkTailsPlan"
+					"PlanStart"
 				],
 				"#step_check_mode" : true
 			}
@@ -193,7 +192,7 @@
 		{
 			"name": "HouchAccount01",
 			"type": "Recognition",
-			"result_name":"Result_HouchiServerClicked",
+			"result_name":"Result_ServerClicked",
 			"settings": {
 				"action": "DOUBLE_CLICK",
 				"end_condition": "OK",
@@ -212,7 +211,7 @@
 		{
 			"name": "HouchAccount02",
 			"type": "Recognition",
-			"result_name":"Result_HouchiServerClicked",
+			"result_name":"Result_ServerClicked",
 			"settings": {
 				"action": "DOUBLE_CLICK",
 				"end_condition": "OK",
@@ -231,7 +230,7 @@
 		{
 			"name": "HouchAccount03",
 			"type": "Recognition",
-			"result_name":"Result_HouchiServerClicked",
+			"result_name":"Result_ServerClicked",
 			"settings": {
 				"action": "DOUBLE_CLICK",
 				"end_condition": "OK",
@@ -250,7 +249,7 @@
 		{
 			"name": "HouchAccount04",
 			"type": "Recognition",
-			"result_name":"Result_HouchiServerClicked",
+			"result_name":"Result_ServerClicked",
 			"settings": {
 				"action": "DOUBLE_CLICK",
 				"end_condition": "OK",
@@ -269,7 +268,7 @@
 		{
 			"name": "HouchAccount05",
 			"type": "Recognition",
-			"result_name":"Result_HouchiServerClicked",
+			"result_name":"Result_ServerClicked",
 			"settings": {
 				"action": "DOUBLE_CLICK",
 				"end_condition": "OK",
@@ -288,7 +287,7 @@
 		{
 			"name": "HouchAccount06",
 			"type": "Recognition",
-			"result_name":"Result_HouchiServerClicked",
+			"result_name":"Result_ServerClicked",
 			"settings": {
 				"action": "DOUBLE_CLICK",
 				"end_condition": "OK",
@@ -324,24 +323,6 @@
 	[	
 		{
 			"name" : "HouchStartClick",
-			"type" : "Recognition",
-			"settings" : {
-				"action" : "CLICK",
-				"end_condition" : "OK",
-				"end_action" : "CONTINUE",
-				"execute_number" : 2,
-				"retry_number" : 0,
-				"image_path" : "../Images/image_start/Click0*.png",
-				"interval_time" : 1.8,
-				"recognition_confidence" : 0.93,
-				"recognition_gray_scale" : true
-			}
-		}
-	],
-	"HouchStart1":
-	[
-		{
-			"name" : "HouchStart",
 			"type" : "Recognition",
 			"settings" : {
 				"action" : "CLICK",

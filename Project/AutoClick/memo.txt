@@ -122,7 +122,7 @@ brew install --cask temurin
 ・システム環境変数のPATHにpythonのscript pathを追加
 ・スマホのUSBデバッグを有効にする。
 ・PCにUSBでスマホを接続。
-・houchi_auto_ikusei-1.5\tmpにパラメータの画像が保存される。位置ずれ確認し、ズレてたら座標編集必要。
+・houchi_auto_grouth-1.5\tmpにパラメータの画像が保存される。位置ずれ確認し、ズレてたら座標編集必要。
 
 ・tesseractのインストール
 　brew install tesseract

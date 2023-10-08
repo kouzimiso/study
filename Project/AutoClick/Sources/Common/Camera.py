@@ -31,9 +31,9 @@ default_dictionary = {
     "file_path": "./execute.png"
 }
 # 辞書設定の読込と機能実行
-def Execute(setting_dictionary):
+def Execute(settings_dictionary):
     #設定の読込
-    file_path = setting_dictionary.get("file_path","")
+    file_path = settings_dictionary.get("file_path","")
     #機能実行 
     result_dictionary = {}
     if(file_path != ""):
@@ -47,8 +47,8 @@ def Execute(setting_dictionary):
 def main():
     # Command lineの引数を得てから機能を実行し、標準出力を出力IFとして動作する。
     # 単体として動作するように実行部のExecuteは辞書を入出力IFとして動作する。
-    setting_dictionary = FunctionUtility.ArgumentGet(default_dictionary)
-    result_dictionary = Execute(setting_dictionary)
+    settings_dictionary = FunctionUtility.ArgumentGet(default_dictionary)
+    result_dictionary = Execute(settings_dictionary)
     FunctionUtility.Result(result_dictionary)
 
 if __name__ == '__main__':

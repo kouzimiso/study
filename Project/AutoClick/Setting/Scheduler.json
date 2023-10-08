@@ -34,75 +34,75 @@
 	"Houchi" : 
 	[
 		{
-	 		"name" : "HouchiPlanStart",
+	 		"name" : "PlanStart",
 			"type" : "RunPlanLists",
 			"settings" : {
 				"file_path" : "",
  		 		"plan_lists" : [
-		 			"HouchSub",
-					"HouchMain",
-					"HouchACM"
+		 			"SubAccount",
+					"MainAccount",
+					"ACMAccount"
 				]
 			}
 		}
 	],
-	"HouchiSub" : 
+	"SubAccount" : 
 	[
 		{
-	 		"name" : "HouchiSubPlanStart",
+	 		"name" : "SubAccountPlanStart",
 			"type" : "RunPlanLists",
 			"condition" : "",
 			"settings" : {
 				"file_path" : "",
  		 		"plan_lists" : [
-					"CloseWindow","TimeCheck_Houch_Sub","HouchAccount01","HouchWaiting","HouchServer01","HouchClickGroupSub",
-					"CloseWindow","TimeCheck_Houch_Sub","HouchAccount01","HouchWaiting","HouchServer02","HouchClickGroupSub",
-					"CloseWindow","TimeCheck_Houch_Sub","HouchAccount01","HouchWaiting","HouchServer03","HouchClickGroupSub",
-					"CloseWindow","TimeCheck_Houch_Sub","HouchAccount01","HouchWaiting","HouchServer04","HouchClickGroupSub",
-					"CloseWindow","TimeCheck_Houch_Sub","HouchAccount01","HouchWaiting","HouchServer05","HouchClickGroupSub",
-					"CloseWindow","TimeCheck_Houch_Sub","HouchAccount01","HouchWaiting","HouchServer06","HouchClickGroupSub",
-					"CloseWindow","TimeCheck_Houch_Sub","HouchAccount01","HouchWaiting","HouchServer07","HouchClickGroupSub",
-					"CloseWindow","TimeCheck_Houch_Sub","HouchAccount01","HouchWaiting","HouchServer08","HouchClickGroupSub",
-					"CloseWindow","TimeCheck_Houch_Sub","HouchAccount01","HouchWaiting","HouchServer01","HouchClickGroupSub",
-					"CloseWindow","TimeCheck_Houch_Sub","HouchAccount01","HouchWaiting","HouchServer02","HouchClickGroupSub",
-					"CloseWindow","TimeCheck_Houch_Sub","HouchAccount01","HouchWaiting","HouchServer03","HouchClickGroupSub",
-					"CloseWindow","TimeCheck_Houch_Sub","HouchAccount01","HouchWaiting","HouchServer04","HouchClickGroupSub",
-					"CloseWindow","TimeCheck_Houch_Sub","HouchAccount01","HouchWaiting","HouchServer05","HouchClickGroupSub",
-					"CloseWindow","TimeCheck_Houch_Sub","HouchAccount01","HouchWaiting","HouchServer06","HouchClickGroupSub",
-					"CloseWindow","TimeCheck_Houch_Sub","HouchAccount01","HouchWaiting","HouchServer07","HouchClickGroupSub",
-					"CloseWindow","TimeCheck_Houch_Sub","HouchAccount01","HouchWaiting","HouchServer08","HouchClickGroupSub"
+					"CloseWindow","TimeCheck_Houch_Sub","Account01","Waiting","HouchServer01","HouchClickGroupSub",
+					"CloseWindow","TimeCheck_Houch_Sub","Account01","Waiting","HouchServer02","HouchClickGroupSub",
+					"CloseWindow","TimeCheck_Houch_Sub","Account01","Waiting","HouchServer03","HouchClickGroupSub",
+					"CloseWindow","TimeCheck_Houch_Sub","Account01","Waiting","HouchServer04","HouchClickGroupSub",
+					"CloseWindow","TimeCheck_Houch_Sub","Account01","Waiting","HouchServer05","HouchClickGroupSub",
+					"CloseWindow","TimeCheck_Houch_Sub","Account01","Waiting","HouchServer06","HouchClickGroupSub",
+					"CloseWindow","TimeCheck_Houch_Sub","Account01","Waiting","HouchServer07","HouchClickGroupSub",
+					"CloseWindow","TimeCheck_Houch_Sub","Account01","Waiting","HouchServer08","HouchClickGroupSub",
+					"CloseWindow","TimeCheck_Houch_Sub","Account01","Waiting","HouchServer01","HouchClickGroupSub",
+					"CloseWindow","TimeCheck_Houch_Sub","Account01","Waiting","HouchServer02","HouchClickGroupSub",
+					"CloseWindow","TimeCheck_Houch_Sub","Account01","Waiting","HouchServer03","HouchClickGroupSub",
+					"CloseWindow","TimeCheck_Houch_Sub","Account01","Waiting","HouchServer04","HouchClickGroupSub",
+					"CloseWindow","TimeCheck_Houch_Sub","Account01","Waiting","HouchServer05","HouchClickGroupSub",
+					"CloseWindow","TimeCheck_Houch_Sub","Account01","Waiting","HouchServer06","HouchClickGroupSub",
+					"CloseWindow","TimeCheck_Houch_Sub","Account01","Waiting","HouchServer07","HouchClickGroupSub",
+					"CloseWindow","TimeCheck_Houch_Sub","Account01","Waiting","HouchServer08","HouchClickGroupSub"
 				]
 			}
 		}
 	],
-	"HouchMain" : 
+	"MainAccount" : 
 	[
 		{
-	 		"name" : "HouchiSubPlanStart",
+	 		"name" : "MainAccountPlanStart",
 			"type" : "RunPlanLists",
 			"condition" : "",
 			"settings" : {
 				"file_path" : "",
  		 		"plan_lists" : [
-					"CloseWindow","TimeCheck_Houch_Main","HouchAccount01","HouchWaiting","HouchServer09","HouchClickGroupMain",
-					"CloseWindow","TimeCheck_Houch_Main","HouchAccount02","HouchWaiting","HouchServer09","HouchClickGroupMain",
-					"CloseWindow","TimeCheck_Houch_Main","HouchAccount03","HouchWaiting","HouchServer09","HouchClickGroupMain",
-					"CloseWindow","TimeCheck_Houch_Main","HouchAccount04","HouchWaiting","HouchServer09","HouchClickGroupMain",
-					"CloseWindow","TimeCheck_Houch_Main","HouchAccount05","HouchWaiting","HouchServer09","HouchClickGroupMain"
+					"CloseWindow","TimeCheck_Houch_Main","Account01","Waiting","HouchServer09","HouchClickGroupMain",
+					"CloseWindow","TimeCheck_Houch_Main","Account02","Waiting","HouchServer09","HouchClickGroupMain",
+					"CloseWindow","TimeCheck_Houch_Main","Account03","Waiting","HouchServer09","HouchClickGroupMain",
+					"CloseWindow","TimeCheck_Houch_Main","Account04","Waiting","HouchServer09","HouchClickGroupMain",
+					"CloseWindow","TimeCheck_Houch_Main","Account05","Waiting","HouchServer09","HouchClickGroupMain"
 				]
 			}
 		}
 	],
-	"HouchACM" : 
+	"ACMAccount" : 
 	[
 		{
-	 		"name" : "HouchiACMPlanStart",
+	 		"name" : "ACMAccountPlanStart",
 			"type" : "RunPlanLists",
 			"condition" : "",
 			"settings" : {
 				"file_path" : "",
  		 		"plan_lists" : [
-					"CloseWindow","TimeCheck_Houch_ACM","HouchAccount06","HouchWaiting","HouchServer09","HouchClickGroupACM"
+					"CloseWindow","TimeCheck_Houch_ACM","Account06","Waiting","HouchServer09","HouchClickGroupACM"
 				]
 			}
 		}
@@ -110,13 +110,13 @@
 	"HouchClickGroupSub" : 
 	[
 		{
-	 		"name" : "HouchiSub01",
+	 		"name" : "SubAccount01",
 			"type" : "RunPlanLists",
-			"condition" : "Result_HouchiServerClicked = Result.OK",
+			"condition" : "Result_ServerClicked = Result.OK",
 			"settings" : {
 				"file_path" : "",
  		 		"plan_lists" : [
-					"","Houch02","Houch03","Houch04","Houch05","Houch06"
+					"Account01","Account02","Account03","Account04","Account05","Account06"
 				]
 			}
 		}
@@ -230,12 +230,12 @@
 			}
 		}
 	],
-	"HouchAccount01":
+	"Account01":
 	[
 		{
-			"name": "HouchAccount01",
+			"name": "Account01",
 			"type": "Recognition",
-			"result_name":"Result_HouchiServerClicked",
+			"result_name":"Result_ServerClicked",
 			"settings": {
 				"action": "DOUBLE_CLICK",
 				"end_condition": "OK",
@@ -249,12 +249,12 @@
 			}
 		}
 	],
-	"HouchAccount02":
+	"Account02":
 	[
 		{
-			"name": "HouchAccount02",
+			"name": "Account02",
 			"type": "Recognition",
-			"result_name":"Result_HouchiServerClicked",
+			"result_name":"Result_ServerClicked",
 			"settings": {
 				"action": "DOUBLE_CLICK",
 				"end_condition": "OK",
@@ -268,12 +268,12 @@
 			}
 		}
 	],
-	"HouchAccount03":
+	"Account03":
 	[
 		{
-			"name": "HouchAccount03",
+			"name": "Account03",
 			"type": "Recognition",
-			"result_name":"Result_HouchiServerClicked",
+			"result_name":"Result_ServerClicked",
 			"settings": {
 				"action": "DOUBLE_CLICK",
 				"end_condition": "OK",
@@ -287,12 +287,12 @@
 			}
 		}
 	],
-	"HouchAccount04":
+	"Account04":
 	[
 		{
-			"name": "HouchAccount04",
+			"name": "Account04",
 			"type": "Recognition",
-			"result_name":"Result_HouchiServerClicked",
+			"result_name":"Result_ServerClicked",
 			"settings": {
 				"action": "DOUBLE_CLICK",
 				"end_condition": "OK",
@@ -306,12 +306,12 @@
 			}
 		}
 	],
-	"HouchAccount05":
+	"Account05":
 	[
 		{
-			"name": "HouchAccount05",
+			"name": "Account05",
 			"type": "Recognition",
-			"result_name":"Result_HouchiServerClicked",
+			"result_name":"Result_ServerClicked",
 			"settings": {
 				"action": "DOUBLE_CLICK",
 				"end_condition": "OK",
@@ -325,12 +325,12 @@
 			}
 		}
 	],
-	"HouchAccount06":
+	"Account06":
 	[
 		{
-			"name": "HouchAccount06",
+			"name": "Account06",
 			"type": "Recognition",
-			"result_name":"Result_HouchiServerClicked",
+			"result_name":"Result_ServerClicked",
 			"settings": {
 				"action": "DOUBLE_CLICK",
 				"end_condition": "OK",
@@ -344,10 +344,10 @@
 			}
 		}
 	],
-	"HouchWaiting":
+	"Waiting":
 	[	
 		{
-			"name" : "HouchWaiting",
+			"name" : "Waiting",
 			"type" : "Recognition",
 			"settings" : {
 				"action" : "CLICK",
@@ -362,24 +362,7 @@
 			}
 		}
 	],
-	"HouchStart":
-	[	
-		{
-			"name" : "HouchStartClick",
-			"type" : "Recognition",
-			"settings" : {
-				"action" : "CLICK",
-				"end_condition" : "OK",
-				"end_action" : "CONTINUE",
-				"execute_number" : 2,
-				"retry_number" : 0,
-				"image_path" : "../Images/image_start/Click0*.png",
-				"interval_time" : 1.8,
-				"recognition_confidence" : 0.93,
-				"recognition_gray_scale" : true
-			}
-		}
-	],
+	
 	"HouchStart":
 	[
 		{

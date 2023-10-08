@@ -71,8 +71,8 @@ def Result(result_dictionary={}):
     result_json = json.dumps(result_dictionary)
     print(result_json)
 
-def Execute(setting_dictionary):
-    file_path = setting_dictionary.get("file_path","")
+def Execute(settings_dictionary):
+    file_path = settings_dictionary.get("file_path","")
     if(file_path != ""):
         result = True
     else:
@@ -87,18 +87,18 @@ def main():
 
     # Command lineの引数を得てから機能を実行。
     # Executeは辞書をIFで動作する。Resultは標準出力をIFで動作する。
-    setting_dictionary = ArgumentGet(default_dictionary)
-    Execute(setting_dictionary)
+    settings_dictionary = ArgumentGet(default_dictionary)
+    Execute(settings_dictionary)
 
     # Defaultの辞書Dataを設定。
     default_dictionary = {"file_path": "./execute.png","action":"test", "user": "iwao", "number": 2, "bool": True}
     option_dictionary = {"option": "option test"}
     # Command lineの引数を得てから機能を実行。
     # Executeは辞書をIFで動作する。Resultは標準出力をIFで動作する。
-    setting_dictionary = ArgumentGet(default_dictionary)
-    if setting_dictionary.get("action","") =="test":
-        setting_dictionary = ArgumentGet(option_dictionary,setting_dictionary)
-    result_dictionary = Execute(setting_dictionary)
+    settings_dictionary = ArgumentGet(default_dictionary)
+    if settings_dictionary.get("action","") =="test":
+        settings_dictionary = ArgumentGet(option_dictionary,settings_dictionary)
+    result_dictionary = Execute(settings_dictionary)
     Result(result_dictionary)
 
 if __name__ == '__main__':

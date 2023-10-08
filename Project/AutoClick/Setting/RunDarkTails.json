@@ -2,9 +2,9 @@
 	"Change":[
 		{
 			"comment":[
-				"Houchi > DarkTails",
-				"Chokyo > TimeEvent",
-				"DarkTailsNoMoney > PoochiPochi",
+				"Houchi -> DarkTails",
+				"Chokyo -> TimeEvent",
+				"PochiPochi -> FreeClick",
 				"",
 				"",
 				"",
@@ -12,55 +12,55 @@
 			]
 		}
 	],
-	"DarkTailsPlan" : 
+	"PlanStart" : 
 	[
 		{
-	 		"name" : "DarkTailsPlanStart",
+	 		"name" : "PlanStart",
 			"type" : "RunPlanLists",
 			"settings" : {
 				"#step_check_mode" : true,
 				"file_path" : "../Setting/RunDarkTails.json",
 				"plan_lists" : [
-					"DarkTailsMain",
-					"DarkTailsSub"
+					"MainAccount",
+					"AcountSub"
 				]
 			}
 		}
 	],	
-	"DarkTailsSub" : 
+	"AcountSub" : 
 	[
 		{
-	 		"name" : "DarkTailsAccountPlanSub",
+	 		"name" : "AccountPlanSub",
 			"type" : "RunPlanLists",
 			"condition_list" : "",
 			"settings" : {
 				"file_path" : "../Setting/RunDarkTails.json",
  		 		"plan_lists" : [
-					"DarkTailsCondition_TimeEvent","TimeEvent",
-					"CloseWindow","DarkTailsCondition_Sub","DarkTailsAccount00","DarkTailsWaiting","DarkTailsServer01","DarkTailsClickGroup"
+					"Condition_TimeEvent","TimeEvent",
+					"CloseWindow","Condition_SubAccuont","Account00","Waiting","Server01","ContentsPlayGroup"
 				]
 			}
 		}
 	],
-	"DarkTailsMain" : 
+	"AcountMain" : 
 	[
 		{
-	 		"name" : "DarkTailsAccountPlanMain",
+	 		"name" : "AccountPlanMain",
 			"type" : "RunPlanLists",
 			"condition_list" : "",
 			"settings" : {
 				"file_path" : "../Setting/RunDarkTails.json",
  		 		"plan_lists" : [
-					"DarkTailsCondition_TimeEvent","TimeEvent",
-					"CloseWindow","DarkTailsCondition_Main","DarkTailsAccount00","DarkTailsWaiting","DarkTailsServer00","DarkTailsClickGroup"
+					"Condition_TimeEvent","TimeEvent",
+					"CloseWindow","Condition_MainAccount","Account00","Waiting","Server00","ContentsPlayGroup"
 				]
 			}
 		}
 	],
-	"DarkTailsCondition_Main" : 
+	"Condition_MainAccount" : 
 	[
 		{
-	 		"name" : "DarkTailsCondition_Main",
+	 		"name" : "Condition_MainAccount",
 			"type" : "RunPlanLists",
 			"comment" : "",
 			"condition_list" : "",
@@ -68,15 +68,15 @@
 				"file_path" : "../Setting/RunDarkTailsChild.json",
 				"#step_check_mode" : true,
  		 		"plan_lists" : [
-					"TimeCheck_DarkTails_Main"
+					"TimeEvent01_Check_Main"
 				]
 			}
 		}
 	],
-	"DarkTailsCondition_Sub" : 
+	"Condition_SubAccuont" : 
 	[
 		{
-	 		"name" : "DarkTailsCondition_Sub",
+	 		"name" : "Condition_SubAccuont",
 			"type" : "RunPlanLists",
 			"comment" : "",
 			"condition_list" : "",
@@ -84,15 +84,15 @@
 				"file_path" : "../Setting/RunDarkTailsChild.json",
 				"#step_check_mode" : true,
  		 		"plan_lists" : [
-					"TimeCheck_DarkTails_Sub"
+					"TimeEvent01_Check_Sub"
 				]
 			}
 		}
 	],
-	"DarkTailsCondition_ACM" : 
+	"Condition_ACMAccount" : 
 	[
 		{
-	 		"name" : "DarkTailsCondition_ACM",
+	 		"name" : "Condition_ACMAccount",
 			"type" : "RunPlanLists",
 			"comment" : "",
 			"condition_list" : "",
@@ -100,15 +100,15 @@
 				"file_path" : "../Setting/RunDarkTailsChild.json",
 				"#step_check_mode" : true,
  		 		"plan_lists" : [
-					"TimeCheck_DarkTails_Main"
+					"TimeEvent01_Check_Main"
 				]
 			}
 		}
 	],
-	"DarkTailsCondition_TimeEvent" : 
+	"Condition_TimeEvent" : 
 	[
 		{
-	 		"name" : "DarkTailsCondition_TimeEvent",
+	 		"name" : "Condition_TimeEvent",
 			"type" : "RunPlanLists",
 			"comment" : "",
 			"condition_list" : "",
@@ -116,23 +116,23 @@
 				"file_path" : "../Setting/RunDarkTailsChild.json",
 				"#step_check_mode" : true,
  		 		"plan_lists" : [
-					"TimeCheck_DarkTails_TimeEvent"
+					"TimeCheck_TimeEvent01"
 				]
 			}
 		}
 	],
-	"DarkTailsClickGroup" : 
+	"ContentsPlayGroup" : 
 	[
 		{
-	 		"name" : "DarkTailsClickGroup",
+	 		"name" : "ContentsPlayGroup",
 			"type" : "RunPlanLists",
 			"comment" : "",
-			"condition_list" : "Result_DarkTailsServerClick.detail = OK,Result_DarkTailsServerClick.detail = ALL_OK",
+			"condition_list" : "Result_ServerClick.detail = OK,Result_ServerClick.detail = ALL_OK",
 			"settings" : {
 				"file_path" : "../Setting/RunDarkTailsChild.json",
 				"#step_check_mode" : true,
  		 		"plan_lists" : [
-					"DarkTailsStart","DarkTailsMainte","DarkTailsPlay"
+					"DarkTailsStart","Maintenance","DarkTailsPlay"
 				]
 			}
 		}
@@ -147,7 +147,7 @@
 			"settings" : {
 				"file_path" : "../Setting/RunDarkTails.json",
  		 		"plan_lists" : [
-					"CloseWindow","DarkTailsCondition_TimeEvent","DarkTailsAccount00","DarkTailsWaiting","DarkTailsServer01","TimeEventClickGroup"
+					"CloseWindow","Condition_TimeEvent","Account00","Waiting","Server01","TimeEventClickGroup"
 				]
 			}
 		}
@@ -158,23 +158,23 @@
 		{
 	 		"name" : "TimeEventClickGroup",
 			"type" : "RunPlanLists",
-			"condition_list" : "Result_DarkTailsServerClick.detail = OK,Result_DarkTailsServerClick.detail = ALL_OK",
+			"condition_list" : "Result_ServerClick.detail = OK,Result_ServerClick.detail = ALL_OK",
 			"result_name":"",
 			"settings" : {
 				"file_path" : "../Setting/RunDarkTailsChild.json",
  		 		"plan_lists" : [
-					"DarkTailsStart","TimeEventPlay"
+					"DarkTailsStart","TimeEvent01Play"
 				]
 			}
 		}
 	],
-	"DarkTailsAccount00":
+	"Account00":
 	[
 		{
-			"name": "DarkTailsAccount00",
+			"name": "Account00",
 			"type": "Recognition",
 			"condition_list":["Condition_Execute = true"],
-			"result_name":"Result_DarkTailsAccountClick",
+			"result_name":"Result_AccountClick",
 			"settings": {
 				"action": "DOUBLE_CLICK",
 				"end_condition": "OK",
@@ -191,13 +191,13 @@
 			}
 		}
 	],
-	"DarkTailsWaiting":
+	"Waiting":
 	[
 		{
-			"name" : "DarkTailsWaiting",
+			"name" : "Waiting",
 			"type" : "Recognition",
-			"condition_list" : "Result_DarkTailsAccountClick.detail = OK,Result_DarkTailsAccountClick.detail = ALL_OK",
-			"result_name":"Result_DarkTailsAccountClick",
+			"condition_list" : "Result_AccountClick.detail = OK,Result_AccountClick.detail = ALL_OK",
+			"result_name":"Result_AccountClick",
 			"settings" : {
 				"action" : "CLICK",
 				"end_condition" : "NG",
@@ -211,9 +211,9 @@
 			}
 		},
 		{
-			"name" : "DarkTailsWaitingEnd",
+			"name" : "WaitingEnd",
 			"type" : "Recognition",
-			"condition_list" : ["Result_DarkTailsAccountClick.detail = OK,Result_DarkTailsAccountClick.detail = ALL_OK"],
+			"condition_list" : ["Result_AccountClick.detail = OK,Result_AccountClick.detail = ALL_OK"],
 			"result_name":"Result_DarkTailsWaitEndClick",
 			"settings" : {
 				"action" : "CLICK",
@@ -228,10 +228,10 @@
 			}
 		},
 		{
-			"name" : "DarkTailsWaiting",
+			"name" : "Waiting",
 			"type" : "Recognition",
 			"condition_list" : [
-				"Result_DarkTailsAccountClick.detail = OK,Result_DarkTailsAccountClick.detail = ALL_OK",
+				"Result_AccountClick.detail = OK,Result_AccountClick.detail = ALL_OK",
 				"Result_DarkTailsWaitEndClick.detail = NG"
 			],
 			"settings" : {
@@ -247,10 +247,10 @@
 			}
 		},
 		{
-			"name" : "DarkTailsWaitingEnd",
+			"name" : "WaitingEnd",
 			"type" : "Recognition",
 			"condition_list" : [
-				"Result_DarkTailsAccountClick.detail = OK,Result_DarkTailsAccountClick.detail = ALL_OK",
+				"Result_AccountClick.detail = OK,Result_AccountClick.detail = ALL_OK",
 				"Result_DarkTailsWaitEndClick.detail = NG"
 			],
 			"result_name":"Result_DarkTailsWaitEndClick",
@@ -267,10 +267,10 @@
 			}
 		},
 		{
-			"name" : "DarkTailsWaiting",
+			"name" : "Waiting",
 			"type" : "Recognition",
 			"condition_list" : [
-				"Result_DarkTailsAccountClick.detail = OK,Result_DarkTailsAccountClick.detail = ALL_OK",
+				"Result_AccountClick.detail = OK,Result_AccountClick.detail = ALL_OK",
 				"Result_DarkTailsWaitEndClick.detail = NG"
 			],
 			"settings" : {
@@ -286,10 +286,10 @@
 			}
 		},
 		{
-			"name" : "DarkTailsWaitingEnd",
+			"name" : "WaitingEnd",
 			"type" : "Recognition",
 			"condition_list" : [
-				"Result_DarkTailsAccountClick.detail = OK,Result_DarkTailsAccountClick.detail = ALL_OK",
+				"Result_AccountClick.detail = OK,Result_AccountClick.detail = ALL_OK",
 				"Result_DarkTailsWaitEndClick.detail = NG"
 			],
 			"result_name":"Result_DarkTailsWaitEndClick",
@@ -306,13 +306,13 @@
 			}
 		}
 	],
-	"DarkTailsServer00":
+	"Server00":
 	[	
 		{
-			"name" : "DarkTailsServer00",
+			"name" : "Server00",
 			"type" : "Recognition",
-			"condition_list" : "Result_DarkTailsAccountClick.detail = OK,Result_DarkTailsAccountClick.detail = ALL_OK",
-			"result_name":"Result_DarkTailsServerClick",
+			"condition_list" : "Result_AccountClick.detail = OK,Result_AccountClick.detail = ALL_OK",
+			"result_name":"Result_ServerClick",
 			"settings" : {
 				"#step_check_mode" : true,
 				"action" : "DOUBLE_CLICK",
@@ -327,13 +327,13 @@
 			}
 		}
 	],
-	"DarkTailsServer01":
+	"Server01":
 	[	
 		{
-			"name" : "DarkTailsServer01",
+			"name" : "Server01",
 			"type" : "Recognition",
-			"condition_list" : "Result_DarkTailsAccountClick.detail = OK,Result_DarkTailsAccountClick.detail = ALL_OK",
-			"result_name":"Result_DarkTailsServerClick",
+			"condition_list" : "Result_AccountClick.detail = OK,Result_AccountClick.detail = ALL_OK",
+			"result_name":"Result_ServerClick",
 			"settings" : {
 				"#step_check_mode" : true,
 				"action" : "DOUBLE_CLICK",

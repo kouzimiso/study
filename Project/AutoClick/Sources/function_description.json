@@ -1,0 +1,12 @@
+"CheckDay": {
+    "description": "This function compares day1, day2, and day3 and returns the comparison result as 'result'.",
+    "arguments": {
+        "day1": "The left-hand operand for comparison.",
+        "day2": "The middle operand for comparison.",
+        "day3": "The right-hand operand for comparison."
+    },
+    "Result": {
+        "result": "The comparison result, which indicates whether day1 <= day2 <= day3.",
+        "message": "An explanation of the comparison result."
+    }
+},

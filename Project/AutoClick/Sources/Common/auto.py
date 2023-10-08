@@ -75,7 +75,7 @@ message_list = []
 logfile_path = os.path.dirname(__file__)+'/../../Log/log.txt'
 
 @dataclasses.dataclass
-class RecognitionInfomation:
+class RecognitionInformation:
     action : ACTION 
     end_condition : RESULT 
     end_action : END_ACTION
@@ -99,11 +99,11 @@ class RecognitionInfomation:
         recognition_confidence =1.0, 
         recognition_gray_scale = 0
         ):
-        self.Set_Setting(action, end_condition, end_action, execute_number, retry_number, image_path, interval_time, recognition_confidence, recognition_gray_scale)
+        self.Set_Settings(action, end_condition, end_action, execute_number, retry_number, image_path, interval_time, recognition_confidence, recognition_gray_scale)
         
-        self.setting_initial_dictionary={}
+        self.settings_initial_dictionary={}
 
-    def Set_Setting(self, action, end_condition, end_action, execute_number, retry_number, image_path, interval_time, recognition_confidence, recognition_gray_scale):
+    def Set_Settings(self, action, end_condition, end_action, execute_number, retry_number, image_path, interval_time, recognition_confidence, recognition_gray_scale):
         # 処理
         self.action = action
         # 終了条件
@@ -122,27 +122,27 @@ class RecognitionInfomation:
         self.recognition_confidence = recognition_confidence
         # GrayScale設定(高速化)
         self.recognition_gray_scale = recognition_gray_scale
-        # dictionary_setting
+        # dictionary_settings
 
 #Dictionaryで設定したい時と個別設定値で設定したい場合がある。
 @dataclasses.dataclass
 class Recognition:
-    setting:RecognitionInfomation
-    #setting_dictionary : dict={}
+    setting:RecognitionInformation
+    #settings_dictionary : dict={}
 
     def __init__(self, input_dictionary = {}):
-        #self.setting=RecognitionInfomation(**input_dictionary)
-        self.Set_BySettingDictionary(input_dictionary)
+        #self.setting=RecognitionInformation(**input_dictionary)
+        self.Set_BySettingsDictionary(input_dictionary)
 
-    def Get_SettingDictionary(self , recognition_information=None):
-        data = RecognitionInfomation()
+    def Get_SettingsDictionary(self , recognition_information=None):
+        data = RecognitionInformation()
         if recognition_information==None:
             data = self.setting
         else:
             data = recognition_information
         #ENUMがDictionaryで使えないのでasdictは使えない。
-        #setting_dictionary = dataclasses.asdict(data)
-        setting_dictionary={
+        #settings_dictionary = dataclasses.asdict(data)
+        settings_dictionary={
             "action" : self.Set_StringData(data.action,DATA_TYPE.STRING),
             "end_condition" : self.Set_StringData(data.end_condition,DATA_TYPE.ENUM),
             "execute_number" : int(data.execute_number),
@@ -153,9 +153,9 @@ class Recognition:
             "recognition_confidence" : float(data.recognition_confidence),
             "recognition_gray_scale" : float(data.recognition_gray_scale)
         }
-        return setting_dictionary
+        return settings_dictionary
 
-    def Set_BySettingDictionary(self,input_dictionary):
+    def Set_BySettingsDictionary(self,input_dictionary):
         action = self.Get_Data("action",DATA_TYPE.ENUM,input_dictionary)
         end_condition = self.Get_Data("end_condition",DATA_TYPE.ENUM,input_dictionary)
         execute_number = self.Get_Data("execute_number",DATA_TYPE.NUMBER,input_dictionary)
@@ -165,7 +165,7 @@ class Recognition:
         interval_time = self.Get_Data("interval_time",DATA_TYPE.NUMBER,input_dictionary)
         recognition_confidence = self.Get_Data("recognition_confidence",DATA_TYPE.FLOAT,input_dictionary)
         recognition_gray_scale = self.Get_Data("recognition_gray_scale",DATA_TYPE.FLOAT,input_dictionary)
-        self.setting = RecognitionInfomation(action, end_condition, end_action, execute_number, retry_number, image_path, interval_time, recognition_confidence, recognition_gray_scale)
+        self.setting = RecognitionInformation(action, end_condition, end_action, execute_number, retry_number, image_path, interval_time, recognition_confidence, recognition_gray_scale)
 
     def Get_Data(self, data_name, data_type=DATA_TYPE.ENUM, data_dictionary={} ,default_value=""):
         message="Get_Data_Start"
@@ -215,7 +215,7 @@ class Recognition:
         else:
             return str(data)
 
-    def CheckSettingDictionary(self,input_dictionary):
+    def CheckSettingsDictionary(self,input_dictionary):
         result_type = {}
         result_type["action"] = type(input_dictionary["action"])
         result_type["end_condition"] = type(input_dictionary["end_condition"])
@@ -391,7 +391,7 @@ def Images_Action_ResultSet(dictionary,dictionary_key,detect,undetect):
         }
     return dictionary
 
-def InfomationToString():
+def InformationToString():
     global Images_Action_Result
     if Images_Action_Result is None:
         return ""
@@ -399,17 +399,17 @@ def InfomationToString():
         return str(Images_Action_Result).encode().decode("unicode-escape")
         #return str(Images_Action_Result).encode().decode("string-escape")
     
-def WriteInfomationToJson(file_path):
+def WriteInformationToJson(file_path):
     global Images_Action_Result    
     JSON_Control.WriteDictionary(file_path,Images_Action_Result)
 
-def ReadInfomationFromJson(file_path):
+def ReadInformationFromJson(file_path):
     global Images_Action_Result
     try:
         Images_Action_Result = JSON_Control.ReadDictionary(file_path,Images_Action_Result)
     except:
         Images_Action_Result={}
-        Log.Log_MessageAdd(message_list, "[ERROR]ReadInfomationFromJson:Json Read Error")
+        Log.Log_MessageAdd(message_list, "[ERROR]ReadInformationFromJson:Json Read Error")
     return Images_Action_Result
 
 # Folder内のImageを探してMouse pointerを移動し、行動する
@@ -500,10 +500,10 @@ def Images_Action_ByInformation(recognition_information, x_offset_dictionary=Non
     else:
         return RESULT.OK
 
-def Images_Action_BySettingDictionary(setting = {}):
-    setting=RecognitionInfomation()
+def Images_Action_BySettingsDictionary(setting = {}):
+    setting=RecognitionInformation()
     if setting == {} :
-        setting.Get_SettingDictionary(setting)
+        setting.Get_SettingsDictionary(setting)
 
 
 # 条件が成立した時に繰り返し実行する。

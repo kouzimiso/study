@@ -17,7 +17,7 @@ import FunctionUtility
 logfile_path = os.path.dirname(__file__)+'/../../Log/log_auto.txt'
 
 class Recognition:
-    default_setting :dict = {
+    default_settings :dict = {
         # 処理
         "action" : "CLICK",#"double_CLICK",""
         # 処理後input key
@@ -36,6 +36,8 @@ class Recognition:
         "end_action" : "continue",#
         # クリックする画像を保存するフォルダ
         "image_path" : "",
+        # 最初の画像、又はClick、Interval待ちした後の不安定状態のRetry時間(秒)
+        "start_retry_time":  0.1,
         # 画像をClickした後の待ち時間(秒)
         "interval_time":  0.1,
         # 画像認識のあいまい設定
@@ -43,27 +45,29 @@ class Recognition:
         # GrayScale設定(高速化)
         "recognition_gray_scale" : 0
     }
-    def __init__(self, setting_dictionary={}):
-        self.Set_BySettingDictionary(setting_dictionary)
-        self.logger.log("Start Recognition","INFO",details=setting_dictionary)
+    def __init__(self, settings_dictionary={}):
+        self.Set_BySettingsDictionary(settings_dictionary)
+        self.logger.log("Start Recognition","INFO",details=settings_dictionary)
 
-    def ArgumentGet(self):
-        setting_dictionary = FunctionUtility.ArgumentGet(self.default_setting,self.setting)
-        self.setting = {**self.setting, **setting_dictionary}
-        self.Set_BySettingDictionary(self.setting)
 
-    def Get_SettingDictionary(self):
-        return self.setting
 
-    def Set_BySettingDictionary(self,input_dictionary):
-        self.setting = {**self.default_setting, **input_dictionary}       
+    def Get_SettingsDictionary(self):
+        return self.settings
+
+    def Set_BySettingsDictionary(self,input_dictionary):
+        self.settings = {**self.default_settings, **input_dictionary}       
         self.logger = Log.Logs(input_dictionary)
 
+    def ArgumentGet(self):
+        settings_dictionary = FunctionUtility.ArgumentGet(self.default_settings,self.settings)
+        self.settings = {**self.settings, **settings_dictionary}
+        self.Set_BySettingsDictionary(self.settings)
+        
     # 辞書設定の読込と機能実行
     def Execute(self):
         #機能実行
         result_dictionary={}
-        result_action = self.Images_Action_ByInformation(self.setting)
+        result_action = self.Images_Action_ByInformation(self.settings)
         #Step:Set the result to the data.
         if Auto.Condition_Judge(result_action,"NG"):
             result_dictionary["result"]=False
@@ -113,7 +117,7 @@ class Recognition:
                 return True
             else:
                 detail_dictionary={"image_path": image_path}
-                self.logger.log("can not find image on screen","INFO",details = detail_dictionary)
+                self.logger.log("can not find image on screen. "+ image_path,"INFO",details = detail_dictionary)
                 return False
         except Exception:
             self.logger.error("image read error")
@@ -132,14 +136,14 @@ class Recognition:
             pyautogui.mouseUp()
         elif action == 'DRAG':
             pyautogui.drag()
-        # 行儀悪いがself.settingから直接指示。元々、様々な動作を実行するなら引数指定は無理が有りそう。
-        key = self.setting.get("input_key","")
+        # 行儀悪いがself.settingsから直接指示。元々、様々な動作を実行するなら引数指定は無理が有りそう。
+        key = self.settings.get("input_key","")
         if key != "":
             pyautogui.press(key)
-        scroll_distance_vertical = self.setting.get("scroll_distance_vertical",0)
+        scroll_distance_vertical = self.settings.get("scroll_distance_vertical",0)
         if scroll_distance_vertical != 0:
             pyautogui.scroll(scroll_distance_vertical)
-        scroll_distance_horizontal = self.setting.get("scroll_distance_horizontal",0)
+        scroll_distance_horizontal = self.settings.get("scroll_distance_horizontal",0)
         if scroll_distance_horizontal != 0:
             pyautogui.scroll(scroll_distance_horizontal)
 
@@ -194,11 +198,11 @@ class Recognition:
             self.Images_Action_Result = JSON_Control.ReadDictionary(file_path,self.Images_Action_Result)
         except:
             self.Images_Action_Result={}
-            self.logger.log( "[ERROR]ReadInformationFromJson:Json Read Error","INFO")
+            self.logger.log( "[ERROR]ReadInformationFromJson:Json Read Error. " + file_path,"INFO")
         return self.Images_Action_Result
 
     # Folder内のImageを探してMouse pointerを移動し、行動する
-    def Images_Action(self,action , end_action , end_condition , images_path , x_offset_dictionary , y_offset_dictionary , recognition_gray_scale , recognition_confidence , interval_time):
+    def Images_Action(self,action , end_action , end_condition , images_path , x_offset_dictionary , y_offset_dictionary , recognition_gray_scale , recognition_confidence , interval_time, start_retry_time=2):
         all_ok = True
         all_ng = True
         none = True
@@ -207,30 +211,37 @@ class Recognition:
         #abs_path = os.path.abspath(images_path)
         #print("####"+abs_path+":"+",".join(path_list))
         #for image_path in path_list:
+        start_time = time.time()
         for image_path in glob.glob(images_path):
             image_path = image_path.replace('\\', '/')
             none = False
-            # 画像検索とPointer移動
-            end_result = self.Image_SearchAndMove(image_path , x_offset_dictionary , y_offset_dictionary , recognition_gray_scale , recognition_confidence)
-            if end_result:
-                self.Images_Action_Result=self.Images_Action_ResultSet(self.Images_Action_Result,image_path,1,0)
-                self.Images_Action_Result=self.Images_Action_ResultSet(self.Images_Action_Result,"all_image",1,0)
-                all_ng = False
-                self.Action_Execute(action)
-                time.sleep(interval_time)
+            flag_loop = True
+            while flag_loop:
+                # 画像検索とPointer移動
+                end_result = self.Image_SearchAndMove(image_path , x_offset_dictionary , y_offset_dictionary , recognition_gray_scale , recognition_confidence)
+                if end_result:
+                    self.Images_Action_Result=self.Images_Action_ResultSet(self.Images_Action_Result,image_path,1,0)
+                    self.Images_Action_Result=self.Images_Action_ResultSet(self.Images_Action_Result,"all_image",1,0)
+                    all_ng = False
+                    self.Action_Execute(action)
+                    time.sleep(interval_time)
+                    start_time = time.time()
+                    flag_loop=False
 
-                # 条件成立での中止処理
-                if end_action == "BREAK" and end_condition == "OK":
-                    self.logger.log( "Images_Action Result_OK Break(" + str(action) + ")")
-                    return "OK"
-            else:
-                self.Images_Action_Result=self.Images_Action_ResultSet(self.Images_Action_Result,image_path,0,1)        
-                self.Images_Action_Result=self.Images_Action_ResultSet(self.Images_Action_Result,"all_image",0,1)        
-                all_ok = False
-                # 条件成立での中止処理
-                if end_action == "BREAK" and end_condition == "NG":
-                    self.logger.log( "Images_Action Result_NG Break(" + str(action) + ")")
-                    return "NG"
+                    # 条件成立での中止処理
+                    if end_action == "BREAK" and end_condition == "OK":
+                        self.logger.log( "Images_Action Result_OK Break(" + str(action) + ")"+ images_path)
+                        return "OK"
+                else:
+                    self.Images_Action_Result=self.Images_Action_ResultSet(self.Images_Action_Result,image_path,0,1)        
+                    self.Images_Action_Result=self.Images_Action_ResultSet(self.Images_Action_Result,"all_image",0,1)        
+                    all_ok = False
+                    # 条件成立での中止処理
+                    if start_retry_time < time.time() - start_time:
+                        if end_action == "BREAK" and end_condition == "NG":
+                            self.logger.log( "Images_Action Result_NG Break(" + str(action) + ")" +images_path)
+                            return "NG"
+                        flag_loop=False
         if none:
             return "NONE"
         if all_ok == True:
@@ -266,7 +277,7 @@ class Recognition:
                     "image_path": recognition_information.get("image_path")
                 }
                 self.logger.log(message,"INFO",details=details)
-                end_result = self.Images_Action(recognition_information.get("action") , recognition_information.get("end_action") , recognition_information.get("end_condition") , recognition_information.get("image_path"),x_offset_dictionary , y_offset_dictionary , recognition_information.get("recognition_gray_scale") , recognition_information.get("recognition_confidence") , recognition_information.get("interval_time"))
+                end_result = self.Images_Action(recognition_information.get("action") , recognition_information.get("end_action") , recognition_information.get("end_condition") , recognition_information.get("image_path"),x_offset_dictionary , y_offset_dictionary , recognition_information.get("recognition_gray_scale") , recognition_information.get("recognition_confidence") , recognition_information.get("interval_time"),recognition_information.get("start_retry_time"))
                 if end_result == "NONE":
                     all_ok = False
                     all_ng = True
@@ -365,9 +376,9 @@ class Recognition:
 def main():
     # Command lineの引数を得てから機能を実行し、標準出力を出力IFとして動作する。
     # 単体として動作するように実行部のExecuteは辞書を入出力IFとして動作する。
-    recognition = Recognition()
-    recognition.ArgumentGet()
-    result_dictionary = recognition.Execute()
+    class_instance = Recognition()
+    class_instance.ArgumentGet()
+    result_dictionary = class_instance.Execute()
     FunctionUtility.Result(result_dictionary)
     
 if __name__ == '__main__':

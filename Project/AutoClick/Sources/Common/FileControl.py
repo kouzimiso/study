@@ -28,7 +28,7 @@ def Get_FilesNumber(folder_path):
                 total += Get_FolderSize(entry.path)
     return total
 
-def Archive_SizeOverFile(file_path,file_maxsize, setting_dictionary={},message_list=[]):
+def Archive_SizeOverFile(file_path,file_maxsize, settings_dictionary={},message_list=[]):
     if os.path.exists(file_path):
         filesize = os.path.getsize(file_path)
         if file_maxsize < filesize:
@@ -54,7 +54,7 @@ def GetFileList(folder_path):
 # folder_path: 空き容量確保のために削除できるファイルがあるフォルダのパス
 # folder_maxsize: 削除判断となるフォルダの容量
 # files_maxnumber: 削除判断となるFileの数
-def Delete_OldFiles(folder_path,  folder_maxsize , files_maxnumber , setting_dictionary={},message_list=[]):
+def Delete_OldFiles(folder_path,  folder_maxsize , files_maxnumber , settings_dictionary={},message_list=[]):
     files = []
     folders = []
     # サブフォルダのPathオブジェクトをイテレート。ファイルとフォルダに振り分ける。
@@ -126,13 +126,13 @@ default_dictionary ={
     "folder_maxsize" : 1048576,
     "files_maxnumber" : 5
 }
-def Execute(setting_dictionary):
-    action = setting_dictionary.get("action","ManageFile")
-    file_path = setting_dictionary.get("file_path")
-    file_maxsize = setting_dictionary.get("file_maxsize")
-    archivefolder_path = setting_dictionary.get("archivefolder_path")
-    folder_maxsize = setting_dictionary.get("folder_maxsize")
-    files_maxnumber = setting_dictionary.get("files_maxnumber")
+def Execute(settings_dictionary):
+    action = settings_dictionary.get("action","ManageFile")
+    file_path = settings_dictionary.get("file_path")
+    file_maxsize = settings_dictionary.get("file_maxsize")
+    archivefolder_path = settings_dictionary.get("archivefolder_path")
+    folder_maxsize = settings_dictionary.get("folder_maxsize")
+    files_maxnumber = settings_dictionary.get("files_maxnumber")
 
     result_dictionary ={}
     message_list = []
@@ -150,8 +150,8 @@ def Execute(setting_dictionary):
 def main():
     # Command lineの引数を得てから機能を実行し、標準出力を出力IFとして動作する。
     # 単体として動作するように実行部のExecuteは辞書を入出力IFとして動作する。
-    setting_dictionary = FunctionUtility.ArgumentGet(default_dictionary)
-    result_dictionary = Execute(setting_dictionary)
+    settings_dictionary = FunctionUtility.ArgumentGet(default_dictionary)
+    result_dictionary = Execute(settings_dictionary)
     FunctionUtility.Result(result_dictionary)
 
 if __name__ == "__main__":

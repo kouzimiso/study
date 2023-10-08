@@ -92,15 +92,15 @@ class ValueEditor:
         else:
             return queue
 
-def Execute(setting_dictionary):
-    program_type = setting_dictionary.get("type","")
+def Execute(settings_dictionary):
+    program_type = settings_dictionary.get("type","")
     
     if program_type == "ValueEditor":
         editor = ValueEditor()
-        result = editor.run(setting_dictionary)
+        result = editor.run(settings_dictionary)
     else:
         editor = DictionaryEditor()
-        result = editor.run(setting_dictionary)
+        result = editor.run(settings_dictionary)
     return result
 
 #command lineから機能を利用する。
@@ -115,8 +115,8 @@ def main():
 
     # Command lineの引数を得てから機能を実行し、標準出力を出力IFとして動作する。
     # 単体として動作するように実行部のExecuteは辞書を入出力IFとして動作する。
-    setting_dictionary = FunctionUtility.ArgumentGet(default_dictionary,option_dictionary)
-    result_dictionary = Execute(setting_dictionary)
+    settings_dictionary = FunctionUtility.ArgumentGet(default_dictionary,option_dictionary)
+    result_dictionary = Execute(settings_dictionary)
     FunctionUtility.Result(result_dictionary)
 
 if __name__ == "__main__":

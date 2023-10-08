@@ -188,11 +188,11 @@ def CaptureImage(file_path, flag_overwrite=True, x=0, y=0, wide=0, height=0, dup
         bbox_y = y
         ImageGrab.grab(bbox=(bbox_x,  bbox_y, bbox_x + bbox_w, bbox_y + bbox_h)).save(path)
 
-def GenerateRandomImageBySetting(setting_dictionary):
-    width = setting_dictionary.get("width",400)
-    height = setting_dictionary.get("height",200)
-    file_path = setting_dictionary.get("file_path","")
-    flag_show_image = setting_dictionary.get("show_image","")
+def GenerateRandomImageBySetting(settings_dictionary):
+    width = settings_dictionary.get("width",400)
+    height = settings_dictionary.get("height",200)
+    file_path = settings_dictionary.get("file_path","")
+    flag_show_image = settings_dictionary.get("show_image","")
 
     image = GenerateRandomImage(width, height)
     try:
@@ -215,13 +215,13 @@ def GenerateRandomImage(width, height):
     random_image = np.random.randint(0, 256, (height, width, 3), dtype=np.uint8)
     return random_image
 
-def GenerateTextImageBySetting(setting_dictionary):
-    text = setting_dictionary.get("text","")
-    font_size = setting_dictionary.get("font_size",24)
-    width = setting_dictionary.get("width",400)
-    height = setting_dictionary.get("height",200)
-    file_path = setting_dictionary.get("file_path","")
-    flag_show_image = setting_dictionary.get("show_image",False)
+def GenerateTextImageBySetting(settings_dictionary):
+    text = settings_dictionary.get("text","")
+    font_size = settings_dictionary.get("font_size",24)
+    width = settings_dictionary.get("width",400)
+    height = settings_dictionary.get("height",200)
+    file_path = settings_dictionary.get("file_path","")
+    flag_show_image = settings_dictionary.get("show_image",False)
 
     image = GenerateTextImage(text, font_size, width, height)
     try:
@@ -259,8 +259,8 @@ def GenerateTextImage(text, font_size=24, width=400, height=200):
     draw.text((x, y), text, fill='black', font=font)    
     return image
 
-def DeleteDuplicateImageBySetting(setting_dictionary):
-    directory_path = setting_dictionary.get("directory_path","")
+def DeleteDuplicateImageBySetting(settings_dictionary):
+    directory_path = settings_dictionary.get("directory_path","")
     DeleteDuplicateImage(directory_path)
     return {"result":True}
 
@@ -283,15 +283,15 @@ def DeleteDuplicateImage(directory_path):
                 dl.append(flist[j])
     for a in dl: os.remove(a)
 
-def Execute(setting_dictionary):
-    action = setting_dictionary.get("action")
+def Execute(settings_dictionary):
+    action = settings_dictionary.get("action")
     result_dictionary={"result":False}
     if action == 'GENERATE_TEXT_IMAGE':
-        result_dictionary = GenerateTextImageBySetting(setting_dictionary)
+        result_dictionary = GenerateTextImageBySetting(settings_dictionary)
     elif action == 'GENERATE_RANDOM_IMAGE':
-        result_dictionary = GenerateRandomImageBySetting(setting_dictionary)
+        result_dictionary = GenerateRandomImageBySetting(settings_dictionary)
     elif action == 'DELETE_DUPLICATE_IMAGE':
-        DeleteDuplicateImageBySetting(setting_dictionary)
+        DeleteDuplicateImageBySetting(settings_dictionary)
     return result_dictionary
 
 #command lineから機能を利用する。
@@ -320,14 +320,14 @@ def main():
     }
     # Command lineの引数を得てから機能を実行し、標準出力を出力IFとして動作する。
     # 単体として動作するように実行部のExecuteは辞書を入出力IFとして動作する。
-    setting_dictionary = FunctionUtility.ArgumentGet(default_dictionary)
-    if  setting_dictionary.get("action","") =="GENERATE_TEXT_IMAGE":
-        setting_dictionary = FunctionUtility.ArgumentGet(generate_text_image_dictionary,setting_dictionary)
-    elif  setting_dictionary.get("action","") =="GENERATE_RANDOM_IMAGE":
-        setting_dictionary = FunctionUtility.ArgumentGet(generate_random_image_dictionary,setting_dictionary)
-    elif  setting_dictionary.get("action","") =="DELETE_DUPLICATE_IMAGE":
-        setting_dictionary = FunctionUtility.ArgumentGet(delete_duplicate_image_dictionary,setting_dictionary)
-    result_dictionary = Execute(setting_dictionary)
+    settings_dictionary = FunctionUtility.ArgumentGet(default_dictionary)
+    if  settings_dictionary.get("action","") =="GENERATE_TEXT_IMAGE":
+        settings_dictionary = FunctionUtility.ArgumentGet(generate_text_image_dictionary,settings_dictionary)
+    elif  settings_dictionary.get("action","") =="GENERATE_RANDOM_IMAGE":
+        settings_dictionary = FunctionUtility.ArgumentGet(generate_random_image_dictionary,settings_dictionary)
+    elif  settings_dictionary.get("action","") =="DELETE_DUPLICATE_IMAGE":
+        settings_dictionary = FunctionUtility.ArgumentGet(delete_duplicate_image_dictionary,settings_dictionary)
+    result_dictionary = Execute(settings_dictionary)
     FunctionUtility.Result(result_dictionary)
 
 if __name__ == "__main__":

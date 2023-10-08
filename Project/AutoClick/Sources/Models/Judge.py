@@ -20,24 +20,24 @@ class Judge:
     information:dict = None
     default_result:bool =True
 
-    default_setting_dictionary={
+    default_settings_dictionary={
         "condition_list":[],
         "information" : {},
         "default_result":True,
     }
 
-    def __init__(self ,  setting_dictionary = {},information={}) :
-        self.logger = Log.Logs(setting_dictionary)
-        ClassControl.update_from_dict(self,self.default_setting_dictionary)
-        self.Setup(setting_dictionary,information)
+    def __init__(self ,  settings_dictionary = {},information={}) :
+        self.logger = Log.Logs(settings_dictionary)
+        ClassControl.update_from_dict(self,self.default_settings_dictionary)
+        self.Setup(settings_dictionary,information)
 
-    def Setup(self , setting_dictionary , information = {} ) :
-        self.logger.Setup(setting_dictionary)
+    def Setup(self , settings_dictionary , information = {} ) :
+        self.logger.Setup(settings_dictionary)
         self.information = information
-        if("condition_list" in setting_dictionary ):
-            self.condition_list = setting_dictionary["condition_list"]
-        if("default_result" in setting_dictionary ):
-            self.default_result = setting_dictionary["default_result"]
+        if("condition_list" in settings_dictionary ):
+            self.condition_list = settings_dictionary["condition_list"]
+        if("default_result" in settings_dictionary ):
+            self.default_result = settings_dictionary["default_result"]
 
     def Result(self , condition_list = None ,information = None,default_result = None , result_details ={}):
         if condition_list is None:

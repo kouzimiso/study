@@ -26,19 +26,19 @@ def test():
     print(result.stdout)
 
 
-def ExecuteProgram(setting_dictionary):
-    program_path = setting_dictionary.get("program_path","")
+def ExecuteProgram(settings_dictionary):
+    program_path = settings_dictionary.get("program_path","")
     if not os.path.exists(program_path):
         error_dictionary = LogMessage.Get_Error_Dictionary(False , error_type = "FileNotExistError" , error_message = "The file is not exist")
         json_dictionary = json.dumps(error_dictionary)
         return json_dictionary
     loop01 = 1
     args_list = []
-    if not "argument" + str(loop01) in setting_dictionary:
-        args_list.append(json.dumps(setting_dictionary)) 
+    if not "argument" + str(loop01) in settings_dictionary:
+        args_list.append(json.dumps(settings_dictionary)) 
     else:       
-        while "argument" + str(loop01) in setting_dictionary:
-            args_list.append(setting_dictionary.get(setting_dictionary.get("argument" + str(loop01) ,"") ,""))
+        while "argument" + str(loop01) in settings_dictionary:
+            args_list.append(settings_dictionary.get(settings_dictionary.get("argument" + str(loop01) ,"") ,""))
             loop01 = loop01 + 1
     # プログラムを起動
     result = subprocess.run([program_path] + args_list , capture_output = True , text = True)
@@ -53,17 +53,17 @@ def ExecuteProgram(setting_dictionary):
     
 if __name__ == "__main__":
     test()
-    setting_dictionary = {"argument1" : "name" , "argument2" : "address" , "argument3" : "tell",
+    settings_dictionary = {"argument1" : "name" , "argument2" : "address" , "argument3" : "tell",
                  "name" : "sato" , "address" : "taiwan" , "tell" : "090-1234-5678",
                  "program_path" : r"./jsonprint.exe"}             
     #             "program_path" : r"C:/Users/kouzi/Dropbox/Works_Shibaura/Nowworks/Auto/AutoClick/Sources/Test/jsonprint.exe"}
 
-    result = ExecuteProgram(setting_dictionary)
+    result = ExecuteProgram(settings_dictionary)
     print(result)
 
-    setting_dictionary = {"name" : "sato" , "address" : "taiwan" , "tell" : "090-1234-5678",
+    settings_dictionary = {"name" : "sato" , "address" : "taiwan" , "tell" : "090-1234-5678",
                  "program_path" : r"./jsonprint.exe"}             
     #             "program_path" : r"C:/Users/kouzi/Dropbox/Works_Shibaura/Nowworks/Auto/AutoClick/Sources/Test/jsonprint.exe"}
 
-    result = ExecuteProgram(setting_dictionary)
+    result = ExecuteProgram(settings_dictionary)
     print(result)

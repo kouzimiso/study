@@ -59,9 +59,22 @@
 			"name" : "StartTest",
 		 	"type" : "RunPlanLists",
 		 	"settings" : {
-				"file_path" : "../Setting/TemplateRunApply.json",
+				"step_check_mode" : true,"step_check_comment":"",
+				"log_function" : true,"log_print_standard_output" : false,"log_file_path_list" : "../Log/log_houchi.json.json",
+				"file_path" : "../Setting/RunHouchiChild.json",				
 				"plan_lists" : [
-					"Scroll_Click"
+					"HouchiCharacterGrowth"
+				]
+			}
+		},
+		{
+			"name" : "StartTest",
+		 	"type" : "RunPlanLists",
+		 	"settings" : {
+				"#step_check_mode" : true,"step_check_comment":"",
+				"file_path" : "../Setting/Run_HouchiFunction.json",
+				"plan_lists" : [
+					"#FreeClick"
 				]
 			}
 		},
@@ -117,8 +130,8 @@
                 "terminate_condition":false,
                 "loop_limit_count":5,
 				"plan_lists" : [
-					"#HouchiACM","#DarkTailsClickGroup",
-					"#TimeCheck_Houchi_Chokyo","#Chokyo"
+					"#ACMAccount","#DarkTailsClickGroup",
+					"#TimeCheck_TimeEvent01","#TimeEventPlay"
 				]
 			}
 		},
@@ -132,8 +145,8 @@
                 "loop_limit_count":5,
 				"plan_lists" : [
 					"#ReturnHome","#Casting","#Item",
-					"#HouchiEvent01","#HouchiEvent02","#ReturnHome","HouchiEvent08",
-					"#HouchiIkusei","#Etc#"
+					"#EventPlay01","#EventPlay02","#ReturnHome","#EventPlay08",
+					"#Grouth","#Etc#"
 				]
 			}
 		}

@@ -314,7 +314,7 @@ class Test(unittest.TestCase):
         #information1で書いたxmlを読んだのがinformation2とする
         information2 = {}
         information2 = XML_Control.XML_Read("./test.xml")
-        Log.Log_MessageAdd(message_list,"Infomation2")
+        Log.Log_MessageAdd(message_list,"Information2")
         dictionary_string = json.dumps(information2)
         Log.Log_MessageAdd(message_list,dictionary_string)
         
@@ -323,7 +323,7 @@ class Test(unittest.TestCase):
         XML_Control.Dictionary_ToXMLFile("./test2.xml",information1)
         information3 = {}
         information3 = XML_Control.XML_ToDictionary("./test2.xml")
-        Log.Log_MessageAdd(message_list,"Infomation3")
+        Log.Log_MessageAdd(message_list,"Information3")
         dictionary_string = json.dumps(information3)
         Log.Log_MessageAdd(message_list,dictionary_string)
         
@@ -378,11 +378,11 @@ class Test(unittest.TestCase):
         #Data種類→Data名前
 
         information_sequence={
-            "Function_RecognitionInfomation_Setting":
+            "Function_RecognitionInformation_Setting":
             {
                 "definition":{
-                    "type":"function_setting",
-                    "type_deteil":"RecognitionInfomation",
+                    "type":"function_settings",
+                    "type_deteil":"RecognitionInformation",
                 },
                 
                 "setting":
@@ -422,12 +422,12 @@ class Test(unittest.TestCase):
 
         """
         search_sequence=[]
-        search_sequence.append(Auto.RecognitionInfomation(Auto.ACTION.DOUBLE_CLICK ,Auto.RESULT.OK, Auto.END_ACTION.BREAK , 2 , 0 ,'./image00/*.png' , 10 , 0.99 , True))
-        search_sequence.append(Auto.RecognitionInfomation(Auto.ACTION.DOUBLE_CLICK ,Auto.RESULT.OK, Auto.END_ACTION.BREAK , 2 , 0 ,'./image01/*.png' , 10 , 0.97 , True))
-        search_sequence.append(Auto.RecognitionInfomation(Auto.ACTION.DOUBLE_CLICK ,Auto.RESULT.OK, Auto.END_ACTION.BREAK , 2 , 0 ,'./image02/*.png' , 10 , 0.99 , True))
-        search_sequence.append(Auto.RecognitionInfomation(Auto.ACTION.DOUBLE_CLICK ,Auto.RESULT.OK, Auto.END_ACTION.BREAK , 2 , 0 ,'./image03/*.png' , 10 , 0.99 , True))
-        search_sequence.append(Auto.RecognitionInfomation(Auto.ACTION.DOUBLE_CLICK ,Auto.RESULT.OK, Auto.END_ACTION.BREAK , 2 , 0 ,'./image04/*.png' , 10 , 0.99 , True))
-        search_sequence.append(Auto.RecognitionInfomation(Auto.ACTION.DOUBLE_CLICK ,Auto.RESULT.OK, Auto.END_ACTION.BREAK , 2 , 0 ,'./image05/*.png' , 10 , 0.99 , True))
+        search_sequence.append(Auto.RecognitionInformation(Auto.ACTION.DOUBLE_CLICK ,Auto.RESULT.OK, Auto.END_ACTION.BREAK , 2 , 0 ,'./image00/*.png' , 10 , 0.99 , True))
+        search_sequence.append(Auto.RecognitionInformation(Auto.ACTION.DOUBLE_CLICK ,Auto.RESULT.OK, Auto.END_ACTION.BREAK , 2 , 0 ,'./image01/*.png' , 10 , 0.97 , True))
+        search_sequence.append(Auto.RecognitionInformation(Auto.ACTION.DOUBLE_CLICK ,Auto.RESULT.OK, Auto.END_ACTION.BREAK , 2 , 0 ,'./image02/*.png' , 10 , 0.99 , True))
+        search_sequence.append(Auto.RecognitionInformation(Auto.ACTION.DOUBLE_CLICK ,Auto.RESULT.OK, Auto.END_ACTION.BREAK , 2 , 0 ,'./image03/*.png' , 10 , 0.99 , True))
+        search_sequence.append(Auto.RecognitionInformation(Auto.ACTION.DOUBLE_CLICK ,Auto.RESULT.OK, Auto.END_ACTION.BREAK , 2 , 0 ,'./image04/*.png' , 10 , 0.99 , True))
+        search_sequence.append(Auto.RecognitionInformation(Auto.ACTION.DOUBLE_CLICK ,Auto.RESULT.OK, Auto.END_ACTION.BREAK , 2 , 0 ,'./image05/*.png' , 10 , 0.99 , True))
         information1 = search_sequence
         """
 
@@ -482,17 +482,17 @@ class Test(unittest.TestCase):
         #画像を探してずらした位置をクリックする設定。{画像Path:ずらす位置}の形式で記述する。
         x_offset_dictionary= {'../Images/Test/test_Auto_Blank' : "0"}
         y_offset_dictionary= {'../Images/Test/test_Auto_Blank' : "30"}
-        Auto.Images_Action_Result=Auto.ReadInfomationFromJson("../Log/test_auto.json")
+        Auto.Images_Action_Result=Auto.ReadInformationFromJson("../Log/test_auto.json")
         Auto.Images_Action_Result=Auto.Images_Action_ResultInit(Auto.Images_Action_Result)
         
-        recognition_information=Auto.RecognitionInfomation(Auto.ACTION.DOUBLE_CLICK ,Auto.RESULT.OK, Auto.END_ACTION.BREAK , 2 , 5 ,'./Test/*.png' , 1.8 , 0.8 , True)
+        recognition_information=Auto.RecognitionInformation(Auto.ACTION.DOUBLE_CLICK ,Auto.RESULT.OK, Auto.END_ACTION.BREAK , 2 , 5 ,'./Test/*.png' , 1.8 , 0.8 , True)
         actual=Auto.Images_ConditionCheckAndAction("test1",Auto.RESULT.OK,recognition_information,x_offset_dictionary,y_offset_dictionary)
-        Auto.WriteInfomationToJson("../Log/test_auto.json")
+        Auto.WriteInformationToJson("../Log/test_auto.json")
         
         print("test_Auto3_ConditionCheckAndAction1")
         expected =Auto.RESULT.ALL_OK
         #self.assertEqual(expected,actual)
-        print(Auto.InfomationToString())
+        print(Auto.InformationToString())
 
         actual=Auto.Images_ConditionCheckAndAction("test1",Auto.RESULT.OK,recognition_information,x_offset_dictionary,y_offset_dictionary)
         expected =Auto.RESULT.NG
@@ -504,7 +504,7 @@ class Test(unittest.TestCase):
         expected =Auto.RESULT.NG
         #self.assertEqual(expected,actual)
         print("test_Auto3_ConditionCheckAndAction3")
-        Auto.WriteInfomationToJson("../Log/test_auto.json")      
+        Auto.WriteInformationToJson("../Log/test_auto.json")      
         
     def test_Auto4_FileControl(self):
         folder_path="../Images/Test"

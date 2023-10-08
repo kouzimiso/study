@@ -24,8 +24,8 @@ def close_window_by_name(window_name,flag_exact_match = True):
 
 def close_window_by_selection(matching_windows):
     if not matching_windows:
-        print("指定した文字列を含むウィンドウが見つかりません。")
-        return False
+        message ="指定した文字列を含むウィンドウが見つかりません。"
+        return {"result" :False ,"message": message}
     
     print("以下のウィンドウが見つかりました:")
     for idx, window_title in enumerate(matching_windows, start=1):
@@ -35,21 +35,21 @@ def close_window_by_selection(matching_windows):
         choice = int(input("閉じたいウィンドウの番号を選択してください (0 でキャンセル): "))
         
         if choice == 0:
-            return False
+            return  {"result" :False ,"message": "No choice"}
+
         
         if 1 <= choice <= len(matching_windows):
             result = close_window_by_name(matching_windows[choice - 1])
             if result :
-                print(f"{matching_windows[choice - 1]} を閉じました。")
+                message = f"{matching_windows[choice - 1]} を閉じました。"
             else:
-                print(f"Windowを閉じる際にErrorが発生しました。")
-            return result
+                message = f"Windowを閉じる際にErrorが発生しました。"
+            return {"result" :result ,"message": message}
         else:
-            print("無効な選択です。正しい番号を選んでください。")
-            return False
+            message = "無効な選択です。正しい番号を選んでください。"
+            return {"result" :False ,"message": message}
     except ValueError:
-        print("無効な入力です。数値を入力してください。")
-        return False
+        return  {"result" :False ,"message": "無効な入力です。数値を入力してください。"}
 
 # Defaultの辞書Dataを設定
 default_dictionary = {
@@ -58,11 +58,11 @@ default_dictionary = {
     "flag_exact_match":True
 }
 # 辞書設定の読込と機能実行
-def Execute(setting_dictionary):
+def Execute(settings_dictionary):
     #設定の読込
-    action = setting_dictionary.get("action","")
-    target_text = setting_dictionary.get("target_text","")
-    flag_exact_match = setting_dictionary.get("flag_exact_match",True)
+    action = settings_dictionary.get("action","")
+    target_text = settings_dictionary.get("target_text","")
+    flag_exact_match = settings_dictionary.get("flag_exact_match",True)
     #機能実行 
     result_dictionary = {}
     if action == "DELETE":
@@ -77,8 +77,8 @@ def Execute(setting_dictionary):
 def main():
     # Command lineの引数を得てから機能を実行し、標準出力を出力IFとして動作する。
     # 単体として動作するように実行部のExecuteは辞書を入出力IFとして動作する。
-    setting_dictionary = FunctionUtility.ArgumentGet(default_dictionary)
-    result_dictionary = Execute(setting_dictionary)
+    settings_dictionary = FunctionUtility.ArgumentGet(default_dictionary)
+    result_dictionary = Execute(settings_dictionary)
     FunctionUtility.Result(result_dictionary)
 
 if __name__ == '__main__':

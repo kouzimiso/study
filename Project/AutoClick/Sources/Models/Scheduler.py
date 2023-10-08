@@ -5,6 +5,7 @@ sys.path.append("../Common")
 import JSON_Control
 import threading
 import Task
+import FunctionUtility
 
 
 
@@ -31,10 +32,35 @@ def init():
 def StartUp(plan_list_name,file_path):
     task = Task.Task(file_path)
     task.Run(plan_list_name)
+    return True
         
-def main():
-    #init()
-    StartUp("Start","../Setting/RunGame.json")
+# Defaultの辞書Dataを設定
+default_dictionary = {
+    "plan_list_name": "Start",
+    "file_path" : "../Setting/RunTest.json"
+}
+# 辞書設定の読込と機能実行
+def Execute(settings_dictionary):
+    #設定の読込
+    plan_list_name = settings_dictionary.get("plan_list_name","")
+    file_path = settings_dictionary.get("file_path","")
+    #機能実行 
+    result_dictionary = {}
+    if(file_path != ""):
+        result = StartUp(plan_list_name,file_path)
+    else:
+        result = False
+    result_dictionary["result"] = result
+    return result_dictionary
 
-if __name__ == "__main__":
-    sys.exit(main())
+#command lineから機能を利用する。
+def main():
+    # Command lineの引数を得てから機能を実行し、標準出力を出力IFとして動作する。
+    # 単体として動作するように実行部のExecuteは辞書を入出力IFとして動作する。
+    settings_dictionary = FunctionUtility.ArgumentGet(default_dictionary)
+    result_dictionary = Execute(settings_dictionary)
+    FunctionUtility.Result(result_dictionary)
+
+if __name__ == '__main__':
+    main()
+

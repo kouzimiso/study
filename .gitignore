@@ -80,3 +80,7 @@ Project/AutoClick/Log/log.json
 Project/AutoClick/Log/log*.json
 Project/AutoClick/Images/*
 Project/AutoClick/Log/*.log
+Project/AutoClick/Sources/Common/Recognition_old.py
+Project/AutoClick/Sources/.vscode/launch.json
+Project/AutoClick/Sources/Common/Recognition_old.py
+Project/AutoClick/Sources/Common/Recognition_old.py

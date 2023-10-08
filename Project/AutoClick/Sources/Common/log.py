@@ -21,7 +21,7 @@ import FunctionUtility
 #LogはLog_append関数で現在の時間とメッセージとレベルを辞書形式でListに加えて貯める。
 #Log_append関数で貯めたLogをlog_write関数でloggingのレベルでフィルタリングし、1回のFile書き込みで複数のLogをまとめてJSON.Line形式でFileに追記する
 class Logs:
-    def __init__(self , setting_dictionary = {}):
+    def __init__(self , settings_dictionary = {}):
         self.Log_Lists = []
         self.Setting = {}
         self.default_log_console_level : str = "WARNING"
@@ -73,40 +73,40 @@ class Logs:
                 } 
             }
         }
-        self.Setup(setting_dictionary)
+        self.Setup(settings_dictionary)
         
-    def Setup(self , setting_dictionary = {}):
-        if type(setting_dictionary) is not dict:
-            setting_dictionary = {}
-        self.Setting = setting_dictionary
-        log_setting_path = setting_dictionary.get("log_setting_path")
-        file_path_list = setting_dictionary.get("log_file_path_list",None)
+    def Setup(self , settings_dictionary = {}):
+        if type(settings_dictionary) is not dict:
+            settings_dictionary = {}
+        self.Setting = settings_dictionary
+        log_settings_path = settings_dictionary.get("log_settings_path")
+        file_path_list = settings_dictionary.get("log_file_path_list",None)
         if file_path_list is not None:
             self.FilePathList = file_path_list
         # ログ設定ファイルの読み込み
         try:
             #path指定が無ければDefault設定、有れば設定をDictionary形式で読み込む
-            if log_setting_path is None:
+            if log_settings_path is None:
                 config = self.DEFAULT_LOGGING_CONFIG
             else:
-                with open(log_setting_path , 'rt') as f:
+                with open(log_settings_path , 'rt') as f:
                     config = json.load(f)
         #except FileNotFoundError:
         except:
-            with open("setting_log.json" , 'wt') as f:
+            with open("settings_log.json" , 'wt') as f:
                 json.dump(self.DEFAULT_LOGGING_CONFIG , f , indent=4)
             config = self.DEFAULT_LOGGING_CONFIG
         logging.config.dictConfig(config)
         self.logger = logging.getLogger("file")
 
         self.logger_console = logging.getLogger("console")
-        log_console_level = setting_dictionary.get("log_console_level",None)
+        log_console_level = settings_dictionary.get("log_console_level",None)
         if log_console_level is not None:
             self.logger_console.setLevel(log_console_level)
         if not self.logger_console.handlers:
             handler = logging.StreamHandler(sys.stdout)
             self.logger_console.addHandler(handler)
-        self.log_print_standard_output =  setting_dictionary.get("log_print_standard_output",False)
+        self.log_print_standard_output =  settings_dictionary.get("log_print_standard_output",False)
 
     def debug(self , message) :
         self.log(message , "DEBUG")
@@ -150,11 +150,11 @@ class Logs:
 
 
     #LogをListに貯める機能のあるLog
-    def log(self , message , level = "INFO" , details={} , flag_print = None , setting_dictionary = None , message_lists = None):
+    def log(self , message , level = "INFO" , details={} , flag_print = None , settings_dictionary = None , message_lists = None):
         if flag_print is None:
             flag_print = self.log_print_standard_output 
-        if setting_dictionary is None:
-            setting_dictionary = self.Setting
+        if settings_dictionary is None:
+            settings_dictionary = self.Setting
         if message_lists is None:
             message_lists = self.Log_Lists
 
@@ -169,11 +169,11 @@ class Logs:
         #dateをdetailsの中のdateで上書きしてフォーマットを合わせる事ができる仕様。
         date = log_message["date"]
         if type(date) == datetime.datetime:
-            log_message["date"]=date.strftime( setting_dictionary.get("time_format",self.TIME_FORMAT))
-        if setting_dictionary.get("log_function", False):
+            log_message["date"]=date.strftime( settings_dictionary.get("time_format",self.TIME_FORMAT))
+        if settings_dictionary.get("log_function", False):
             frame = inspect.currentframe().f_back
             function_information = {"function":frame.f_code.co_name}
-            if setting_dictionary.get("log_arguments", False):
+            if settings_dictionary.get("log_arguments", False):
                 arguments = {}
                 for key , value in frame.f_locals.items():
                     if key == "self":
@@ -185,13 +185,13 @@ class Logs:
                 function_information["arguments"] = arguments
             log_message.update(function_information)
         if flag_print:
-            #setting_log_level = setting_dictionary.get("log_level",self.default_log_console_level)
+            #settings_log_level = settings_dictionary.get("log_level",self.default_log_console_level)
             log_level = self.Log_Level_Get(level) 
             message = json.dumps(log_message , ensure_ascii=False)
             #self.logger_console.log(log_level , message)
             message_level = self.Log_Level_Get(log_message.get("level"),logging.WARNING)
             if log_level <= message_level:
-                print(log_message)
+                print(log_message.get("date","")+" "+ log_message.get("message",""))
                 
             #print(self.logger_console.handlers)
         message_lists.append(log_message)
@@ -251,19 +251,19 @@ def Write_MessageList(file_path , message_list):
     file.writelines(message_list)
     file.close()
 
-def Execute(setting_dictionary):
-    setting_dictionary["message"]= "test message"
-    logger=Logs(setting_dictionary)
-    logger.log("","",setting_dictionary)
+def Execute(settings_dictionary):
+    settings_dictionary["message"]= "test message"
+    logger=Logs(settings_dictionary)
+    logger.log("","",settings_dictionary)
     logger.MessageList_Write()
     #logger.MessageList_Clear()
 
-    setting_dictionary["message"]= "test message2"
-    setting_dictionary["log_file_path_list"]= ["../Log/log2.json","../Log/log3.json"]
+    settings_dictionary["message"]= "test message2"
+    settings_dictionary["log_file_path_list"]= ["../Log/log2.json","../Log/log3.json"]
 
-    logger2=Logs(setting_dictionary)
-    logger2.log("","",setting_dictionary)
-    logger2.log("","",setting_dictionary)
+    logger2=Logs(settings_dictionary)
+    logger2.log("","",settings_dictionary)
+    logger2.log("","",settings_dictionary)
     logger2.MessageList_Write()
     #logger2.MessageList_Clear()
 
@@ -274,7 +274,7 @@ def Execute(setting_dictionary):
 def main():
     # Defaultの辞書Dataを設定。
     default_dictionary = {
-        "log_setting_path": "./setting_log.json",
+        "log_settings_path": "./settings_log.json",
         "log_file_path_list": ["../Log/log.json"]
 
     }
@@ -286,8 +286,8 @@ def main():
     }
     # Command lineの引数を得てから機能を実行し、標準出力を出力IFとして動作する。
     # 単体として動作するように実行部のExecuteは辞書を入出力IFとして動作する。
-    setting_dictionary = FunctionUtility.ArgumentGet(default_dictionary,option_dictionary)
-    result_dictionary = Execute(setting_dictionary)
+    settings_dictionary = FunctionUtility.ArgumentGet(default_dictionary,option_dictionary)
+    result_dictionary = Execute(settings_dictionary)
     FunctionUtility.Result(result_dictionary)
 
 
