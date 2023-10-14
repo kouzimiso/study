@@ -1,55 +1,17 @@
 {
+	
+
 	"MementomoriPlan":
 	[
 		{
-			"name" : "MementomoryRun01",
-			"result_name":"Result_Mementmori_Run",
-			"type" : "Recognition",
+	 		"name" : "PlanStart",
+			"type" : "RunPlanLists",
 			"settings" : {
-				"action" : "DOUBLE_CLICK",
-				"end_condition" : "OK",
-				"end_action" : "BREAK",
-				"execute_number" : 1,
-				"retry_number" : 3,
-				"image_path" : "../Images/mementomori/Click00*.png",
-				"interval_time" : 1.8,
-				"recognition_confidence" : 0.95,
-				"recognition_gray_scale" : true,
-				"log_print_standard_output": false,"log_function":true
-			}
-		},
-		{
-			"name" : "MementomoryRun02",
-			"type" : "Recognition",
-			"condition_list" : ["Result_Mementmori_Run.detail=OK,Result_Mementmori_Run.detail=ALL_OK"],
-			"settings" : {
-				"action" : "DOUBLE_CLICK",
-				"end_condition" : "NG",
-				"end_action" : "CONTINUE",
-				"execute_number" : 25,
-				"retry_number" : 100,
-				"image_path" : "../Images/mementomori/Click05*.png",
-				"interval_time" : 5,
-				"recognition_confidence" : 0.95,
-				"recognition_gray_scale" : true,
-				"log_print_standard_output": false,"log_function":true
-			}
-		},
-		{
-			"name" : "MementomoryRun03",
-			"type" : "Recognition",
-			"condition_list" : ["Result_Mementmori_Run.detail=OK,Result_Mementmori_Run.detail=ALL_OK"],
-			"settings" : {
-				"action" : "CLICK",
-				"end_condition" : "NG",
-				"end_action" : "CONTINUE",
-				"execute_number" : 3,
-				"retry_number" : 5,
-				"image_path" : "../Images/mementomori/Click1*.png",
-				"interval_time" : 1.8,
-				"recognition_confidence" : 0.95,
-				"recognition_gray_scale" : true,
-				"log_print_standard_output": false,"log_function":true
+				"#step_check_mode" : true,
+				"file_path" : "../Setting/RunMementomori.json",
+				"plan_lists" : [
+					"PlanStart"
+				]
 			}
 		},
 		{
@@ -72,23 +34,446 @@
 			}
 		}
 	],
-	"CloseWindow":
+	"PlanStart" : 
 	[
 		{
-			"name" : "CloseWindow",
-			"type" : "Recognition",
+            "name": "Copy_plan_list_Account",
+            "type" : "CopyPlanLists",
+            "condition_list" : "",
+            "result_name" : "",
+            "settings" : {
+				"#step_check_mode" : true,
+				"file_path":"../Setting/TemplateRunApply.json",
+                "log_function" : true,"log_print_standard_output" : false,"log_file_path_list" : ["../Log/log_test_all.json","../Log/log_test_0.json"],
+                "copy_plan_lists" : [
+                    {
+                        "source_plan_list_name" : "Account00",
+                        "copy_plan_list_name": "Account00",
+                        "change_plan_names":{"Account00":"Account00_Z"}
+                    }
+                ]
+            }
+        },
+		{
+			"name": "ChangeSettings_Account",
+			"type": "ChangeSettings",
+			"result_name":"",
 			"settings" : {
-				"action" : "CLICK",
-				"end_condition" : "OK",
-				"end_action" : "CONTINUE",
-				"execute_number" : 2,
-				"retry_number" : 2,
-				"image_path" : "../Images/image_end/*.png",
-				"interval_time" : 1.8,
-				"recognition_confidence" : 0.95,
-				"recognition_gray_scale" : true,
-				"log_print_standard_output": false,"log_function":true
+				"#step_check_mode" : true,
+				"change_settings_by_name" : {
+					"Account00_Z" : {
+						"image_path" : "../Images/mementomori/0000_account/0000/*.png"
+					}
+				}
+			}
+		},
+		{			
+			"name": "Copy_plan_list_ContainsPlay",
+            "type" : "CopyPlanLists",
+            "condition_list" : "",
+            "result_name" : "",
+            "settings" : {
+
+				"#step_check_mode" : true,
+				"file_path":"../Setting/TemplateRunApply.json",
+				"copy_plan_lists" : [
+					{
+						"source_plan_list_name" : "Condition_Account",
+						"copy_plan_list_name": "Condition_MainAccount",
+						"change_plan_names":{},
+						"change_settings_by_name" : {
+							"TimeCheck_1":{
+								"day1": "土曜日0:00",
+								"day2": "Now",
+								"day3": "日曜日24:00"
+							},
+							"TimeCheck_2":{
+								"day1": "月曜日0:00",
+								"day2": "Now",
+								"day3": "月曜日24:00"
+							},
+							"TimeCheck_3" : {
+								"day1": "火曜日0:00",
+								"day2": "Now",
+								"day3": "木曜日24:00"
+							},
+							"TimeCheck4":{		
+								"day1": "金曜日0:00",
+								"day2": "Now",
+								"day3": "金曜日24:00"
+							},
+							"TimeCheck"	:{
+								"condition_list": [
+									"Time_Check1=True,Time_Check2=True,Time_Check3=True,Time_Check4=True"
+								]	
+							}
+						}
+					},
+					{
+                        "source_plan_list_name" : "CloseWindow",
+                        "copy_plan_list_name": "CloseWindow"
+                    },
+                    {
+                        "source_plan_list_name" : "Waiting",
+                        "copy_plan_list_name": "Waiting"
+                    },
+					{
+                        "source_plan_list_name" : "WaitingSequence",
+                        "copy_plan_list_name": "WaitingSequence",
+						"change_settings_by_name" : {
+							"WaitingSequence01" : {
+								"image_path" : "../Images/mementomori/0500_waiting/*.png"
+							},
+							"WaitingEnd" : {
+								"image_path" : "../Images/mementomori/0509_waitingend/*.png"
+							}		
+						}
+                    },
+					{
+                        "source_plan_list_name" : "Server01",
+                        "copy_plan_list_name": "Server01",
+						"change_settings_by_name" : {
+							"Server" : {
+								"image_path" : "../Images/mementomori/0600_selectserver/0001_Server/*.png"
+							}
+		
+						}
+                    },
+					{
+						"source_plan_list_name" : "ContentsStartAndExecuteGroup",
+						"copy_plan_list_name": "ContentsStartAndExecuteGroup",
+						"change_settings_by_name" : {
+							"ContentsStartAndExecuteGroup" : {
+								"file_path" : "../Setting/RunMementomori.json",	
+								"plan_lists" : [
+									"Start","ContentsPlay"
+								]
+							}
+						}
+					},
+					{
+                        "source_plan_list_name" : "ReturnClick",
+                        "copy_plan_list_name": "ReturnClick",
+						"change_settings_by_name" : {
+							"ReturnClick" : {
+								"image_path" : "../Images/mementomori/1010_return/*.png",
+								"log_function":true,"log_print_standard_output": true
+				
+							}
+						}
+                    },
+					{
+                        "source_plan_list_name" : "ReturnHomeIfContentsStart",
+                        "copy_plan_list_name": "ReturnHomeIfContentsStart"
+                    },
+					{
+                        "source_plan_list_name" : "ReturnHome",
+                        "copy_plan_list_name": "ReturnHome",
+						"change_settings_by_name" : {
+							"HomeClick" : {
+								"image_path" : "../Images/mementomori/1011_home/*.png",
+								"check_result":{"result":true},
+								"log_function":true,"log_print_standard_output": true
+				
+
+							},
+							"ReturnClick" : {
+								"image_path" : "../Images/mementomori/1010_return/*.png",
+								"check_result":{"result":true},
+								"log_function":true,"log_print_standard_output": true
+				
+							}
+		
+						}
+                    }
+                ]
+            }
+        },
+		{
+			"name" : "AccountPlanMain",
+		   	"type" : "RunPlanLists",
+		   	"settings" : {
+			   "#step_check_mode" : true,
+			   "file_path" : "../Setting/RunMementomori.json",
+			   "plan_lists" : [
+				   "MainAccount"
+			   ]
+		   }
+	   }
+	],
+	"MainAccount" : 
+	[
+		{
+	 		"name" : "AccountPlanMain",
+			"type" : "RunPlanLists",
+			"condition_list" : "",
+			"settings" : {
+				"log_function" : true,"log_print_standard_output" : true,"log_file_path_list" : ["../Log/log_manage.json","../Log/log_all.json"],
+				"#step_check_mode" : true,
+ 		 		"plan_lists" : [
+					"CloseWindow","Condition_MainAccount","Account00","Waiting","Server01","ContentsStartAndExecuteGroup"
+				]
 			}
 		}
+	],
+	"Start":
+	[
+		{
+			"name" : "StartClick01",
+			"type" : "Recognition",
+			"condition_list" : "",
+			"result_name":"",
+			"settings" : {
+				"#step_check_mode" : true,
+				"action" : "CLICK",
+				"end_condition" : "OK",
+				"end_action" : "END_CONTINUE",
+				"execute_number" : 1,
+				"retry_number" : 1,
+				"image_path" : "../Images/mementomori/1000_start/*.png",
+				"start_retry_time" : 3,
+				"interval_time" : 1,
+				"recognition_confidence" : 0.93,
+				"recognition_gray_scale" : true,
+				"log_file_path_list": ["../Log/log_recognition.json","../Log/log_all.json"],
+				"log_function":true,"log_print_standard_output": true
+			}
+		},
+		"ReturnHome",
+		{
+			"name": "Check_Judge",
+			"result_name": "Condition_Start",
+			"type": "Judge",
+			"settings": {
+				"condition_list": "",
+				"loop_limit_count":2,
+				"loop_condition":"Flag_Home.detail = NG",
+				"terminate_condition":"Flag_Home.detail = ALL_OK,Flag_Home.detail = OK",
+				"delete_condition_after_terminate":["Flag_Home"],
+				"log_file_path_list": "../Log/log_all.json",
+				"log_function":true,"log_print_standard_output": true
+			}
+		}
+	],
+
+	"ContentsPlay" : 
+	[
+		{
+	 		"name" : "AccountPlanMain",
+			"type" : "RunPlanLists",
+			"condition_list" : "Condition_Start = true",
+			"settings" : {
+				"log_function" : true,"log_print_standard_output" : true,"log_file_path_list" : ["../Log/log_manage.json","../Log/log_all.json"],
+				"#step_check_mode" : true,
+				"file_path"  : "../Setting/RunMementomori.json",
+				"loop_condition":true,
+				"loop_limit_count":2,
+ 		 		"plan_lists" : [
+					"SimpleContents"
+				]
+			}
+		}
+	],
+	"SimpleContents":[
+		{
+            "name": "SimpleContents",
+            "type" : "CopyPlanLists",
+            "condition_list" : "",
+            "result_name" : "",
+            "settings" : {
+                "log_function" : true,"log_print_standard_output" : false,"log_file_path_list" : ["../Log/log_test_all.log.json","../Log/log_test_0.log.json"],
+				"file_path":"../Setting/TemplateRunApply.json",
+				"copy_plan_lists" : [
+                    {
+                        "source_plan_list_name" : "StartExecuteContents",
+                        "copy_plan_list_name": "Contents_Cast",
+						"change_settings_by_name" : {
+							"StartContentsClick" : {
+								"image_path" : "../Images/mementomori/2000_item/0000_start/*.png",
+								"log_file_path_list": "../Log/log_all.json",
+								"log_function":true,"log_print_standard_output": true
+							},
+							"ExecuteContentsClick" : {
+								"image_path" : "../Images/mementomori/2000_item/0005_execute/*.png",
+								"log_file_path_list": "../Log/log_all.json",
+								"log_function":true,"log_print_standard_output": true
+							}
+						}
+                    },
+					{
+                        "source_plan_list_name" : "StartExecuteContents",
+                        "copy_plan_list_name": "Contents_Free01",
+						"change_settings_by_name" : {
+							"StartContentsClick" : {
+								"image_path" :  "../Images/mementomori/1020_FreeClick/0000_start/*.png",
+								"log_file_path_list": "../Log/log_all.json",
+								"log_function":true,"log_print_standard_output": true
+							},
+							"ExecuteContentsClick" : {
+								"image_path" : "../Images/mementomori/1020_FreeClick/0005_execute/0001_Click*.png",
+								"log_file_path_list": "../Log/log_all.json",
+								"log_function":true,"log_print_standard_output": true
+							}
+						}
+                    },
+					{
+                        "source_plan_list_name" : "AddStartExecuteContents",
+                        "copy_plan_list_name": "Contents_Free02",
+						"change_settings_by_name" : {
+							"StartContentsClick" : {
+								"image_path" : "../Images/mementomori/1020_FreeClick/0005_execute/0002_Search*.png",
+								"log_file_path_list": "../Log/log_all.json",
+								"log_function":true,"log_print_standard_output": true
+							},
+							"ExecuteContentsClick" : {
+								"image_path" : "../Images/mementomori/1020_FreeClick/0005_execute/0005_Click*.png",
+								"log_file_path_list": "../Log/log_all.json",
+								"log_function":true,"log_print_standard_output": true
+							}
+						}
+                    },
+					{
+                        "source_plan_list_name" : "StartExecuteContents",
+                        "copy_plan_list_name": "Contents_Mail",
+						"change_settings_by_name" : {
+							"StartContentsClick" : {
+								"image_path" : "../Images/mementomori/1100_mail/0000_start/*.png",
+								"log_file_path_list": "../Log/log_all.json",
+								"log_function":true,"log_print_standard_output": true
+							},
+							"ExecuteContentsClick" : {
+								"image_path" : "../Images/mementomori/1100_mail/0005_execute/*.png",
+								"log_file_path_list": "../Log/log_all.json",
+								"log_function":true,"log_print_standard_output": true
+							}
+						}
+                    },
+					{
+                        "source_plan_list_name" : "StartExecuteContents",
+                        "copy_plan_list_name": "Contents_Event00",
+						"change_settings_by_name" : {
+							"StartContentsClick" : {
+								"image_path" : "../Images/mementomori/1400_event/0000_start/*.png",
+								"log_file_path_list": "../Log/log_all.json",
+								"log_function":true,"log_print_standard_output": true
+							},
+							"ExecuteContentsClick" : {
+								"image_path" : "../Images/mementomori/1400_event/0005_execute/*.png",
+								"log_file_path_list": "../Log/log_all.json",
+								"log_function":true,"log_print_standard_output": true
+							}
+						}
+                    },
+					{
+                        "source_plan_list_name" : "StartExecuteContents",
+                        "copy_plan_list_name": "Contents_Event01",
+						"change_settings_by_name" : {
+							"StartContentsClick" : {
+								"image_path" : "../Images/mementomori/2000_item/0010_start/*.png",
+								"log_file_path_list": "../Log/log_all.json",
+								"log_function":true,"log_print_standard_output": true
+							},
+							"ExecuteContentsClick" : {
+								"image_path" : "../Images/mementomori/2000_item/0015_execute/*.png",
+								"log_file_path_list": "../Log/log_all.json",
+								"log_function":true,"log_print_standard_output": true
+							}
+						}
+                    },
+					{
+                        "source_plan_list_name" : "StartExecuteContents",
+                        "copy_plan_list_name": "Contents_Event02",
+                        "change_settings_by_name" : {
+							"StartContentsClick" : {
+								"image_path" : "../Images/mementomori/1400_event/0020_start/*.png",
+								"log_file_path_list": "../Log/log_all.json",
+								"log_function":true,"log_print_standard_output": true
+							},
+							"ExecuteContentsClick" : {
+								"image_path" : "../Images/mementomori/1400_event/0025_execute/*.png",
+								"log_file_path_list": "../Log/log_all.json",
+								"log_function":true,"log_print_standard_output": true
+							}
+						}
+                    },
+					{
+                        "source_plan_list_name" : "StartExecuteContents",
+                        "copy_plan_list_name": "Contents_Event03",
+                        "change_settings_by_name" : {
+							"StartContentsClick" : {
+								"image_path" : "../Images/mementomori/2000_item/0030_start/*.png",
+								"log_file_path_list": "../Log/log_all.json",
+								"log_function":true,"log_print_standard_output": true
+							},
+							"ExecuteContentsClick" : {
+								"image_path" : "../Images/mementomori/2000_item/0035_execute/*.png",
+								"log_file_path_list": "../Log/log_all.json",
+								"log_function":true,"log_print_standard_output": true
+							}
+						}
+                    },
+					{
+                        "source_plan_list_name" : "StartExecuteContents",
+                        "copy_plan_list_name": "Contents_Event04",
+                        "change_settings_by_name" : {
+							"StartContentsClick" : {
+								"image_path" : "../Images/mementomori/1400_event/0040_start/*.png",
+								"log_file_path_list": "../Log/log_all.json",
+								"log_function":true,"log_print_standard_output": true
+							},
+							"ExecuteContentsClick" : {
+								"image_path" : "../Images/mementomori/1400_event/0045_execute/*.png",
+								"log_file_path_list": "../Log/log_all.json",
+								"log_function":true,"log_print_standard_output": true
+							}
+						}
+                    },
+					{
+                        "source_plan_list_name" : "StartExecuteContents",
+                        "copy_plan_list_name": "Contents_Event05",
+                        "change_settings_by_name" : {
+							"StartContentsClick" : {
+								"image_path" : "../Images/mementomori/1400_event/0050_start/*.png",
+								"log_file_path_list": "../Log/log_all.json",
+								"log_function":true,"log_print_standard_output": true
+							},
+							"ExecuteContentsClick" : {
+								"image_path" : "../Images/mementomori/1400_event/0055_execute/*.png",
+								"log_file_path_list": "../Log/log_all.json",
+								"log_function":true,"log_print_standard_output": true
+							}
+						}
+                    }
+                ]
+            }
+        },
+		"ReturnHome",
+		"Contents_Cast","ReturnHome",
+		"Contents_Free01","Contents_Free02","ReturnHomeIfContentsStart",
+		"Contents_Event00","ReturnHome",
+		"Contents_Free01","Contents_Free02","ReturnHomeIfContentsStart",
+		"Contents_Event01","ReturnHomeIfContentsStart",
+		"Contents_Free01","Contents_Free02","ReturnHomeIfContentsStart",
+		"Contents_Event02","ReturnHomeIfContentsStart",
+		"Contents_Free01","Contents_Free02","ReturnHomeIfContentsStart",
+		"Contents_Event03","ReturnHomeIfContentsStart",
+		"Contents_Free01","Contents_Free02","ReturnHomeIfContentsStart",
+		"Contents_Event04","ReturnHomeIfContentsStart",
+		"Contents_Mail","ReturnHomeIfContentsStart",
+		"Contents_Event05","ReturnHomeIfContentsStart",
+		"Contents_Mail","ReturnHomeIfContentsStart",
+		"Contents_Cast","ReturnHome",
+		"Contents_Free01","Contents_Free02","ReturnHomeIfContentsStart",
+		"Contents_Event00","ReturnHome",
+		"Contents_Free01","Contents_Free02","ReturnHomeIfContentsStart",
+		"Contents_Event01","ReturnHomeIfContentsStart",
+		"Contents_Free01","Contents_Free02","ReturnHomeIfContentsStart",
+		"Contents_Event02","ReturnHomeIfContentsStart",
+		"Contents_Free01","Contents_Free02","ReturnHomeIfContentsStart",
+		"Contents_Event03","ReturnHomeIfContentsStart",
+		"Contents_Free01","Contents_Free02","ReturnHomeIfContentsStart",
+		"Contents_Event04","ReturnHomeIfContentsStart"
 	]
+
+	
 }

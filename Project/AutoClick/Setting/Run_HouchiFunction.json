@@ -74,88 +74,7 @@
 			}
 		}
 	],
-	"ReturnHome" : [	
-		{
-			"name": "ChangeSettings_ReturnHome",
-			"type": "ChangeSettings",
-			"result_name":"",
-			"settings" : {
-				"change_settings_by_name" : {
-					"HomeClick" : {
-						"image_path" : "../Images/houchi/1011_home/*.png"
-					},
-					"ReturnClick" : {
-						"image_path" : "../Images/houchi/1010_Return/*.png"
-					}
-				}
-			}
-		},
-		{
-			"name" : "Call_StartSelectExecuteContents",
-			"type" : "RunPlanLists",
-			"settings" : {
-				"file_path" : "../Setting/TemplateRunApply.json",
-				"loop_condition":true,
-				"terminate_condition":false,
-				"loop_limit_count":1,
-				"plan_lists" : [
-					"ReturnHome"
-				]
-			}
-		}
-	],
-	"FreeClick" : [
-		{
-			"name": "ChangeSettings_ClickAndJudge",
-			"type": "ChangeSettings",
-			"result_name":"",
-			"settings" : {
-				"change_settings_by_name" : {
-					"ClickAndJudge" : {
-						"action" : "CLICK",
-						"end_action" : "END_BREAK",
-						"execute_number" : 1,
-						"retry_number" : 1,
-						"image_path" : "../Images/houchi/1020_FreeClick/0000_start/*.png",
-						"interval_time" : 0.5
-					},
-					"Result_Judge" : {
-						"#condition_list" : ["Result_Recognition.detail = OK,Result_Recognition.detail = ALL_OK"],
-						"terminate_condition" : ["Result_Recognition.detail = NG"],
-						"delete_condition_after_terminate" : ["Result_Recognition"],
-						"loop_condition":true,
-						"loop_limit_count":2
-					}
-				}
-			}
-		},
-		"Call_ClickAndJudge",
-		{
-			"name": "ChangeSettings_ClickAndJudge",
-			"type": "ChangeSettings",
-			"result_name":"",
-			"settings" : {
-				"change_settings_by_name" : {
-					"ClickAndJudge" : {
-						"action" : "CLICK",
-						"end_action" : "END_BREAK",
-						"execute_number" : 1,
-						"retry_number" : 0,
-						"image_path" : "../Images/houchi/1020_FreeClick/0005_execute/*.png",
-						"interval_time" : 0.5
-					},
-					"Result_Judge" : {
-						"#condition_list" : ["Result_Recognition.detail = OK,Result_Recognition.detail = ALL_OK"],
-						"#terminate_condition" : ["Result_Recognition.detail = OK,Result_Recognition.detail = ALL_OK"],
-						"#delete_condition_after_terminate" : ["Result_Recognition"],
-						"loop_condition":true,
-						"loop_limit_count":2
-					}
-				}
-			}
-		},
-		"Call_ClickAndJudge"		
-	],
+	
 	"CharacterDisplay" : [
 		{
 			"name" : "StartClick",
@@ -180,20 +99,20 @@
 		}
 	],
 
-	"CharacterGrowth":
+	"GrowthClick":
 	[
 		{
 			"name" : "CharacterGrowthStart",
 			"type" : "Recognition",
 			"condition_list" : "",
-			"result_name":"Flag_StartCheck",
+			"result_name":"Result_ContentsStart",
 			"settings" : {
 				"action" : "DOUBLE_CLICK",
 				"end_condition" : "OK",
 				"end_action" : "END_CONTINUE",
 				"execute_number" : 1,
 				"retry_number" : 1,
-				"image_path" : "../Images/houchi/1901_grouth/0000_start/*.png",
+				"image_path" : "../Images/houchi/1901_growth/0000_start/*.png",
 				"interval_time" : 0.8,
 				"recognition_confidence" : 0.93,
 				"recognition_gray_scale" : true,
@@ -204,7 +123,7 @@
 		{
 			"name" : "CharacterGrowthSelect",
 			"type" : "Recognition",
-			"condition_list" : "Flag_StartCheck.detail = OK,Flag_StartCheck.detail = ALL_OK",
+			"condition_list" : "Result_ContentsStart.detail = OK,Result_ContentsStart.detail = ALL_OK",
 			"result_name":"",
 			"settings" : {
 				"action" : "DOUBLE_CLICK",
@@ -212,7 +131,7 @@
 				"end_action" : "END_CONTINUE",
 				"execute_number" : 1,
 				"retry_number" : 1,
-				"image_path" : "../Images/houchi/1901_grouth/0002_select/*.png",
+				"image_path" : "../Images/houchi/1901_growth/0002_select/*.png",
 				"interval_time" : 0.8,
 				"recognition_confidence" : 0.93,
 				"recognition_gray_scale" : true,
@@ -221,9 +140,9 @@
 			}
 		},
 		{
-			"name" : "Grouth",
+			"name" : "growth",
 			"type" : "Recognition",
-			"condition_list" : "Flag_StartCheck.detail = OK,Flag_StartCheck.detail = ALL_OK",
+			"condition_list" : "Result_ContentsStart.detail = OK,Result_ContentsStart.detail = ALL_OK",
 			"result_name":"",
 			"settings" : {
 				"action" : "DOUBLE_CLICK",
@@ -231,7 +150,7 @@
 				"end_action" : "END_CONTINUE",
 				"execute_number" : 1,
 				"retry_number" : 0,
-				"image_path" : "../Images/houchi/1901_grouth/0005_execute/*.png",
+				"image_path" : "../Images/houchi/1901_growth/0005_execute/*.png",
 				"interval_time" : 0.8,
 				"recognition_confidence" : 0.93,
 				"recognition_gray_scale" : true,
@@ -240,20 +159,20 @@
 			}
 		}
 	],
-	"GrouthClickExpantion":
+	"GrowthClickExpantion":
 	[
 		{
-			"name" : "Grouth",
+			"name" : "growth",
 			"type" : "Recognition",
 			"condition_list" : "",
-			"result_name":"Flag_StartCheck",
+			"result_name":"Result_ContentsStart",
 			"settings" : {
 				"action" : "DOUBLE_CLICK",
 				"end_condition" : "OK",
 				"end_action" : "END_CONTINUE",
 				"execute_number" : 1,
 				"retry_number" : 1,
-				"image_path" : "../Images/houchi/1901_grouth/0000_start/*.png",
+				"image_path" : "../Images/houchi/1901_growth/0000_start/*.png",
 				"interval_time" : 0.8,
 				"recognition_confidence" : 0.93,
 				"recognition_gray_scale" : true,
@@ -262,9 +181,9 @@
 			}
 		},
 		{
-			"name" : "Grouth",
+			"name" : "growth",
 			"type" : "Recognition",
-			"condition_list" : "Flag_StartCheck.detail = OK,Flag_StartCheck.detail = ALL_OK",
+			"condition_list" : "Result_ContentsStart.detail = OK,Result_ContentsStart.detail = ALL_OK",
 			"result_name":"",
 			"settings" : {
 				"action" : "DOUBLE_CLICK",
@@ -272,7 +191,7 @@
 				"end_action" : "END_CONTINUE",
 				"execute_number" : 1,
 				"retry_number" : 0,
-				"image_path" : "../Images/houchi/1901_grouth/0005_execute/*.png",
+				"image_path" : "../Images/houchi/1901_growth/0005_execute/*.png",
 				"interval_time" : 0.8,
 				"recognition_confidence" : 0.93,
 				"recognition_gray_scale" : true,
@@ -281,9 +200,9 @@
 			}
 		},
 		{
-			"name" : "Grouth",
+			"name" : "growth",
 			"type" : "Recognition",
-			"condition_list" : "Flag_StartCheck.detail = OK,Flag_StartCheck.detail = ALL_OK",
+			"condition_list" : "Result_ContentsStart.detail = OK,Result_ContentsStart.detail = ALL_OK",
 			"result_name":"",
 			"settings" : {
 				"action" : "DOUBLE_CLICK",
@@ -291,7 +210,7 @@
 				"end_action" : "END_CONTINUE",
 				"execute_number" : 1,
 				"retry_number" : 0,
-				"image_path" : "../Images/houchi/1901_grouth/0006_expantion/*.png",
+				"image_path" : "../Images/houchi/1901_growth/0006_expantion/*.png",
 				"interval_time" : 0.8,
 				"recognition_confidence" : 0.93,
 				"recognition_gray_scale" : true,

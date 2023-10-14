@@ -200,10 +200,11 @@ class DayOfTheWeek:
         except ValueError:
             time_dictionary = parse_time(date_string)
             weekday = details.get("day_of_weekday")
-            offset = time_dictionary.get("overday")
+            offset = time_dictionary.get("over_day")
             day_of_weekday = self.Get_TheWeek_Offset(weekday,offset)
             details["day_of_weekday"] = day_of_weekday
             details["time"] =  time_dictionary.get("time")
+            return None
         except :
             details["time"] = None
             details["type"] = "Error" 

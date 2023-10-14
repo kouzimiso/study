@@ -26,7 +26,6 @@ class Task(threading.Thread):
         "settings" : {}
     }
 
-    
     def __init__(self,file_path = "",plan_lists = None,settings = {}):
         context = {
             "plan_lists" : plan_lists,
@@ -35,25 +34,28 @@ class Task(threading.Thread):
         self.Set_ByContext(context)
         if file_path == "":
             self.plan_lists = plan_lists
+            self.plan_lists_file_path = ""
         else:
             self.plan_lists = JSON_Control.ReadDictionary(file_path)
+            self.plan_lists_file_path = file_path
             self.TaskStatusChange("Read_PlanLists:" + file_path)
-        
 
-    def Get_SettingsDictionary(self):
-        return self.settings
-
+            
     def Set_BySettingsDictionary(self,settings_dictionary):
         self.settings = {**self.default_settings, **settings_dictionary}       
         self.logger = Log.Logs(settings_dictionary)
+        self.logger.log("Set_BySettingsDictionary")
         #設定の読込
-        file_path = settings_dictionary.get("file_path","")
+        file_path = self.settings.get("file_path","")
+        self.logger.log("file_path:" + file_path)
         #機能実行 
         result_dictionary = {}
 
         if (file_path != ""):
             self.plan_lists = JSON_Control.ReadDictionary(file_path)
+            self.plan_lists_file_path = file_path
             self.TaskStatusChange("Read_PlanLists:" + file_path)
+            self.logger.log("Read_PlanLists:" + file_path)
  
         result_dictionary["result"] = True
         return result_dictionary
@@ -97,7 +99,7 @@ class Task(threading.Thread):
         return self.information
     
     def ExecuteByContextFile(self,context_file_path):
-        context = JSON_Control.ReadDictionary(context_file_path,details = {})
+        context = JSON_Control.ReadDictionary(context_file_path,{},details = {})
         self.ExecuteByContext(context)
 
     def ExecuteByContext(self,context):
@@ -182,38 +184,55 @@ class Task(threading.Thread):
         self.filter_change_settings = context.get("change_settings_by_name",[])
 
     def CopyPlanListsBySettings(self, settings, plan_lists, result_details):
-        copy_plan_lists = settings.get("copy_plan_lists","")
+        copy_plan_lists = settings.get("copy_plan_lists","")        
         if copy_plan_lists == "" :
             details = {"error":"CopyPlanListsBySettings copy_plan_lists is none."}
             return details
+            
+
         #PlanListを読込む。
         plan_list_filepath = settings.get("file_path","")
+
         details = {}
+        plan_lists_source = {}
+        new_plan_lists = {}
+        new_plan_list =[]
         if plan_list_filepath == "" :
             plan_lists_source = plan_lists
         else:
             #PlanListsをFilePathから読み込み、CopyPlanListsで指定した名前のPlanをCopyする。
-            plan_lists_source = JSON_Control.ReadDictionary(plan_list_filepath,details = details)
+            plan_lists_source = JSON_Control.ReadDictionary(plan_list_filepath,{},details = details)
             details["file_path"] = plan_list_filepath
-
         # copy_plan_lists copyの設定を読み込む
-        if type(copy_plan_lists) is list:
-            for copy_plan_list_setting in copy_plan_lists:
-                source_plan_list_name = copy_plan_list_setting.get("source_plan_list_name","")
-                copy_plan_list_name = copy_plan_list_setting.get("copy_plan_list_name","")
-                change_plan_names = copy_plan_list_setting.get("change_plan_names","")
-                new_plan_list = self.ChangePlanListNames( plan_lists_source ,source_plan_list_name, change_plan_names)
-                if new_plan_list != []:
-                    plan_lists_source[copy_plan_list_name] = new_plan_list
-        else:
+        if type(copy_plan_lists) is not list:
+            copy_plan_lists = [copy_plan_lists]
+        for copy_plan_list_setting in copy_plan_lists:
             source_plan_list_name = copy_plan_list_setting.get("source_plan_list_name","")
             copy_plan_list_name = copy_plan_list_setting.get("copy_plan_list_name","")
             change_plan_names = copy_plan_list_setting.get("change_plan_names","")
-            new_plan_list = self.ChangePlanListNames( plan_lists_source ,source_plan_list_name, change_plan_names)
+            if change_plan_names != "":
+                new_plan_list = self.ChangePlanListNames( plan_lists_source ,source_plan_list_name, change_plan_names)
+            else:
+                new_plan_list =copy.deepcopy(plan_lists_source.get(source_plan_list_name,[]))
             if new_plan_list != []:
-                plan_lists_source[copy_plan_list_name] = new_plan_list
-
-        details["plan_lists"] = plan_lists_source
+                #Copyするplan_listの設定を変更する。
+                change_settings_by_name = copy_plan_list_setting.get("change_settings_by_name",{})
+                if change_settings_by_name != {}:
+                    if type(new_plan_list) is not list:
+                        new_plan_list = [new_plan_list]
+                    for new_plan in new_plan_list :
+                        if type (new_plan) is dict :
+                            name = new_plan.get("name","")
+                            if type (change_settings_by_name) is dict :
+                                change_settings = change_settings_by_name.get(name,{})
+                                if change_settings != {}:
+                                    new_plan["settings"].update(change_settings)
+            if copy_plan_list_name != "":
+                #Copy名前を変えて保存する。
+                if plan_list_filepath !="":
+                    new_plan_lists["plan_file_path"] = plan_list_filepath
+                new_plan_lists[copy_plan_list_name] = copy.deepcopy(new_plan_list) 
+        details["plan_lists"] = new_plan_lists
         return details 
     
 
@@ -221,10 +240,12 @@ class Task(threading.Thread):
         source_plan_list = source_plan_lists.get(source_plan_list_name,[])
         new_plan_list = copy.deepcopy(source_plan_list)  
         # planのname情報の書き換え
+        if type(new_plan_list) is not list:
+            new_plan_list = [new_plan_list]
         for new_plan in new_plan_list:
             if type(new_plan) is dict:
                 if "name" in new_plan:
-                    name = new_plan["name"]
+                    name = new_plan.get("name","")
                     change_name = change_plan_names.get(name,"")
                     if change_name != "" :
                         new_plan["name"] = change_name
@@ -242,9 +263,12 @@ class Task(threading.Thread):
             #RunPlanListsで指定した名前のPlanを実行する。
             self.TaskStatusChange("Run_PlanLists",details)
             plan_lists_execute = plan_lists
+            self.read_plan_lists_file_path = ""
+
         else:
             #PlanListsをFilePathから読み込み、RunPlanListsで指定した名前のPlanを実行する。
-            plan_lists_execute = JSON_Control.ReadDictionary(plan_list_filepath,details = details)
+            plan_lists_execute = JSON_Control.ReadDictionary(plan_list_filepath,{},details = details)
+            self.read_plan_lists_file_path = plan_list_filepath
             details["file_path"] = plan_list_filepath
             if details.get("result") == False:
                 self.logger.error("" , details)
@@ -354,7 +378,9 @@ class Task(threading.Thread):
 
     #plan_list_names:実行するplan_listの名前
     #plan_lists:plan_listsの設定
-    def RunPlanLists(self , plan_list_names ,plan_lists,details = {}):
+    def RunPlanLists(self , plan_list_names ,plan_lists,details = None):
+        if details == None:
+            details = {}
         if type(plan_list_names) is list:
             for plan_list_name in plan_list_names:
                 self.RunPlanList(plan_list_name,plan_lists,details)
@@ -375,7 +401,9 @@ class Task(threading.Thread):
             else:
                 print("Invalid choice. Please try again.")
 
-    def RunPlanList(self , plan_list_name ,plan_lists,details = {}):
+    def RunPlanList(self , plan_list_name ,plan_lists,details = None):
+        if details == None:
+            details = {}
         self.plan_list_name = plan_list_name
         #plan_list = plan_lists.get(plan_list_name)
         try:
@@ -383,11 +411,15 @@ class Task(threading.Thread):
         except:
             plan_list = None
             self.TaskStatusChange("No_Plan")
-            print("NG PlanList:"+plan_list_name)
+            self.logger.log("NG PlanList:" + plan_list_name)
             if self.task_settings.get("plan_list_name_check",False):
                 plan_list_name = self.SelectKey(plan_lists)
                 plan_list = plan_lists[plan_list_name]
-        if plan_list is not None:
+        if plan_list =={}:
+            self.logger("No Plan:" + plan_list_name)
+        elif plan_list == None:
+            self.logger("None PlanList:" + plan_list_name)
+        else: 
             details["plan_list_name"] = plan_list_name
             self.TaskStatusChange("Plan_Read",details)
             flag_loop = True
@@ -404,7 +436,7 @@ class Task(threading.Thread):
                     plan_list=[plan_list]
                 else:
                     # その他の場合のエラー処理
-                    print("plan_list should be a list or a dictionary.")
+                    self.logger.log("plan_list should be a list or a dictionary.")
 
                 # 共通の処理関数を呼び出す
                 for plan_number in range(max_count):
@@ -412,6 +444,9 @@ class Task(threading.Thread):
                     if type(plan) is str:
                         self.RunPlanList(plan,self.plan_lists,details)
                         continue
+                    #子のRunPlanList内で書き換えられる可能性があるので、再設定
+                    self.plan_list_name = plan_list_name
+                    self.plan_number = plan_number
                     result_task_read = self.TaskRead(plan)
                     if result_task_read:
                         judge_instance = Judge.Judge(self.task_settings,self.information)
@@ -434,7 +469,7 @@ class Task(threading.Thread):
                                 if check_file_path == "":
                                     check_plan_lists = self.plan_lists
                                 else:
-                                    check_plan_lists = JSON_Control.ReadDictionary(check_file_path,details = details)
+                                    check_plan_lists = JSON_Control.ReadDictionary(check_file_path,{},details = details)
                                 for check_run_plan in check_run_plan_list:
                                     if not check_run_plan in check_plan_lists:
                                         message_list.append(check_run_plan + " is not in plan lists.")
@@ -527,18 +562,7 @@ class Task(threading.Thread):
 
         check_result = self.task_settings.get("check_result",{})
         if check_result !={}:
-            result_compare = Data.DeepCompare(check_result,result_details)
-            if result_compare:
-                message = "Check result is OK." + plan_list_name + " " + self.task_name
-                details = {"result":result_details}
-                self.logger.log(message,"INFO", details = details)
-            else:
-                message = "Check result is NG." + plan_list_name + " " + self.task_name
-                details = {"expect":check_result,"result":result_details}
-                self.logger.error(message , details = details)
-            
-
-
+            self.CheckPlan(check_result,result_details,plan_list_name,plan)
               
         interval_time = self.execute_start_time - self.execute_end_time 
         self.execute_end_time = datetime.datetime.now()
@@ -551,6 +575,63 @@ class Task(threading.Thread):
         task_details["execution_time"] = str(execution_time)
         self.TaskStatusChange("Task_end" , task_details)
         return task_details.get("result",False)
+    
+    def CheckPlan(self,check_result,result_details,plan_list_name,plan):
+        result_compare = Data.DeepCompare(check_result,result_details)
+        if result_compare:
+            message = "Check result is OK." + plan_list_name + " " + self.task_name
+            self.logger.log(message,"INFO", details = result_details)
+        else:
+            message = "Check result is NG.plan list:" + plan_list_name + " plan name:" + self.task_name
+            details ={}
+            details = {"expect":check_result,"result":result_details}
+            #planの出所を調べる。
+            #copyしたplanはplanの直下にplan_file_pathを記述している。
+            plan_file_path = plan.get("plan_file_path","")
+            if plan_file_path =="":
+                if self.read_plan_lists_file_path != "":
+                    #RunPlanListsで他のFileから一時的に読み込んでいる場合はread_plan_lists_file_pathに記述している。
+                    plan_file_path = self.read_plan_lists_file_path
+                else :
+                    #読込やcopyをしていないならclassのplan_lists_file_pathに記述している。
+                    plan_file_path = self.plan_lists_file_path
+            
+            if self.task_settings.get("check_result_ng_stop",False):
+
+                print("□plan_file_path:"+ plan_file_path)
+                print("□plan list:" + plan_list_name)
+                print("□plan name:" + self.task_name)
+                print(details)
+                if plan_file_path == "":
+                    input_text = input("□Please check the results.")
+                else:
+                    input_text = input("□Please check the results. If you want to change the confirmation results documented in the file, please press 'y'")
+                    if input_text=="y":
+                        change_plan_lists = JSON_Control.ReadDictionary(plan_file_path)
+                        change_plan_list = change_plan_lists.get(plan_list_name,{})
+                        try:
+                            change_plan = change_plan_list[self.plan_number]
+                            change_plan_settings=change_plan.get("settings",{})
+                            change_plan_list_settings_check_result=change_plan_settings.get("check_result",None)
+                            if change_plan_list_settings_check_result==None:
+                                print("□No plan list.")
+                            else:
+                                if change_plan_list_settings_check_result == check_result:
+                                    input("□Is it OK to change the check_result?(OK:y)")
+                                    if input_text=="y":
+                                        change_plan_list[self.plan_number]["settings"]["check_result"]=result_details
+                                        JSON_Control.WriteDictionary(plan_file_path,change_plan_lists)
+                                else:
+                                    print("□system error.check_result is not same between memory and file.")
+                        except:
+                            print("□Plan list error.")
+
+
+
+
+            self.logger.error(message , details = details)
+
+
 
     ####専用機能呼び出し####
     def Get_FunctionDictionary(self):
@@ -590,17 +671,18 @@ class Task(threading.Thread):
     
     def Call_RunPlanListsBySettings(self , arguments):
         settings = arguments.get("settings",{})
-        plan_lists = arguments.get("plan_lists",{})
+        plan_lists = self.plan_lists #arguments.get("plan_lists",{})
         result_details = arguments.get("result_details",{})
         result_details = self.RunPlanListsBySettings(settings,plan_lists,result_details)
         return result_details
     
     def Call_CopyPlanListsBySettings(self , arguments):
         settings = arguments.get("settings",{})
-        plan_lists = arguments.get("plan_lists",{})
+        plan_lists = self.plan_lists #arguments.get("plan_lists",{})
         result_details = arguments.get("result_details",{})
         result_details = self.CopyPlanListsBySettings(settings,plan_lists,result_details)
-        self.plan_lists = result_details.get("plan_lists",{})
+        
+        self.plan_lists.update(result_details.get("plan_lists",{}))
         return result_details
 
     def Call_Judge(self , arguments):
@@ -608,21 +690,31 @@ class Task(threading.Thread):
         result_details = arguments.get("result_details",{})
         # task levelの情報にAccessできるJudge
         judge_instance = Judge.Judge(settings,self.information)
-
+        # 条件式の評価
         condition_list = settings.get("condition_list",[])
-        flag_judge = judge_instance.Result(condition_list = condition_list , information = self.information) 
+        flag_judge = judge_instance.Result(condition_list = condition_list , information = self.information,result_details=result_details)
+        self.logger.Setup(self.task_settings)
+        message = "Judge:"+str(flag_judge)+"detail:"+result_details.get("detail","")
+        self.logger.log(message ,"ERROR", details = result_details)
 
+        # Loop条件式の評価
         loop_condition = settings.get("loop_condition",False)
-        self.task_loop = self.judgeLoop(loop_condition,settings,self.information,result_details)
+        self.task_loop = self.judgeLoop(loop_condition,settings,self.information,{})
+        if self.task_loop:
+            if result_details!={}:
+                message = "Loop:"+str(self.task_loop)+"detail:"+str(result_details.get("detail",""))
+                self.logger.log(message,details = result_details)
 
+        # Terminate条件式の評価
         terminate_condition = settings.get("terminate_condition",False)
         self.task_terminate = self.judgeLoopTerminate(terminate_condition,settings,self.information,result_details)
         
         result_details["result"] = flag_judge
         result_details["condition_list"] = condition_list
-        self.logger.Setup(self.task_settings)
-        message = result_details
-        self.logger.log("judge test" , details = result_details)
+        if self.task_terminate:
+            if result_details!={}:
+                message = "Terminate:"+str(self.task_loop)+"detail:"+str(result_details.get("detail",""))
+                self.logger.log(message,details = result_details)
         return result_details
     
     def Call_ChangeSettings(self , arguments):
@@ -685,7 +777,7 @@ class Task(threading.Thread):
         else:
             detail_dictionary.update(details)
 
-        self.logger.log("TaskStatusChange "+self.task_status+" "+self.task_name  ,"INFO",details = detail_dictionary)
+        self.logger.log("TaskStatusChange "+self.task_status+" "+self.plan_list_name+" "+self.task_name  ,"INFO",details = detail_dictionary)
         if status == "End":
             self.task_name = ""
             self.task_type = ""

@@ -55,20 +55,20 @@ class Judge:
 
     def Results_ByDictionaryInformation(self , condition_list , information  , default_result = None,result_details ={}):
         if condition_list is None:
-            result_details.update( { "result": None ,"detail": "Judge result condition is none","level" : "INFO"})
+            result_details.update( { "result": None ,"detail": str(default_result)+":Judge result condition is none","level" : "INFO"})
             return default_result
         elif condition_list == "":
-            result_details.update( { "result": default_result ,"detail": "Judge result condition is a blank","level" : "INFO"})
+            result_details.update( { "result": default_result ,"detail": str(default_result)+":Judge result condition is a blank","level" : "INFO"})
             return default_result
         elif information is None:
-            result_details.update(  { "result": default_result, "detail" : "Judge result information is none","level" : "INFO"})
+            result_details.update(  { "result": default_result, "detail" : str(default_result)+":Judge result information is none","level" : "INFO"})
             return default_result
         else:
             result = default_result
             trace_list=[]
             if type(condition_list) == list:
                 if condition_list ==[]:
-                    result_details.update({ "result": default_result, "detail" : "Judge result condition is blank","level" : "INFO"})
+                    result_details.update({ "result": default_result, "detail" : str(default_result)+":Judge result condition is blank","level" : "INFO"})
                     return default_result
                 for condition in condition_list:
                     trace_list_or=[]
@@ -81,7 +81,7 @@ class Judge:
                     trace_list.append(join_trace_list_or)
             else:
                 if condition_list == "":
-                    result_details.update({"result": default_result, "detail" :  "Judge result condition is blank","level" : "INFO"})
+                    result_details.update({"result": default_result, "detail" :  str(default_result)+":Judge result condition is blank","level" : "INFO"})
                     return default_result
                 result = self.Result_ByDictionaryInformation(condition_list,information,trace_list =trace_list)
                 if result == False:

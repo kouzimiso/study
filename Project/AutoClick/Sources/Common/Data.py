@@ -13,7 +13,7 @@ def DeepCompare(data1, data2):
         for key in data1:
             if key not in data2:
                 return False
-            if not deep_compare(data1[key], data2[key]):
+            if not DeepCompare(data1[key], data2[key]):
                 return False
 
         return True
@@ -25,7 +25,7 @@ def DeepCompare(data1, data2):
             return False
 
         for item1, item2 in zip(data1, data2):
-            if not deep_compare(item1, item2):
+            if not DeepCompare(item1, item2):
                 return False
 
         return True

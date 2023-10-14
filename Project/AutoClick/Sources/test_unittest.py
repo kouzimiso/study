@@ -196,7 +196,7 @@ class Test(unittest.TestCase):
                             "Time_Check1=True,Time_Check2=True,Time_Check3.result=True,Time_Check4.result=True"
                         ],
                         "log_print_standard_output": True,"log_function":True,"log_file_path_list": "../Log/log_unittest.json",
-                        "step_check_mode" : True,"step_check_comment":"The following statement will always be true if it is currently Monday, Tuesday through Wednesday, or Friday through Sunday. "
+                        "#step_check_mode" : True,"step_check_comment":"The following statement will always be true if it is currently Monday, Tuesday through Wednesday, or Friday through Sunday. "
                     }
                 },
                 {
@@ -209,7 +209,7 @@ class Test(unittest.TestCase):
                             "Condition_Execute01 = true"
                         ],
                         "log_print_standard_output": True,"log_function":True,"log_file_path_list": "../Log/log_unittest.json",
-                        "step_check_mode" : True,"step_check_comment":"The results Time check and Time check Judge are True and you should get a True result."
+                        "#step_check_mode" : True,"step_check_comment":"The results Time check and Time check Judge are True and you should get a True result."
                     }
                 },
                 {
@@ -241,7 +241,7 @@ class Test(unittest.TestCase):
                         "recognition_confidence": 0.99,
                         "recognition_gray_scale": True,
                         "log_print_standard_output": True,"log_function":True,"log_file_path_list": "../Log/log_recognition.json",
-                        "step_check_mode" : True,"step_check_comment":"NGになる予定のClick Teskです。標準出力は有効。"
+                        "#step_check_mode" : True,"step_check_comment":"NGになる予定のClick Teskです。標準出力は有効。"
                     }
                 },
                 {
@@ -260,7 +260,7 @@ class Test(unittest.TestCase):
                         "recognition_confidence": 0.99,
                         "recognition_gray_scale": True,
                         "log_print_standard_output": False,"log_function":True,"log_file_path_list": "../Log/log_recognition.json",
-                        "step_check_mode" : True,"step_check_comment":"同じくNGになる予定のClick Teskです。標準出力は無効。"
+                        "#step_check_mode" : True,"step_check_comment":"同じくNGになる予定のClick Teskです。標準出力は無効。"
                     }
                 },
                 {
@@ -296,7 +296,7 @@ class Test(unittest.TestCase):
                         "recognition_confidence": 0.99,
                         "recognition_gray_scale": True,
                         "log_print_standard_output": False,"log_function":True,"log_file_path_list": "../Log/log_recognition.json",
-                        "step_check_mode" : True,"step_check_comment":"同じくNGになる予定のClick Teskです。標準出力は無効。"
+                        "#step_check_mode" : True,"step_check_comment":"同じくNGになる予定のClick Teskです。標準出力は無効。"
                     }
                 }
             ]

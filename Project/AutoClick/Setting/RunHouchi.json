@@ -7,8 +7,15 @@
             "condition_list" : "",
             "result_name" : "",
             "settings" : {
-                "log_function" : true,"log_print_standard_output" : false,"log_file_path_list" : ["../Log/log_test_all.json","../Log/log_test_0.json"],
+				"file_path":"../Setting/RunHouchi.json",
+                "log_function" : true,"log_print_standard_output" : true,
+				"log_file_path_list" : ["../Log/log_test_all.json","../Log/log_test_0.json"],
                 "copy_plan_lists" : [
+					{
+                        "source_plan_list_name" : "Account00",
+                        "copy_plan_list_name": "Account00",
+                        "change_plan_names":{}
+                    },
                     {
                         "source_plan_list_name" : "Account00",
                         "copy_plan_list_name": "Account01",
@@ -38,11 +45,16 @@
                         "source_plan_list_name" : "Account00",
                         "copy_plan_list_name": "Account06",
                         "change_plan_names":{"Account00_ZX":"Account06_ACM"}
+                    },                    
+					{
+                        "source_plan_list_name" : "TimeEvent",
+                        "copy_plan_list_name": "TimeEvent",
+                        "change_plan_names":{}
                     }
-				
                 ]
             }
         },
+
 		{
 			"name": "ChangeSettings_Account",
 			"type": "ChangeSettings",
@@ -72,22 +84,299 @@
 				}
 			}
 		},
+		{			
+			"name": "Copy_plan_list_ContainsPlay",
+            "type" : "CopyPlanLists",
+            "condition_list" : "",
+            "result_name" : "",
+            "settings" : {
+
+				"#step_check_mode" : true,
+				"file_path":"../Setting/TemplateRunApply.json",
+				"copy_plan_lists" : [
+					{
+                        "source_plan_list_name" : "CloseWindow",
+                        "copy_plan_list_name": "CloseWindow"
+                    },
+                    {
+                        "source_plan_list_name" : "Waiting",
+                        "copy_plan_list_name": "Waiting"
+                    },
+					{
+                        "source_plan_list_name" : "WaitingSequence",
+                        "copy_plan_list_name": "WaitingSequence",
+						"change_settings_by_name" : {
+							"WaitingSequence01" : {
+								"image_path" : "../Images/houchi/0500_waiting/*.png"
+							},
+							"WaitingEnd" : {
+								"image_path" : "../Images/houchi/0509_waitingend/*.png"
+							}		
+						}
+                    },
+					{
+                        "source_plan_list_name" : "Server01",
+                        "copy_plan_list_name": "Server01",
+						"change_settings_by_name" : {
+							"Server" : {
+								"image_path" : "../Images/houchi/0600_selectserver/0001_Server/*.png"
+							}
+		
+						}
+                    },
+					{
+                        "source_plan_list_name" : "Server01",
+                        "copy_plan_list_name": "Server02",
+						"change_settings_by_name" : {
+							"Server" : {
+								"image_path" : "../Images/houchi/0600_selectserver/0002_Server/*.png"
+							}
+		
+						}
+                    },
+					{
+                        "source_plan_list_name" : "Server01",
+                        "copy_plan_list_name": "Server03",
+						"change_settings_by_name" : {
+							"Server" : {
+								"image_path" : "../Images/houchi/0600_selectserver/0003_Server/*.png"
+							}
+		
+						}
+                    },
+					{
+                        "source_plan_list_name" : "Server01",
+                        "copy_plan_list_name": "Server04",
+						"change_settings_by_name" : {
+							"Server" : {
+								"image_path" : "../Images/houchi/0600_selectserver/0004_Server/*.png"
+							}
+		
+						}
+                    },
+					{
+                        "source_plan_list_name" : "Server01",
+                        "copy_plan_list_name": "Server05",
+						"change_settings_by_name" : {
+							"Server" : {
+								"image_path" : "../Images/houchi/0600_selectserver/0005_Server/*.png"
+							}
+		
+						}
+                    },
+					{
+                        "source_plan_list_name" : "Server01",
+                        "copy_plan_list_name": "Server06",
+						"change_settings_by_name" : {
+							"Server" : {
+								"image_path" : "../Images/houchi/0600_selectserver/0006_Server/*.png"
+							}
+		
+						}
+                    },
+					{
+                        "source_plan_list_name" : "Server01",
+                        "copy_plan_list_name": "Server07",
+						"change_settings_by_name" : {
+							"Server" : {
+								"image_path" : "../Images/houchi/0600_selectserver/0007_Server/*.png"
+							}
+		
+						}
+                    },
+					{
+                        "source_plan_list_name" : "Server01",
+                        "copy_plan_list_name": "Server08",
+						"change_settings_by_name" : {
+							"Server" : {
+								"image_path" : "../Images/houchi/0600_selectserver/0008_Server/*.png"
+							}
+		
+						}
+                    },
+					{
+                        "source_plan_list_name" : "Server01",
+                        "copy_plan_list_name": "Server09",
+						"change_settings_by_name" : {
+							"Server" : {
+								"image_path" : "../Images/houchi/0600_selectserver/0009_Server/*.png"
+							}
+		
+						}
+                    },
+					{
+						"source_plan_list_name" : "ContentsStartAndExecuteGroup",
+						"copy_plan_list_name": "ContentsStartAndExecuteGroup",
+						"change_settings_by_name" : {
+							"ContentsStartAndExecuteGroup" : {
+								"file_path":"../Setting/RunHouchiChild.json",
+								"plan_lists" : [
+									"Start","ContentsPlay"
+								]
+							}
+						}
+					},
+					{
+                        "source_plan_list_name" : "Start",
+                        "copy_plan_list_name": "Start",
+						"change_settings_by_name" : {
+							"StartClick01" : {
+								"image_path" : "../Images/houchi/1000_start/*.png"
+							}		
+						}
+                    }, 
+					{
+                        "source_plan_list_name" : "ReturnClick",
+                        "copy_plan_list_name": "ReturnClick",
+						"change_settings_by_name" : {
+							"ReturnClick" : {
+								"image_path" : "../Images/houchi/1010_return/*.png"
+							}
+						}
+                    },
+					{
+                        "source_plan_list_name" : "ReturnHomeIfContentsStart",
+                        "copy_plan_list_name": "ReturnHomeIfContentsStart"
+                    },
+					{
+                        "source_plan_list_name" : "ReturnHome",
+                        "copy_plan_list_name": "ReturnHome"
+                    },
+					{
+                        "source_plan_list_name" : "HomeClickSequence",
+                        "copy_plan_list_name": "HomeClickSequence",
+						"change_settings_by_name" : {
+							"HomeClick" : {
+								"image_path" : "../Images/houchi/1011_home/*.png"
+							},
+							"ReturnClick" : {
+								"image_path" : "../Images/houchi/1010_return/*.png"
+							}
+		
+						}
+                    }
+                ]
+            }
+        },
+
+		{			
+			"name": "Copy_plan_list_Condition_Account",
+            "type" : "CopyPlanLists",
+            "condition_list" : "",
+            "result_name" : "",
+            "settings" : {
+				"#step_check_mode" : true,
+				"file_path":"../Setting/RunHouchiChild.json",
+				"copy_plan_lists" : [
+					{
+						"source_plan_list_name" : "TimeCheck_MainAccount",
+						"copy_plan_list_name": "Condition_MainAccount",
+						"change_plan_names":{}
+					},
+					{
+						"source_plan_list_name" : "TimeCheck_SubAccount",
+						"copy_plan_list_name": "Condition_SubAccount",
+						"change_plan_names":{}
+					},
+					{
+						"source_plan_list_name" : "TimeCheck_TimeEvent",
+						"copy_plan_list_name": "Condition_TimeEvent",
+						"change_plan_names":{}
+					},
+					{
+						"source_plan_list_name" : "TimeEventPlayGroup",
+						"copy_plan_list_name": "TimeEventPlayGroup",
+						"change_plan_names":{}
+					},
+					{
+						"source_plan_list_name" : "TimeEvent",
+						"copy_plan_list_name": "TimeEvent",
+						"change_plan_names":{}
+					},
+					{
+                        "source_plan_list_name" : "ReturnClick",
+                        "copy_plan_list_name": "ReturnClick",
+						"change_settings_by_name" : {
+							"ReturnClick" : {
+								"image_path" : "../Images/houchi/1010_return/*.png"
+							}
+						}
+                    },
+					{
+                        "source_plan_list_name" : "ReturnHomeIfContentsStart",
+                        "copy_plan_list_name": "ReturnHomeIfContentsStart"
+                    },
+					{
+                        "source_plan_list_name" : "ReturnHome",
+                        "copy_plan_list_name": "ReturnHome"
+                    },
+					{
+                        "source_plan_list_name" : "HomeClickSequence",
+                        "copy_plan_list_name": "HomeClickSequence",
+						"change_settings_by_name" : {
+							"HomeClick" : {
+								"image_path" : "../Images/houchi/1011_home/*.png"
+							},
+							"ReturnClick" : {
+								"image_path" : "../Images/houchi/1010_return/*.png"
+							}
+		
+						}
+                    }
+				]
+			}
+
+
+			
+		},
+		{			
+			"name": "Copy_plan_list_Condition_Account",
+            "type" : "CopyPlanLists",
+            "condition_list" : "",
+            "result_name" : "",
+            "settings" : {
+				"#step_check_mode" : true,
+				"file_path":"../Setting/RunHouchi.json",
+				"copy_plan_lists" : [
+
+					{
+						"source_plan_list_name" : "Waiting",
+						"copy_plan_list_name": "Waiting"
+					},
+					{
+						"source_plan_list_name" : "WaitingSequence",
+						"copy_plan_list_name": "WaitingSequence",
+						"change_settings_by_name" : {
+							"WaitingSequence01" : {
+								"image_path" : "../Images/houchi/0500_waiting/*.png"
+							},
+							"WaitingEnd" : {
+								"image_path" : "../Images/houchi/0509_waitingend/*.png"
+							}		
+						}
+					}
+				]
+			}
+		},
 		{
 	 		"name" : "PlanStart",
 			"type" : "RunPlanLists",
 			
 			"settings" : {
 				"file_path" : "../Setting/RunHouchi.json",
-				"log_function" : true,"log_print_standard_output" : true,"log_file_path_list" : ["../Log/log_manage.json","../Log/log_all.json"],
+				"log_function" : true,"log_print_standard_output" : true,
+				"log_file_path_list" : ["../Log/log_manage.json","../Log/log_all.json"],
 				"#step_check_mode" : true,
 				"plan_lists" : [
-					"ACMAccount",
+					"SubAccount",
 					"MainAccount",
-					"SubAccount"
+					"ACMAccount"
+					
 				]
 
 			}
 		}
+
 	],	
 	"SubAccount" : 
 	[
@@ -97,24 +386,24 @@
 			"condition_list" : "",
 			"settings" : {
 				"log_function" : true,"log_print_standard_output" : true,"log_file_path_list" : ["../Log/log_manage.json","../Log/log_all.json"],
-				"step_check_mode" : true,
+				"step_check_mode" : false,
  		 		"plan_lists" : [
 					"Condition_TimeEvent","TimeEvent",
-					"CloseWindow","Condition_SubAccount","Account00","Waiting","Server01","ContaintsStartAndExecuteGroup",
-					"CloseWindow","Condition_SubAccount","Account00","Waiting","Server02","ContaintsStartAndExecuteGroup",
-					"CloseWindow","Condition_SubAccount","Account00","Waiting","Server03","ContaintsStartAndExecuteGroup",
-					"CloseWindow","Condition_SubAccount","Account00","Waiting","Server05","ContaintsStartAndExecuteGroup",
-					"CloseWindow","Condition_SubAccount","Account00","Waiting","Server06","ContaintsStartAndExecuteGroup",
-					"CloseWindow","Condition_SubAccount","Account00","Waiting","Server07","ContaintsStartAndExecuteGroup",
-					"CloseWindow","Condition_SubAccount","Account00","Waiting","Server08","ContaintsStartAndExecuteGroup",
-					"CloseWindow","Condition_SubAccount","Account01","Waiting","Server01","ContaintsStartAndExecuteGroup",
-					"CloseWindow","Condition_SubAccount","Account01","Waiting","Server02","ContaintsStartAndExecuteGroup",
-					"CloseWindow","Condition_SubAccount","Account01","Waiting","Server03","ContaintsStartAndExecuteGroup",
-					"CloseWindow","Condition_SubAccount","Account01","Waiting","Server04","ContaintsStartAndExecuteGroup",
-					"CloseWindow","Condition_SubAccount","Account01","Waiting","Server05","ContaintsStartAndExecuteGroup",
-					"CloseWindow","Condition_SubAccount","Account01","Waiting","Server06","ContaintsStartAndExecuteGroup",
-					"CloseWindow","Condition_SubAccount","Account01","Waiting","Server07","ContaintsStartAndExecuteGroup",
-					"CloseWindow","Condition_SubAccount","Account01","Waiting","Server08","ContaintsStartAndExecuteGroup"
+					"CloseWindow","Condition_SubAccount","Account00","Waiting","Server01","ContentsStartAndExecuteGroup",
+					"CloseWindow","Condition_SubAccount","Account00","Waiting","Server02","ContentsStartAndExecuteGroup",
+					"CloseWindow","Condition_SubAccount","Account00","Waiting","Server03","ContentsStartAndExecuteGroup",
+					"CloseWindow","Condition_SubAccount","Account00","Waiting","Server05","ContentsStartAndExecuteGroup",
+					"CloseWindow","Condition_SubAccount","Account00","Waiting","Server06","ContentsStartAndExecuteGroup",
+					"CloseWindow","Condition_SubAccount","Account00","Waiting","Server07","ContentsStartAndExecuteGroup",
+					"CloseWindow","Condition_SubAccount","Account00","Waiting","Server08","ContentsStartAndExecuteGroup",
+					"CloseWindow","Condition_SubAccount","Account01","Waiting","Server01","ContentsStartAndExecuteGroup",
+					"CloseWindow","Condition_SubAccount","Account01","Waiting","Server02","ContentsStartAndExecuteGroup",
+					"CloseWindow","Condition_SubAccount","Account01","Waiting","Server03","ContentsStartAndExecuteGroup",
+					"CloseWindow","Condition_SubAccount","Account01","Waiting","Server04","ContentsStartAndExecuteGroup",
+					"CloseWindow","Condition_SubAccount","Account01","Waiting","Server05","ContentsStartAndExecuteGroup",
+					"CloseWindow","Condition_SubAccount","Account01","Waiting","Server06","ContentsStartAndExecuteGroup",
+					"CloseWindow","Condition_SubAccount","Account01","Waiting","Server07","ContentsStartAndExecuteGroup",
+					"CloseWindow","Condition_SubAccount","Account01","Waiting","Server08","ContentsStartAndExecuteGroup"
 				]
 			}
 		}
@@ -126,17 +415,18 @@
 			"type" : "RunPlanLists",
 			"condition_list" : "",
 			"settings" : {
-				"log_function" : true,"log_print_standard_output" : true,"log_file_path_list" : ["../Log/log_manage.json","../Log/log_all.json"],
-				"step_check_mode" : true,
+				"log_function" : true,"log_print_standard_output" : true,
+				"log_file_path_list" : ["../Log/log_manage.json","../Log/log_all.json"],
+				"step_check_mode" : false,
  		 		"plan_lists" : [
 					"Condition_TimeEvent","TimeEvent",
-					"CloseWindow","Condition_MainAccount","Account03","Waiting","Server09","ContaintsStartAndExecuteGroup",
-					"CloseWindow","Condition_MainAccount","Account04","Waiting","Server09","ContaintsStartAndExecuteGroup",
-					"CloseWindow","Condition_MainAccount","Account05","Waiting","Server09","ContaintsStartAndExecuteGroup",
-					"CloseWindow","Condition_MainAccount","Account00","Waiting","Server09","ContaintsStartAndExecuteGroup",
-					"CloseWindow","Condition_MainAccount","Account01","Waiting","Server09","ContaintsStartAndExecuteGroup",
-					"CloseWindow","Condition_MainAccount","Account02","Waiting","Server09","ContaintsStartAndExecuteGroup",
-					"CloseWindow","Condition_MainAccount","Account00","Waiting","Server04","ContaintsStartAndExecuteGroup"
+					"CloseWindow","Condition_MainAccount","Account03","Waiting","Server09","ContentsStartAndExecuteGroup",
+					"CloseWindow","Condition_MainAccount","Account04","Waiting","Server09","ContentsStartAndExecuteGroup",
+					"CloseWindow","Condition_MainAccount","Account05","Waiting","Server09","ContentsStartAndExecuteGroup",
+					"CloseWindow","Condition_MainAccount","Account00","Waiting","Server09","ContentsStartAndExecuteGroup",
+					"CloseWindow","Condition_MainAccount","Account01","Waiting","Server09","ContentsStartAndExecuteGroup",
+					"CloseWindow","Condition_MainAccount","Account02","Waiting","Server09","ContentsStartAndExecuteGroup",
+					"CloseWindow","Condition_MainAccount","Account00","Waiting","Server04","ContentsStartAndExecuteGroup"
 				]
 			}
 		}
@@ -149,44 +439,10 @@
 			"condition_list" : "",
 			"settings" : {
 				"log_function" : true,"log_print_standard_output" : true,"log_file_path_list" : ["../Log/log_manage.json","../Log/log_all.json"],
-				"step_check_mode" : true,
+				"step_check_mode" : false,
  		 		"plan_lists" : [
-					"TimeEvent",
-					"CloseWindow","Condition_MainAccount","Account06","Waiting","Server09","ContaintsStartAndExecuteGroup"
-				]
-			}
-		}
-	],
-	"Condition_MainAccount" : 
-	[
-		{
-	 		"name" : "Condition_MainAccount",
-			"type" : "RunPlanLists",
-			"comment" : "",
-			"condition_list" : "",
-			"settings" : {
-				"file_path" : "../Setting/RunHouchiChild.json",
-				"log_function" : true,"log_print_standard_output" : true,"log_file_path_list" : ["../Log/log_manage.json","../Log/log_all.json"],
-				"#step_check_mode" : true,
- 		 		"plan_lists" : [
-					"TimeCheck_MainAccount"
-				]
-			}
-		}
-	],
-	"Condition_SubAccount" : 
-	[
-		{
-	 		"name" : "Condition_SubAccount",
-			"type" : "RunPlanLists",
-			"comment" : "",
-			"condition_list" : "",
-			"settings" : {
-				"file_path" : "../Setting/RunHouchiChild.json",
-				"log_function" : true,"log_print_standard_output" : true,"log_file_path_list" : ["../Log/log_manage.json","../Log/log_all.json"],
-				"#step_check_mode" : true,
- 		 		"plan_lists" : [
-					"TimeCheck_SubAccount"
+					"Condition_TimeEvent","TimeEvent",
+					"CloseWindow","Condition_MainAccount","Account06","Waiting","Server09","ContentsStartAndExecuteGroup"
 				]
 			}
 		}
@@ -194,7 +450,7 @@
 	"Condition_TimeEvent" : 
 	[
 		{
-	 		"name" : "Condition_SubAccount",
+	 		"name" : "Condition_TimeEvent",
 			"type" : "RunPlanLists",
 			"comment" : "",
 			"condition_list" : "",
@@ -208,10 +464,10 @@
 			}
 		}
 	],
-	"ContaintsStartAndExecuteGroup" : 
+	"ContentsStartAndExecuteGroup" : 
 	[
 		{
-	 		"name" : "ContaintsStartAndExecuteGroup",
+	 		"name" : "ContentsStartAndExecuteGroup",
 			"type" : "RunPlanLists",
 			"comment" : "",
 			"condition_list" : "Result_ServerClick.detail = OK,Result_ServerClick.detail = ALL_OK",
@@ -220,7 +476,7 @@
 				"log_function" : true,"log_print_standard_output" : true,"log_file_path_list" : ["../Log/log_manage.json","../Log/log_all.json"],
 				"#step_check_mode" : true,
  		 		"plan_lists" : [
-					"Start","MainAccounte","ContaintsPlay"
+					"Start","Maintenance","ContentsPlay"
 				]
 			}
 		}
@@ -233,7 +489,6 @@
 			"condition_list" : "Condition_Execute = true",
 			"result_name" : "",
 			"settings" : {
-				"file_path" : "../Setting/RunHouchi.json",
 				"log_function" : true,"log_print_standard_output" : true,"log_file_path_list" : ["../Log/log_manage.json","../Log/log_all.json"],
 				"#step_check_mode" : true,
  		 		"plan_lists" : [
@@ -276,13 +531,13 @@
 				"log_function" : true,"log_print_standard_output" : true,"log_file_path_list" : ["../Log/log_manage.json","../Log/log_all.json"],
 				"#step_check_mode" : true,
  		 		"plan_lists" : [
-					"Start","TimeEventPlay"
+					"Start","Condition_TimeEvent","TimeEventPlay"
 				]
 			}
 		}
 	],
 	"Account00" : 
-	[	"CloseWindow",
+	[
 		{
 			"name" : "Account00_ZX",
 			"type" : "Recognition",
@@ -305,32 +560,26 @@
 			}
 		},
 		{
-			"name" : "Waiting",
-		    "type" : "RunPlanLists",
-		    "condition_list" : "Result_AccountClick.detail = OK,Result_AccountClick.detail = ALL_OK",
-		    "result_name" : "",
-		    "settings" : {
-			   "file_path" : "../Setting/RunHouchi.json",
-			   "loop_condition":false,
-			   "log_function" : true,"log_print_standard_output" : true,"log_file_path_list" : ["../Log/log_manage.json","../Log/log_all.json"],
-			   "#step_check_mode" : true,
-				 "plan_lists" : [
-				   "WaitingSequence"
-			   ]
-		   }
-	    },
-		{
-			"name": "Check_Judge",
-			"result_name": "Condition_Start",
-			"type": "Judge",
-			"settings": {
-				"condition_list": "Result_AccountClick.detail = OK,Result_AccountClick.detail = ALL_OK",
-				"loop_condition":"Result_Waiting.detail = NG,",
-				"loop_limit_count":5,
-				"log_file_path_list": ["../Log/log_manage.json","../Log/log_all.json"],
-				"log_function":true,"log_print_standard_output": true
+			"name" : "AccountClickCheck",
+			"type" : "Recognition",
+			"condition_list" :  "Result_AccountClick.detail = OK,Result_AccountClick.detail = ALL_OK",
+			"result_name" : "Result_Waiting",
+			"settings" : {
+				"action" : "CLICK",
+				"end_condition" : "OK",
+				"end_action" : "CONTINUE",
+				"execute_number" : 1,
+				"retry_number" : 1,
+				"image_path" : "../Images/houchi/0500_waiting/*.png",
+				"start_retry_time" : 0.5,
+				"interval_time" : 1,
+				"recognition_confidence" : 0.99,
+				"recognition_grays_cale" : false,
+				"log_function" : true,"log_print_standard_output" : true,
+				"log_file_path_list" : ["../Log/log_recognition.json","../Log/log_all.json"]
 			}
-		}	
+		}
+			
 	],
 	"Waiting" : 
 	[
@@ -356,9 +605,9 @@
 	"WaitingSequence" : 
 	[
 		{
-			"name" : "Waiting",
+			"name" : "WaitingSequence01",
 			"type" : "Recognition",
-			"condition_list" : "Result_AccountClick.detail = OK,Result_AccountClick.detail = ALL_OK",
+			"condition_list" : "",
 			"result_name" : "Result_Waiting",
 			"settings" : {
 				"action" : "CLICK",
@@ -397,153 +646,7 @@
 			}
 		}
 	],
-	"Server01" : 
-	[	
-		{
-			"name" : "Server",
-			"type" : "Recognition",
-			"condition_list" : "Result_AccountClick.detail = OK,Result_AccountClick.detail = ALL_OK",
-			"result_name" : "Result_ServerClick",
-			"settings" : {
-				"#step_check_mode" : true,
-				"action" : "DOUBLE_CLICK",
-				"end_condition" : "OK",
-				"end_action" : "BREAK",
-				"execute_number" : 2,
-				"retry_number" : 5,
-				"image_path" : "../Images/houchi/0600_selectserver/0001_Server/*.png",
-				"start_retry_time" : 0.5,
-				"interval_time" : 0.1,
-				"recognition_confidence" : 0.8,
-				"recognition_grays_cale" : true,
-				"log_function" : true,"log_print_standard_output" : true,
-				"log_file_path_list" : ["../Log/log_recognition.json","../Log/log_all.json"]
 
-			}
-		}
-	],
-	"Server02" : 
-	[	
-		{
-			"name" : "Server02_Settings",
-			"type" : "ChangeSettings",
-			"settings" : {		
-				"change_settings_by_name" :{
-					"Server" :{
-						"image_path" : "../Images/houchi/0600_selectserver/0002_Server/*.png"
-					}
-				}
-			}
-		},
-		"Server01"
-	],
-	"Server03" : 
-	[	
-		{
-			"name" : "Server03_Settings",
-			"type" : "ChangeSettings",
-			"settings" : {		
-				"change_settings_by_name" :{
-					"Server" :{
-						"image_path" : "../Images/houchi/0600_selectserver/0003_Server/*.png"
-					}
-				}
-			}
-		},
-		"Server01"
-	],
-	"Server04" : 
-	[	
-		{
-			"name" : "Server04_Settings",
-			"type" : "ChangeSettings",
-			"settings" : {		
-				"change_settings_by_name" :{
-					"Server" :{
-						"image_path" : "../Images/houchi/0600_selectserver/0004_Server/*.png"
-					}
-				}
-			}
-		},
-		"Server01"
-	],
-	"Server05" : 
-	[	
-		{
-			"name" : "Server05_Settings",
-			"type" : "ChangeSettings",
-			"settings" : {		
-				"change_settings_by_name" :{
-					"Server" :{
-						"image_path" : "../Images/houchi/0600_selectserver/0005_Server/*.png"
-					}
-				}
-			}
-		},
-		"Server01"
-	],
-	"Server06" : 
-	[	
-		{
-			"name" : "Server06_Settings",
-			"type" : "ChangeSettings",
-			"settings" : {		
-				"change_settings_by_name" :{
-					"Server" :{
-						"image_path" : "../Images/houchi/0600_selectserver/0006_Server/*.png"
-					}
-				}
-			}
-		},
-		"Server01"
-	],
-	"Server07" : 
-	[	
-		{
-			"name" : "Server07_Settings",
-			"type" : "ChangeSettings",
-			"settings" : {		
-				"change_settings_by_name" :{
-					"Server" :{
-						"image_path" : "../Images/houchi/0600_selectserver/0007_Server/*.png"
-					}
-				}
-			}
-		},
-		"Server01"
-	],
-	"Server08" : 
-	[	
-		{
-			"name" : "Server08_Settings",
-			"type" : "ChangeSettings",
-			"settings" : {		
-				"change_settings_by_name" :{
-					"Server" :{
-						"image_path" : "../Images/houchi/0600_selectserver/0008_Server/*.png"
-					}
-				}
-			}
-		},
-		"Server01"
-	],
-	"Server09" : 
-	[	
-		
-		{
-			"name" : "Server09_Settings",
-			"type" : "ChangeSettings",
-			"settings" : {		
-				"change_settings_by_name" :{
-					"Server" :{
-						"image_path" : "../Images/houchi/0600_selectserver/0009_Server/*.png"
-					}
-				}
-			}
-		},
-		"Server01"
-	
-	],
 	"CloseWindow" : 
 	[
 		{

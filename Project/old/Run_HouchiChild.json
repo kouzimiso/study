@@ -1,50 +1,50 @@
 {
-		"TimeCheck_TimeEvent01_Sub":[
+		"TimeCheck_SubAccount":[
 		{
-			"name": "TimeCheck_TimeEvent01_01",
+			"name": "TimeCheck_Houchi1",
 			"type": "CheckDay",
-			"result_name":"TimeEvent_TimeCheck1",
+			"result_name":"Houchi_Time_Check1",
 			"settings": {
 				"day1": "土曜日0:00",
 				"day2": "Now",
 				"day3": "日曜日24:00",
-				"log_file_path_list": "../Log/log_DarkTails.json",
+				"log_file_path_list": "../Log/log_apply.json",
 				"log_function":true,"log_print_standard_output": true
 			}
 		},
 		{
-			"name": "TimeCheck_TimeEvent01_02",
+			"name": "TimeCheck_Houchi2",
 			"type": "CheckDay",
-			"result_name":"TimeEvent_TimeCheck2",
+			"result_name":"Houchi_Time_Check2",
 			"settings": {
 				"day1": "月曜日0:00",
 				"day2": "Now",
 				"day3": "月曜日24:00",
-				"log_file_path_list": "../Log/log_DarkTails.json",
+				"log_file_path_list": "../Log/log_apply.json",
 				"log_function":true,"log_print_standard_output": true
 			}
 		},
 		{
-			"name": "TimeCheck_TimeEvent01_03",
+			"name": "TimeCheck_Houchi3",
 			"type": "CheckDay",
-			"result_name":"TimeEvent_TimeCheck3",
+			"result_name":"Houchi_Time_Check3",
 			"settings": {
 				"day1": "火曜日0:00",
 				"day2": "Now",
 				"day3": "木曜日24:00",
-				"log_file_path_list": "../Log/log_DarkTails.json",
+				"log_file_path_list": "../Log/log_apply.json",
 				"log_function":true,"log_print_standard_output": true
 			}
 		},
 		{
-			"name": "TimeCheck_TimeEvent01_04",
+			"name": "TimeCheck_Houchi4",
 			"type": "CheckDay",
-			"result_name":"TimeEvent_TimeCheck4",
+			"result_name":"Houchi_Time_Check4",
 			"settings": {
 				"day1": "金曜日0:00",
 				"day2": "Now",
 				"day3": "金曜日24:00",
-				"log_file_path_list": "../Log/log_DarkTails.json",
+				"log_file_path_list": "../Log/log_apply.json",
 				"log_function":true,"log_print_standard_output": true,
 				"#step_check_mode" : true
 
@@ -56,9 +56,9 @@
 			"type": "Judge",
 			"settings": {
 				"condition_list": [
-					"TimeEvent_TimeCheck1=True,TimeEvent_TimeCheck2=True,TimeEvent_TimeCheck3=True,TimeEvent_TimeCheck4=True"
+					"Houchi_Time_Check1=True,Houchi_Time_Check2=True,Houchi_Time_Check3=True,Houchi_Time_Check4=True"
 				],
-				"log_file_path_list": "../Log/log_DarkTails.json",
+				"log_file_path_list": "../Log/log_apply.json",
 				"log_function":true,"log_print_standard_output": true,
 				"#step_check_mode" : true
 
@@ -66,53 +66,53 @@
 		}
 	],
 
-	"TimeCheck_TimeEvent01_Main":[
+	"TimeCheck_MainAccount":[
 		{
             		"comment": "",
-			"name": "TimeCheck_TimeEvent01_01",
+			"name": "TimeCheck_Houchi1",
 			"type": "CheckDay",
-			"result_name":"TimeEvent_TimeCheck1",
+			"result_name":"Houchi_Time_Check1",
 			"settings": {
 				"day1": "土曜日8:00",
 				"day2": "Now",
 				"day3": "日曜日23:30",
-				"log_file_path_list": "../Log/log_DarkTails.json",
+				"log_file_path_list": "../Log/log_apply.json",
 				"log_function":true,"log_print_standard_output": true
 			}
 		},
 		{
-			"name": "TimeCheck_TimeEvent01_02",
+			"name": "TimeCheck_Houchi2",
 			"type": "CheckDay",
-			"result_name":"TimeEvent_TimeCheck2",
+			"result_name":"Houchi_Time_Check2",
 			"settings": {
 				"day1": "月曜日12:00",
 				"day2": "Now",
 				"day3": "月曜日23:30",
-				"log_file_path_list": "../Log/log_DarkTails.json",
+				"log_file_path_list": "../Log/log_apply.json",
 				"log_function":true,"log_print_standard_output": true
 			}
 		},
 		{
-			"name": "TimeCheck_TimeEvent01_03",
+			"name": "TimeCheck_Houchi3",
 			"type": "CheckDay",
-			"result_name":"TimeEvent_TimeCheck3",
+			"result_name":"Houchi_Time_Check3",
 			"settings": {
 				"day1": "火曜日8:00",
 				"day2": "Now",
 				"day3": "木曜日23:30",
-				"log_file_path_list": "../Log/log_DarkTails.json",
+				"log_file_path_list": "../Log/log_apply.json",
 				"log_function":true,"log_print_standard_output": true
 			}
 		},
 		{
-			"name": "TimeCheck_TimeEvent01_04",
+			"name": "TimeCheck_Houchi4",
 			"type": "CheckDay",
-			"result_name":"TimeEvent_TimeCheck4",
+			"result_name":"Houchi_Time_Check4",
 			"settings": {
 				"day1": "金曜日8:00",
 				"day2": "Now",
 				"day3": "金曜日23:30",
-				"log_file_path_list": "../Log/log_DarkTails.json",
+				"log_file_path_list": "../Log/log_apply.json",
 				"log_function":true,"log_print_standard_output": true
 			}
 		},
@@ -122,35 +122,35 @@
 			"type": "Judge",
 			"settings": {
 				"condition_list": [
-					"TimeEvent_TimeCheck1=True,TimeEvent_TimeCheck2=True,TimeEvent_TimeCheck3=True,TimeEvent_TimeCheck4=True"
+					"Houchi_Time_Check1=True,Houchi_Time_Check2=True,Houchi_Time_Check3=True,Houchi_Time_Check4=True"
 				],
-				"log_file_path_list": "../Log/log_DarkTails.json",
+				"log_file_path_list": "../Log/log_apply.json",
 				"log_function":true,"log_print_standard_output": true
 			}
 		}
 		],
-		"TimeCheck_TimeEvent01":[
+		"TimeCheck_TimeEvent":[
 			{
-				"name": "TimeCheck_TimeEvent01_01",
+				"name": "TimeCheck_TimeEvent01",
 				"type": "CheckDay",
-				"result_name":"DarkTails_TimeEvent_TimeCheck1",
+				"result_name":"Houchi_TimeEventTime_Check1",
 				"settings": {
 					"day1": "12:15",
 					"day2": "Now",
 					"day3": "13:45",
-					"log_file_path_list": "../Log/log_DarkTails.json",
+					"log_file_path_list": "../Log/log_apply.json",
 					"log_function":true,"log_print_standard_output": true
 				}
 			},
 			{
-				"name": "TimeCheck_TimeEvent01_02",
+				"name": "TimeCheck_TimeEvent02",
 				"type": "CheckDay",
-				"result_name":"DarkTails_TimeEvent_TimeCheck2",
+				"result_name":"Houchi_TimeEventTime_Check2",
 				"settings": {
 					"day1": "19:45",
 					"day2": "Now",
 					"day3": "20:45",
-					"log_file_path_list": "../Log/log_DarkTails.json",
+					"log_file_path_list": "../Log/log_apply.json",
 					"log_function":true,"log_print_standard_output": true
 				}
 			},
@@ -160,112 +160,105 @@
 				"type": "Judge",
 				"settings": {
 					"condition_list": [
-						"DarkTails_TimeEvent_TimeCheck1=True,DarkTails_TimeEvent_TimeCheck2=True"
+						"Houchi_TimeEventTime_Check1=True,Houchi_TimeEventTime_Check2=True"
 					],
-					"log_file_path_list": "../Log/log_DarkTails.json",
+					"log_file_path_list": "../Log/log_apply.json",
 					"log_function":true,"log_print_standard_output": true
 				}
 			}
 		],
-	"TimeCheck_TimeEvent02":[
+	"TimeCheck_HimePlay":[
 		{
-            "comment": "",
-			"name": "TimeCheck_TimeEvent02",
+            		"comment": "",
+			"name": "TimeCheck_Houchi1",
 			"type": "CheckDay",
-			"result_name":"Time_Check_DarkTails_TimeEvent02",
+			"result_name":"Time_Check_Houchi_HimePlay",
 			"settings": {
 				"day1": "12:30",
 				"day2": "Now",
 				"day3": "12:40",
-				"log_file_path_list": "../Log/log_DarkTails.json",
+				"log_file_path_list": "../Log/log_apply.json",
 				"log_function":true,"log_print_standard_output": false
 			}
 		}
 	],
-	"DarkTailsPlay" : 
+	"HouchiPlay" : 
 	[
 		{
-	 		"name" : "DarkTailsPlay",
+	 		"name" : "HouchiPlay",
 			"type" : "RunPlanLists",
-			"condition_list" : "Result_ContentsStart = true",
+			"condition_list" : "",
 			"result_name":"",
 			"settings" : {
-				"file_path"  : "../Setting/RunDarkTailsChild.json",
+				"file_path"  : "../Setting/Run_HouchiChild.json",
 				"#step_check_mode" : true,
  		 		"plan_lists" : [
-					"PlayContents"
+					"ReturnClick",
+					"ReturnHome","RunFreeClick"
 				]
 			}
 		}
 	],
-	"PlayContents" : 
+	"RunFreeClick": 
 	[
 		{
-	 		"name" : "DarkTailsPlay",
+	 		"name" : "CallFreeClick",
 			"type" : "RunPlanLists",
 			"condition_list" : "",
 			"result_name":"",
 			"settings" : {
-				"file_path"  : "../Setting/RunDarkTailsChild.json",
-				"#step_check_mode" : true,
+				"#step_check_mode": true,
+				"file_path"  : "../Setting/Run_HouchiFunction.json",
  		 		"plan_lists" : [
-					"ReturnClick","HomeClick","FreeClick",
-					"HomeClick","Mail",
-					"HomeClick","Casting",
-					"HomeClick","InformationClick",
-					"DarkTailsEvent01",
-					"DarkTailsEvent02","DarkTailsgrowth","Etc",
-					"TimeCheck_TimeEvent01","TimeEvent"
+					"ReturnHome","FreeClick","FreeClick","FreeClick","FreeClick"
 				]
 			}
 		}
 	],
-	"DarkTailsEvent01": 
+	"FreeContinue": 
 	[
 		{
-	 		"name" : "DarkTailsEvent01",
+	 		"name" : "FreeClick",
 			"type" : "RunPlanLists",
-			"condition_list" : "",
+			"condition_list" : "FreeStart.detail = OK,FreeStart.detail = ALL_OK",
 			"result_name":"",
 			"settings" : {
-				"file_path"  : "../Setting/RunDarkTailsChild.json",
+				"file_path"  : "../Setting/Run_HouchiChild.json",
  		 		"plan_lists" : [
-					"HomeClick","DarkTailsEvent01Click",
-					"HomeClick","DarkTailsEvent01Click",
-					"HomeClick","DarkTailsEvent01Click"
+					"FreeClick"
 				]
 			}
 		}
 	],
-	"DarkTailsEvent02": 
+	"HouchiEvent02": 
 	[
 		{
-	 		"name" : "DarkTailsEvent02",
+	 		"name" : "HouchiEvent02",
 			"type" : "RunPlanLists",
 			"condition_list" : "",
 			"result_name":"",
 			"settings" : {
-				"file_path"  : "../Setting/RunDarkTailsChild.json",
+				"file_path"  : "../Setting/Run_HouchiChild.json",
  		 		"plan_lists" : [
-					"HomeClick","DarkTailsEvent02Click",
-					"HomeClick","DarkTailsEvent02Click"
+					"ReturnHome","HouchiEvent09",
+					"ReturnHome","HouchiEvent09"
 				]
 			}
 		}
 	],
-	"DarkTailsgrowth": 
+	"Houchigrowth": 
 	[
 		{
-	 		"name" : "DarkTailsgrowth",
+	 		"name" : "Houchigrowth",
 			"type" : "RunPlanLists",
 			"condition_list" : "",
 			"result_name":"",
 			"settings" : {
-				"file_path"  : "../Setting/RunDarkTailsChild.json",
+				"file_path"  : "../Setting/Run_HouchiChild.json",
  		 		"plan_lists" : [
-					"HomeClick","DarkTailsDairyClick","DarkTailsgrowthClick","DarkTailsBattleClick",
-					"HomeClick","DarkTailsDairyClick","DarkTailsgrowthClick","DarkTailsBattleClick",
-					"HomeClick","DarkTailsDairyClick","DarkTailsgrowthClick","DarkTailsBattleClick"
+					"ReturnHome","HouchiDairyClick","HouchigrowthClick","HouchiBattleClick",
+					"ReturnHome","HouchiDairyClick","HouchigrowthClick","HouchiBattleClick",
+					"ReturnHome","HouchiDairyClick","HouchigrowthClick","HouchiBattleClick"
 				]
 			}
 		}
@@ -278,18 +271,45 @@
 			"condition_list" : "",
 			"result_name":"",
 			"settings" : {
-				"file_path"  : "../Setting/RunDarkTailsChild.json",
+				"file_path"  : "../Setting/Run_HouchiChild.json",
 				"#step_check_mode" : true,
  		 		"plan_lists" : [
-					"HomeClick","Item"
+					"HouchiEvent08",
+					"ReturnHome","Item",
+					"ReturnHome","HouchiUnderWareClick",
+					"ReturnHome","HouchiUnderWareClick",
+					"ReturnHome","HouchiHighSpeedClick",
+					"HouchiEvent08"
 				]
 			}
 		}
 	],
+	"HouchiEvent08":
+	[
+		{
+	 		"name" : "HouchiEvent08Works_Loop",
+			"type" : "RunPlanLists",
+			"condition_list" : "",
+			"result_name" : "",
+			"settings" : {
+				"file_path" : "../Setting/Run_HouchiChild.json",
+				"loop_condition":true,
+				"loop_limit_count":10,
+                "terminate_condition":["Flag_Terminate.detail = OK,Flag_Terminate.detail = ALL_OK"],
+				"delete_condition_after_terminate":["Flag_Terminate"],
+				"log_function" : true,"log_print_standard_output" : true,"log_file_path_list" : "../Log/log_apply.json",
+				"#step_check_mode" : true,
+ 		 		"plan_lists" : [
+					"ReturnHome","HouchiEvent08Works"
+				]
+			}
+		}
+	],
+
 	"Item" : 
 	[
 		{
-			"name" : "DarkTailsStartClick01",
+			"name" : "HouchiStartClick01",
 			"type" : "Recognition",
 			"condition_list" : "",
 			"result_name":"ItemMax",
@@ -297,15 +317,15 @@
 				"#step_check_mode" : true,
 				"action" : "CLICK",
 				"end_condition" : "OK",
-				"end_action" : "FOLDER_END_BREAK",
+				"end_action" : "END_FOLDER_END_BREAK",
 				"execute_number" : 2,
 				"retry_number" : 2,
-				"image_path" : "../Images/DarkTails/2000_item/0000_start/*.png",
+				"image_path" : "../Images/houchi/2000_item/0000_start/*.png",
 				"interval_time" : 1,
 				"recognition_confidence" : 0.93,
 				"recognition_gray_scale" : true,
 				"log_file_path_list": "../Log/log_recognition.json",
-				"log_function":true,"log_print_standard_output": true
+				"log_function":true,"log_print_standard_output": false
 			}
 		},
 		{
@@ -316,8 +336,8 @@
 				"day1": "日曜日0:00",
 				"day2": "Now",
 				"day3": "月曜日24:00",
-				"log_file_path_list": "../Log/log_DarkTails.json",
-				"log_function":true,"log_print_standard_output": true
+				"log_file_path_list": "../Log/log_apply.json",
+				"log_function":true,"log_print_standard_output": false
 			}
 		},
 		{
@@ -328,8 +348,8 @@
 				"day1": "木曜日0:00",
 				"day2": "Now",
 				"day3": "木曜日24:00",
-				"log_file_path_list": "../Log/log_DarkTails.json",
-				"log_function":true,"log_print_standard_output": true
+				"log_file_path_list": "../Log/log_apply.json",
+				"log_function":true,"log_print_standard_output": false
 			}
 		},
 		{
@@ -340,14 +360,13 @@
 				"condition_list": [
 					"Time_Check_ItemMaintenance1=True,Time_Check_ItemMaintenance2=True,ItemMax.detail = OK,ItemMax.detail = ALL_OK"
 				],
-				"log_file_path_list": "../Log/log_DarkTails.json",
-				"log_function":true,"log_print_standard_output": true,
-				"#step_check_mode" : true
+				"log_file_path_list": "../Log/log_apply.json",
+				"#step_check_mode" : true,"log_function":true,"log_print_standard_output": true
 
 			}
 		},
 		{
-			"name" : "DarkTailsStartClick01",
+			"name" : "HouchiStartClick01",
 			"type" : "Recognition",
 			"condition_list" : "",
 			"result_name":"ItemMax",
@@ -355,24 +374,24 @@
 				"#step_check_mode" : true,
 				"action" : "CLICK",
 				"end_condition" : "OK",
-				"end_action" : "FOLDER_END_BREAK",
+				"end_action" : "END_FOLDER_END_BREAK",
 				"execute_number" : 2,
 				"retry_number" : 2,
-				"image_path" : "../Images/DarkTails/2000_item/0000_start/*.png",
+				"image_path" : "../Images/houchi/2000_item/0000_start/*.png",
 				"interval_time" : 1,
 				"recognition_confidence" : 0.93,
 				"recognition_gray_scale" : true,
 				"log_file_path_list": "../Log/log_recognition.json",
-			"log_function":true,"log_print_standard_output": true
+				"log_function":true,"log_print_standard_output": false
 			}
 		},
 	   {
-		"name" : "Item",
+		"name" : "RunPlayList_Item",
 	   "type" : "RunPlanLists",
 	   "condition_list" : "Condition_ItemMaintenance = true",
 	   "result_name":"",
 	   "settings" : {
-		   	"file_path"  : "../Setting/RunDarkTailsChild.json",
+		   	"file_path"  : "../Setting/Run_HouchiChild.json",
 		   	"#step_check_mode" : true,
 			"plan_lists" : [
 			   "ItemMaintenance"
@@ -382,54 +401,53 @@
  
 
 	],
-	"TimeEvent01Play": 
+	"TimeEventPlay": 
 	[
 		{
-	 		"name" : "TimeEvent01Play",
+	 		"name" : "TimeEventPlay",
 			"type" : "RunPlanLists",
 			"condition_list" : "",
 			"result_name":"",
 			"settings" : {
-				"file_path"  : "../Setting/RunDarkTailsChild.json",
+				"file_path"  : "../Setting/Run_HouchiChild.json",
  		 		"plan_lists" : [
-					"TimeCheck_TimeEvent01","TimeEvent01Click"
+					"TimeCheck_TimeEvent","TimeEventPlay2"
 				]
 			}
 		}
 	],
-	"TimeEvent01Click": 
+	"TimeEventPlay2": 
 	[
 		{
-	 		"name" : "TimeEvent01Click",
+	 		"name" : "TimeEventPlay2",
 			"type" : "RunPlanLists",
 			"condition_list" : "Condition_Execute = True",
 			"result_name":"",
 			"settings" : {
-				"file_path"  : "../Setting/RunDarkTailsChild.json",
+				"file_path"  : "../Setting/Run_HouchiChild.json",
  		 		"plan_lists" : [
-					"ReturnClick","HomeClick","TimeEventClick",
-					"HomeClick","TimeEventClick",
-					"HomeClick","TimeEventClick"
-
+					"ReturnClick","ReturnHome","TimeEventClick",
+					"ReturnHome","TimeEventClick",
+					"ReturnHome","TimeEventClick"
 				]
 			}
 		}
 	],
-	"DarkTailsStart":
+	"HouchiStart":
 	[
 		{
-			"name" : "DarkTailsStartClick01",
+			"name" : "HouchiStartClick01",
 			"type" : "Recognition",
 			"condition_list" : "",
-			"result_name":"Result_DarkTailsStartClicked",
+			"result_name":"Result_HouchiStartClicked",
 			"settings" : {
 				"#step_check_mode" : true,
 				"action" : "CLICK",
 				"end_condition" : "OK",
-				"end_action" : "FOLDER_END_BREAK",
+				"end_action" : "END_FOLDER_END_BREAK",
 				"execute_number" : 2,
 				"retry_number" : 2,
-				"image_path" : "../Images/DarkTails/1000_start/Click0*.png",
+				"image_path" : "../Images/houchi/1000_start/Click0*.png",
 				"interval_time" : 1,
 				"recognition_confidence" : 0.93,
 				"recognition_gray_scale" : true,
@@ -439,40 +457,26 @@
 		}
 	],
 
-	"Maintenance":
+	"HouchiMainte":
 	[
 		{
-			"name" : "MaintenanceClick01",
+			"name" : "HouchiMainteClick01",
 			"type" : "Recognition",
 			"condition_list" : "",
-			"result_name":"Result_DarkTailsMaintClicked",
+			"result_name":"Result_HouchiMaintClicked",
 			"settings" : {
 				"#step_check_mode" : true,
 				"action" : "CLICK",
 				"end_condition" : "NG",
-				"end_action" : "FOLDER_END_BREAK",
+				"end_action" : "END_FOLDER_END_BREAK",
 				"execute_number" : 2,
 				"retry_number" : 2,
-				"image_path" : "../Images/DarkTails/9999_mainte/*.png",
+				"image_path" : "../Images/houchi/9999_mainte/*.png",
 				"interval_time" : 0.1,
 				"recognition_confidence" : 0.93,
 				"recognition_gray_scale" : true,
 				"log_file_path_list": "../Log/log_recognition.json",
-				"log_function":true,"log_print_standard_output": true
-			}
-		},
-
-		{
-			"name": "Condition_Mainte",
-			"result_name": "Result_ContentsStart",
-			"type": "Judge",
-			"settings": {
-				"condition_list": [
-					"Result_DarkTailsStartClicked.detail = OK,Result_DarkTailsStartClicked.detail = ALL_OK",
-					"Result_DarkTailsMaintClicked.detail = NG"					
-				],
-				"log_file_path_list": "../Log/log_DarkTails.json",
-				"log_function":true,"log_print_standard_output": true
+				"log_function":true,"log_print_standard_output": false
 			}
 		}
 	],
@@ -487,15 +491,15 @@
 				"#step_check_mode" : true,"retry_check" : false,"sleep_time" : 0,
 				"action" : "CLICK",
 				"end_condition" : "OK",
-				"end_action" : "BREAK",
+				"end_action" : "END_BREAK",
 				"execute_number" : 1,
 				"retry_number" : 5,
-				"image_path" : "../Images/DarkTails/1020_Freestart/*.png",
-				"interval_time" : 0.0,
+				"image_path" : "../Images/houchi/1020_Freestart/*.png",
+				"interval_time" : 0.6,
 				"recognition_confidence" : 0.93,
 				"recognition_gray_scale" : true,
 				"log_file_path_list": "../Log/log_recognition.json",
-				"log_function":true,"log_print_standard_output": false
+				"log_function":true,"log_print_standard_output": true
 			}
 		},
 		{
@@ -509,12 +513,12 @@
 				"end_action" : "FOLDER_END_BREAK",
 				"execute_number" : 1,
 				"retry_number" : 1,
-				"image_path" : "../Images/DarkTails/1021_Free/*.png",
-				"interval_time" : 0.4,
+				"image_path" : "../Images/houchi/1021_Free/*.png",
+				"interval_time" : 0.1,
 				"recognition_confidence" : 0.93,
 				"recognition_gray_scale" : false,
 				"log_file_path_list": "../Log/log_recognition.json",
-				"log_function":true,"log_print_standard_output": false
+				"log_function":true,"log_print_standard_output": true
 			}
 		},
 		{
@@ -525,15 +529,15 @@
 			"settings" : {
 				"action" : "CLICK",
 				"end_condition" : "OK",
-				"end_action" : "BREAK",
+				"end_action" : "END_BREAK",
 				"execute_number" : 1,
 				"retry_number" : 0,
-				"image_path" : "../Images/DarkTails/1022_Freelongstart/*.png",
-				"interval_time" : 0.4,
+				"image_path" : "../Images/houchi/1022_Freelongstart/*.png",
+				"interval_time" : 0.5,
 				"recognition_confidence" : 0.93,
 				"recognition_gray_scale" : false,
 				"log_file_path_list": "../Log/log_recognition.json",
-				"log_function":true,"log_print_standard_output": false
+				"log_function":true,"log_print_standard_output": true
 			}
 		},
 		{
@@ -547,12 +551,12 @@
 				"end_action" : "FOLDER_END_BREAK",
 				"execute_number" : 1,
 				"retry_number" : 1,
-				"image_path" : "../Images/DarkTails/1023_Freelong/*.png",
-				"interval_time" : 0.4,
+				"image_path" : "../Images/houchi/1023_Freelong/*.png",
+				"interval_time" : 0.5,
 				"recognition_confidence" : 0.93,
 				"recognition_gray_scale" : false,
 				"log_file_path_list": "../Log/log_recognition.json",
-				"log_function":true,"log_print_standard_output": false
+				"log_function":true,"log_print_standard_output": true
 			}
 		},
 		{
@@ -563,530 +567,642 @@
 			"settings" : {
 				"action" : "CLICK",
 				"end_condition" : "OK",
-				"end_action" : "CONTINUE",
+				"end_action" : "END_CONTINUE",
 				"execute_number" : 1,
 				"retry_number" : 1,
-				"image_path" : "../Images/DarkTails/1029_Freeend/*.png",
-				"interval_time" : 0.3,
-				"recognition_confidence" : 0.93,
-				"recognition_gray_scale" : true,
-				"log_file_path_list": "../Log/log_recognition.json",
-				"log_function":true,"log_print_standard_output": false
-			}
-		}
-	],
-
-	"DarkTailsEvent01Click":
-	[
-		{
-			"name" : "DarkTailsEvent01Click01",
-			"type" : "Recognition",
-			"condition_list" : "",
-			"result_name":"Result_Click",
-			"settings" : {
-				"action" : "DOUBLE_CLICK",
-				"end_condition" : "OK",
-				"end_action" : "CONTINUE",
-				"execute_number" : 1,
-				"retry_number" : 2,
-				"image_path" : "../Images/DarkTails/1400_event/0000_start/*.png",
-				"interval_time" : 1,
-				"recognition_confidence" : 0.93,
-				"recognition_gray_scale" : true,
-				"log_file_path_list": "../Log/log_recognition.json",
-				"log_function":true,"log_print_standard_output": false
-			}
-		},
-		{
-			"name" : "DarkTailsEvent01Click05",
-			"type" : "Recognition",
-			"condition_list" : "Result_Click.detail=OK,Result_Click.detail = ALL_OK",
-			"result_name":"Result_Click",
-			"settings" : {
-				"action" : "CLICK",
-				"end_condition" : "OK",
-				"end_action" : "CONTINUE",
-				"execute_number" : 1,
-				"retry_number" : 2,
-				"image_path" : "../Images/DarkTails/1400_event/0005_execute/*.png",
+				"image_path" : "../Images/houchi/1029_Freeend/*.png",
 				"interval_time" : 0.5,
 				"recognition_confidence" : 0.93,
 				"recognition_gray_scale" : true,
 				"log_file_path_list": "../Log/log_recognition.json",
-				"log_function":true,"log_print_standard_output": false
+				"log_function":true,"log_print_standard_output": true
+			}
+		}
+	],
+
+	"HouchiEvent01":
+	[
+		{
+			"name" : "HouchiEvent01Click01",
+			"type" : "Recognition",
+			"condition_list" : "",
+			"result_name":"Condition_ContentsStart",
+			"settings" : {
+				"action" : "DOUBLE_CLICK",
+				"end_condition" : "OK",
+				"end_action" : "END_CONTINUE",
+				"execute_number" : 1,
+				"retry_number" : 2,
+				"image_path" : "../Images/houchi/1400_event/0000_start/*.png",
+				"interval_time" : 0.5,
+				"recognition_confidence" : 0.93,
+				"recognition_gray_scale" : true,
+				"log_file_path_list": "../Log/log_recognition.json",
+				"log_function":true,"log_print_standard_output": true
+			}
+		},
+		{
+			"name" : "HouchiEvent01Click05",
+			"type" : "Recognition",
+			"condition_list" : "Condition_ContentsStart.detail=OK,Condition_ContentsStart.detail = ALL_OK",
+			"result_name":"Condition_ContentsStart",
+			"settings" : {
+				"action" : "CLICK",
+				"end_condition" : "OK",
+				"end_action" : "END_CONTINUE",
+				"execute_number" : 1,
+				"retry_number" : 2,
+				"image_path" : "../Images/houchi/1400_event/0005_execute/*.png",
+				"interval_time" : 0.5,
+				"recognition_confidence" : 0.93,
+				"recognition_gray_scale" : true,
+				"log_file_path_list": "../Log/log_recognition.json",
+				"log_function":true,"log_print_standard_output": true
 			}
 		},
 		{
 		   "name" : "Home",
 		   "type" : "RunPlanLists",
-		   "condition_list" : "Result_Click.detail = OK,Result_Click.detail = ALL_OK",
+		   "condition_list" : "Condition_ContentsStart.detail = OK,Condition_ContentsStart.detail = ALL_OK",
 		   "result_name":"",
 		   "settings" : {
-			   "file_path"  : "../Setting/RunDarkTailsChild.json",
+			   "file_path"  : "../Setting/Run_HouchiChild.json",
 				 "plan_lists" : [
-					"HomeClick"
+					"ReturnHome"
 			   ]
 		   }
 		},
 		{
-			"name" : "DarkTailsEvent01Click10",
+			"name" : "HouchiEvent01Click10",
 			"type" : "Recognition",
 			"condition_list" : "",
-			"result_name":"Result_Click",
+			"result_name":"Condition_ContentsStart",
 			"settings" : {
 				"action" : "DOUBLE_CLICK",
 				"end_condition" : "OK",
-				"end_action" : "CONTINUE",
+				"end_action" : "END_CONTINUE",
 				"execute_number" : 1,
 				"retry_number" : 2,
-				"image_path" : "../Images/DarkTails/1400_event/0010_start/*.png",
-				"interval_time" : 1,
+				"image_path" : "../Images/houchi/1400_event/0010_start/*.png",
+				"interval_time" : 0.6,
 				"recognition_confidence" : 0.93,
 				"recognition_gray_scale" : true,
 				"log_file_path_list": "../Log/log_recognition.json",
-				"log_function":true,"log_print_standard_output": false
+				"log_function":true,"log_print_standard_output": true
 			}
 		},
 		{
-			"name" : "DarkTailsEvent01Click15",
+			"name" : "HouchiEvent01Click15",
 			"type" : "Recognition",
-			"condition_list" : "Result_Click.detail = OK,Result_Click.detail = ALL_OK",
+			"condition_list" : "Condition_ContentsStart.detail = OK,Condition_ContentsStart.detail = ALL_OK",
 			"result_name":"",
 			"settings" : {
 				"action" : "CLICK",
 				"end_condition" : "OK",
-				"end_action" : "CONTINUE",
+				"end_action" : "END_CONTINUE",
 				"execute_number" : 1,
 				"retry_number" : 0,
-				"image_path" : "../Images/DarkTails/1400_event/0015_execute/*.png",
+				"image_path" : "../Images/houchi/1400_event/0015_execute/*.png",
 				"interval_time" : 0.5,
 				"recognition_confidence" : 0.93,
 				"recognition_gray_scale" : true,
 				"log_file_path_list": "../Log/log_recognition.json",
-				"log_function":true,"log_print_standard_output": false
+				"log_function":true,"log_print_standard_output": true
 			}
 		},
 		{
 			"name" : "Home",
 		   "type" : "RunPlanLists",
-		   "condition_list" : "Result_Click.detail = OK,Result_Click.detail = ALL_OK",
+		   "condition_list" : "Condition_ContentsStart.detail = OK,Condition_ContentsStart.detail = ALL_OK",
 		   "result_name":"",
 		   "settings" : {
-			   "file_path"  : "../Setting/RunDarkTailsChild.json",
+			   "file_path"  : "../Setting/Run_HouchiChild.json",
 				 "plan_lists" : [
-					"HomeClick"
+					"ReturnHome"
 			   ]
 		   }
 		},
 		{
-			"name" : "DarkTailsEvent01Click20",
+			"name" : "HouchiEvent01Click20",
 			"type" : "Recognition",
 			"condition_list" : "",
-			"result_name":"Result_Click",
+			"result_name":"Condition_ContentsStart",
 			"settings" : {
 				"action" : "DOUBLE_CLICK",
 				"end_condition" : "OK",
-				"end_action" : "CONTINUE",
+				"end_action" : "END_CONTINUE",
 				"execute_number" : 1,
 				"retry_number" : 2,
-				"image_path" : "../Images/DarkTails/1400_event/0020_start/*.png",
+				"image_path" : "../Images/houchi/1400_event/0020_start/*.png",
 				"interval_time" : 1,
 				"recognition_confidence" : 0.93,
 				"recognition_gray_scale" : true,
 				"log_file_path_list": "../Log/log_recognition.json",
-				"log_function":true,"log_print_standard_output": false
+				"log_function":true,"log_print_standard_output": true
 			}
 		},
 		{
-			"name" : "DarkTailsEvent01Click25",
+			"name" : "HouchiEvent01Click25",
 			"type" : "Recognition",
-			"condition_list" : "Result_Click.detail = OK,Result_Click.detail = ALL_OK",
+			"condition_list" : "Condition_ContentsStart.detail = OK,Condition_ContentsStart.detail = ALL_OK",
 			"result_name":"",
 			"settings" : {
 				"action" : "CLICK",
 				"end_condition" : "OK",
-				"end_action" : "CONTINUE",
+				"end_action" : "END_CONTINUE",
 				"execute_number" : 1,
 				"retry_number" : 0,
-				"image_path" : "../Images/DarkTails/1400_event/0025_execute/*.png",
+				"image_path" : "../Images/houchi/1400_event/0025_execute/*.png",
 				"interval_time" : 0.5,
 				"recognition_confidence" : 0.93,
 				"recognition_gray_scale" : true,
 				"log_file_path_list": "../Log/log_recognition.json",
-				"log_function":true,"log_print_standard_output": false
+				"log_function":true,"log_print_standard_output": true
 			}
 		},
 		{
 		   "name" : "Home",
 		   "type" : "RunPlanLists",
-		   "condition_list" : "Result_Click.detail = OK,Result_Click.detail = ALL_OK",
+		   "condition_list" : "Condition_ContentsStart.detail = OK,Condition_ContentsStart.detail = ALL_OK",
 		   "result_name":"",
 		   "settings" : {
-			   "file_path"  : "../Setting/RunDarkTailsChild.json",
+			   "file_path"  : "../Setting/Run_HouchiChild.json",
 				 "plan_lists" : [
-					"HomeClick"
+					"ReturnHome"
 			   ]
 		   }
 		},
 		{
-			"name" : "DarkTailsEvent01Click30",
+			"name" : "HouchiEvent01Click30",
 			"type" : "Recognition",
 			"condition_list" : "",
-			"result_name":"Result_Click",
+			"result_name":"Condition_ContentsStart",
 			"settings" : {
 				"action" : "DOUBLE_CLICK",
 				"end_condition" : "OK",
-				"end_action" : "CONTINUE",
+				"end_action" : "END_CONTINUE",
 				"execute_number" : 1,
 				"retry_number" : 2,
-				"image_path" : "../Images/DarkTails/1400_event/0030_start/*.png",
+				"image_path" : "../Images/houchi/1400_event/0030_start/*.png",
 				"interval_time" : 1,
 				"recognition_confidence" : 0.93,
 				"recognition_gray_scale" : true,
 				"log_file_path_list": "../Log/log_recognition.json",
-				"log_function":true,"log_print_standard_output": false
+				"log_function":true,"log_print_standard_output": true
 			}
 		},
 		{
-			"name" : "DarkTailsEvent01Click35",
+			"name" : "HouchiEvent01Click35",
 			"type" : "Recognition",
-			"condition_list" : "Result_Click.detail = OK,Result_Click.detail = ALL_OK",
+			"condition_list" : "Condition_ContentsStart.detail = OK,Condition_ContentsStart.detail = ALL_OK",
 			"result_name":"",
 			"settings" : {
 				"action" : "CLICK",
 				"end_condition" : "OK",
-				"end_action" : "CONTINUE",
+				"end_action" : "END_CONTINUE",
 				"execute_number" : 1,
 				"retry_number" : 0,
-				"image_path" : "../Images/DarkTails/1400_event/0035_execute/*.png",
+				"image_path" : "../Images/houchi/1400_event/0035_execute/*.png",
 				"interval_time" : 0.5,
 				"recognition_confidence" : 0.93,
 				"recognition_gray_scale" : true,
 				"log_file_path_list": "../Log/log_recognition.json",
-				"log_function":true,"log_print_standard_output": false
+				"log_function":true,"log_print_standard_output": true
 			}
 		},
 		{
-			"name" : "DarkTailsEvent01Click40",
+			"name" : "HouchiEvent01Click40",
 			"type" : "Recognition",
 			"condition_list" : "",
-			"result_name":"Result_Click",
+			"result_name":"Condition_ContentsStart",
 			"settings" : {
 				"action" : "DOUBLE_CLICK",
 				"end_condition" : "OK",
-				"end_action" : "BREAK",
+				"end_action" : "END_BREAK",
 				"execute_number" : 1,
 				"retry_number" : 2,
-				"image_path" : "../Images/DarkTails/1400_event/0040_start/*.png",
+				"image_path" : "../Images/houchi/1400_event/0040_start/*.png",
 				"interval_time" : 1,
 				"recognition_confidence" : 0.93,
 				"recognition_gray_scale" : true,
 				"log_file_path_list": "../Log/log_recognition.json",
-				"log_function":true,"log_print_standard_output": false
+				"log_function":true,"log_print_standard_output": true
 			}
 		},
 		{
-			"name" : "DarkTailsEvent01Click45",
+			"name" : "HouchiEvent01Click45",
 			"type" : "Recognition",
-			"condition_list" : "Result_Click.detail = OK,Result_Click.detail = ALL_OK",
+			"condition_list" : "Condition_ContentsStart.detail = OK,Condition_ContentsStart.detail = ALL_OK",
 			"result_name":"",
 			"settings" : {
 				"action" : "CLICK",
 				"end_condition" : "OK",
-				"end_action" : "CONTINUE",
+				"end_action" : "END_CONTINUE",
 				"execute_number" : 1,
 				"retry_number" : 0,
-				"image_path" : "../Images/DarkTails/1400_event/0045_execute/*.png",
+				"image_path" : "../Images/houchi/1400_event/0045_execute/*.png",
 				"interval_time" : 0.5,
 				"recognition_confidence" : 0.93,
 				"recognition_gray_scale" : true,
 				"log_file_path_list": "../Log/log_recognition.json",
-				"log_function":true,"log_print_standard_output": false
+				"log_function":true,"log_print_standard_output": true
 			}
 		},
 		{
-			"name" : "DarkTailsEvent01Click50",
+			"name" : "HouchiEvent01Click50",
 			"type" : "Recognition",
 			"condition_list" : "",
-			"result_name":"Result_Click",
+			"result_name":"Condition_ContentsStart",
 			"settings" : {
 				"action" : "DOUBLE_CLICK",
 				"end_condition" : "OK",
-				"end_action" : "BREAK",
+				"end_action" : "END_BREAK",
 				"execute_number" : 1,
 				"retry_number" : 2,
-				"image_path" : "../Images/DarkTails/1400_event/0050_start/*.png",
+				"image_path" : "../Images/houchi/1400_event/0050_start/*.png",
 				"interval_time" : 1,
 				"recognition_confidence" : 0.93,
 				"recognition_gray_scale" : true,
 				"log_file_path_list": "../Log/log_recognition.json",
-				"log_function":true,"log_print_standard_output": false
+				"log_function":true,"log_print_standard_output": true
 			}
 		},
 		{
-			"name" : "DarkTailsEvent01Click55",
+			"name" : "HouchiEvent01Click55",
 			"type" : "Recognition",
-			"condition_list" : "Result_Click.detail = OK,Result_Click.detail = ALL_OK",
+			"condition_list" : "Condition_ContentsStart.detail = OK,Condition_ContentsStart.detail = ALL_OK",
 			"result_name":"",
 			"settings" : {
 				"action" : "CLICK",
 				"end_condition" : "OK",
-				"end_action" : "CONTINUE",
+				"end_action" : "END_CONTINUE",
 				"execute_number" : 1,
 				"retry_number" : 0,
-				"image_path" : "../Images/DarkTails/1400_event/0055_execute/*.png",
+				"image_path" : "../Images/houchi/1400_event/0055_execute/*.png",
 				"interval_time" : 0.5,
 				"recognition_confidence" : 0.93,
 				"recognition_gray_scale" : true,
 				"log_file_path_list": "../Log/log_recognition.json",
-				"log_function":true,"log_print_standard_output": false
+				"log_function":true,"log_print_standard_output": true
 			}
 		}
 	],
-	"DarkTailsEvent02Click":
+
+	"HouchiEvent08Works":
 	[
 		{
-			"name" : "DarkTailsZikaiStart",
+			"name" : "HouchiEvent08Click01",
 			"type" : "Recognition",
 			"condition_list" : "",
-			"result_name":"Result_Click",
+			"result_name":"Condition_ContentsStart",
 			"settings" : {
 				"action" : "DOUBLE_CLICK",
 				"end_condition" : "OK",
-				"end_action" : "FOLDER_END_BREAK",
+				"end_action" : "END_CONTINUE",
 				"execute_number" : 1,
 				"retry_number" : 2,
-				"image_path" : "../Images/DarkTails/1490_event/0000_start/*.png",
+				"image_path" : "../Images/houchi/1480_event/0000_start/*.png",
+				"interval_time" : 1,
+				"recognition_confidence" : 0.93,
+				"recognition_gray_scale" : true,
+				"log_file_path_list": "../Log/log_recognition.json",
+				"log_function":true,"log_print_standard_output": true
+			}
+		},
+		{
+			"name" : "HouchiEvent08Click03",
+			"type" : "Recognition",
+			"condition_list" : "Condition_ContentsStart.detail=OK,Condition_ContentsStart.detail = ALL_OK",
+			"result_name":"Condition_ContentsStart",
+			"settings" : {
+				"action" : "CLICK",
+				"end_condition" : "OK",
+				"end_action" : "END_CONTINUE",
+				"execute_number" : 1,
+				"retry_number" : 2,
+				"image_path" : "../Images/houchi/1480_event/0003_check/*.png",
+				"interval_time" : 0.8,
+				"recognition_confidence" : 0.93,
+				"recognition_gray_scale" : true,
+				"log_file_path_list": "../Log/log_recognition.json",
+				"log_function":true,"log_print_standard_output": true
+			}
+		},
+		{
+			"name" : "HouchiEvent08Click05",
+			"type" : "Recognition",
+			"condition_list" : "Condition_ContentsStart.detail=OK,Condition_ContentsStart.detail = ALL_OK",
+			"result_name":"",
+			"settings" : {
+				"action" : "CLICK",
+				"end_condition" : "OK",
+				"end_action" : "END_CONTINUE",
+				"execute_number" : 1,
+				"retry_number" : 2,
+				"image_path" : "../Images/houchi/1480_event/0005_execute/*.png",
 				"interval_time" : 0.5,
 				"recognition_confidence" : 0.93,
 				"recognition_gray_scale" : true,
 				"log_file_path_list": "../Log/log_recognition.json",
-				"log_function":true,"log_print_standard_output": false
+				"log_function":true,"log_print_standard_output": true
 			}
 		},
 		{
-			"name" : "DarkTailsZikai",
+			"name" : "HouchiEvent08Click07",
 			"type" : "Recognition",
 			"condition_list" : "",
-			"result_name":"Result_Click",
-			"settings" : {
-				"action" : "DOUBLE_CLICK",
-				"end_condition" : "OK",
-				"end_action" : "FOLDER_END_BREAK",
-				"execute_number" : 1,
-				"retry_number" : 1,
-				"image_path" : "../Images/DarkTails/1490_event/0002_execute/*.png",
-				"interval_time" : 0.8,
-				"recognition_confidence" : 0.93,
-				"recognition_gray_scale" : true,
-				"log_file_path_list": "../Log/log_recognition.json",
-				"log_function":true,"log_print_standard_output": false
-			}
-		},
-		{
-			"name" : "DarkTailsZikai",
-			"type" : "Recognition",
-			"condition_list" : "Result_Click.detail = OK,Result_Click.detail = ALL_OK",
-			"result_name":"Execute02",
-			"settings" : {
-				"action" : "DOUBLE_CLICK",
-				"end_condition" : "OK",
-				"end_action" : "FOLDER_END_BREAK",
-				"execute_number" : 1,
-				"retry_number" : 1,
-				"image_path" : "../Images/DarkTails/1490_event/0003_check/*.png",
-				"interval_time" : 0.8,
-				"recognition_confidence" : 0.98,
-				"recognition_gray_scale" : false,
-				"log_file_path_list": "../Log/log_recognition.json",
-				"log_function":true,"log_print_standard_output": false
-			}
-		},
-		{
-			"name" : "DarkTailsZikai",
-			"type" : "Recognition",
-			"condition_list" : "Execute02.detail = OK,Execute02.detail = ALL_OK",
-			"result_name":"",
+			"result_name":"Condition_ContentsStart",
 			"settings" : {
 				"action" : "CLICK",
 				"end_condition" : "OK",
-				"end_action" : "CONTINUE",
-				"execute_number" : 1,
-				"retry_number" : 1,
-				"image_path" : "../Images/DarkTails/1490_event/0005_execute/*.png",
-				"interval_time" : 0.8,
-				"recognition_confidence" : 0.93,
-				"recognition_gray_scale" : true,
-				"log_file_path_list": "../Log/log_recognition.json",
-				"log_function":true,"log_print_standard_output": false
-			}
-		},
-		{
-			"name" : "DarkTailsZikaiClick11",
-			"type" : "Recognition",
-			"condition_list" : "",
-			"result_name":"Result_Click",
-			"settings" : {
-				"action" : "DOUBLE_CLICK",
-				"end_condition" : "OK",
-				"end_action" : "CONTINUE",
-				"execute_number" : 1,
-				"retry_number" : 0,
-				"image_path" : "../Images/DarkTails/1490_event/0010_start/*.png",
-				"interval_time" : 1,
-				"recognition_confidence" : 0.93,
-				"recognition_gray_scale" : false,
-				"log_file_path_list": "../Log/log_recognition.json",
-				"log_function":true,"log_print_standard_output": false
-			}
-		},
-		{
-			"name" : "DarkTailsZikaiClick13",
-			"type" : "Recognition",
-			"condition_list" : "Result_Click.detail = OK,Result_Click.detail = ALL_OK",
-			"result_name":"",
-			"settings" : {
-				"action" : "CLICK",
-				"end_condition" : "NG",
-				"end_action" : "CONTINUE",
-				"execute_number" : 1,
-				"retry_number" : 5,
-				"image_path" : "../Images/DarkTails/1490_event/0015_execute/*.png",
-				"interval_time" : 1,
-				"recognition_confidence" : 0.93,
-				"recognition_gray_scale" : false,
-				"log_file_path_list": "../Log/log_recognition.json",
-				"log_function":false,"log_print_standard_output": false
-			}
-		},
-		{
-			"name" : "DarkTailsZikaiClick21",
-			"type" : "Recognition",
-			"condition_list" : "",
-			"result_name":"Result_Click",
-			"settings" : {
-				"action" : "DOUBLE_CLICK",
-				"end_condition" : "OK",
-				"end_action" : "CONTINUE",
-				"execute_number" : 1,
-				"retry_number" : 0,
-				"image_path" : "../Images/DarkTails/1490_event/0020_start/*.png",
-				"interval_time" : 1,
-				"recognition_confidence" : 0.93,
-				"recognition_gray_scale" : false,
-				"log_file_path_list": "../Log/log_recognition.json",
-				"log_function":true,"log_print_standard_output": false
-			}
-		},
-		{
-			"name" : "DarkTailsZikaiClick23",
-			"type" : "Recognition",
-			"condition_list" : "Result_Click.detail = OK,Result_Click.detail = ALL_OK",
-			"result_name":"",
-			"settings" : {
-				"action" : "CLICK",
-				"end_condition" : "OK",
-				"end_action" : "CONTINUE",
-				"execute_number" : 2,
-				"retry_number" : 0,
-				"image_path" : "../Images/DarkTails/1490_event/0025_execute/*.png",
-				"interval_time" : 1,
-				"recognition_confidence" : 0.93,
-				"recognition_gray_scale" : false,
-				"log_file_path_list": "../Log/log_recognition.json",
-				"log_function":false,"log_print_standard_output": false
-			}
-		},
-
-
-		{
-			"name" : "DarkTailsZikaiEnd",
-			"type" : "Recognition",
-			"condition_list" : "Result_Click.detail = OK,Result_Click.detail = ALL_OK",
-			"result_name":"",
-			"settings" : {
-				"action" : "CLICK",
-				"end_condition" : "NG",
-				"end_action" : "CONTINUE",
+				"end_action" : "END_CONTINUE",
 				"execute_number" : 1,
 				"retry_number" : 2,
-				"image_path" : "../Images/DarkTails/1490_event/0019_end/*.png",
-				"interval_time" : 1,
+				"image_path" : "../Images/houchi/1480_event/0007_next/*.png",
+				"interval_time" : 0.5,
 				"recognition_confidence" : 0.93,
 				"recognition_gray_scale" : true,
 				"log_file_path_list": "../Log/log_recognition.json",
-				"log_function":true,"log_print_standard_output": false
+				"log_function":true,"log_print_standard_output": true
+			}
+		},
+		{
+			"name" : "Houchigrowth",
+		   	"type" : "RunPlanLists",
+		   	"condition_list" : "Condition_ContentsStart.detail=OK,Condition_ContentsStart.detail = ALL_OK",
+		   	"result_name":"",
+		   	"settings" : {
+			   	"file_path"  : "../Setting/Run_HouchiChild.json",
+				"plan_lists" : [
+					"HouchigrowthClick","HouchiBattleClick","ItemEventClick"
+			   	]
+		   	}
+	   	},
+	   	{
+			"name" : "HouchiEvent08Click08",
+			"type" : "Recognition",
+			"condition_list" : "",
+			"result_name":"",
+			"settings" : {
+				"action" : "CLICK",
+				"end_condition" : "OK",
+				"end_action" : "END_CONTINUE",
+				"execute_number" : 1,
+				"retry_number" : 2,
+				"image_path" : "../Images/houchi/1480_event/0008_loopend/*.png",
+				"interval_time" : 0.5,
+				"recognition_confidence" : 0.93,
+				"recognition_gray_scale" : true,
+				"log_file_path_list": "../Log/log_recognition.json",
+				"log_function":true,"log_print_standard_output": true
 			}
 		}
 	],
-	"DarkTailsDairyClick":
+
+	"HouchiEvent09":
+	[
+		{
+			"name" : "HouchiZikaiStart",
+			"type" : "Recognition",
+			"condition_list" : "",
+			"result_name":"Condition_ContentsStart",
+			"settings" : {
+				"action" : "DOUBLE_CLICK",
+				"end_condition" : "OK",
+				"end_action" : "FOLDER_END_BREAK",
+				"execute_number" : 1,
+				"retry_number" : 2,
+				"image_path" : "../Images/houchi/1490_event/0000_start/*.png",
+				"interval_time" : 0.5,
+				"recognition_confidence" : 0.93,
+				"recognition_gray_scale" : true,
+				"log_file_path_list": "../Log/log_recognition.json",
+				"log_function":true,"log_print_standard_output": true
+			}
+		},
+		{
+			"name" : "HouchiZikai",
+			"type" : "Recognition",
+			"condition_list" : "",
+			"result_name":"",
+			"settings" : {
+				"action" : "DOUBLE_CLICK",
+				"end_condition" : "OK",
+				"end_action" : "FOLDER_END_BREAK",
+				"execute_number" : 1,
+				"retry_number" : 1,
+				"image_path" : "../Images/houchi/1490_event/0002_execute/*.png",
+				"interval_time" : 0.8,
+				"recognition_confidence" : 0.93,
+				"recognition_gray_scale" : true,
+				"log_file_path_list": "../Log/log_recognition.json",
+				"log_function":true,"log_print_standard_output": true
+			}
+		},
+		{
+			"name" : "HouchiZikai",
+			"type" : "Recognition",
+			"condition_list" : "Condition_ContentsStart.detail = OK,Condition_ContentsStart.detail = ALL_OK",
+			"result_name":"Flag_Check",
+			"settings" : {
+				"action" : "DOUBLE_CLICK",
+				"end_condition" : "OK",
+				"end_action" : "FOLDER_END_BREAK",
+				"execute_number" : 1,
+				"retry_number" : 1,
+				"image_path" : "../Images/houchi/1490_event/0003_check/*.png",
+				"interval_time" : 0.8,
+				"recognition_confidence" : 1,
+				"recognition_gray_scale" : false,
+				"log_file_path_list": "../Log/log_recognition.json",
+				"log_function":true,"log_print_standard_output": true
+			}
+		},
+		{
+			"name" : "HouchiZikai",
+			"type" : "Recognition",
+			"condition_list" : "Flag_Check.detail = OK,Flag_Check.detail = ALL_OK",
+			"result_name":"",
+			"settings" : {
+				"action" : "CLICK",
+				"end_condition" : "OK",
+				"end_action" : "END_CONTINUE",
+				"execute_number" : 1,
+				"retry_number" : 1,
+				"image_path" : "../Images/houchi/1490_event/0005_execute/*.png",
+				"interval_time" : 0.8,
+				"recognition_confidence" : 0.93,
+				"recognition_gray_scale" : true,
+				"log_file_path_list": "../Log/log_recognition.json",
+				"log_function":true,"log_print_standard_output": true
+			}
+		},
+		{
+			"name" : "HouchiZikaiClick11",
+			"type" : "Recognition",
+			"condition_list" : "Flag_Check.detail = OK,Flag_Check.detail = ALL_OK",
+			"result_name":"Condition_ContentsStart",
+			"settings" : {
+				"action" : "DOUBLE_CLICK",
+				"end_condition" : "OK",
+				"end_action" : "END_CONTINUE",
+				"execute_number" : 1,
+				"retry_number" : 0,
+				"image_path" : "../Images/houchi/1490_event/0010_start/*.png",
+				"interval_time" : 1,
+				"recognition_confidence" : 0.93,
+				"recognition_gray_scale" : false,
+				"log_file_path_list": "../Log/log_recognition.json",
+				"log_function":true,"log_print_standard_output": true
+			}
+		},
+		{
+			"name" : "HouchiZikaiClick13",
+			"type" : "Recognition",
+			"condition_list" : "Condition_ContentsStart.detail = OK,Condition_ContentsStart.detail = ALL_OK",
+			"result_name":"",
+			"settings" : {
+				"action" : "CLICK",
+				"end_condition" : "NG",
+				"end_action" : "END_CONTINUE",
+				"execute_number" : 1,
+				"retry_number" : 5,
+				"image_path" : "../Images/houchi/1490_event/0015_execute/*.png",
+				"interval_time" : 1,
+				"recognition_confidence" : 0.93,
+				"recognition_gray_scale" : false,
+				"log_file_path_list": "../Log/log_recognition.json",
+				"log_function":false,"log_print_standard_output": true
+			}
+		},
+		{
+			"name" : "HouchiZikaiClick21",
+			"type" : "Recognition",
+			"condition_list" : "Flag_Check.detail = OK,Flag_Check.detail = ALL_OK",
+			"result_name":"Condition_ContentsStart",
+			"settings" : {
+				"action" : "DOUBLE_CLICK",
+				"end_condition" : "OK",
+				"end_action" : "END_CONTINUE",
+				"execute_number" : 1,
+				"retry_number" : 0,
+				"image_path" : "../Images/houchi/1490_event/0020_start/*.png",
+				"interval_time" : 1,
+				"recognition_confidence" : 0.93,
+				"recognition_gray_scale" : false,
+				"log_file_path_list": "../Log/log_recognition.json",
+				"log_function":true,"log_print_standard_output": true
+			}
+		},
+		{
+			"name" : "HouchiZikaiClick23",
+			"type" : "Recognition",
+			"condition_list" : "Condition_ContentsStart.detail = OK,Condition_ContentsStart.detail = ALL_OK",
+			"result_name":"",
+			"settings" : {
+				"action" : "CLICK",
+				"end_condition" : "OK",
+				"end_action" : "END_CONTINUE",
+				"execute_number" : 2,
+				"retry_number" : 0,
+				"image_path" : "../Images/houchi/1490_event/0025_execute/*.png",
+				"interval_time" : 1,
+				"recognition_confidence" : 0.93,
+				"recognition_gray_scale" : false,
+				"log_file_path_list": "../Log/log_recognition.json",
+				"log_function":false,"log_print_standard_output": true
+			}
+		},
+
+
+		{
+			"name" : "HouchiZikaiEnd",
+			"type" : "Recognition",
+			"condition_list" : "Condition_ContentsStart.detail = OK,Condition_ContentsStart.detail = ALL_OK",
+			"result_name":"",
+			"settings" : {
+				"action" : "CLICK",
+				"end_condition" : "NG",
+				"end_action" : "END_CONTINUE",
+				"execute_number" : 1,
+				"retry_number" : 2,
+				"image_path" : "../Images/houchi/1490_event/0019_end/*.png",
+				"interval_time" : 1,
+				"recognition_confidence" : 0.93,
+				"recognition_gray_scale" : true,
+				"log_file_path_list": "../Log/log_recognition.json",
+				"log_function":true,"log_print_standard_output": true
+			}
+		}
+	],
+	"HouchiDairyClick":
 	[
 		{
 			"name" : "Dairy01",
 			"type" : "Recognition",
 			"condition_list" : "",
-			"result_name":"Result_Click",
+			"result_name":"Condition_ContentsStart",
 			"settings" : {
 				"action" : "DOUBLE_CLICK",
 				"end_condition" : "OK",
-				"end_action" : "CONTINUE",
+				"end_action" : "END_CONTINUE",
 				"execute_number" : 1,
 				"retry_number" : 2,
-				"image_path" : "../Images/DarkTails/1500_dairy/*.png",
+				"image_path" : "../Images/houchi/1500_dairy/*.png",
 				"interval_time" : 0.5,
 				"recognition_confidence" : 0.93,
 				"recognition_gray_scale" : true,
 				"log_file_path_list": "../Log/log_recognition.json",
-				"log_function":true,"log_print_standard_output": false
+				"log_function":true,"log_print_standard_output": true
 			}
 		},
 		{
 			"name" : "Dairy02",
 			"type" : "Recognition",
-			"condition_list" : "Result_Click.detail = OK,Result_Click.detail = ALL_OK",
+			"condition_list" : "Condition_ContentsStart.detail = OK,Condition_ContentsStart.detail = ALL_OK",
 			"result_name":"",
 			"settings" : {
 				"action" : "CLICK",
 				"end_condition" : "OK",
-				"end_action" : "CONTINUE",
+				"end_action" : "END_CONTINUE",
 				"execute_number" : 1,
 				"retry_number" : 0,
-				"image_path" : "../Images/DarkTails/1510_dairy/*.png",
+				"image_path" : "../Images/houchi/1510_dairy/*.png",
 				"interval_time" : 0.8,
 				"recognition_confidence" : 0.93,
 				"recognition_gray_scale" : true,
 				"log_file_path_list": "../Log/log_recognition.json",
-				"log_function":true,"log_print_standard_output": false
+				"log_function":true,"log_print_standard_output": true
 			}
 		},
 		{
 			"name" : "Dairy03",
 			"type" : "Recognition",
-			"condition_list" : "Result_Click.detail = OK,Result_Click.detail = ALL_OK",
+			"condition_list" : "Condition_ContentsStart.detail = OK,Condition_ContentsStart.detail = ALL_OK",
 			"result_name":"Dairy",
 			"settings" : {
 				"action" : "CLICK",
 				"end_condition" : "OK",
-				"end_action" : "CONTINUE",
+				"end_action" : "END_CONTINUE",
 				"execute_number" : 1,
 				"retry_number" : 0,
-				"image_path" : "../Images/DarkTails/1511_dairy/*.png",
+				"image_path" : "../Images/houchi/1511_dairy/*.png",
 				"interval_time" : 0.8,
 				"recognition_confidence" : 0.93,
 				"recognition_gray_scale" : true,
 				"log_file_path_list": "../Log/log_recognition.json",
-				"log_function":true,"log_print_standard_output": false
+				"log_function":true,"log_print_standard_output": true
 			}
 		},
 		{
-			"name" : "DarkTailsgrowth",
+			"name" : "Houchigrowth",
 			"type" : "RunPlanLists",
 			"condition_list" : "Dairy.detail = OK,Dairy.detail = ALL_OK",
 			"result_name":"",
 			"settings" : {
-				"file_path"  : "../Setting/RunDarkTailsChild.json",
+				"file_path"  : "../Setting/Run_HouchiChild.json",
 				"plan_lists" : [
-					"DarkTailsgrowthClick","DarkTailsBattleClick"
+					"HouchigrowthClick","HouchiBattleClick"
 				]
 			}
 		}
@@ -1098,19 +1214,19 @@
 			"name" : "Casting",
 			"type" : "Recognition",
 			"condition_list" : "",
-			"result_name":"Result_Click",
+			"result_name":"Condition_ContentsStart",
 			"settings" : {
 				"action" : "CLICK",
 				"end_condition" : "OK",
-				"end_action" : "CONTINUE",
+				"end_action" : "END_CONTINUE",
 				"execute_number" : 1,
 				"retry_number" : 2,
-				"image_path" : "../Images/DarkTails/1520_tyuzo/*.png",
-				"interval_time" : 0.7,
-				"recognition_confidence" : 0.93,
+				"image_path" : "../Images/houchi/1520_tyuzo/*.png",
+				"interval_time" : 1,
+				"recognition_confidence" : 0.95,
 				"recognition_gray_scale" : true,
 				"log_file_path_list": "../Log/log_recognition.json",
-				"log_function":true,"log_print_standard_output": false
+				"log_function":true,"log_print_standard_output": true
 			}
 		}
 	],
@@ -1120,19 +1236,19 @@
 			"name" : "ItemMaintenance",
 			"type" : "Recognition",
 			"condition_list" : "",
-			"result_name":"Result_Click",
+			"result_name":"Condition_ContentsStart",
 			"settings" : {
 				"action" : "CLICK",
 				"end_condition" : "OK",
-				"end_action" : "CONTINUE",
+				"end_action" : "END_CONTINUE",
 				"execute_number" : 1,
 				"retry_number" : 0,
-				"image_path" : "../Images/DarkTails/2000_item/0005_execute/*.png",
+				"image_path" : "../Images/houchi/2000_item/0005_execute/*.png",
 				"interval_time" : 0.7,
-				"recognition_confidence" : 0.93,
+				"recognition_confidence" : 0.95,
 				"recognition_gray_scale" : true,
 				"log_file_path_list": "../Log/log_recognition.json",
-				"log_function":true,"log_print_standard_output": false
+				"log_function":true,"log_print_standard_output": true
 			}
 		},
 		{
@@ -1141,9 +1257,9 @@
 			"condition_list" : "",
 			"result_name":"",
 			"settings" : {
-				"file_path"  : "../Setting/RunDarkTailsChild.json",
+				"file_path"  : "../Setting/Run_HouchiChild.json",
 					"plan_lists" : [
-					"HomeClick"
+					"ReturnHome"
 				]
 			}
 		},
@@ -1151,14 +1267,14 @@
 			"name" : "ItemMaintenance",
 			"type" : "Recognition",
 			"condition_list" : "",
-			"result_name":"Result_Click",
+			"result_name":"Condition_ContentsStart",
 			"settings" : {
 				"action" : "CLICK",
 				"end_condition" : "OK",
-				"end_action" : "CONTINUE",
+				"end_action" : "END_CONTINUE",
 				"execute_number" : 1,
 				"retry_number" : 2,
-				"image_path" : "../Images/DarkTails/2000_item/0010_start/*.png",
+				"image_path" : "../Images/houchi/2000_item/0010_start/*.png",
 				"interval_time" : 0.7,
 				"recognition_confidence" : 0.93,
 				"recognition_gray_scale" : true,
@@ -1169,20 +1285,20 @@
 		{
 			"name" : "ItemMaintenance",
 			"type" : "Recognition",
-			"condition_list" : "Result_Click.detail = OK,Result_Click.detail = ALL_OK",
-			"result_name":"Result_Click",
+			"condition_list" : "Condition_ContentsStart.detail = OK,Condition_ContentsStart.detail = ALL_OK",
+			"result_name":"Condition_ContentsStart",
 			"settings" : {
 				"action" : "CLICK",
 				"end_condition" : "OK",
-				"end_action" : "CONTINUE",
+				"end_action" : "END_CONTINUE",
 				"execute_number" : 1,
 				"retry_number" : 0,
-				"image_path" : "../Images/DarkTails/2000_item/0015_execute/*.png",
+				"image_path" : "../Images/houchi/2000_item/0015_execute/*.png",
 				"interval_time" : 0.7,
 				"recognition_confidence" : 0.93,
 				"recognition_gray_scale" : true,
 				"log_file_path_list": "../Log/log_recognition.json",
-				"log_function":true,"log_print_standard_output": false
+				"log_function":true,"log_print_standard_output": true
 			}
 		}
 	],
@@ -1192,14 +1308,14 @@
 			"name" : "Mail",
 			"type" : "Recognition",
 			"condition_list" : "",
-			"result_name":"Result_Click",
+			"result_name":"Condition_ContentsStart",
 			"settings" : {
 				"action" : "CLICK",
 				"end_condition" : "OK",
-				"end_action" : "CONTINUE",
+				"end_action" : "END_CONTINUE",
 				"execute_number" : 1,
 				"retry_number" : 2,
-				"image_path" : "../Images/DarkTails/1100_mail/*.png",
+				"image_path" : "../Images/houchi/1100_mail/*.png",
 				"interval_time" : 0.5,
 				"recognition_confidence" : 0.93,
 				"recognition_gray_scale" : true,
@@ -1208,74 +1324,35 @@
 			}
 		}
 	],
-	"DarkTailsgrowthClick":
+	"HouchiCharacterGrowth":{
+		"name" : "Item",
+		"type" : "RunPlanLists",
+		"condition_list" : "",
+		"result_name":"",
+		"settings" : {
+			"file_path"  : "../Setting/Run_HouchiFunction.json",
+			"plan_lists" : [
+				"CharacterDisplay","CharacterGrowth"
+			]
+		}
+	},
+	
+
+	"HouchiBattleClick":
 	[
 		{
-			"name" : "growth",
+			"name" : "HouchiBattle",
 			"type" : "Recognition",
 			"condition_list" : "",
-			"result_name":"Result_Click",
+			"result_name":"Condition_ContentsStart",
 			"settings" : {
 				"action" : "DOUBLE_CLICK",
 				"end_condition" : "OK",
-				"end_action" : "CONTINUE",
-				"execute_number" : 1,
-				"retry_number" : 1,
-				"image_path" : "../Images/DarkTails/1901_growth/0000_start/*.png",
-				"interval_time" : 0.8,
-				"recognition_confidence" : 0.93,
-				"recognition_gray_scale" : true,
-				"log_file_path_list": "../Log/log_recognition.json",
-				"log_function":true,"log_print_standard_output": false
-			}
-		},
-		{
-			"name" : "growth",
-			"type" : "Recognition",
-			"condition_list" : "",
-			"result_name":"Result_Click",
-			"settings" : {
-				"action" : "DOUBLE_CLICK",
-				"end_condition" : "OK",
-				"end_action" : "CONTINUE",
-				"execute_number" : 1,
-				"retry_number" : 0,
-				"image_path" : "../Images/DarkTails/1901_growth/0005_execute/*.png",
-				"interval_time" : 0.8,
-				"recognition_confidence" : 0.93,
-				"recognition_gray_scale" : true,
-				"log_file_path_list": "../Log/log_recognition.json",
-				"log_function":true,"log_print_standard_output": false
-			}
-		},
-		{
-			"name" : "Home",
-			"type" : "RunPlanLists",
-			"condition_list" : "Result_Click.detail = OK,Result_Click.detail = ALL_OK",
-			"result_name":"",
-			"settings" : {
-				"file_path"  : "../Setting/RunDarkTailsChild.json",
-				  "plan_lists" : [
-					 "ItemMaintenance"
-				]
-			}
-		 }
-	],
-	"DarkTailsBattleClick":
-	[
-		{
-			"name" : "DarkTailsBattle",
-			"type" : "Recognition",
-			"condition_list" : "",
-			"result_name":"Result_Click",
-			"settings" : {
-				"action" : "DOUBLE_CLICK",
-				"end_condition" : "OK",
-				"end_action" : "CONTINUE",
+				"end_action" : "END_CONTINUE",
 				"execute_number" : 1,
 				"retry_number" : 2,
-				"image_path" : "../Images/DarkTails/1910_battle/*.png",
-				"interval_time" : 0.5,
+				"image_path" : "../Images/houchi/1910_battle/*.png",
+				"interval_time" : 0.8,
 				"recognition_confidence" : 0.93,
 				"recognition_gray_scale" : true,
 				"log_file_path_list": "../Log/log_recognition.json",
@@ -1286,14 +1363,68 @@
 			"name" : "ItemError",
 			"type" : "Recognition",
 			"condition_list" : "",
-			"result_name":"Result_Click",
+			"result_name":"ItemError_Click",
 			"settings" : {
 				"action" : "CLICK",
 				"end_condition" : "OK",
-				"end_action" : "CONTINUE",
+				"end_action" : "END_CONTINUE",
 				"execute_number" : 1,
 				"retry_number" : 2,
-				"image_path" : "../Images/DarkTails/1910_battle/0006error/*.png",
+				"image_path" : "../Images/houchi/1910_battle/0006error/*.png",
+				"interval_time" : 0.8,
+				"recognition_confidence" : 0.93,
+				"recognition_gray_scale" : true,
+				"log_file_path_list": "../Log/log_recognition.json",
+				"log_function":true,"log_print_standard_output": false
+			}
+		},
+		{
+			"name" : "Item",
+			"type" : "RunPlanLists",
+			"condition_list" : "ItemError_Click.detail = OK,ItemError_Click.detail = ALL_OK",
+			"result_name":"",
+			"settings" : {
+				"file_path"  : "../Setting/Run_HouchiChild.json",
+				  "plan_lists" : [
+					 "ItemMaintenance"
+				]
+			}
+		 }
+
+	],
+	"ItemEventClick":
+	[
+		{
+			"name" : "growth",
+			"type" : "Recognition",
+			"condition_list" : "",
+			"result_name":"Condition_ContentsStart",
+			"settings" : {
+				"action" : "CLICK",
+				"end_condition" : "OK",
+				"end_action" : "END_CONTINUE",
+				"execute_number" : 1,
+				"retry_number" : 1,
+				"image_path" : "../Images/houchi/2000_item/0020_start/*.png",
+				"interval_time" : 0.8,
+				"recognition_confidence" : 0.93,
+				"recognition_gray_scale" : true,
+				"log_file_path_list": "../Log/log_recognition.json",
+				"log_function":true,"log_print_standard_output": false
+			}
+		},
+		{
+			"name" : "growth",
+			"type" : "Recognition",
+			"condition_list" : "Condition_ContentsStart.detail = OK,Condition_ContentsStart.detail = ALL_OK",
+			"result_name":"",
+			"settings" : {
+				"action" : "CLICK",
+				"end_condition" : "OK",
+				"end_action" : "END_CONTINUE",
+				"execute_number" : 1,
+				"retry_number" : 0,
+				"image_path" : "../Images/houchi/2000_item/0025_execute/*.png",
 				"interval_time" : 0.8,
 				"recognition_confidence" : 0.93,
 				"recognition_gray_scale" : true,
@@ -1302,9 +1433,35 @@
 			}
 		}
 	],
-
 	"TimeEventClick":
 	[
+		{
+			"name" : "TimeCheck_HimePlay",
+		   "type" : "RunPlanLists",
+		   "condition_list" : "",
+		   "result_name":"",
+		   "settings" : {
+			   "file_path"  : "../Setting/Run_HouchiChild.json",
+			   "#step_check_mode" : true,
+				 "plan_lists" : [
+				   "TimeCheck_HimePlay"
+			   ]
+		   }
+	   },
+	   {
+			"name" : "HimePlay",
+			"type" : "RunPlanLists",
+			"condition_list" : ["Time_Check_Houchi_HimePlay = true","Condition_TimeEvent.detail = OK,Condition_TimeEvent.detail = ALL_OK"],
+			"result_name":"",
+			"settings" : {
+				"file_path"  : "../Setting/Run_HouchiChild.json",
+				"#step_check_mode" : true,
+				"plan_lists" : [
+					"HimePlayClick"
+				]
+			}
+		},
+	
 		{
 			"name" : "TimeEventClick1",
 			"type" : "Recognition",
@@ -1312,10 +1469,10 @@
 			"settings" : {
 				"action" : "CLICK",
 				"end_condition" : "OK",
-				"end_action" : "CONTINUE",
+				"end_action" : "END_CONTINUE",
 				"execute_number" : 2,
 				"retry_number" : 2,
-				"image_path" : "../Images/DarkTails/1650_timeevent/0010_start/*.png",
+				"image_path" : "../Images/houchi/1650_timeevent/0010_start/*.png",
 				"interval_time" : 0.5,
 				"recognition_confidence" : 0.95,
 				"recognition_gray_scale" : true,
@@ -1331,58 +1488,32 @@
 			"settings" : {
 				"action" : "CLICK",
 				"end_condition" : "OK",
-				"end_action" : "CONTINUE",
+				"end_action" : "END_CONTINUE",
 				"execute_number" : 1,
 				"retry_number" : 1,
-				"image_path" : "../Images/DarkTails/1650_timeevent/0015_execute/*.png",
+				"image_path" : "../Images/houchi/1650_timeevent/0015_execute/*.png",
 				"interval_time" : 0.5,
 				"recognition_confidence" : 0.95,
 				"recognition_gray_scale" : true,
 				"log_file_path_list": "../Log/log_recognition.json",
 				"log_function":true,"log_print_standard_output": false
-			}
-		},
-		{
-			"name" : "TimeCheck_TimeEvent02",
-		   "type" : "RunPlanLists",
-		   "condition_list" : "",
-		   "result_name":"",
-		   "settings" : {
-			   "file_path"  : "../Setting/RunDarkTailsChild.json",
-			   "#step_check_mode" : true,
-				 "plan_lists" : [
-				   "TimeCheck_TimeEvent02"
-			   ]
-		   }
-	   },
-	   {
-			"name" : "TimeEvent02",
-			"type" : "RunPlanLists",
-			"condition_list" : ["Time_Check_DarkTails_TimeEvent02 = true","Condition_TimeEvent.detail = OK,Condition_TimeEvent.detail = ALL_OK"],
-			"result_name":"",
-			"settings" : {
-				"file_path"  : "../Setting/RunDarkTailsChild.json",
-				"#step_check_mode" : true,
-				"plan_lists" : [
-					"TimeEvent02Click"
-				]
 			}
 		}
 	],
-	"TimeEvent02Click":
+	"HimePlayClick":
 	[
 		{
-			"name" : "TimeEvent02Click",
+			"name" : "HimeClick",
 			"type" : "Recognition",
 			"condition_list" : "",
-			"result_name":"Result_TimeEvent02Click",
+			"result_name":"Result_HimePlayClick",
 			"settings" : {
 				"action" : "CLICK",
 				"end_condition" : "OK",
-				"end_action" : "CONTINUE",
+				"end_action" : "END_CONTINUE",
 				"execute_number" : 1,
 				"retry_number" : 1,
-				"image_path" : "../Images/DarkTails/1650_timeevent/0000_start/*.png",
+				"image_path" : "../Images/houchi/1650_timeevent/0000_start/*.png",
 				"interval_time" : 0.5,
 				"recognition_confidence" : 0.95,
 				"recognition_gray_scale" : true,
@@ -1391,17 +1522,17 @@
 			}
 		},
 		{
-			"name" : "TimeEvent02Click",
+			"name" : "HimeClick",
 			"type" : "Recognition",
-			"condition_list" : "Result_TimeEvent02Click.detail = OK,Result_TimeEvent02Click.detail = ALL_OK",
+			"condition_list" : "Result_HimePlayClick.detail = OK,Result_HimePlayClick.detail = ALL_OK",
 			"result_name":"",
 			"settings" : {
 				"action" : "CLICK",
 				"end_condition" : "OK",
-				"end_action" : "CONTINUE",
+				"end_action" : "END_CONTINUE",
 				"execute_number" : 1,
 				"retry_number" : 1,
-				"image_path" : "../Images/DarkTails/1650_timeevent/0005_execute/*.png",
+				"image_path" : "../Images/houchi/1650_timeevent/0005_execute/*.png",
 				"interval_time" : 0.5,
 				"recognition_confidence" : 0.95,
 				"recognition_gray_scale" : true,
@@ -1417,14 +1548,14 @@
 			"name" : "InformationClick01",
 			"type" : "Recognition",
 			"condition_list" : "",
-			"result_name":"Result_Click",
+			"result_name":"Condition_ContentsStart",
 			"settings" : {
 				"action" : "DOUBLE_CLICK",
 				"end_condition" : "OK",
 				"end_action" : "FOLDER_END_BREAK",
 				"execute_number" : 1,
 				"retry_number" : 2,
-				"image_path" : "../Images/DarkTails/1200_infomation/0000_start/*.png",
+				"image_path" : "../Images/houchi/1200_information/0000_start/*.png",
 				"interval_time" : 0.5,
 				"recognition_confidence" : 0.93,
 				"recognition_gray_scale" : true,
@@ -1435,15 +1566,15 @@
 		{
 			"name" : "InformationClick02",
 			"type" : "Recognition",
-			"condition_list" : "Result_Click.detail = OK,Result_Click.detail = ALL_OK",
-			"result_name":"Result_Click",
+			"condition_list" : "Condition_ContentsStart.detail = OK,Condition_ContentsStart.detail = ALL_OK",
+			"result_name":"Condition_ContentsStart",
 			"settings" : {
 				"action" : "DOUBLE_CLICK",
 				"end_condition" : "OK",
 				"end_action" : "FOLDER_END_BREAK",
 				"execute_number" : 1,
 				"retry_number" : 3,
-				"image_path" : "../Images/DarkTails/1200_infomation/0003_check/*.png",
+				"image_path" : "../Images/houchi/1200_information/0003_check/*.png",
 				"interval_time" : 0.5,
 				"recognition_confidence" : 0.93,
 				"recognition_gray_scale" : true,
@@ -1454,15 +1585,15 @@
 		{
 			"name" : "InformationClick03",
 			"type" : "Recognition",
-			"condition_list" : "Result_Click.detail = OK,Result_Click.detail = ALL_OK",
-			"result_name":"Result_Click",
+			"condition_list" : "Condition_ContentsStart.detail = OK,Condition_ContentsStart.detail = ALL_OK",
+			"result_name":"Condition_ContentsStart",
 			"settings" : {
 				"action" : "DOUBLE_CLICK",
 				"end_condition" : "OK",
 				"end_action" : "FOLDER_END_BREAK",
 				"execute_number" : 1,
 				"retry_number" : 2,
-				"image_path" : "../Images/DarkTails/1200_infomation/0005_execute/*.png",
+				"image_path" : "../Images/houchi/1200_information/0005_execute/*.png",
 				"interval_time" : 0.2,
 				"recognition_confidence" : 0.93,
 				"recognition_gray_scale" : true,
@@ -1483,8 +1614,8 @@
 				"end_action" : "FOLDER_END_BREAK",
 				"execute_number" : 1,
 				"retry_number" : 0,
-				"image_path" : "../Images/DarkTails/1010_Return/*.png",
-				"interval_time" : 0.5,
+				"image_path" : "../Images/houchi/1010_Return/*.png",
+				"interval_time" : 0.2,
 				"recognition_confidence" : 0.95,
 				"recognition_gray_scale" : true,
 				"log_file_path_list": "../Log/log_recognition.json",
@@ -1492,20 +1623,41 @@
 			}
 		}
 	],
-	"HomeClick":
+	"ReturnHome" : 
+	[
+		{
+	 		"name" : "HomeClick_Loop",
+			"type" : "RunPlanLists",
+			"condition_list" : "",
+			"result_name" : "",
+			"settings" : {
+				"file_path" : "../Setting/Run_HouchiChild.json",
+				"loop_condition":true,
+                "terminate_condition":["Flag_Terminate.detail = OK,Flag_Terminate.detail = ALL_OK"],
+				"delete_condition_after_terminate":["Flag_Terminate"],
+                "loop_limit_count":5,
+				"log_function" : true,"log_print_standard_output" : true,"log_file_path_list" : "../Log/log_apply.json",
+				"#step_check_mode" : true,
+ 		 		"plan_lists" : [
+					"HomeClickSequence"
+				]
+			}
+		}
+	],
+	"HomeClickSequence":
 	[
 		{
 			"name" : "HomeClick",
 			"type" : "Recognition",
-			"result_name":"HomeClick",
+			"result_name":"Flag_Terminate",
 			"settings" : {
 				"action" : "DOUBLE_CLICK",
 				"end_condition" : "OK",
-				"end_action" : "BREAK",
+				"end_action" : "END_BREAK",
 				"execute_number" : 1,
 				"retry_number" : 0,
-				"image_path" : "../Images/DarkTails/1011_home/*.png",
-				"interval_time" : 0.5,
+				"image_path" : "../Images/houchi/1011_home/*.png",
+				"interval_time" : 0.1,
 				"recognition_confidence" : 0.95,
 				"recognition_gray_scale" : true,
 				"log_file_path_list": "../Log/log_recognition.json",
@@ -1515,7 +1667,7 @@
 		{
 			"name" : "ReturnClick",
 			"type" : "Recognition",
-			"condition_list" :"HomeClick.detail = NG",
+			"condition_list" :"Flag_Terminate.detail = NG",
 			"result_name":"",
 			"settings" : {
 				"action" : "DOUBLE_CLICK",
@@ -1523,31 +1675,12 @@
 				"end_action" : "FOLDER_END_BREAK",
 				"execute_number" : 1,
 				"retry_number" : 0,
-				"image_path" : "../Images/DarkTails/1010_Return/*.png",
-				"interval_time" : 0.5,
+				"image_path" : "../Images/houchi/1010_Return/*.png",
+				"interval_time" : 0.3,
 				"recognition_confidence" : 0.95,
 				"recognition_gray_scale" : true,
 				"log_file_path_list": "../Log/log_recognition.json",
-				"log_function":false,"log_print_standard_output": false
-			}
-		},
-		{
-			"name" : "HomeClick",
-			"type" : "Recognition",
-			"condition_list" :"HomeClick.detail = NG",
-			"result_name":"",
-			"settings" : {
-				"action" : "DOUBLE_CLICK",
-				"end_condition" : "OK",
-				"end_action" : "BREAK",
-				"execute_number" : 1,
-				"retry_number" : 2,
-				"image_path" : "../Images/DarkTails/1011_home/*.png",
-				"interval_time" : 0.5,
-				"recognition_confidence" : 0.95,
-				"recognition_gray_scale" : true,
-				"log_file_path_list": "../Log/log_recognition.json",
-				"log_function":false,"log_print_standard_output": false
+				"log_function":true,"log_print_standard_output": false
 			}
 		}
 	],
@@ -1560,7 +1693,7 @@
 			"settings" : {
 				"action" : "CLICK",
 				"end_condition" : "OK",
-				"end_action" : "CONTINUE",
+				"end_action" : "END_CONTINUE",
 				"execute_number" : 2,
 				"retry_number" : 2,
 				"image_path" : "../Images/image_end/*.png",

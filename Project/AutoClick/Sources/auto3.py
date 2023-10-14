@@ -66,15 +66,15 @@ action_sequence_main = Auto.RecognitionInformation(Auto.ACTION.CLICK, Auto.RESUL
 action_sequence_main2 = Auto.RecognitionInformation(Auto.ACTION.CLICK, Auto.RESULT.NG, Auto.END_ACTION.CONTINUE, 3, 100, '../Images/image/Click02*.png', 0.5, 0.93, True)
 action_sequence_event = Auto.RecognitionInformation(Auto.ACTION.CLICK, Auto.RESULT.OK, Auto.END_ACTION.CONTINUE, 3, 0, '../Images/image_event/*.png', 0.5, 0.93, True)
 action_sequence_event2 = Auto.RecognitionInformation(Auto.ACTION.CLICK, Auto.RESULT.OK, Auto.END_ACTION.CONTINUE, 2, 2, '../Images/image_event2/*.png', 0.8, 0.93, True)
-action_sequence_grouth = Auto.RecognitionInformation(Auto.ACTION.CLICK, Auto.RESULT.OK, Auto.END_ACTION.CONTINUE, 3, 1, '../Images/image_grouth/*.png', 1.8, 0.93, True)
+action_sequence_Growth = Auto.RecognitionInformation(Auto.ACTION.CLICK, Auto.RESULT.OK, Auto.END_ACTION.CONTINUE, 3, 1, '../Images/image_Growth/*.png', 1.8, 0.93, True)
 action_sequence_end = Auto.RecognitionInformation(Auto.ACTION.CLICK, Auto.RESULT.OK, Auto.END_ACTION.CONTINUE, 2, 2, '../Images/image_end/*.png', 1.8, 0.95, True)
 action_sequence_shutdown = Auto.RecognitionInformation(Auto.ACTION.CLICK, Auto.RESULT.ALL_OK, Auto.END_ACTION.CONTINUE, 2, 2, '../Images/image_shutdown/*.png', 5, 0.95, True)
 
 
 # アニメーションするボタンが押せない対策
 # 画像を探してずらした位置をクリックする設定。{画像Path:ずらす位置}の形式で記述する。
-x_offset_dictionary = {'../Images/image_grouth\Click9254.png': "0"}
-y_offset_dictionary = {'../Images/image_grouth\Click9254.png': "-60", '../Images/image_grouth\Click2003.png': "-30", '../Images/image_grouth\Click9204.png': "-60",
+x_offset_dictionary = {'../Images/image_Growth\Click9254.png': "0"}
+y_offset_dictionary = {'../Images/image_Growth\Click9254.png': "-60", '../Images/image_Growth\Click2003.png': "-30", '../Images/image_Growth\Click9204.png': "-60",
                        '../Images/image_event2\Click9254.png': "-60", '../Images/image_event2\Click2003.png': "-30", '../Images/image_event2\Click9204.png': "-60"}
 
 # Imageを探してMouse pointerを移動させる
@@ -115,7 +115,7 @@ def Signal_Handler(signal_number, frame) -> None:
     sys.exit(1)
 
 
-def timecheck_grouth():
+def timecheck_Growth():
     # 放置少女育成時間チェック(イベント時にDairy消費防止12:00まで待つ)
     week_day = Weekday.DayOfTheWeek(set_monday=1)
     date_time = datetime.datetime.now()
@@ -433,7 +433,7 @@ def main_process(sequence, server_sequence, flag_timecheck):
     Auto.Images_Action_ByInformation(action_sequence_end, x_offset_dictionary, y_offset_dictionary)  # "終了処理", Auto.RESULT.OK
     if flag_timecheck == False:
         flag_login = True
-        flag_execute = timecheck_grouth()
+        flag_execute = timecheck_Growth()
         #flag_execute = True   #Event時 自動回し優先
     elif timecheck_afternoon():
         flag_login = False   #通常時
@@ -449,7 +449,7 @@ def main_process(sequence, server_sequence, flag_timecheck):
         Log.Log_MessageAdd(message_list, "time_check：夜")
     else:
         flag_login = timecheck_login()
-        flag_execute = timecheck_grouth()
+        flag_execute = timecheck_Growth()
 
     if flag_login or flag_execute:
         result_file_click = Auto.Images_Action_ByInformation(sequence, x_offset_dictionary, y_offset_dictionary)  # "File選択", Auto.RESULT.OK ,
@@ -475,7 +475,7 @@ def main_process(sequence, server_sequence, flag_timecheck):
                 result_action = Auto.Images_Action_ByInformation(action_sequence_event, x_offset_dictionary, y_offset_dictionary)  # "プロセス実行", result_waiting
             if flag_execute:
                 Log.Log_MessageAdd(message_list, "time_check:育成実行")
-                result_action = Auto.Images_Action_ByInformation(action_sequence_grouth, x_offset_dictionary, y_offset_dictionary)  # "プロセス実行", result_waiting
+                result_action = Auto.Images_Action_ByInformation(action_sequence_Growth, x_offset_dictionary, y_offset_dictionary)  # "プロセス実行", result_waiting
                 
             if flag_login or flag_execute:
                 #action_kyoudou1=Auto.RecognitionInformation(Auto.ACTION.CLICK ,Auto.RESULT.OK, Auto.END_ACTION.CONTINUE ,10, 0 ,'../Images/image_kyoudou1/*.png' , 0.8 , 0.93 , True)

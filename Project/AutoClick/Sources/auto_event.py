@@ -33,8 +33,8 @@ action_sequence_start = Auto.RecognitionInformation(Auto.ACTION.CLICK, Auto.RESU
 
 #アニメーションするボタンが押せない対策
 #画像を探してずらした位置をクリックする設定。{画像Path:ずらす位置}の形式で記述する。
-x_offset_dictionary= {'../image_grouth\Click9254.png' : "0"}
-y_offset_dictionary= {'../image_grouth\Click9254.png' : "-60",'../image_grouth\Click2003.png' : "-30",'./image_grouth\Click9204.png' : "-60",'./image_event2\Click9254.png' : "-60",'./image_event2\Click2003.png' : "-30",'./image_event2\Click9204.png' : "-60"}
+x_offset_dictionary= {'../image_Growth\Click9254.png' : "0"}
+y_offset_dictionary= {'../image_Growth\Click9254.png' : "-60",'../image_Growth\Click2003.png' : "-30",'./image_Growth\Click9204.png' : "-60",'./image_event2\Click9254.png' : "-60",'./image_event2\Click2003.png' : "-30",'./image_event2\Click9204.png' : "-60"}
         
 def Log_MessageFormat(message):
     log_message='[' + str(datetime.datetime.now())+']' + message +'\n'
@@ -68,7 +68,7 @@ def Signal_Handler(signal_number,frame) -> None:
     sys.exit(1)
 
 
-def timecheck_grouth():
+def timecheck_Growth():
     #放置少女育成時間チェック(イベント時にDairy消費防止12:00まで待つ)
     week_day = Weekday.DayOfTheWeek(set_monday=1)
     date_time = datetime.datetime.now()
@@ -367,9 +367,9 @@ def main():
         #    action_kyoudou2=RecognitionInformation(ACTION.CLICK ,RESULT.NG, END_ACTION.FOLDER_END_BREAK, 300,0,'../Images/image_kyoudou2/*.png' , 0.3 , 0.93 , True)
         #    result_action = Images_Action_ByInformation(action_kyoudou2,x_offset_dictionary,y_offset_dictionary)
         action_sequence_event = Auto.RecognitionInformation(Auto.ACTION.CLICK, Auto.RESULT.OK, Auto.END_ACTION.CONTINUE, 3, 0, '../Images/image_event/*.png', 0.5, 0.93, True)
-        action_sequence_grouth = Auto.RecognitionInformation(Auto.ACTION.CLICK, Auto.RESULT.OK, Auto.END_ACTION.CONTINUE, 3, 1, '../Images/image_grouth/*.png', 1.8, 0.93, True)
+        action_sequence_Growth = Auto.RecognitionInformation(Auto.ACTION.CLICK, Auto.RESULT.OK, Auto.END_ACTION.CONTINUE, 3, 1, '../Images/image_Growth/*.png', 1.8, 0.93, True)
         result_action = Auto.Images_Action_ByInformation(action_sequence_event, x_offset_dictionary, y_offset_dictionary)  # "プロセス実行", result_waiting
-        result_action = Auto.Images_Action_ByInformation(action_sequence_grouth, x_offset_dictionary, y_offset_dictionary)  # "プロセス実行", result_waiting
+        result_action = Auto.Images_Action_ByInformation(action_sequence_Growth, x_offset_dictionary, y_offset_dictionary)  # "プロセス実行", result_waiting
         highspeed()
 
         Log.Log_MessageAdd(message_list,"Event2 start")

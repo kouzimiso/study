@@ -41,7 +41,7 @@ class Action:
         result_dictionary={}
         function_dictionary = self.Get_FunctionDictionary()
         try:
-            result_dictionary = function_dictionary[self.task_type](settings_dictionary)
+            result_dictionary = function_dictionary[type](settings_dictionary)
         except :
             result_dictionary = {"result":False}
         return result_dictionary

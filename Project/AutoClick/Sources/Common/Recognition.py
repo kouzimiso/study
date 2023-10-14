@@ -281,7 +281,7 @@ class Recognition:
                 if end_result == "NONE":
                     all_ok = False
                     all_ng = True
-                    message="Images_Actction image is None"
+                    message="Images_Action image is None." + recognition_information.get("image_path","")
                     details={
                         "result" : end_result,
                         "retry" : loop01,

@@ -50,7 +50,7 @@ def main(args):
     init(args)
     exec_input()
     print("execute")
-    exec_grouth(nurture_rank,data_rate,loop_number)
+    exec_Growth(nurture_rank,data_rate,loop_number)
     print("result")
     show_result()
     os.system("pause")
@@ -85,7 +85,7 @@ def exec_input():
     for parameter in param_zero:
         calcStatus.preParam.append(parameter)
 
-def exec_grouth(nurture_rank,data_rate,loop_number):
+def exec_Growth(nurture_rank,data_rate,loop_number):
     print("---script start---")
     
     for loop in range(loop_number):

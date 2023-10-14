@@ -10,7 +10,7 @@
 					"program_path": "../Resources/Camera.exe",
 					"file_path": "../Images/capture/capture.png",
 					"log_print_standard_output": true,"log_function":true,"log_file_path_list": "../Log/log_ExecuteProgram.json",
-					"step_check_mode" : false,"step_check_comment":""
+					"#step_check_mode" : true,"step_check_comment":""					
 			}
 		},
 		{
@@ -26,7 +26,7 @@
 					"folder_maxsize" : 1048576,
 					"files_maxnumber" : 5,
 					"log_print_standard_output": true,"log_function":true,"log_file_path_list": "../Log/log_ExecuteProgram.json",
-					"step_check_mode" : false,"step_check_comment":""
+					"#step_check_mode" : true,"step_check_comment":""
 			}
 		},
 		{
@@ -37,7 +37,7 @@
 			"settings": {
 					"file_path": "../Log/capture.png",
 					"log_print_standard_output": true,"log_function":true,"log_file_path_list": "../Log/log_camera.json",
-					"step_check_mode" : false,"step_check_comment":""
+					"#step_check_mode" : true,"step_check_comment":""
 			}
 		}
 
@@ -46,7 +46,19 @@
 	[
 
 		{
-			"name" : "StartTest",
+			"name" : "StartTest02",
+		 	"type" : "RunPlanLists",
+		 	"settings" : {
+				"#step_check_mode" : true,"step_check_comment":"",
+				"log_function" : true,"log_print_standard_output" : false,"log_file_path_list" : "../Log/log_houchi.json.json",
+				"file_path" : "../Setting/RunMementomori.json",				
+				"plan_lists" : [
+					"MementomoriPlan"
+				]
+			}
+		},
+		{
+			"name" : "StartTest01",
 				"type" : "RunPlanLists",
 				"settings" : {
 				"file_path" : "../Setting/RunTest01.json",
@@ -56,35 +68,27 @@
 			}
 		},
 		{
-			"name" : "StartTest",
+			"name" : "StartTest03",
 		 	"type" : "RunPlanLists",
 		 	"settings" : {
-				"step_check_mode" : true,"step_check_comment":"",
+				"#step_check_mode" : true,"step_check_comment":"",
 				"log_function" : true,"log_print_standard_output" : false,"log_file_path_list" : "../Log/log_houchi.json.json",
 				"file_path" : "../Setting/RunHouchiChild.json",				
 				"plan_lists" : [
-					"HouchiCharacterGrowth"
+					"SimpleContents",
+					"TimeCheck_SubAccount","HouchiCharacterGrowth"
 				]
 			}
-		},
+		},		
+
 		{
-			"name" : "StartTest",
+			"name" : "StartTest04",
 		 	"type" : "RunPlanLists",
 		 	"settings" : {
 				"#step_check_mode" : true,"step_check_comment":"",
 				"file_path" : "../Setting/Run_HouchiFunction.json",
 				"plan_lists" : [
 					"#FreeClick"
-				]
-			}
-		},
-		{
-			"name" : "StartTest",
-		 	"type" : "RunPlanLists",
-		 	"settings" : {
-				"file_path" : "../Setting/RunTest01.json",
-				"plan_lists" : [
-					"#DarkTails"
 				]
 			}
 		},
@@ -146,7 +150,7 @@
 				"plan_lists" : [
 					"#ReturnHome","#Casting","#Item",
 					"#EventPlay01","#EventPlay02","#ReturnHome","#EventPlay08",
-					"#Grouth","#Etc#"
+					"#growth","#Etc#"
 				]
 			}
 		}

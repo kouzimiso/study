@@ -1,11 +1,272 @@
 {
+	"Condition_Account":[
+		{
+			"name": "TimeCheck_1",
+			"type": "CheckDay",
+			"result_name":"Time_Check1",
+			"settings": {
+				"day1": "土曜日0:00",
+				"day2": "Now",
+				"day3": "日曜日24:00",
+				"log_file_path_list": "../Log/log_all.json",
+				"log_function":true,"log_print_standard_output": true
+			}
+		},
+		{
+			"name": "TimeCheck_2",
+			"type": "CheckDay",
+			"result_name":"Time_Check2",
+			"settings": {
+				"day1": "月曜日0:00",
+				"day2": "Now",
+				"day3": "月曜日24:00",
+				"log_file_path_list": "../Log/log_all.json",
+				"log_function":true,"log_print_standard_output": true
+			}
+		},
+		{
+			"name": "TimeCheck3",
+			"type": "CheckDay",
+			"result_name":"Time_Check3",
+			"settings": {
+				"day1": "火曜日0:00",
+				"day2": "Now",
+				"day3": "木曜日24:00",
+				"log_file_path_list": "../Log/log_all.json",
+				"log_function":true,"log_print_standard_output": true
+			}
+		},
+		{
+			"name": "TimeCheck4",
+			"type": "CheckDay",
+			"result_name":"Time_Check4",
+			"settings": {
+				"day1": "金曜日0:00",
+				"day2": "Now",
+				"day3": "金曜日24:00",
+				"log_file_path_list": "../Log/log_all.json",
+				"log_function":true,"log_print_standard_output": true,
+				"#step_check_mode" : true
+
+			}
+		},
+		{
+			"name": "TimeCheck",
+			"result_name": "Condition_Execute",
+			"type": "Judge",
+			"settings": {
+				"condition_list": [
+					"Time_Check1=True,Time_Check2=True,Time_Check3=True,Time_Check4=True"
+				],
+				"log_file_path_list": "../Log/log_all.json",
+				"log_function":true,"log_print_standard_output": true,
+				"#step_check_mode" : true
+
+			}
+		}
+	],
+	"Account00" : [
+		
+		"CloseWindow",
+		{
+			"name" : "Account00",
+			"type" : "Recognition",
+			"condition_list" : "Condition_Execute = true",
+			"result_name" : "Result_AccountClick",
+			"settings" : {
+				"action" : "DOUBLE_CLICK",
+				"end_condition" : "OK",
+				"end_action" : "BREAK",
+				"execute_number" : 2,
+				"retry_number" : 0,
+				"image_path" : "../Images/0000_account/0000/*.png",
+				"start_retry_time" : 0.5,
+				"interval_time" : 3,
+				"recognition_confidence" : 0.99,
+				"recognition_grays_cale" : true,
+				"log_function" : true,"log_print_standard_output" : true,"log_file_path_list" : ["../Log/log_recognition.json","../Log/log_all.json"],
+				"#step_check_mode" : true
+
+			}
+		},
+		{
+			"name" : "Waiting",
+		    "type" : "RunPlanLists",
+		    "condition_list" : "Result_AccountClick.detail = OK,Result_AccountClick.detail = ALL_OK",
+		    "result_name" : "",
+		    "settings" : {
+				"loop_condition":false,
+       		    "log_function" : true,"log_print_standard_output" : true,"log_file_path_list" : ["../Log/log_manage.json","../Log/log_all.json"],
+			    "#step_check_mode" : true,
+				"plan_lists" : [
+				   "WaitingSequence"
+			   ]
+		   }
+	    },
+		{
+			"name": "Check_Judge",
+			"result_name": "Condition_Start",
+			"type": "Judge",
+			"settings": {
+				"condition_list": "Result_AccountClick.detail = OK,Result_AccountClick.detail = ALL_OK",
+				"loop_condition":"Result_Waiting.detail = NG",
+				"loop_limit_count":5,
+				"log_file_path_list": ["../Log/log_manage.json","../Log/log_all.json"],
+				"log_function":true,"log_print_standard_output": true
+			}
+		}	
+	],
+	"Waiting" : [
+		{
+	 		"name" : "Waiting",
+			"type" : "RunPlanLists",
+			"condition_list" : "Result_AccountClick.detail = OK,Result_AccountClick.detail = ALL_OK",
+			"result_name" : "",
+			"settings" : {
+				"loop_condition":true,
+                "terminate_condition":["Result_WaitEndClick.detail = OK,Result_WaitEndClick.detail = ALL_OK"],
+				"delete_condition_after_terminate":["Flag_Terminate"],
+                "loop_limit_count":20,
+				"log_function" : true,"log_print_standard_output" : true,"log_file_path_list" : ["../Log/log_manage.json","../Log/log_all.json"],
+				"#step_check_mode" : true,
+ 		 		"plan_lists" : [
+					"WaitingSequence"
+				]
+			}
+		}
+	],
+	"WaitingSequence" : [
+		{
+			"name" : "WaitingSequence01",
+			"type" : "Recognition",
+			"condition_list" : "Result_AccountClick.detail = OK,Result_AccountClick.detail = ALL_OK",
+			"result_name" : "Result_Waiting",
+			"settings" : {
+				"action" : "CLICK",
+				"end_condition" : "OK",
+				"end_action" : "CONTINUE",
+				"execute_number" : 1,
+				"retry_number" : 1,
+				"image_path" : "../Images/0500_waiting/*.png",
+				"start_retry_time" : 0.5,
+				"interval_time" : 1,
+				"recognition_confidence" : 0.99,
+				"recognition_grays_cale" : false,
+				"log_function" : true,"log_print_standard_output" : true,
+				"log_file_path_list" : ["../Log/log_recognition.json","../Log/log_all.json"]
+			}
+		},
+		{
+			"name" : "WaitingEnd",
+			"type" : "Recognition",
+			"condition_list" : ["Result_AccountClick.detail = OK,Result_AccountClick.detail = ALL_OK"],
+			"result_name" : "Result_WaitEndClick",
+			"settings" : {
+				"action" : "CLICK",
+				"end_condition" : "OK",
+				"end_action" : "BREAK",
+				"execute_number" : 1,
+				"retry_number" : 2,
+				"image_path" : "../Images/0509_waitingend/*.png",
+				"start_retry_time" : 0.5,
+				"interval_time" : 0.5,
+				"recognition_confidence" : 0.99,
+				"recognition_grays_cale" : false,
+				"log_function" : true,"log_print_standard_output" : true,
+				"log_file_path_list" : ["../Log/log_recognition.json","../Log/log_all.json"]
+
+			}
+		}
+	],
+	"Server01" : 
+	[	
+		{
+			"name" : "Server",
+			"type" : "Recognition",
+			"condition_list" : "Result_AccountClick.detail = OK,Result_AccountClick.detail = ALL_OK",
+			"result_name" : "Result_ServerClick",
+			"settings" : {
+				"#step_check_mode" : true,
+				"action" : "DOUBLE_CLICK",
+				"end_condition" : "OK",
+				"end_action" : "BREAK",
+				"execute_number" : 2,
+				"retry_number" : 5,
+				"image_path" : "../Images/0600_selectserver/0001_Server/*.png",
+				"start_retry_time" : 0.5,
+				"interval_time" : 0.1,
+				"recognition_confidence" : 0.8,
+				"recognition_grays_cale" : true,
+				"log_function" : true,"log_print_standard_output" : true,
+				"log_file_path_list" : ["../Log/log_recognition.json","../Log/log_all.json"]
+
+			}
+		}
+	],
+	"ContentsStartAndExecuteGroup" : 
+	[
+		{
+	 		"name" : "ContentsStartAndExecuteGroup",
+			"type" : "RunPlanLists",
+			"comment" : "",
+			"condition_list" : "Result_ServerClick.detail = OK,Result_ServerClick.detail = ALL_OK",
+			"settings" : {
+				"file_path" : "../Setting/applycation.json",
+				"log_function" : true,"log_print_standard_output" : true,"log_file_path_list" : ["../Log/log_manage.json","../Log/log_all.json"],
+				"#step_check_mode" : true,
+ 		 		"plan_lists" : [
+					"Start","ContentsPlay"
+				]
+			}
+		}
+	],
+	"Start":
+	[
+		{
+			"name" : "StartClick01",
+			"type" : "Recognition",
+			"condition_list" : "Condition_StartClick",
+			"result_name":"",
+			"settings" : {
+				"#step_check_mode" : true,
+				"action" : "CLICK",
+				"end_condition" : "OK",
+				"end_action" : "END_CONTINUE",
+				"execute_number" : 1,
+				"retry_number" : 1,
+				"image_path" : "../Images/1000_start/Click0*.png",
+				"start_retry_time" : 3,
+				"interval_time" : 2,
+				"recognition_confidence" : 0.93,
+				"recognition_gray_scale" : true,
+				"log_file_path_list": ["../Log/log_recognition.json","../Log/log_all.json"],
+				"log_function":true,"log_print_standard_output": true
+			}
+		},
+		"ReturnHome",
+		{
+			"name": "Check_Judge",
+			"result_name": "Condition_Start",
+			"type": "Judge",
+			"settings": {
+				"condition_list": "Flag_Home.detail = OK,Flag_Home.detail = ALL_OK",
+				"loop_limit_count":100,
+				"loop_condition":"Flag_Home.detail = NG",
+				"terminate_condition":"Flag_Home.detail = ALL_OK,Flag_Home.detail = OK",
+				"delete_condition_after_terminate":["Flag_Home"],
+				"log_file_path_list": "../Log/log_all.json",
+				"log_function":true,"log_print_standard_output": true
+			}
+		}
+
+	],
 
 	"StartExecuteContents":[
 		{
 			"name" : "StartContentsClick",
 			"type" : "Recognition",
 			"condition_list" : "",
-			"result_name":"Condition_ContaintsStart",
+			"result_name":"Result_ContentsStart",
 			"settings" : {
 				"#step_check_mode" : true,
 				"action" : "CLICK",
@@ -25,7 +286,7 @@
 		{
 			"name" : "ExecuteContentsClick",
 			"type" : "Recognition",
-			"condition_list" : "Condition_ContaintsStart.detail = OK,Condition_ContaintsStart.detail = ALL_OK",
+			"condition_list" : "Result_ContentsStart.detail = OK,Result_ContentsStart.detail = ALL_OK",
 			"result_name":"",
 			"settings" : {
 				"#step_check_mode" : true,
@@ -48,8 +309,8 @@
 		{
 			"name" : "StartContentsClick",
 			"type" : "Recognition",
-			"condition_list" : "Condition_ContaintsStart.detail = OK,Condition_ContaintsStart.detail = ALL_OK",
-			"result_name":"Condition_ContaintsAdd",
+			"condition_list" : "Result_ContentsStart.detail = OK,Result_ContentsStart.detail = ALL_OK",
+			"result_name":"Condition_ContentsAdd",
 			"settings" : {
 				"#step_check_mode" : true,
 				"action" : "CLICK",
@@ -69,7 +330,7 @@
 		{
 			"name" : "ExecuteContentsClick",
 			"type" : "Recognition",
-			"condition_list" : "Condition_ContaintsAdd.detail = OK,Condition_ContaintsAdd.detail = ALL_OK",
+			"condition_list" : "Condition_ContentsAdd.detail = OK,Condition_ContentsAdd.detail = ALL_OK",
 			"result_name":"",
 			"settings" : {
 				"#step_check_mode" : true,
@@ -94,14 +355,14 @@
 			"name" : "StartContentsClick",
 			"type" : "Recognition",
 			"condition_list" : "",
-			"result_name":"Result_Start",
+			"result_name":"Result_ContentsStart",
 			"settings" : {
 				"action" : "CLICK",
 				"end_condition" : "OK",
 				"end_action" : "END_CONTINUE",
 				"execute_number" : 1,
 				"retry_number" : 2,
-				"image_path" : "../Images/houchi/1910_battle/0000_start/*.png",
+				"image_path" : "../Images/1910_battle/0000_start/*.png",
 				"interval_time" : 0.5,
 				"recognition_confidence" : 0.93,
 				"recognition_gray_scale" : true,
@@ -109,11 +370,10 @@
 				"log_function":true,"log_print_standard_output": true
 			}
 		},
-
 		{
 			"name" : "Step",
 		    "type" : "RunPlanLists",
-		    "condition_list" : ["Result_Start.detail = OK,Result_Start.detail = ALL_OK"],
+		    "condition_list" : ["Result_ContentsStart.detail = OK,Result_ContentsStart.detail = ALL_OK"],
 		    "result_name" : "",
 		    "settings" : {
 			    "file_path" : "../Setting/TemplateRunApply.json",
@@ -133,14 +393,13 @@
 		    }
 	   }
 	],
-
 	"ScrollSelectContents":
 	[
 		{
 			"name" : "ScrollClick",
 			"type" : "Recognition",
 			"condition_list" : "",
-			"result_name":"Result_Recognition",
+			"result_name":"Condition_Select",
 			"settings" : {
 				"action" : "CLICK",
 				"end_condition" : "OK",
@@ -148,7 +407,7 @@
 				"scroll_distance_vertical" : 0,
 				"execute_number" : 1,
 				"retry_number" : 2,
-				"image_path" : "../Images/houchi/1910_battle/0002_select/*.png",
+				"image_path" : "../Images/1910_battle/0002_select/*.png",
 				"interval_time" : 1.5,
 				"recognition_confidence" : 0.93,
 				"recognition_gray_scale" : true,
@@ -168,7 +427,7 @@
 				"scroll_distance_vertical" : 0,
 				"execute_number" : 2,
 				"retry_number" : 4,
-				"image_path" : "../Images/houchi/1910_battle/0003_select_option/*.png",
+				"image_path" : "../Images/1910_battle/0003_select_option/*.png",
 				"interval_time" : 1,
 				"recognition_confidence" : 0.93,
 				"recognition_gray_scale" : true,
@@ -180,7 +439,7 @@
 		{
 			"name" : "ScrollSelectCheck",
 			"type" : "Recognition",
-			"condition_list" : "Result_Recognition.detail=OK,Result_Recognition.detail = ALL_OK",
+			"condition_list" : "Condition_Select.detail=OK,Condition_Select.detail = ALL_OK",
 			"result_name":"Flag_Terminate",
 			"settings" : {
 				"action" : "",
@@ -188,7 +447,7 @@
 				"end_action" : "END_BREAK",
 				"execute_number" : 1,
 				"retry_number" : 4,
-				"image_path" : "../Images/houchi/1910_battle/0004_check/*.png",
+				"image_path" : "../Images/1910_battle/0004_check/*.png",
 				"interval_time" : 0.0,
 				"recognition_confidence" : 0.93,
 				"recognition_gray_scale" : true,
@@ -199,7 +458,7 @@
 		{
 			"name": "Check_Judge",
 			"type": "Judge",
-			"condition_list" : "Result_Recognition.detail=OK,Result_Recognition.detail = ALL_OK",
+			"condition_list" : "Condition_Select.detail=OK,Condition_Select.detail = ALL_OK",
 			"result_name": "",
 			"settings": {
 				"condition_list": "",
@@ -224,7 +483,7 @@
 				"end_action" : "END_CONTINUE",
 				"execute_number" : 1,
 				"retry_number" : 4,
-				"image_path" : "../Images/houchi/1910_battle/0005_execute/*.png",
+				"image_path" : "../Images/1910_battle/0005_execute/*.png",
 				"interval_time" : 0.5,
 				"recognition_confidence" : 0.93,
 				"recognition_gray_scale" : true,
@@ -245,7 +504,7 @@
 				"end_action" : "END_BREAK",
 				"execute_number" : 1,
 				"retry_number" : 3,
-				"image_path" : "../Images/houchi/1910_battle/0007_result/*.png",
+				"image_path" : "../Images/1910_battle/0007_result/*.png",
 				"interval_time" : 0.5,
 				"recognition_confidence" : 0.93,
 				"recognition_gray_scale" : true,
@@ -287,7 +546,7 @@
 				"end_action" : "FOLDER_END_BREAK",
 				"execute_number" : 1,
 				"retry_number" : 2,
-				"image_path" : "../Images/houchi/1910_battle/0008_close/*.png",
+				"image_path" : "../Images/1910_battle/0008_close/*.png",
 				"interval_time" : 0.5,
 				"recognition_confidence" : 0.93,
 				"recognition_gray_scale" : true,
@@ -311,8 +570,26 @@
 			}
 		}	
 	],
-	"ReturnClick":
-	[
+	"ReturnHomeIfContentsStart" : [
+		{
+	 		"name" : "HomeClick_Loop",
+			"type" : "RunPlanLists",
+			"condition_list" : "Result_ContentsStart.detail = OK,Result_ContentsStart.detail = ALL_OK",
+			"result_name" : "",
+			"settings" : {
+				"loop_condition":true,
+				"loop_limit_count":1,
+				"log_function" : true,"log_print_standard_output" : true,"log_file_path_list" : "../Log/log_all.json",
+				"#step_check_mode" : true,
+				"file_path":"",
+ 		 		"plan_lists" : [
+					"ReturnHome"
+				]
+			}
+		}
+	],
+	
+	"ReturnClick":	[
 		{
 			"name" : "ReturnClick",
 			"type" : "Recognition",
@@ -323,7 +600,7 @@
 				"end_action" : "FOLDER_END_BREAK",
 				"execute_number" : 1,
 				"retry_number" : 0,
-				"image_path" : "../Images/houchi/1010_Return/*.png",
+				"image_path" : "../Images/1010_Return/*.png",
 				"interval_time" : 0.2,
 				"recognition_confidence" : 0.95,
 				"recognition_gray_scale" : true,
@@ -332,40 +609,18 @@
 			}
 		}
 	],
-	"ReturnHome" : 
-	[
-		{
-	 		"name" : "HomeClick_Loop",
-			"type" : "RunPlanLists",
-			"condition_list" : "",
-			"result_name" : "",
-			"settings" : {
-				"file_path" : "../Setting/TemplateRunApply.json",
-				"loop_condition":true,
-                "terminate_condition":["Flag_Terminate.detail = OK,Flag_Terminate.detail = ALL_OK"],
-				"delete_condition_after_terminate":["Flag_Terminate"],
-                "loop_limit_count":5,
-				"log_function" : true,"log_print_standard_output" : true,"log_file_path_list" : "../Log/log_apply.json",
-				"#step_check_mode" : true,
- 		 		"plan_lists" : [
-					"HomeClickSequence"
-				]
-			}
-		}
-	],
-	"HomeClickSequence":
-	[
+	"ReturnHome" : [
 		{
 			"name" : "HomeClick",
 			"type" : "Recognition",
-			"result_name":"Flag_Terminate",
+			"result_name":"Flag_Home",
 			"settings" : {
 				"action" : "DOUBLE_CLICK",
 				"end_condition" : "OK",
 				"end_action" : "END_BREAK",
 				"execute_number" : 1,
 				"retry_number" : 0,
-				"image_path" : "../Images/houchi/1011_home/*.png",
+				"image_path" : "../Images/1011_home/*.png",
 				"interval_time" : 0.1,
 				"recognition_confidence" : 0.95,
 				"recognition_gray_scale" : true,
@@ -376,7 +631,7 @@
 		{
 			"name" : "ReturnClick",
 			"type" : "Recognition",
-			"condition_list" :"Flag_Terminate.detail = NG",
+			"condition_list" :"Flag_Home.detail = NG",
 			"result_name":"",
 			"settings" : {
 				"action" : "DOUBLE_CLICK",
@@ -384,7 +639,7 @@
 				"end_action" : "FOLDER_END_BREAK",
 				"execute_number" : 1,
 				"retry_number" : 0,
-				"image_path" : "../Images/houchi/1010_Return/*.png",
+				"image_path" : "../Images/1010_Return/*.png",
 				"start_retry_time" : 0.5,
 				"interval_time" : 0.3,
 				"recognition_confidence" : 0.95,
@@ -392,10 +647,24 @@
 				"log_file_path_list": "../Log/log_recognition.json",
 				"log_function":true,"log_print_standard_output": false
 			}
-		}
+		},
+		{
+			"name": "Result_Judge",
+			"type": "Judge",
+			"condition_list" : "",
+			"result_name": "",
+			"settings": {
+				"condition_list": [""],
+				"terminate_condition":"",
+				"delete_condition_after_terminate":"",
+				"loop_condition":["Flag_Home.detail = NG"],
+				"loop_limit_count":5,
+				"log_file_path_list": "../Log/log_apply.json",
+				"log_function":true,"log_print_standard_output": true
+			}
+		}	
 	],
-	"CloseWindow":
-	[
+	"CloseWindow":[
 		{
 			"name" : "CloseWindow",
 			"type" : "Recognition",
@@ -414,11 +683,9 @@
 				"log_file_path_list": "../Log/log_recognition.json",
 				"log_function":true,"log_print_standard_output": false
 			}
-		}
-		
+		}		
 	],
-	"CloseWindowByName":
-	[
+	"CloseWindowByName":[
 		{
             "name": "ExecuteProgram_test",
             "type": "ExecuteProgram",
@@ -444,7 +711,7 @@
 				"end_action" : "END_BREAK",
 				"execute_number" : 1,
 				"retry_number" : 4,
-				"image_path" : "../Images/houchi/1910_battle/0009_loopend/*.png",
+				"image_path" : "../Images/1910_battle/0009_loopend/*.png",
 				"start_retry_time" : 0.5,
 				"interval_time" : 0.5,
 				"recognition_confidence" : 0.93,
@@ -453,43 +720,7 @@
 				"log_function":true,"log_print_standard_output": true
 			}
 		}	
-	],
-	
-	"ClickAndJudge":[
-		{
-			"name" : "ClickAndJudge",
-			"type" : "Recognition",
-			"condition_list" :"",
-			"result_name":"Result_Recognition",
-			"settings" : {
-				"action" : "CLICK",
-				"end_condition" : "OK",
-				"end_action" : "END_BREAK",
-				"execute_number" : 1,
-				"retry_number" : 4,
-				"image_path" : "../Images/houchi/1910_battle/0009_loopend/*.png",
-				"interval_time" : 0.5,
-				"recognition_confidence" : 0.93,
-				"recognition_gray_scale" : true,
-				"log_file_path_list": "../Log/log_recognition.json",
-				"log_function":true,"log_print_standard_output": true
-			}
-		},
-		{
-			"name": "Result_Judge",
-			"type": "Judge",
-			"condition_list" : "",
-			"result_name": "Flag_Terminate",
-			"settings": {
-				"condition_list": ["Result_Recognition.detail = OK,Result_Recognition.detail = ALL_OK"],
-				"#terminate_condition":["Result_Recognition.detail = OK,Result_Recognition.detail = ALL_OK"],
-				"delete_condition_after_terminate":["Result_Recognition"],
-				"loop_condition":true,
-				"loop_limit_count":2,
-				"log_file_path_list": "../Log/log_apply.json",
-				"log_function":true,"log_print_standard_output": true
-			}
-		}	
 	]
+	
 
 }

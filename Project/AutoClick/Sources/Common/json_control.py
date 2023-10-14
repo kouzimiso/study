@@ -7,10 +7,16 @@ def WriteDictionary(file_path,data_dictionary):
     json.dump(data_dictionary, file,  ensure_ascii=False, indent=4, sort_keys=True, separators=(',', ': '))
     file.close()
 
-def ToString(data_dictionary={}):
+def ToString(data_dictionary=None):
+    if data_dictionary == None:
+        data_dictionary ={}
     return json.dumps(data_dictionary)
     
-def ReadDictionary(file_path,data_dictionary={},details = {}):
+def ReadDictionary(file_path,data_dictionary=None,details = None):
+    if data_dictionary == None:
+        data_dictionary ={}
+    if details == None :
+        details = {}
     if os.path.isfile(file_path):
         try:
             file = open(file_path,'r', encoding='utf-8')
@@ -35,7 +41,11 @@ def ReadDictionary(file_path,data_dictionary={},details = {}):
         
     return data_dictionary
 
-def JsonToDictionary(data_json,data_dictionary={},details = {}):
+def JsonToDictionary(data_json,data_dictionary = None, details = None):
+    if data_dictionary == None:
+        data_dictionary ={}
+    if details == None :
+        details = {}
     try:
         temp_dictionary = json.load(data_json)
         data_dictionary.update(temp_dictionary)
