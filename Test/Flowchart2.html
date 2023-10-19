@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>グラフ Viewer</title>
+    <script src="https://d3js.org/d3.v5.min.js"></script>
+    <style>
+        /* グラフ描画エリアのスタイルを設定 */
+        #graph-container {
+            width: 800px;
+            height: 600px;
+        }
+    </style>
+</head>
+<body>
+    <input type="file" id="file-input" accept=".json" />
+    <button id="load-button">データを読み込む</button>
+    <button id="print-button">印刷</button>
+    <div id="graph-container"></div>
+    <script>
+        let graphData = {       // グラフデータ 
+            "nodes": [
+                {
+                    "id": "A",
+                    "name": "ノードA",
+                    "setting": {"x": 1, "y": 2}
+                },
+                {
+                    "id": "B",
+                    "name": "ノードB",
+                    "flows": ["C", "D"]
+                },
+                {
+                    "id": "E",
+                    "name": "ノードE"
+                },
+                {
+                    "id": "F",
+                    "name": "ノードF"
+                },
+                {
+                    "id": "C",
+                    "name": "ノードC"
+                },
+                {
+                    "id": "D",
+                    "name": "ノードD"
+                },
+                {
+                    "id": "E'",
+                    "name": "ノードE'"
+                },
+                {
+                    "id": "F'",
+                    "name": "ノードF'"
+                }
+            ],
+            "edges": [
+                {
+                    "source": "A",
+                    "target": "B"
+                },
+                // 他のエッジも同様に追加
+            ]
+        };
+
+
+        const loadButton = document.getElementById("load-button");
+        const printButton = document.getElementById("print-button");
+
+        loadButton.addEventListener("click", () => {
+            // ファイル読み込み処理
+            const fileInput = document.getElementById("file-input");
+            const file = fileInput.files[0];
+
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const fileContent = event.target.result;
+                    try {
+                        graphData = JSON.parse(fileContent);
+                        updateGraph();
+                    } catch (error) {
+                        alert("データの読み込み中にエラーが発生しました。");
+                    }
+                };
+                reader.readAsText(file);
+            }
+        });
+
+        printButton.addEventListener("click", () => {
+            // グラフ印刷処理
+            window.print();
+        });
+
+        // グラフ描画関数
+        function updateGraph() {
+            const svg = d3.select("#graph-container")
+                .selectAll("*")
+                .remove();
+
+            if (graphData) {
+                // グラフの描画ロジック（前回のコードと同様）
+                // グラフ描画
+                const svg = d3.select("#graph-container")
+                .append("svg")
+                .attr("width", 800)
+                .attr("height", 600);
+
+                const simulation = d3.forceSimulation()
+                    .force("link", d3.forceLink().id(d => d.id))
+                    .force("charge", d3.forceManyBody())
+                    .force("center", d3.forceCenter(400, 300));
+
+                const link = svg.selectAll(".link")
+                    .data(graphData.edges)
+                    .enter()
+                    .append("line")
+                    .attr("class", "link");
+
+                const node = svg.selectAll(".node")
+                    .data(graphData.nodes)
+                    .enter()
+                    .append("circle")
+                    .attr("class", "node")
+                    .attr("r", 20)
+                    .style("fill", "red") // ノードの色を赤色に変更
+                    .call(d3.drag()
+                    .on("start", dragStarted)
+                    .on("drag", dragging)
+                    .on("end", dragEnded));
+
+                node.on("click", function(d) {
+                    // ノードをクリックしたときの処理（詳細情報表示など）
+                    console.log("ノードID: " + d.id);
+                    console.log("ノード名: " + d.name);
+                    console.log("Setting: ", d.setting);
+                });
+
+                simulation.nodes(graphData.nodes)
+                    .on("tick", () => {
+                        link
+                            .attr("x1", d => d.source.x)
+                            .attr("y1", d => d.source.y)
+                            .attr("x2", d => d.target.x)
+                            .attr("y2", d => d.target.y);
+
+                        node
+                            .attr("cx", d => d.x)
+                            .attr("cy", d => d.y);
+                    });
+
+                simulation.force("link").links(graphData.edges);
+                                // ノード詳細情報の表示（ノードをクリックしたときの処理）
+                                node.on("click", function(d) {
+                                    alert("ノードID: " + d.id + "\nノード名: " + d.name + "\nSetting: " + JSON.stringify(d.setting));
+                                });
+                            }
+                        }
+        // ドラッグ操作のコールバック関数
+        function dragStarted(d) {
+            if (!d3.event.active) simulation.alphaTarget(0.3).restart();
+            d.fx = d.x;
+            d.fy = d.y;
+        }
+
+        function dragging(d) {
+            d.fx = d3.event.x;
+            d.fy = d3.event.y;
+        }
+
+        function dragEnded(d) {
+            if (!d3.event.active) simulation.alphaTarget(0);
+            d.fx = null;
+            d.fy = null;
+        }
+
+        // ドラッグ操作のコールバック関数
+        function dragStarted(d) {
+            if (!d3.event.active) simulation.alphaTarget(0.3).restart();
+            d.fx = d.x;
+            d.fy = d.y;
+        }
+
+        function dragging(d) {
+            d.fx = d3.event.x;
+            d.fy = d3.event.y;
+        }
+
+        function dragEnded(d) {
+            if (!d3.event.active) simulation.alphaTarget(0);
+            d.fx = null;
+            d.fy = null;
+        }
+
+        // 初回にもグラフを表示
+        updateGraph();
+    </script>
+</body>
+</html>

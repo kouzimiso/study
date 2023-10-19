@@ -1,0 +1,14 @@
+{
+    "nodes": [
+        {"id": "A", "label": "Node A", "noRepel": false},
+        {"id": "B", "label": "Node B", "noRepel": false},
+        {"id": "C", "label": "Node C", "noRepel": false},
+        {"id": "D", "label": "Node D", "noRepel": false},
+        {"id": "E", "label": "Node E", "noRepel": false},
+        {"id": "F", "label": "Node F", "noRepel": false}
+    ],
+    "flows": [
+        {"source": "A", "target": "B"},
+        {"source": "A", "target": "C"},
+    ]
+}

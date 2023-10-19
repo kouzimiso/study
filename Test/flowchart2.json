@@ -1,0 +1,48 @@
+{   
+            "nodes": [
+                {
+                    "id": "A",
+                    "name": "ノードA",
+                    "setting": {"x": 1, "y": 2}
+                },
+                {
+                    "id": "B",
+                    "name": "ノードB",
+                    "flows": ["C", "D"]
+                },
+                {
+                    "id": "E",
+                    "name": "ノードE"
+                },
+                {
+                    "id": "F",
+                    "name": "ノードF"
+                },
+                {
+                    "id": "C",
+                    "name": "ノードC"
+                },
+                {
+                    "id": "D",
+                    "name": "ノードD"
+                },
+                {
+                    "id": "E'",
+                    "name": "ノードE'"
+                },
+                {
+                    "id": "F'",
+                    "name": "ノードF'"
+                }
+            ],
+            "edges": [
+                {
+                    "source": "A",
+                    "target": "B"
+                },
+                {
+                    "source": "B",
+                    "target": "C"
+                }
+            ]
+        }
