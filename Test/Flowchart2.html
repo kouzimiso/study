@@ -1,22 +1,26 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charset="utf-8">
-    <title>グラフ Viewer</title>
+    <meta charset="UTF-8">
+    <title>Graph</title> 
     <script src="https://d3js.org/d3.v5.min.js"></script>
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    <link rel="stylesheet" href="styles.css">
     <style>
         /* グラフ描画エリアのスタイルを設定 */
         #graph-container {
             width: 800px;
-            height: 600px;
+            height: 100px;
         }
     </style>
 </head>
 <body>
     <input type="file" id="file-input" accept=".json" />
-    <button id="load-button">データを読み込む</button>
-    <button id="print-button">印刷</button>
-    <div id="graph-container"></div>
+    <button id="load-button">Load JSON</button>
+    <button id="print-button">Print</button>
+    <div id="graph-container">
+    </div>
+    <div id="node-info"></div>
     <script>
         let graphData = {       // グラフデータ 
             "nodes": [
@@ -28,7 +32,7 @@
                 {
                     "id": "B",
                     "name": "ノードB",
-                    "flows": ["C", "D"]
+                    "edges": ["C", "D"]
                 },
                 {
                     "id": "E",
@@ -59,14 +63,19 @@
                 {
                     "source": "A",
                     "target": "B"
-                },
+                },{
+                    "source": "B",
+                    "target": "C",
+                    "condition": "condition2"
+                }
                 // 他のエッジも同様に追加
             ]
         };
 
-
         const loadButton = document.getElementById("load-button");
         const printButton = document.getElementById("print-button");
+        const graphContainer = document.getElementById("graph-container");
+        let simulation; // simulationをグローバル変数として定義
 
         loadButton.addEventListener("click", () => {
             // ファイル読み込み処理
@@ -88,91 +97,101 @@
             }
         });
 
-        printButton.addEventListener("click", () => {
-            // グラフ印刷処理
-            window.print();
-        });
 
         // グラフ描画関数
         function updateGraph() {
-            const svg = d3.select("#graph-container")
-                .selectAll("*")
-                .remove();
+            // SVG要素の幅と高さを設定
+            const width = window.innerWidth;
+            const height = window.innerHeight;
+            const nodeInfo = document.getElementById("node-info"); // ノード情報を表示するdiv
+            const graphContainer = document.getElementById("graph-container");
 
+            // 以前のSVGを削除
+            graphContainer.innerHTML = "";
             if (graphData) {
-                // グラフの描画ロジック（前回のコードと同様）
-                // グラフ描画
+                // グラフの描画ロジック
                 const svg = d3.select("#graph-container")
-                .append("svg")
-                .attr("width", 800)
-                .attr("height", 600);
+                    .append("svg")
+                    .attr("width", width)
+                    .attr("height", height);
 
-                const simulation = d3.forceSimulation()
-                    .force("link", d3.forceLink().id(d => d.id))
+                // D3.jsの力学的なシミュレーションを作成
+                simulation = d3.forceSimulation()
+                    //.force("link", d3.forceLink().id(d => d.id))
+                    .force("link", d3.forceLink().id(d => d.id).strength(1.5)) // リンクの強度を調整
                     .force("charge", d3.forceManyBody())
                     .force("center", d3.forceCenter(400, 300));
+
+                // ノードとフローをシミュレーションに結びつける
+                simulation.nodes(graphData.nodes)
+                    .on("tick", ticked);
+
+                simulation.force("link")
+                    .links(graphData.edges);
+
+                function ticked() {
+                    link
+                        .attr("x1", d => d.source.x)
+                        .attr("y1", d => d.source.y)
+                        .attr("x2", d => d.target.x)
+                        .attr("y2", d => d.target.y);
+
+                    node
+                        .attr("cx", d => d.x)
+                        .attr("cy", d => d.y);
+
+                    // ラベルもノードに追従
+                    labels
+                        .attr("x", d => d.x)
+                        .attr("y", d => d.y);
+                }
 
                 const link = svg.selectAll(".link")
                     .data(graphData.edges)
                     .enter()
                     .append("line")
-                    .attr("class", "link");
+                    .attr("class", "link")
+                    .style("stroke", "blue"); // エッジの色を設定
 
                 const node = svg.selectAll(".node")
                     .data(graphData.nodes)
                     .enter()
                     .append("circle")
                     .attr("class", "node")
-                    .attr("r", 20)
-                    .style("fill", "red") // ノードの色を赤色に変更
+                    .attr("r", 10)
+                    .style("fill", "red")
                     .call(d3.drag()
-                    .on("start", dragStarted)
-                    .on("drag", dragging)
-                    .on("end", dragEnded));
+                        .on("start", dragStarted)
+                        .on("drag", dragging)
+                        .on("end", dragEnded)
+                    );
 
+                // ノードにラベルを追加
+                const labels = svg.selectAll(".label")
+                    .data(graphData.nodes)
+                    .enter()
+                    .append("text")
+                    .attr("class", "label")
+                    .text(d => d.name)
+                    .attr("x", d => d.x)
+                    .attr("y", d => d.y)
+                    .attr("dy", -10); // ラベルをノードの上に配置
+
+                // グラフ上の任意の場所をクリックしたらノード情報を非表示にする
+                graphContainer.addEventListener("click", function() {
+                    nodeInfo.style.display = "none";
+                });
+                
                 node.on("click", function(d) {
-                    // ノードをクリックしたときの処理（詳細情報表示など）
-                    console.log("ノードID: " + d.id);
-                    console.log("ノード名: " + d.name);
-                    console.log("Setting: ", d.setting);
+                    // ノードをクリックしたときの処理
+                    const nodeInfoContent = `ノードID: ${d.id}<br>ノード名: ${d.name}<br><pre> ${JSON.stringify(d,null,4)}</pre>`;
+                    nodeInfo.innerHTML = nodeInfoContent;
+                    nodeInfo.style.display = "block"; // ノード情報を表示
+                    d3.event.stopPropagation(); // イベント伝播を停止
+                    //alert("ノードID: " + d.id + "\nノード名: " + d.name + "\nSetting: " + JSON.stringify(d.setting));
                 });
 
-                simulation.nodes(graphData.nodes)
-                    .on("tick", () => {
-                        link
-                            .attr("x1", d => d.source.x)
-                            .attr("y1", d => d.source.y)
-                            .attr("x2", d => d.target.x)
-                            .attr("y2", d => d.target.y);
-
-                        node
-                            .attr("cx", d => d.x)
-                            .attr("cy", d => d.y);
-                    });
-
-                simulation.force("link").links(graphData.edges);
-                                // ノード詳細情報の表示（ノードをクリックしたときの処理）
-                                node.on("click", function(d) {
-                                    alert("ノードID: " + d.id + "\nノード名: " + d.name + "\nSetting: " + JSON.stringify(d.setting));
-                                });
-                            }
-                        }
-        // ドラッグ操作のコールバック関数
-        function dragStarted(d) {
-            if (!d3.event.active) simulation.alphaTarget(0.3).restart();
-            d.fx = d.x;
-            d.fy = d.y;
-        }
-
-        function dragging(d) {
-            d.fx = d3.event.x;
-            d.fy = d3.event.y;
-        }
-
-        function dragEnded(d) {
-            if (!d3.event.active) simulation.alphaTarget(0);
-            d.fx = null;
-            d.fy = null;
+            }
         }
 
         // ドラッグ操作のコールバック関数
@@ -192,6 +211,68 @@
             d.fx = null;
             d.fy = null;
         }
+        printButton.addEventListener("click", () => {
+            // グラフ印刷処理
+            window.print();
+        });
+
+        // グラフデータの検証
+        function validateGraph(graphData) {
+            // エッジのソースとターゲットのノードIDを収集
+            const edgeSources = graphData.edges.map(edge => edge.source);
+            const edgeTargets = graphData.edges.map(edge => edge.target);
+
+            // ノードIDのリストを収集
+            const nodeIds = graphData.nodes.map(node => node.id);
+
+            // エッジのソースまたはターゲットがノードIDリストに存在しない場合、エラーメッセージを表示
+            const invalidEdges = graphData.edges.filter(edge => !nodeIds.includes(edge.source) || !nodeIds.includes(edge.target));
+
+            if (invalidEdges.length > 0) {
+                console.error("エラー: 次のエッジに不正なソースまたはターゲットがあります:");
+                invalidEdges.forEach(edge => {
+                    console.error(`エッジ: ${edge.source} → ${edge.target}`);
+                });
+                return false; // 不正がある場合はfalseを返して処理を中止
+            }
+
+            console.log("グラフデータは正常です。");
+            return true; // 問題ない場合はtrueを返す
+        }
+
+        // グラフデータを読み込む処理
+        function loadGraphData(fileContent) {
+            try {
+                const graphData = JSON.parse(fileContent);
+
+                // グラフデータを検証
+                if (validateGraph(graphData)) {
+                    // グラフデータが正常な場合、ここで描画処理を行うなどの操作を続ける
+                    updateGraph(graphData);
+                } else {
+                    // グラフデータに不整合がある場合、エラーメッセージを表示
+                    alert("グラフデータに不整合があります。");
+                }
+            } catch (error) {
+                alert("データの読み込み中にエラーが発生しました。");
+            }
+        }
+
+        // ファイル読み込み処理
+        const fileInput = document.getElementById("file-input");
+        fileInput.addEventListener("change", (event) => {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function (event) {
+                    const fileContent = event.target.result;
+                    loadGraphData(fileContent);
+                };
+                reader.readAsText(file);
+            }
+        });
+
+
 
         // 初回にもグラフを表示
         updateGraph();
