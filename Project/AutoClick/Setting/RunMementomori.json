@@ -7,7 +7,7 @@
 	 		"name" : "PlanStart",
 			"type" : "RunPlanLists",
 			"settings" : {
-				"#step_check_mode" : true,
+				"step_check_mode" : false,
 				"file_path" : "../Setting/RunMementomori.json",
 				"plan_lists" : [
 					"PlanStart"
@@ -42,9 +42,9 @@
             "condition_list" : "",
             "result_name" : "",
             "settings" : {
-				"#step_check_mode" : true,
+				"step_check_mode" : false,
 				"file_path":"../Setting/TemplateRunApply.json",
-                "log_function" : true,"log_print_standard_output" : false,"log_file_path_list" : ["../Log/log_test_all.json","../Log/log_test_0.json"],
+                "log_function" : true,"log_print_standard_output" : true,"log_file_path_list" : ["../Log/log_test_all.json","../Log/log_test_0.json"],
                 "copy_plan_lists" : [
                     {
                         "source_plan_list_name" : "Account00",
@@ -59,7 +59,7 @@
 			"type": "ChangeSettings",
 			"result_name":"",
 			"settings" : {
-				"#step_check_mode" : true,
+				"step_check_mode" : false,
 				"change_settings_by_name" : {
 					"Account00_Z" : {
 						"image_path" : "../Images/mementomori/0000_account/0000/*.png"
@@ -74,7 +74,7 @@
             "result_name" : "",
             "settings" : {
 
-				"#step_check_mode" : true,
+				"step_check_mode" : false,
 				"file_path":"../Setting/TemplateRunApply.json",
 				"copy_plan_lists" : [
 					{
@@ -144,7 +144,7 @@
 						"copy_plan_list_name": "ContentsStartAndExecuteGroup",
 						"change_settings_by_name" : {
 							"ContentsStartAndExecuteGroup" : {
-								"file_path" : "../Setting/RunMementomori.json",	
+								"file_path" : "",	
 								"plan_lists" : [
 									"Start","ContentsPlay"
 								]
@@ -193,8 +193,8 @@
 			"name" : "AccountPlanMain",
 		   	"type" : "RunPlanLists",
 		   	"settings" : {
-			   "#step_check_mode" : true,
-			   "file_path" : "../Setting/RunMementomori.json",
+			   "step_check_mode" : false,
+			   "file_path" : "",
 			   "plan_lists" : [
 				   "MainAccount"
 			   ]
@@ -203,13 +203,15 @@
 	],
 	"MainAccount" : 
 	[
+
 		{
 	 		"name" : "AccountPlanMain",
 			"type" : "RunPlanLists",
 			"condition_list" : "",
 			"settings" : {
-				"log_function" : true,"log_print_standard_output" : true,"log_file_path_list" : ["../Log/log_manage.json","../Log/log_all.json"],
-				"#step_check_mode" : true,
+				"log_function" : true,"log_print_standard_output" : true,
+				"log_file_path_list" : ["../Log/log_manage.json","../Log/log_all.json"],
+				"step_check_mode" : false,
  		 		"plan_lists" : [
 					"CloseWindow","Condition_MainAccount","Account00","Waiting","Server01","ContentsStartAndExecuteGroup"
 				]
@@ -224,7 +226,7 @@
 			"condition_list" : "",
 			"result_name":"",
 			"settings" : {
-				"#step_check_mode" : true,
+				"step_check_mode" : false,
 				"action" : "CLICK",
 				"end_condition" : "OK",
 				"end_action" : "END_CONTINUE",
@@ -249,7 +251,7 @@
 				"loop_limit_count":2,
 				"loop_condition":"Flag_Home.detail = NG",
 				"terminate_condition":"Flag_Home.detail = ALL_OK,Flag_Home.detail = OK",
-				"delete_condition_after_terminate":["Flag_Home"],
+				"terminate_and_delete_condition":["Flag_Home"],
 				"log_file_path_list": "../Log/log_all.json",
 				"log_function":true,"log_print_standard_output": true
 			}
@@ -264,8 +266,8 @@
 			"condition_list" : "Condition_Start = true",
 			"settings" : {
 				"log_function" : true,"log_print_standard_output" : true,"log_file_path_list" : ["../Log/log_manage.json","../Log/log_all.json"],
-				"#step_check_mode" : true,
-				"file_path"  : "../Setting/RunMementomori.json",
+				"step_check_mode" : false,
+				"file_path"  : "",
 				"loop_condition":true,
 				"loop_limit_count":2,
  		 		"plan_lists" : [
@@ -281,7 +283,7 @@
             "condition_list" : "",
             "result_name" : "",
             "settings" : {
-                "log_function" : true,"log_print_standard_output" : false,"log_file_path_list" : ["../Log/log_test_all.log.json","../Log/log_test_0.log.json"],
+                "log_function" : true,"log_print_standard_output" : true,"log_file_path_list" : ["../Log/log_test_all.log.json","../Log/log_test_0.log.json"],
 				"file_path":"../Setting/TemplateRunApply.json",
 				"copy_plan_lists" : [
                     {

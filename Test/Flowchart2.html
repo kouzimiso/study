@@ -2,15 +2,14 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>Graph</title> 
+    <title>Graph</title>
     <script src="https://d3js.org/d3.v5.min.js"></script>
-    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <link rel="stylesheet" href="styles.css">
     <style>
         /* グラフ描画エリアのスタイルを設定 */
         #graph-container {
             width: 800px;
-            height: 100px;
+            height: 10px;
         }
     </style>
 </head>
@@ -18,6 +17,8 @@
     <input type="file" id="file-input" accept=".json" />
     <button id="load-button">Load JSON</button>
     <button id="print-button">Print</button>
+    <button id="zoom-in-button">Zoom In</button>
+    <button id="zoom-out-button">Zoom Out</button>
     <div id="graph-container">
     </div>
     <div id="node-info"></div>
@@ -27,7 +28,7 @@
                 {
                     "id": "A",
                     "name": "ノードA",
-                    "setting": {"x": 1, "y": 2}
+                    "setting": { "x": 1, "y": 2 }
                 },
                 {
                     "id": "B",
@@ -63,7 +64,7 @@
                 {
                     "source": "A",
                     "target": "B"
-                },{
+                }, {
                     "source": "B",
                     "target": "C",
                     "condition": "condition2"
@@ -76,15 +77,20 @@
         const printButton = document.getElementById("print-button");
         const graphContainer = document.getElementById("graph-container");
         let simulation; // simulationをグローバル変数として定義
-
+        let zoomScale = 1; // ズーム倍率を設定
+        const xMin = 0;
+        const xMax = 800;
+        const yMin = 0;
+        const yMax = 600;
         loadButton.addEventListener("click", () => {
             // ファイル読み込み処理
             const fileInput = document.getElementById("file-input");
+            zoomScale = 1; // ズーム倍率を設定
             const file = fileInput.files[0];
 
             if (file) {
                 const reader = new FileReader();
-                reader.onload = function(event) {
+                reader.onload = function (event) {
                     const fileContent = event.target.result;
                     try {
                         graphData = JSON.parse(fileContent);
@@ -96,7 +102,6 @@
                 reader.readAsText(file);
             }
         });
-
 
         // グラフ描画関数
         function updateGraph() {
@@ -117,7 +122,6 @@
 
                 // D3.jsの力学的なシミュレーションを作成
                 simulation = d3.forceSimulation()
-                    //.force("link", d3.forceLink().id(d => d.id))
                     .force("link", d3.forceLink().id(d => d.id).strength(1.5)) // リンクの強度を調整
                     .force("charge", d3.forceManyBody())
                     .force("center", d3.forceCenter(400, 300));
@@ -131,19 +135,19 @@
 
                 function ticked() {
                     link
-                        .attr("x1", d => d.source.x)
-                        .attr("y1", d => d.source.y)
-                        .attr("x2", d => d.target.x)
-                        .attr("y2", d => d.target.y);
+                        .attr("x1", d => d.source.x * zoomScale)
+                        .attr("y1", d => d.source.y * zoomScale)
+                        .attr("x2", d => d.target.x * zoomScale)
+                        .attr("y2", d => d.target.y * zoomScale);
 
                     node
-                        .attr("cx", d => d.x)
-                        .attr("cy", d => d.y);
+                        .attr("cx", d => Math.max(xMin,Math.min(xMax,d.x * zoomScale)))
+                        .attr("cy", d => Math.max(yMin,Math.min(yMax,d.y * zoomScale)));
 
                     // ラベルもノードに追従
                     labels
-                        .attr("x", d => d.x)
-                        .attr("y", d => d.y);
+                        .attr("x", d => Math.max(xMin,Math.min(xMax,d.x * zoomScale)))
+                        .attr("y", d => Math.max(yMin,Math.min(yMax,d.y * zoomScale)));
                 }
 
                 const link = svg.selectAll(".link")
@@ -173,106 +177,118 @@
                     .append("text")
                     .attr("class", "label")
                     .text(d => d.name)
-                    .attr("x", d => d.x)
-                    .attr("y", d => d.y)
+                    .attr("x", d => d.x * zoomScale)
+                    .attr("y", d => d.y * zoomScale)
+                    .style("font-size", "6px") // フォントサイズを設定
                     .attr("dy", -10); // ラベルをノードの上に配置
 
                 // グラフ上の任意の場所をクリックしたらノード情報を非表示にする
-                graphContainer.addEventListener("click", function() {
+                graphContainer.addEventListener("click", function () {
                     nodeInfo.style.display = "none";
                 });
-                
-                node.on("click", function(d) {
+
+                node.on("click", function (d) {
                     // ノードをクリックしたときの処理
-                    const nodeInfoContent = `ノードID: ${d.id}<br>ノード名: ${d.name}<br><pre> ${JSON.stringify(d,null,4)}</pre>`;
+                    const nodeInfoContent = `ノードID: ${d.id}<br>ノード名: ${d.name}<br><pre> ${JSON.stringify(d, null, 4)}</pre>`;
                     nodeInfo.innerHTML = nodeInfoContent;
                     nodeInfo.style.display = "block"; // ノード情報を表示
                     d3.event.stopPropagation(); // イベント伝播を停止
-                    //alert("ノードID: " + d.id + "\nノード名: " + d.name + "\nSetting: " + JSON.stringify(d.setting));
                 });
 
-            }
-        }
-
-        // ドラッグ操作のコールバック関数
-        function dragStarted(d) {
-            if (!d3.event.active) simulation.alphaTarget(0.3).restart();
-            d.fx = d.x;
-            d.fy = d.y;
-        }
-
-        function dragging(d) {
-            d.fx = d3.event.x;
-            d.fy = d3.event.y;
-        }
-
-        function dragEnded(d) {
-            if (!d3.event.active) simulation.alphaTarget(0);
-            d.fx = null;
-            d.fy = null;
-        }
-        printButton.addEventListener("click", () => {
-            // グラフ印刷処理
-            window.print();
-        });
-
-        // グラフデータの検証
-        function validateGraph(graphData) {
-            // エッジのソースとターゲットのノードIDを収集
-            const edgeSources = graphData.edges.map(edge => edge.source);
-            const edgeTargets = graphData.edges.map(edge => edge.target);
-
-            // ノードIDのリストを収集
-            const nodeIds = graphData.nodes.map(node => node.id);
-
-            // エッジのソースまたはターゲットがノードIDリストに存在しない場合、エラーメッセージを表示
-            const invalidEdges = graphData.edges.filter(edge => !nodeIds.includes(edge.source) || !nodeIds.includes(edge.target));
-
-            if (invalidEdges.length > 0) {
-                console.error("エラー: 次のエッジに不正なソースまたはターゲットがあります:");
-                invalidEdges.forEach(edge => {
-                    console.error(`エッジ: ${edge.source} → ${edge.target}`);
-                });
-                return false; // 不正がある場合はfalseを返して処理を中止
-            }
-
-            console.log("グラフデータは正常です。");
-            return true; // 問題ない場合はtrueを返す
-        }
-
-        // グラフデータを読み込む処理
-        function loadGraphData(fileContent) {
-            try {
-                const graphData = JSON.parse(fileContent);
-
-                // グラフデータを検証
-                if (validateGraph(graphData)) {
-                    // グラフデータが正常な場合、ここで描画処理を行うなどの操作を続ける
-                    updateGraph(graphData);
-                } else {
-                    // グラフデータに不整合がある場合、エラーメッセージを表示
-                    alert("グラフデータに不整合があります。");
+                // ドラッグ操作のコールバック関数
+                function dragStarted(d) {
+                    if (!d3.event.active) simulation.alphaTarget(0.3).restart();
+                    d.fx = d.x;
+                    d.fy = d.y;
                 }
-            } catch (error) {
-                alert("データの読み込み中にエラーが発生しました。");
+
+                function dragging(d) {
+                    d.fx = d3.event.x;
+                    d.fy = d3.event.y;
+                }
+
+                function dragEnded(d) {
+                    if (!d3.event.active) simulation.alphaTarget(0);
+                    d.fx = null;
+                    d.fy = null;
+                }
+
+                // ズームイン
+                const zoomInButton = document.getElementById("zoom-in-button");
+                zoomInButton.addEventListener("click", () => {
+                    zoomScale += 0.1;
+                    updateGraph();
+                });
+
+                // ズームアウト
+                const zoomOutButton = document.getElementById("zoom-out-button");
+                zoomOutButton.addEventListener("click", () => {
+                    zoomScale = Math.max(0.5 ,zoomScale - 0.1);
+                    updateGraph();
+                
+                });
+                printButton.addEventListener("click", () => {
+                    // グラフ印刷処理
+                    window.print();
+                });
+
+                // グラフデータの検証
+                function validateGraph(graphData) {
+                // エッジのソースとターゲットのノードIDを収集
+                const edgeSources = graphData.edges.map(edge => edge.source);
+                const edgeTargets = graphData.edges.map(edge => edge.target);
+
+                // ノードIDのリストを収集
+                const nodeIds = graphData.nodes.map(node => node.id);
+
+                // エッジのソースまたはターゲットがノードIDリストに存在しない場合、エラーメッセージを表示
+                const invalidEdges = graphData.edges.filter(edge => !nodeIds.includes(edge.source) || !nodeIds.includes(edge.target));
+
+                if (invalidEdges.length > 0) {
+                    console.error("エラー: 次のエッジに不正なソースまたはターゲットがあります:");
+                    invalidEdges.forEach(edge => {
+                        console.error(`エッジ: ${edge.source} → ${edge.target}`);
+                    });
+                    return false; // 不正がある場合はfalseを返して処理を中止
+                }
+                zoomScale = 1;
+                console.log("グラフデータは正常です。");
+                return true; // 問題ない場合はtrueを返す
             }
+
+            // グラフデータを読み込む処理
+            function loadGraphData(fileContent) {
+                try {
+                    const graphData = JSON.parse(fileContent);
+
+                    // グラフデータを検証
+                    if (validateGraph(graphData)) {
+                        // グラフデータが正常な場合、ここで描画処理を行うなどの操作を続ける
+                        updateGraph(graphData);
+                    } else {
+                        // グラフデータに不整合がある場合、エラーメッセージを表示
+                        alert("グラフデータに不整合があります。");
+                    }
+                } catch (error) {
+                    alert("データの読み込み中にエラーが発生しました。");
+                }
+            }
+
+            // ファイル読み込み処理
+            const fileInput = document.getElementById("file-input");
+            fileInput.addEventListener("change", (event) => {
+                const file = event.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function (event) {
+                        const fileContent = event.target.result;
+                        loadGraphData(fileContent);
+                    };
+                    reader.readAsText(file);
+                }
+            });
         }
-
-        // ファイル読み込み処理
-        const fileInput = document.getElementById("file-input");
-        fileInput.addEventListener("change", (event) => {
-            const file = event.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function (event) {
-                    const fileContent = event.target.result;
-                    loadGraphData(fileContent);
-                };
-                reader.readAsText(file);
-            }
-        });
-
-
+    }
 
         // 初回にもグラフを表示
         updateGraph();

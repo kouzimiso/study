@@ -2,17 +2,216 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>Flowchart</title>
+    <title>Graph</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <svg id="flowchart"></svg>
-    <input type="file" id="fileInput" accept=".json">
-    <button id="loadButton">Load JSON</button>
-    <button id="printButton">Print</button>
+    <input type="file" id="file-input" accept=".json">
+    <button id="load-button">Load JSON</button>
+    <button id="print-button">Print</button>
     <div id="chart"></div>
+    <svg id="Graph"></svg>
     <script src="https://d3js.org/d3.v5.min.js"></script>
-    <script src="flowchart.js"></script>
+    <script>
+        // フローチャートのデータ
+        const graphData = {
+            "nodes": [
+                {"id": "A", "label": "Node A", "noRepel": false},
+                {"id": "B", "label": "Node B", "noRepel": false},
+                {"id": "C", "label": "Node C", "noRepel": false},
+                {"id": "D", "label": "Node D", "noRepel": false},
+                {"id": "E", "label": "Node E", "noRepel": false},
+                {"id": "F", "label": "Node F", "noRepel": false}
+            ],
+            "edges": [
+                {"source": "A", "target": "B"},
+                {"source": "A", "target": "C"},
+            ]
+        };
+        const loadButton = document.getElementById("load-button");
+        const printButton = document.getElementById("print-button");
+        const graphContainer = document.getElementById("graph-container");
+        // JSONファイル読み込み処理
+        const fileInput = document.getElementById("file-input");
+        fileInput.addEventListener("change", function (e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function (event) {
+                    try {
+                        graphData = JSON.parse(event.target.result);
+                        updateGraph(graphData);
+                    } catch (error) {
+                        alert("Invalid JSON format: " + error);
+                    }
+                };
+                reader.readAsText(file);
+            }
+        });
+
+        // チャートの表示処理
+        function updateGraph() {
+            // SVG要素の幅と高さを設定
+            const width = window.innerWidth;
+            const height = window.innerHeight;
+
+            // D3.jsの力学的なシミュレーションを作成
+            const simulation = d3.forceSimulation()
+                .force("link", d3.forceLink().id(d => d.id).strength(0.1)) // リンクの強度を調整
+                .force("charge", d3.forceManyBody().strength(d => d.noRepel ? 0:-100))
+                .force("center", d3.forceCenter(width / 2, height / 2));
+
+            // ノードとフローをシミュレーションに結びつける
+            simulation.nodes(graphData.nodes)
+                .on("tick", ticked);
+
+            simulation.force("link")
+                .links(graphData.edges);
+
+            // SVG要素を選択
+            const svg = d3.select("#Graph")
+                .attr("width", width)
+                .attr("height", height);
+
+            // ノードとフローの描画
+            const link = svg.append("g")
+                .selectAll("line")
+                .data(graphData.edges)
+                .enter()
+                .append("line")
+                .style("stroke", "gray");
+
+            const node = svg.append("g")
+                .selectAll("circle")
+                .data(Object.values(graphData.nodes))
+                .enter()
+                .append("circle")
+                .attr("r", 40)
+                .style("fill", "red") // ノードの色を赤色に変更
+                .call(d3.drag()
+                    .on("start", dragStarted)
+                    .on("drag", dragging)
+                    .on("end", dragEnded));
+
+            const text = svg.append("g")
+                .selectAll("text")
+                .data(Object.values(graphData.nodes))
+                .enter()
+                .append("text")
+                .text(d => d.label)
+                .style("text-anchor", "middle")
+                .style("dominant-baseline", "middle")
+                .style("fill", "black");
+
+            // ノードとフローをシミュレーションに結びつける
+            simulation.nodes(Object.values(graphData.nodes))
+                .on("tick", ticked);
+
+            simulation.force("link")
+                .links(graphData.edges);
+
+            // シミュレーションが進行するたびに呼ばれる関数
+            function ticked() {
+                link
+                    .attr("x1", d => d.source.x)
+                    .attr("y1", d => d.source.y)
+                    .attr("x2", d => d.target.x)
+                    .attr("y2", d => d.target.y);
+
+                node
+                    .attr("cx", d => d.x)
+                    .attr("cy", d => d.y);
+
+                text
+                    .attr("x", d => d.x)
+                    .attr("y", d => d.y);
+            }
+
+            // ドラッグ操作のコールバック関数
+            function dragStarted(d) {
+                if (!d3.event.active) simulation.alphaTarget(0.3).restart();
+                d.fx = d.x;
+                d.fy = d.y;
+            }
+
+            function dragging(d) {
+                d.fx = d3.event.x;
+                d.fy = d3.event.y;
+            }
+
+            function dragEnded(d) {
+                if (!d3.event.active) simulation.alphaTarget(0);
+                d.fx = null;
+                d.fy = null;
+            }
+
+
+
+
+            // チャート表示のロジックをここに追加
+            // data変数を使用してデータを図示
+        }
+
+        // "Load JSON"ボタンのクリックイベント
+        loadButton.addEventListener("click", function () {
+            if (graphData) {
+                updateGraph(graphData);
+            } else {
+                alert("No JSON data loaded.");
+            }
+        });
+
+        // Printボタンのクリックイベント
+        printButton.addEventListener("click", function () {
+            if (graphData) {
+                // チャートコンテナを一時的に非表示にし、HTML2Canvasを使用して画像に変換
+                const chartContainer = document.getElementById("chart");
+                chartContainer.style.display = "none";
+
+                html2canvas(chartContainer, { scale: 2 }).then(canvas => {
+                    const image = canvas.toDataURL("image/png");
+
+                    // 画像を新しいウィンドウで開いて印刷
+                    const printWindow = window.open("", "", "width=800,height=600");
+                    printWindow.document.open();
+                    printWindow.document.write("<img src='" + image + "'>");
+                    printWindow.document.close();
+                    printWindow.print();
+                    printWindow.close();
+
+                    // チャートコンテナを再表示
+                    chartContainer.style.display = "block";
+                });
+            } else {
+                alert("No chart data available for printing.");
+            }
+        });
+
+        // JSONファイル読み込み処理
+        document.getElementById("file-input").addEventListener("change", function (e) {
+            // 以前のデータをクリア
+            d3.select("#chart").selectAll("*").remove();
+            
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function (event) {
+                    try {
+                        graphData = JSON.parse(event.target.result);
+                        updateGraph(graphData);
+                    } catch (error) {
+                        alert("Invalid JSON format: " + error);
+                    }
+                };
+                reader.readAsText(file);
+            }
+        });
+
+        // 初回表示時の処理
+        updateGraph(graphData);
+
+
+    </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.3.2/html2canvas.min.js"></script>
 </body>
 </html>

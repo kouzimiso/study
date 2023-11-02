@@ -1,13 +1,13 @@
-def generate_html(flowchart_data, output_file):
+def generate_html(Graph_data, output_file):
     # ノードの位置を自動的に設定
-    node_positions = auto_layout(flowchart_data["flows"])
+    node_positions = auto_layout(Graph_data["edges"])
 
     # HTMLのヘッダー
     html_content = """
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Flowchart</title>
+    <title>Graph</title>
     <style>
         /* スタイルを追加することができます */
     </style>
@@ -17,16 +17,16 @@ def generate_html(flowchart_data, output_file):
 """
 
     # ノードを生成
-    for node_id, node in flowchart_data["nodes"].items():
+    for node_id, node in Graph_data["nodes"].items():
         x, y = node_positions[node_id]
         label = node["label"]
         html_content += f'        <rect x="{x}" y="{y}" width="100" height="50" fill="lightblue" />\n'
         html_content += f'        <text x="{x + 10}" y="{y + 30}">{label}</text>\n'
 
     # フローを生成
-    for flow in flowchart_data["flows"]:
-        start_node = flow["start"]
-        end_node = flow["end"]
+    for edge in Graph_data["edges"]:
+        start_node = edge["start"]
+        end_node = edge["end"]
         # フローの開始ノードと終了ノードの座標を取得し、線を描画
         x1 = node_positions[start_node][0] + 100
         y1 = node_positions[start_node][1] + 25
@@ -45,14 +45,14 @@ def generate_html(flowchart_data, output_file):
     with open(output_file, "w") as file:
         file.write(html_content)
 
-def auto_layout(flows):
+def auto_layout(edges):
     node_positions = {}
     position_x = 1
     position_y = 1
 
-    for flow in flows:
-        start_node = flow["start"]
-        end_node = flow["end"]
+    for edge in edges:
+        start_node = edge["start"]
+        end_node = edge["end"]
         
         if start_node not in node_positions:
             node_positions[start_node] = (position_x, position_y)
@@ -64,16 +64,16 @@ def auto_layout(flows):
     return node_positions
 
 if __name__ == "__main__":
-    flowchart_data = {
+    Graph_data = {
         "nodes": {
             "A": {"label": "Node A"},
             "B": {"label": "Node B"},
             "C": {"label": "Node C"},
         },
-        "flows": [
+        "edges": [
             {"start": "A", "end": "B"},
             {"start": "A", "end": "C"},
         ]
     }
 
-    generate_html(flowchart_data, "flowchart.html")
+    generate_html(Graph_data, "Graph.html")

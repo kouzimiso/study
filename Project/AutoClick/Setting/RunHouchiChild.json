@@ -132,7 +132,7 @@
 		}
 	}
 	],
-	"TimeCheck_TimeEvent":[
+	"TimeCheck_TimeEvent01":[
 		{
 			"name": "TimeCheck_TimeEvent01_01",
 			"type": "CheckDay",
@@ -170,1371 +170,1452 @@
 			}
 		}
 	],
-"TimeCheck_TimeEvent02":[
-	{
-				"comment": "",
-		"name": "TimeCheck_Play1",
-		"type": "CheckDay",
-		"result_name":"TimeCheck_TimeEvent02",
-		"settings": {
-			"day1": "12:30",
-			"day2": "Now",
-			"day3": "12:40",
-			"log_file_path_list": "../Log/log_all.json",
-			"log_function":true,"log_print_standard_output": true
-		}
-	}
-],
-
-"ContentsPlay" : 
-[
-	{
-		"name" : "ContentsPlay",
-		"type" : "RunPlanLists",
-		"condition_list" : "Condition_Start = true",
-		"result_name":"",
-		"settings" : {
-			"file_path"  : "../Setting/RunHouchiChild.json",
-			"#step_check_mode" : true,
-			"loop_condition":true,
-			"loop_limit_count":1,
-			"terminate_condition":["Flag_Terminate.detail = OK,Flag_Terminate.detail = ALL_OK"],
-			"delete_condition_after_terminate":["Flag_Terminate"],
-			  "plan_lists" : [
-				"ReturnClick",
-				"ReturnHome","SimpleContents",
-				"ReturnHomeIfContentsStart","InformationClick",
-				"ReturnHome","SimpleContents",
-				"ReturnHome","EventPlay02",
-				"ReturnHome","SimpleContents",
-				"ReturnHome","Growth",
-				"ReturnHomeIfContentsStart","Etc",
-				"ReturnHomeIfContentsStart",
-				"TimeEvent01Play","TimeEvent02Play"
-			]
-		}
-	}
-],
-"SimpleContents":[
-	{
-		"name": "ChangeSettings",
-		"type" : "ChangeSettings",
-		"condition_list" : "",
-		"result_name" : "",
-		"settings" : {
-			"change_settings":{
+	"TimeCheck_TimeEvent02":[
+		{
+					"comment": "",
+			"name": "TimeCheck_Play1",
+			"type": "CheckDay",
+			"result_name":"TimeCheck_TimeEvent02",
+			"settings": {
+				"day1": "12:30",
+				"day2": "Now",
+				"day3": "12:40",
+				"log_file_path_list": "../Log/log_all.json",
 				"log_function":true,"log_print_standard_output": true
 			}
 		}
-	},
+	],
 
-	{
-		"name": "SimpleContents",
-		"type" : "CopyPlanLists",
-		"condition_list" : "",
-		"result_name" : "",
-		"settings" : {
-			"log_function" : true,"log_print_standard_output" : false,"log_file_path_list" : ["../Log/log_test_all.log.json","../Log/log_test_0.log.json"],
-			"file_path":"../Setting/TemplateRunApply.json",
-			"copy_plan_lists" : [
-				{
-					"source_plan_list_name" : "StartExecuteContents",
-					"copy_plan_list_name": "Contents_Cast",
-					"change_settings_by_name" : {
-						"StartContentsClick" : {
-							"image_path" : "../Images/houchi/2000_item/0000_start/*.png"
-						},
-						"ExecuteContentsClick" : {
-							"image_path" : "../Images/houchi/2000_item/0005_execute/*.png"
-						}
-					}
-				},
-				{
-					"source_plan_list_name" : "StartExecuteContents",
-					"copy_plan_list_name": "Contents_Free01",
-					"change_settings_by_name" : {
-						"StartContentsClick" : {
-							"image_path" :  "../Images/houchi/1020_FreeClick/0000_start/*.png"
-						},
-						"ExecuteContentsClick" : {
-							"image_path" : "../Images/houchi/1020_FreeClick/0005_execute/0001_Click*.png"
-						}
-					}
-				},
-				{
-					"source_plan_list_name" : "AddStartExecuteContents",
-					"copy_plan_list_name": "Contents_Free02",
-					"change_settings_by_name" : {
-						"StartContentsClick" : {
-							"image_path" : "../Images/houchi/1020_FreeClick/0005_execute/0002_Search*.png"
-						},
-						"ExecuteContentsClick" : {
-							"image_path" : "../Images/houchi/1020_FreeClick/0005_execute/0005_Click*.png"
-						}
-					}
-				},
-				{
-					"source_plan_list_name" : "StartExecuteContents",
-					"copy_plan_list_name": "Contents_Mail",
-					"change_settings_by_name" : {
-						"StartContentsClick" : {
-							"image_path" : "../Images/houchi/1100_mail/0000_start/*.png"
-						},
-						"ExecuteContentsClick" : {
-							"image_path" : "../Images/houchi/1100_mail/0005_execute/*.png"
-						}
-					}
-				},
-				{
-					"source_plan_list_name" : "StartExecuteContents",
-					"copy_plan_list_name": "Contents_Event00",
-					"change_settings_by_name" : {
-						"StartContentsClick" : {
-							"image_path" : "../Images/houchi/1400_event/0000_start/*.png"
-						},
-						"ExecuteContentsClick" : {
-							"image_path" : "../Images/houchi/1400_event/0005_execute/*.png"
-						}
-					}
-				},
-				{
-					"source_plan_list_name" : "StartExecuteContents",
-					"copy_plan_list_name": "Contents_Event01",
-					"change_settings_by_name" : {
-						"StartContentsClick" : {
-							"image_path" : "../Images/houchi/1400_event/0010_start/*.png"
-						},
-						"ExecuteContentsClick" : {
-							"image_path" : "../Images/houchi/1400_event/0015_execute/*.png"
-						}
-					}
-				},
-				{
-					"source_plan_list_name" : "StartExecuteContents",
-					"copy_plan_list_name": "Contents_Event02",
-					"change_settings_by_name" : {
-						"StartContentsClick" : {
-							"image_path" : "../Images/houchi/1400_event/0020_start/*.png"
-						},
-						"ExecuteContentsClick" : {
-							"image_path" : "../Images/houchi/1400_event/0025_execute/*.png"
-						}
-					}
-				},
-				{
-					"source_plan_list_name" : "StartExecuteContents",
-					"copy_plan_list_name": "Contents_Event03",
-					"change_settings_by_name" : {
-						"StartContentsClick" : {
-							"image_path" : "../Images/houchi/1400_event/0030_start/*.png"
-						},
-						"ExecuteContentsClick" : {
-							"image_path" : "../Images/houchi/1400_event/0035_execute/*.png"
-						}
-					}
-				},
-				{
-					"source_plan_list_name" : "StartExecuteContents",
-					"copy_plan_list_name": "Contents_Event04",
-					"change_settings_by_name" : {
-						"StartContentsClick" : {
-							"image_path" : "../Images/houchi/1400_event/0040_start/*.png"
-						},
-						"ExecuteContentsClick" : {
-							"image_path" : "../Images/houchi/1400_event/0045_execute/*.png"
-						}
-					}
-				},
-				{
-					"source_plan_list_name" : "StartExecuteContents",
-					"copy_plan_list_name": "Contents_Event05",
-					"change_settings_by_name" : {
-						"StartContentsClick" : {
-							"image_path" : "../Images/houchi/1400_event/0050_start/*.png"
-						},
-						"ExecuteContentsClick" : {
-							"image_path" : "../Images/houchi/1400_event/0055_execute/*.png"
-						}
-					}
-				},
-				{
-					"source_plan_list_name" : "ReturnClick",
-					"copy_plan_list_name": "ReturnClick",
-					"change_settings_by_name" : {
-						"ReturnClick" : {
-							"image_path" : "../Images/mementomori/1010_return/*.png"
-						}
-					}
-				},
-				{
-					"source_plan_list_name" : "ReturnHomeIfContentsStart",
-					"copy_plan_list_name": "ReturnHomeIfContentsStart"
-				},
-				{
-					"source_plan_list_name" : "ReturnHome",
-					"copy_plan_list_name": "ReturnHome"
-				},
-				{
-					"source_plan_list_name" : "HomeClickSequence",
-					"copy_plan_list_name": "HomeClickSequence",
-					"change_settings_by_name" : {
-						"HomeClick" : {
-							"image_path" : "../Images/houchi/1011_home/*.png"
-						},
-						"ReturnClick" : {
-							"image_path" : "../Images/houchi/1010_return/*.png"
-						}
-	
-					}
-				}
-			]
-		}
-	},
-	"Contents_Cast","ReturnHomeIfContentsStart",
-	"Contents_Free01","Contents_Free02","ReturnHomeIfContentsStart",
-	"Contents_Event00","ReturnHomeIfContentsStart",
-	"Contents_Free01","Contents_Free02","ReturnHomeIfContentsStart",
-	"Contents_Event01","ReturnHomeIfContentsStart",
-	"Contents_Free01","Contents_Free02","ReturnHomeIfContentsStart",
-	"Contents_Event02","ReturnHomeIfContentsStart",
-	"Contents_Free01","Contents_Free02","ReturnHomeIfContentsStart",
-	"Contents_Event03","ReturnHomeIfContentsStart",
-	"Contents_Free01","Contents_Free02","ReturnHomeIfContentsStart",
-	"Contents_Event04","ReturnHomeIfContentsStart",
-	"Contents_Mail","ReturnHomeIfContentsStart",
-	"Contents_Event05","ReturnHomeIfContentsStart",
-	"Contents_Mail","ReturnHomeIfContentsStart"
-],
-"FreeContinue": 
-[
-	{
-		 "name" : "FreeClick",
-		"type" : "RunPlanLists",
-		"condition_list" : "FreeStart.detail = OK,FreeStart.detail = ALL_OK",
-		"result_name":"",
-		"settings" : {
-			"file_path"  : "../Setting/RunHouchiChild.json",
-			  "plan_lists" : [
-				"FreeClick"
-			]
-		}
-	}
-],
-"EventPlay02": 
-[
-	{
-		 "name" : "EventPlay02",
-		"type" : "RunPlanLists",
-		"condition_list" : "",
-		"result_name":"",
-		"settings" : {
-			"file_path"  : "../Setting/RunHouchiChild.json",
-			  "plan_lists" : [
-				"ReturnHome","EventPlay09",
-				"ReturnHome","EventPlay09"
-			]
-		}
-	}
-],
-"Growth": 
-[
-	{
-		 "name" : "Growth",
-		"type" : "RunPlanLists",
-		"condition_list" : "",
-		"result_name":"",
-		"settings" : {
-			"file_path"  : "../Setting/RunHouchiChild.json",
-			  "plan_lists" : [
-				"ReturnHome","DairyClick","GrowthClick","BattleClick",
-				"ReturnHome","DairyClick","GrowthClick","BattleClick",
-				"ReturnHome","DairyClick","GrowthClick","BattleClick"
-			]
-		}
-	}
-],
-"Etc" : 
-[
-	{
-		 "name" : "Etc",
-		"type" : "RunPlanLists",
-		"condition_list" : "",
-		"result_name":"",
-		"settings" : {
-			"file_path"  : "../Setting/RunHouchiChild.json",
-			"#step_check_mode" : true,
-			  "plan_lists" : [
-				"EventPlay08",
-				"ReturnHome","Item",
-				"ReturnHome","HouchiUnderWareClick",
-				"ReturnHome","HouchiHighSpeedClick"
-			]
-		}
-	}
-],
-"EventPlay08":
-[
-	{
-		 "name" : "EventPlay08Works_Loop",
-		"type" : "RunPlanLists",
-		"condition_list" : "",
-		"result_name" : "",
-		"settings" : {
-			"file_path" : "../Setting/RunHouchiChild.json",
-			"loop_condition":true,
-			"loop_limit_count":3,
-			"terminate_condition":["Flag_Terminate.detail = OK,Flag_Terminate.detail = ALL_OK"],
-			"delete_condition_after_terminate":["Flag_Terminate"],
-			"log_function" : true,"log_print_standard_output" : true,"log_file_path_list" : "../Log/log_all.json",
-			"#step_check_mode" : true,
-			  "plan_lists" : [
-				"EventPlay08Works","ReturnHomeIfContentsStart"
-			]
-		}
-	}
-],
-
-"Item" : 
-[
-	{
-		"name" : "ItemClick01",
-		"type" : "Recognition",
-		"condition_list" : "",
-		"result_name":"ItemMax",
-		"settings" : {
-			"#step_check_mode" : true,
-			"action" : "CLICK",
-			"end_condition" : "OK",
-			"end_action" : "END_FOLDER_END_BREAK",
-			"execute_number" : 2,
-			"retry_number" : 2,
-			"image_path" : "../Images/houchi/2000_item/0000_start/*.png",
-			"interval_time" : 1,
-			"recognition_confidence" : 0.93,
-			"recognition_gray_scale" : true,
-			"log_file_path_list": "../Log/log_recognition.json",
-			"log_function":true,"log_print_standard_output": true
-		}
-	},
-	{
-		"name": "TimeCheck_ItemMaintenance1",
-		"type": "CheckDay",
-		"result_name":"Time_Check_ItemMaintenance1",
-		"settings": {
-			"day1": "日曜日0:00",
-			"day2": "Now",
-			"day3": "月曜日24:00",
-			"log_file_path_list": "../Log/log_all.json",
-			"log_function":true,"log_print_standard_output": true
-		}
-	},
-	{
-		"name": "TimeCheck_ItemMaintenance2",
-		"type": "CheckDay",
-		"result_name":"Time_Check_ItemMaintenance2",
-		"settings": {
-			"day1": "木曜日0:00",
-			"day2": "Now",
-			"day3": "木曜日24:00",
-			"log_file_path_list": "../Log/log_all.json",
-			"log_function":true,"log_print_standard_output": true
-		}
-	},
-	{
-		"name": "Check_Condition_ItemMaintenance",
-		"result_name": "Condition_ItemMaintenance",
-		"type": "Judge",
-		"settings": {
-			"condition_list": [
-				"Time_Check_ItemMaintenance1=True,Time_Check_ItemMaintenance2=True,ItemMax.detail = OK,ItemMax.detail = ALL_OK"
-			],
-			"log_file_path_list": "../Log/log_all.json",
-			"#step_check_mode" : true,"log_function":true,"log_print_standard_output": true
-
-		}
-	},
-	{
-		"name" : "ItemClick01",
-		"type" : "Recognition",
-		"condition_list" : "",
-		"result_name":"ItemMax",
-		"settings" : {
-			"#step_check_mode" : true,
-			"action" : "CLICK",
-			"end_condition" : "OK",
-			"end_action" : "END_FOLDER_END_BREAK",
-			"execute_number" : 2,
-			"retry_number" : 2,
-			"image_path" : "../Images/houchi/2000_item/0000_start/*.png",
-			"interval_time" : 1,
-			"recognition_confidence" : 0.93,
-			"recognition_gray_scale" : true,
-			"log_file_path_list": "../Log/log_recognition.json",
-			"log_function":true,"log_print_standard_output": true
-		}
-	},
-   {
-	"name" : "RunPlayList_Item",
-   "type" : "RunPlanLists",
-   "condition_list" : "Condition_ItemMaintenance = true",
-   "result_name":"",
-   "settings" : {
-		   "file_path"  : "../Setting/RunHouchiChild.json",
-		   "#step_check_mode" : true,
-		"plan_lists" : [
-		   "ItemMaintenance"
-	   ]
-   }
-}
-
-
-],
-"TimeEventPlay": 
-[
-	{
-		 "name" : "TimeEventPlay",
-		"type" : "RunPlanLists",
-		"condition_list" : "",
-		"result_name":"",
-		"settings" : {
-			"file_path"  : "../Setting/RunHouchiChild.json",
-			  "plan_lists" : [
-				"TimeCheck_TimeEvent","TimeEventPlay2"
-			]
-		}
-	}
-],
-"TimeEventPlay2": 
-[
-	{
-		 "name" : "TimeEventPlay2",
-		"type" : "RunPlanLists",
-		"condition_list" : "Condition_Execute = True",
-		"result_name":"",
-		"settings" : {
-			"file_path"  : "../Setting/RunHouchiChild.json",
-			  "plan_lists" : [
-				"ReturnClick","ReturnHome","TimeEventClick",
-				"ReturnHome","TimeEventClick",
-				"ReturnHome","TimeEventClick"
-			]
-		}
-	}
-],
-"Start":
-[
-	{
-		"name" : "StartClick01",
-		"type" : "Recognition",
-		"condition_list" : "",
-		"result_name":"Result_StartClicked",
-		"settings" : {
-			"#step_check_mode" : true,
-			"action" : "CLICK",
-			"end_condition" : "OK",
-			"end_action" : "END_FOLDER_END_BREAK",
-			"execute_number" : 2,
-			"retry_number" : 2,
-			"image_path" : "../Images/houchi/1000_start/Click0*.png",
-			"interval_time" : 2,
-			"recognition_confidence" : 0.93,
-			"recognition_gray_scale" : true,
-			"log_file_path_list": "../Log/log_recognition.json",
-			"log_function":true,"log_print_standard_output": true
-		}
-	}		
-	,"ReturnClick",
-	{
-		"name": "Check_Judge",
-		"result_name": "Condition_Start",
-		"type": "Judge",
-		"settings": {
-			"condition_list": true,
-			"loop_limit_count":2,
-			"loop_condition":"Result_ReturnClick.detail = NG",
-			"terminate_condition":"Result_ReturnClick.detail = ALL_OK,Result_ReturnClick.detail = OK",
-			"delete_condition_after_terminate":["Result_ReturnClick"],
-			"log_file_path_list": "../Log/log_all.json",
-			"log_function":true,"log_print_standard_output": true
-		}
-	}
-],
-
-"HouchiMainte":
-[
-	{
-		"name" : "HouchiMainteClick01",
-		"type" : "Recognition",
-		"condition_list" : "",
-		"result_name":"Result_MaintClicked",
-		"settings" : {
-			"#step_check_mode" : true,
-			"action" : "CLICK",
-			"end_condition" : "NG",
-			"end_action" : "END_FOLDER_END_BREAK",
-			"execute_number" : 2,
-			"retry_number" : 2,
-			"image_path" : "../Images/houchi/9999_mainte/*.png",
-			"interval_time" : 0.1,
-			"recognition_confidence" : 0.93,
-			"recognition_gray_scale" : true,
-			"log_file_path_list": "../Log/log_recognition.json",
-			"log_function":true,"log_print_standard_output": true
-		}
-	}
-],
-
-"EventPlay08Works":
-[
-	{
-		"name" : "EventPlay08Click01",
-		"type" : "Recognition",
-		"condition_list" : "",
-		"result_name":"Result_ContentsStart",
-		"settings" : {
-			"action" : "DOUBLE_CLICK",
-			"end_condition" : "OK",
-			"end_action" : "END_CONTINUE",
-			"execute_number" : 1,
-			"retry_number" : 0,
-			"image_path" : "../Images/houchi/1480_event/0000_start/*.png",
-			"interval_time" : 1,
-			"recognition_confidence" : 0.93,
-			"recognition_gray_scale" : true,
-			"log_file_path_list": "../Log/log_recognition.json",
-			"log_function":true,"log_print_standard_output": true
-		}
-	},
-	{
-		"name" : "EventPlay08Click03",
-		"type" : "Recognition",
-		"condition_list" : "Result_ContentsStart.detail=OK,Result_ContentsStart.detail = ALL_OK",
-		"result_name":"Result_ContentsStart",
-		"settings" : {
-			"action" : "CLICK",
-			"end_condition" : "OK",
-			"end_action" : "END_CONTINUE",
-			"execute_number" : 1,
-			"retry_number" : 2,
-			"image_path" : "../Images/houchi/1480_event/0003_check/*.png",
-			"start_retry_time" : 0.5,
-			"interval_time" : 0.8,
-			"recognition_confidence" : 0.93,
-			"recognition_gray_scale" : true,
-			"log_file_path_list": "../Log/log_recognition.json",
-			"log_function":true,"log_print_standard_output": true
-		}
-	},
-	{
-		"name" : "EventPlay08Click05",
-		"type" : "Recognition",
-		"condition_list" : "Result_ContentsStart.detail=OK,Result_ContentsStart.detail = ALL_OK",
-		"result_name":"",
-		"settings" : {
-			"action" : "CLICK",
-			"end_condition" : "OK",
-			"end_action" : "END_CONTINUE",
-			"execute_number" : 1,
-			"retry_number" : 2,
-			"image_path" : "../Images/houchi/1480_event/0005_execute/*.png",
-			"start_retry_time" : 0.5,
-			"interval_time" : 0.5,
-			"recognition_confidence" : 0.93,
-			"recognition_gray_scale" : true,
-			"log_file_path_list": "../Log/log_recognition.json",
-			"log_function":true,"log_print_standard_output": true
-		}
-	},
-	{
-		"name" : "EventPlay08Click07",
-		"type" : "Recognition",
-		"condition_list" : "",
-		"result_name":"Result_ContentsStart",
-		"settings" : {
-			"action" : "CLICK",
-			"end_condition" : "OK",
-			"end_action" : "END_CONTINUE",
-			"execute_number" : 1,
-			"retry_number" : 2,
-			"image_path" : "../Images/houchi/1480_event/0007_next/*.png",
-			"start_retry_time" : 0.5,
-			"interval_time" : 0.5,
-			"recognition_confidence" : 0.93,
-			"recognition_gray_scale" : true,
-			"log_file_path_list": "../Log/log_recognition.json",
-			"log_function":true,"log_print_standard_output": true
-		}
-	},
-	{
-		"name" : "Growth",
-		   "type" : "RunPlanLists",
-		   "condition_list" : "Result_ContentsStart.detail=OK,Result_ContentsStart.detail = ALL_OK",
-		   "result_name":"",
-		   "settings" : {
-			   "file_path"  : "../Setting/RunHouchiChild.json",
-			"plan_lists" : [
-				"GrowthClick","BattleClick","ItemEventClick"
-			   ]
-		   }
-	   },
-	   {
-		"name" : "EventPlay08Click08",
-		"type" : "Recognition",
-		"condition_list" : "",
-		"result_name":"",
-		"settings" : {
-			"action" : "CLICK",
-			"end_condition" : "OK",
-			"end_action" : "END_CONTINUE",
-			"execute_number" : 1,
-			"retry_number" : 2,
-			"image_path" : "../Images/houchi/1480_event/0008_loopend/*.png",
-			"start_retry_time" : 0.5,
-			"interval_time" : 0.5,
-			"recognition_confidence" : 0.93,
-			"recognition_gray_scale" : true,
-			"log_file_path_list": "../Log/log_recognition.json",
-			"log_function":true,"log_print_standard_output": true
-		}
-	}
-],
-
-"EventPlay09":
-[
-	{
-		"name" : "HouchiZikaiStart",
-		"type" : "Recognition",
-		"condition_list" : "",
-		"result_name":"Result_ContentsStart",
-		"settings" : {
-			"action" : "DOUBLE_CLICK",
-			"end_condition" : "OK",
-			"end_action" : "FOLDER_END_BREAK",
-			"execute_number" : 1,
-			"retry_number" : 0,
-			"image_path" : "../Images/houchi/1490_event/0000_start/*.png",
-			"interval_time" : 0.5,
-			"recognition_confidence" : 0.93,
-			"recognition_gray_scale" : true,
-			"log_file_path_list": "../Log/log_recognition.json",
-			"log_function":true,"log_print_standard_output": true
-		}
-	},
-	{
-		"name" : "HouchiZikai",
-		"type" : "Recognition",
-		"condition_list" : "",
-		"result_name":"",
-		"settings" : {
-			"action" : "DOUBLE_CLICK",
-			"end_condition" : "OK",
-			"end_action" : "FOLDER_END_BREAK",
-			"execute_number" : 1,
-			"retry_number" : 1,
-			"image_path" : "../Images/houchi/1490_event/0002_execute/*.png",
-			"start_retry_time" : 0.5,
-			"interval_time" : 0.8,
-			"recognition_confidence" : 0.93,
-			"recognition_gray_scale" : true,
-			"log_file_path_list": "../Log/log_recognition.json",
-			"log_function":true,"log_print_standard_output": true
-		}
-	},
-	{
-		"name" : "HouchiZikai",
-		"type" : "Recognition",
-		"condition_list" : "Result_ContentsStart.detail = OK,Result_ContentsStart.detail = ALL_OK",
-		"result_name":"Flag_Check",
-		"settings" : {
-			"action" : "DOUBLE_CLICK",
-			"end_condition" : "OK",
-			"end_action" : "FOLDER_END_BREAK",
-			"execute_number" : 1,
-			"retry_number" : 1,
-			"image_path" : "../Images/houchi/1490_event/0003_check/*.png",
-			"start_retry_time" : 0.5,
-			"interval_time" : 0.8,
-			"recognition_confidence" : 1,
-			"recognition_gray_scale" : false,
-			"log_file_path_list": "../Log/log_recognition.json",
-			"log_function":true,"log_print_standard_output": true
-		}
-	},
-	{
-		"name" : "HouchiZikai",
-		"type" : "Recognition",
-		"condition_list" : "Flag_Check.detail = OK,Flag_Check.detail = ALL_OK",
-		"result_name":"",
-		"settings" : {
-			"action" : "CLICK",
-			"end_condition" : "OK",
-			"end_action" : "END_CONTINUE",
-			"execute_number" : 1,
-			"retry_number" : 1,
-			"image_path" : "../Images/houchi/1490_event/0005_execute/*.png",
-			"start_retry_time" : 0.5,
-			"interval_time" : 0.8,
-			"recognition_confidence" : 0.93,
-			"recognition_gray_scale" : true,
-			"log_file_path_list": "../Log/log_recognition.json",
-			"log_function":true,"log_print_standard_output": true
-		}
-	},
-	{
-		"name" : "HouchiZikaiClick11",
-		"type" : "Recognition",
-		"condition_list" : "Flag_Check.detail = OK,Flag_Check.detail = ALL_OK",
-		"result_name":"Result_ContentsStart",
-		"settings" : {
-			"action" : "DOUBLE_CLICK",
-			"end_condition" : "OK",
-			"end_action" : "END_CONTINUE",
-			"execute_number" : 1,
-			"retry_number" : 0,
-			"image_path" : "../Images/houchi/1490_event/0010_start/*.png",
-			"interval_time" : 1,
-			"recognition_confidence" : 0.93,
-			"recognition_gray_scale" : false,
-			"log_file_path_list": "../Log/log_recognition.json",
-			"log_function":true,"log_print_standard_output": true
-		}
-	},
-	{
-		"name" : "HouchiZikaiClick13",
-		"type" : "Recognition",
-		"condition_list" : "Result_ContentsStart.detail = OK,Result_ContentsStart.detail = ALL_OK",
-		"result_name":"",
-		"settings" : {
-			"action" : "CLICK",
-			"end_condition" : "NG",
-			"end_action" : "END_CONTINUE",
-			"execute_number" : 1,
-			"retry_number" : 5,
-			"image_path" : "../Images/houchi/1490_event/0015_execute/*.png",
-			"start_retry_time" : 0.5,
-			"interval_time" : 1,
-			"recognition_confidence" : 0.93,
-			"recognition_gray_scale" : false,
-			"log_file_path_list": "../Log/log_recognition.json",
-			"log_function":false,"log_print_standard_output": true
-		}
-	},
-	{
-		"name" : "HouchiZikaiClick21",
-		"type" : "Recognition",
-		"condition_list" : "Flag_Check.detail = OK,Flag_Check.detail = ALL_OK",
-		"result_name":"Result_ContentsStart",
-		"settings" : {
-			"action" : "DOUBLE_CLICK",
-			"end_condition" : "OK",
-			"end_action" : "END_CONTINUE",
-			"execute_number" : 1,
-			"retry_number" : 0,
-			"image_path" : "../Images/houchi/1490_event/0020_start/*.png",
-			"interval_time" : 1,
-			"recognition_confidence" : 0.93,
-			"recognition_gray_scale" : false,
-			"log_file_path_list": "../Log/log_recognition.json",
-			"log_function":true,"log_print_standard_output": true
-		}
-	},
-	{
-		"name" : "HouchiZikaiClick23",
-		"type" : "Recognition",
-		"condition_list" : "Result_ContentsStart.detail = OK,Result_ContentsStart.detail = ALL_OK",
-		"result_name":"",
-		"settings" : {
-			"action" : "CLICK",
-			"end_condition" : "OK",
-			"end_action" : "END_CONTINUE",
-			"execute_number" : 2,
-			"retry_number" : 0,
-			"image_path" : "../Images/houchi/1490_event/0025_execute/*.png",
-			"start_retry_time" : 0.5,
-			"interval_time" : 1,
-			"recognition_confidence" : 0.93,
-			"recognition_gray_scale" : false,
-			"log_file_path_list": "../Log/log_recognition.json",
-			"log_function":false,"log_print_standard_output": true
-		}
-	},
-
-
-	{
-		"name" : "HouchiZikaiEnd",
-		"type" : "Recognition",
-		"condition_list" : "Result_ContentsStart.detail = OK,Result_ContentsStart.detail = ALL_OK",
-		"result_name":"",
-		"settings" : {
-			"action" : "CLICK",
-			"end_condition" : "NG",
-			"end_action" : "END_CONTINUE",
-			"execute_number" : 1,
-			"retry_number" : 2,
-			"image_path" : "../Images/houchi/1490_event/0019_end/*.png",
-			"start_retry_time" : 0.5,
-			"interval_time" : 1,
-			"recognition_confidence" : 0.93,
-			"recognition_gray_scale" : true,
-			"log_file_path_list": "../Log/log_recognition.json",
-			"log_function":true,"log_print_standard_output": true
-		}
-	}
-],
-"DairyClick":
-[
-	{
-		"name" : "Dairy01",
-		"type" : "Recognition",
-		"condition_list" : "",
-		"result_name":"Result_ContentsStart",
-		"settings" : {
-			"action" : "DOUBLE_CLICK",
-			"end_condition" : "OK",
-			"end_action" : "END_CONTINUE",
-			"execute_number" : 1,
-			"retry_number" : 0,
-			"image_path" : "../Images/houchi/1500_dairy/0000_start/*.png",
-			"interval_time" : 0.5,
-			"recognition_confidence" : 0.93,
-			"recognition_gray_scale" : true,
-			"log_file_path_list": "../Log/log_recognition.json",
-			"log_function":true,"log_print_standard_output": true
-		}
-	},
-	{
-		"name" : "Dairy02",
-		"type" : "Recognition",
-		"condition_list" : "Result_ContentsStart.detail = OK,Result_ContentsStart.detail = ALL_OK",
-		"result_name":"",
-		"settings" : {
-			"action" : "CLICK",
-			"end_condition" : "OK",
-			"end_action" : "END_CONTINUE",
-			"execute_number" : 1,
-			"retry_number" : 0,
-			"image_path" : "../Images/houchi/1500_dairy/0005_execute/*.png",
-			"start_retry_time" : 0.5,
-			"interval_time" : 0.8,
-			"recognition_confidence" : 0.93,
-			"recognition_gray_scale" : true,
-			"log_file_path_list": "../Log/log_recognition.json",
-			"log_function":true,"log_print_standard_output": true
-		}
-	},
-	{
-		"name" : "Dairy03",
-		"type" : "Recognition",
-		"condition_list" : "Result_ContentsStart.detail = OK,Result_ContentsStart.detail = ALL_OK",
-		"result_name":"Dairy",
-		"settings" : {
-			"action" : "CLICK",
-			"end_condition" : "OK",
-			"end_action" : "END_CONTINUE",
-			"execute_number" : 1,
-			"retry_number" : 0,
-			"image_path" : "../Images/houchi/1500_dairy/0010_start/*.png",
-			"start_retry_time" : 0.5,
-			"interval_time" : 0.8,
-			"recognition_confidence" : 0.93,
-			"recognition_gray_scale" : true,
-			"log_file_path_list": "../Log/log_recognition.json",
-			"log_function":true,"log_print_standard_output": true
-		}
-	},
-	{
-		"name" : "Growth",
-		"type" : "RunPlanLists",
-		"condition_list" : "Dairy.detail = OK,Dairy.detail = ALL_OK",
-		"result_name":"",
-		"settings" : {
-			"file_path"  : "../Setting/RunHouchiChild.json",
-			"plan_lists" : [
-				"GrowthClick","BattleClick"
-			]
-		}
-	}
-],
-
-"ItemMaintenance":
-[
-	{
-		"name" : "ItemMaintenance",
-		"type" : "Recognition",
-		"condition_list" : "",
-		"result_name":"Result_ContentsStart",
-		"settings" : {
-			"action" : "CLICK",
-			"end_condition" : "OK",
-			"end_action" : "END_CONTINUE",
-			"execute_number" : 1,
-			"retry_number" : 0,
-			"image_path" : "../Images/houchi/2000_item/0005_execute/*.png",
-			"interval_time" : 0.7,
-			"recognition_confidence" : 0.95,
-			"recognition_gray_scale" : true,
-			"log_file_path_list": "../Log/log_recognition.json",
-			"log_function":true,"log_print_standard_output": true
-		}
-	},
-	{
-		"name" : "HomeClick",
-		"type" : "RunPlanLists",
-		"condition_list" : "",
-		"result_name":"",
-		"settings" : {
-			"file_path"  : "../Setting/RunHouchiChild.json",
+	"ContentsPlay" : 
+	[
+		{
+			"name" : "ContentsPlay",
+			"type" : "RunPlanLists",
+			"condition_list" : "Condition_Start = true",
+			"result_name":"",
+			"settings" : {
+				"file_path"  : "../Setting/RunHouchiChild.json",
+				"#step_check_mode" : true,
+				"loop_condition":true,
+				"loop_limit_count":1,
+				"terminate_condition":["Flag_Terminate.detail = OK,Flag_Terminate.detail = ALL_OK"],
+				"terminate_and_delete_condition":["Flag_Terminate"],
 				"plan_lists" : [
-				"ReturnHome"
-			]
+					"ReturnHome","SimpleContents",
+					"ReturnHomeIfContentsStart","InformationClick",
+					"ReturnHome","SimpleContents",
+					"ReturnHome","EventPlay02",
+					"ReturnHome","SimpleContents",
+					"ReturnHome","Dairy",
+					"ReturnHomeIfContentsStart","Etc",
+					"ReturnHomeIfContentsStart",
+					"TimeEventPlay"
+				]
+			}
 		}
-	},
+	],
+	"SimpleContents":[
+		{
+			"name": "ChangeSettings",
+			"type" : "ChangeSettings",
+			"condition_list" : "",
+			"result_name" : "",
+			"settings" : {
+				"change_settings":{
+					"log_function":true,"log_print_standard_output": true
+				}
+			}
+		},
+
+		{
+			"name": "SimpleContents",
+			"type" : "CopyPlanLists",
+			"condition_list" : "",
+			"result_name" : "",
+			"settings" : {
+				"log_function" : true,"log_print_standard_output" : false,"log_file_path_list" : ["../Log/log_test_all.log.json","../Log/log_test_0.log.json"],
+				"file_path":"../Setting/TemplateRunApply.json",
+				"copy_plan_lists" : [
+					{
+						"source_plan_list_name" : "StartExecuteContents",
+						"copy_plan_list_name": "Contents_Cast",
+						"change_settings_by_name" : {
+							"StartContentsClick" : {
+								"image_path" : "../Images/houchi/2000_item/0000_start/*.png"
+							},
+							"ExecuteContentsClick" : {
+								"image_path" : "../Images/houchi/2000_item/0005_execute/*.png"
+							}
+						}
+					},
+					{
+						"source_plan_list_name" : "StartExecuteContents",
+						"copy_plan_list_name": "Contents_Free01",
+						"change_settings_by_name" : {
+							"StartContentsClick" : {
+								"image_path" :  "../Images/houchi/1020_FreeClick/0000_start/*.png"
+							},
+							"ExecuteContentsClick" : {
+								"image_path" : "../Images/houchi/1020_FreeClick/0005_execute/0001_Click*.png"
+							}
+						}
+					},
+					{
+						"source_plan_list_name" : "AddStartExecuteContents",
+						"copy_plan_list_name": "Contents_Free02",
+						"change_settings_by_name" : {
+							"StartContentsClick" : {
+								"image_path" : "../Images/houchi/1020_FreeClick/0005_execute/0002_Search*.png"
+							},
+							"ExecuteContentsClick" : {
+								"image_path" : "../Images/houchi/1020_FreeClick/0005_execute/0005_Click*.png"
+							}
+						}
+					},
+					{
+						"source_plan_list_name" : "StartExecuteContents",
+						"copy_plan_list_name": "Contents_Mail",
+						"change_settings_by_name" : {
+							"StartContentsClick" : {
+								"image_path" : "../Images/houchi/1100_mail/0000_start/*.png"
+							},
+							"ExecuteContentsClick" : {
+								"image_path" : "../Images/houchi/1100_mail/0005_execute/*.png"
+							}
+						}
+					},
+					{
+						"source_plan_list_name" : "StartExecuteContents",
+						"copy_plan_list_name": "Contents_Event00",
+						"change_settings_by_name" : {
+							"StartContentsClick" : {
+								"image_path" : "../Images/houchi/1400_event/0000_start/*.png"
+							},
+							"ExecuteContentsClick" : {
+								"image_path" : "../Images/houchi/1400_event/0005_execute/*.png"
+							}
+						}
+					},
+					{
+						"source_plan_list_name" : "StartExecuteContents",
+						"copy_plan_list_name": "Contents_Event01",
+						"change_settings_by_name" : {
+							"StartContentsClick" : {
+								"image_path" : "../Images/houchi/1400_event/0010_start/*.png"
+							},
+							"ExecuteContentsClick" : {
+								"image_path" : "../Images/houchi/1400_event/0015_execute/*.png"
+							}
+						}
+					},
+					{
+						"source_plan_list_name" : "StartExecuteContents",
+						"copy_plan_list_name": "Contents_Event02",
+						"change_settings_by_name" : {
+							"StartContentsClick" : {
+								"image_path" : "../Images/houchi/1400_event/0020_start/*.png"
+							},
+							"ExecuteContentsClick" : {
+								"image_path" : "../Images/houchi/1400_event/0025_execute/*.png"
+							}
+						}
+					},
+					{
+						"source_plan_list_name" : "StartExecuteContents",
+						"copy_plan_list_name": "Contents_Event03",
+						"change_settings_by_name" : {
+							"StartContentsClick" : {
+								"image_path" : "../Images/houchi/1400_event/0030_start/*.png"
+							},
+							"ExecuteContentsClick" : {
+								"image_path" : "../Images/houchi/1400_event/0035_execute/*.png"
+							}
+						}
+					},
+					{
+						"source_plan_list_name" : "StartExecuteContents",
+						"copy_plan_list_name": "Contents_Event04",
+						"change_settings_by_name" : {
+							"StartContentsClick" : {
+								"image_path" : "../Images/houchi/1400_event/0040_start/*.png"
+							},
+							"ExecuteContentsClick" : {
+								"image_path" : "../Images/houchi/1400_event/0045_execute/*.png"
+							}
+						}
+					},
+					{
+						"source_plan_list_name" : "StartExecuteContents",
+						"copy_plan_list_name": "Contents_Event05",
+						"change_settings_by_name" : {
+							"StartContentsClick" : {
+								"image_path" : "../Images/houchi/1400_event/0050_start/*.png"
+							},
+							"ExecuteContentsClick" : {
+								"image_path" : "../Images/houchi/1400_event/0055_execute/*.png"
+							}
+						}
+					},
+					{
+						"source_plan_list_name" : "ReturnClick",
+						"copy_plan_list_name": "ReturnClick",
+						"change_settings_by_name" : {
+							"ReturnClick" : {
+								"image_path" : "../Images/houchi/1010_return/*.png"
+							}
+						}
+					},
+					{
+						"source_plan_list_name" : "ReturnHomeIfContentsStart",
+						"copy_plan_list_name": "ReturnHomeIfContentsStart"
+					},
+					{
+						"source_plan_list_name" : "ReturnHome",
+						"copy_plan_list_name": "ReturnHome"
+					},
+					{
+						"source_plan_list_name" : "HomeClickSequence",
+						"copy_plan_list_name": "HomeClickSequence",
+						"change_settings_by_name" : {
+							"HomeClick" : {
+								"image_path" : "../Images/houchi/1011_home/*.png"
+							},
+							"ReturnClick" : {
+								"image_path" : "../Images/houchi/1010_return/*.png"
+							}
+		
+						}
+					}
+				]
+			}
+		},
+		"Contents_Cast","ReturnHomeIfContentsStart",
+		"Contents_Free01","Contents_Free02","ReturnHomeIfContentsStart",
+		"Contents_Event00","ReturnHomeIfContentsStart",
+		"Contents_Free01","Contents_Free02","ReturnHomeIfContentsStart",
+		"Contents_Event01","ReturnHomeIfContentsStart",
+		"Contents_Free01","Contents_Free02","ReturnHomeIfContentsStart",
+		"Contents_Event02","ReturnHomeIfContentsStart",
+		"Contents_Free01","Contents_Free02","ReturnHomeIfContentsStart",
+		"Contents_Event03","ReturnHomeIfContentsStart",
+		"Contents_Free01","Contents_Free02","ReturnHomeIfContentsStart",
+		"Contents_Event04","ReturnHomeIfContentsStart",
+		"Contents_Free01","Contents_Free02","ReturnHomeIfContentsStart",
+		"Contents_Mail","ReturnHomeIfContentsStart",
+		"Contents_Free01","Contents_Free02","ReturnHomeIfContentsStart",
+		"Contents_Event05","ReturnHomeIfContentsStart",
+		"Contents_Free01","Contents_Free02","ReturnHomeIfContentsStart",
+		"Contents_Mail","ReturnHomeIfContentsStart"
+	],
+	"FreeContinue": 
+	[
+		{
+			"name" : "FreeClick",
+			"type" : "RunPlanLists",
+			"condition_list" : "FreeStart.detail = OK,FreeStart.detail = ALL_OK",
+			"result_name":"",
+			"settings" : {
+				"file_path"  : "../Setting/RunHouchiChild.json",
+				"plan_lists" : [
+					"FreeClick"
+				]
+			}
+		}
+	],
+	"EventPlay02": 
+	[
+		{
+			"name" : "EventPlay02",
+			"type" : "RunPlanLists",
+			"condition_list" : "",
+			"result_name":"",
+			"settings" : {
+				"file_path"  : "../Setting/RunHouchiChild.json",
+				"plan_lists" : [
+					"ReturnHome","EventPlay09",
+					"ReturnHome","EventPlay09"
+				]
+			}
+		}
+	],
+	"Dairy": 
+	[
+		{
+			"name" : "Dairy",
+			"type" : "RunPlanLists",
+			"condition_list" : "",
+			"result_name":"",
+			"settings" : {
+				"file_path"  : "../Setting/RunHouchiChild.json",
+				"plan_lists" : [
+					"ReturnHome","DairyClick","Growth","BattleClick",
+					"ReturnHome","DairyClick","Growth","BattleClick",
+					"ReturnHome","DairyClick","Growth","BattleClick"
+				]
+			}
+		}
+	],
+	"Etc" : 
+	[
+		{
+			"name" : "Etc",
+			"type" : "RunPlanLists",
+			"condition_list" : "",
+			"result_name":"",
+			"settings" : {
+				"file_path"  : "../Setting/RunHouchiChild.json",
+				"#step_check_mode" : true,
+				"plan_lists" : [
+					"EventPlay08",
+					"ReturnHome","Item"
+				]
+			}
+		},
+		{
+			"name": "SimpleContents",
+			"type" : "CopyPlanLists",
+			"condition_list" : "",
+			"result_name" : "",
+			"settings" : {
+				"log_function" : true,"log_print_standard_output" : false,"log_file_path_list" : ["../Log/log_test_all.log.json","../Log/log_test_0.log.json"],
+				"file_path":"../Setting/TemplateRunApply.json",
+				"copy_plan_lists" : [
+					{
+						"source_plan_list_name" : "StartExecuteContents",
+						"copy_plan_list_name": "HighSpeedClick",
+						"change_settings_by_name" : {
+							"StartContentsClick" : {
+								"image_path" :  "../Images/houchi/1905_highspeed/0000_start/*.png"
+							},
+							"ExecuteContentsClick" : {
+								"image_path" : "../Images/houchi/1905_highspeed/0005_execute/0001_Click*.png"
+							}
+						}
+					}
+				]
+			}
+		},
+		"ReturnHome","HighSpeedClick"
+
+
+
+	],
+	"EventPlay08":
+	[
+		{
+			"name" : "EventPlay08Works_Loop",
+			"type" : "RunPlanLists",
+			"condition_list" : "",
+			"result_name" : "",
+			"settings" : {
+				"file_path" : "../Setting/RunHouchiChild.json",
+				"loop_condition":true,
+				"loop_limit_count":3,
+				"terminate_condition":["Flag_Terminate.detail = OK,Flag_Terminate.detail = ALL_OK"],
+				"terminate_and_delete_condition":["Flag_Terminate"],
+				"log_function" : true,"log_print_standard_output" : true,"log_file_path_list" : "../Log/log_all.json",
+				"#step_check_mode" : true,
+				"plan_lists" : [
+					"EventPlay08Works","ReturnHomeIfContentsStart"
+				]
+			}
+		}
+	],
+
+	"Item" : 
+	[
+		{
+			"name" : "ItemClick01",
+			"type" : "Recognition",
+			"condition_list" : "",
+			"result_name":"ItemMax",
+			"settings" : {
+				"#step_check_mode" : true,
+				"action" : "CLICK",
+				"end_condition" : "OK",
+				"end_action" : "END_FOLDER_END_BREAK",
+				"execute_number" : 2,
+				"retry_number" : 2,
+				"image_path" : "../Images/houchi/2000_item/0000_start/*.png",
+				"interval_time" : 1,
+				"recognition_confidence" : 0.93,
+				"recognition_gray_scale" : true,
+				"log_file_path_list": "../Log/log_recognition.json",
+				"log_function":true,"log_print_standard_output": true
+			}
+		},
+		{
+			"name": "TimeCheck_ItemMaintenance1",
+			"type": "CheckDay",
+			"result_name":"Time_Check_ItemMaintenance1",
+			"settings": {
+				"day1": "日曜日0:00",
+				"day2": "Now",
+				"day3": "月曜日24:00",
+				"log_file_path_list": "../Log/log_all.json",
+				"log_function":true,"log_print_standard_output": true
+			}
+		},
+		{
+			"name": "TimeCheck_ItemMaintenance2",
+			"type": "CheckDay",
+			"result_name":"Time_Check_ItemMaintenance2",
+			"settings": {
+				"day1": "木曜日0:00",
+				"day2": "Now",
+				"day3": "木曜日24:00",
+				"log_file_path_list": "../Log/log_all.json",
+				"log_function":true,"log_print_standard_output": true
+			}
+		},
+		{
+			"name": "Check_Condition_ItemMaintenance",
+			"result_name": "Condition_ItemMaintenance",
+			"type": "Judge",
+			"settings": {
+				"condition_list": [
+					"Time_Check_ItemMaintenance1=True,Time_Check_ItemMaintenance2=True,ItemMax.detail = OK,ItemMax.detail = ALL_OK"
+				],
+				"log_file_path_list": "../Log/log_all.json",
+				"#step_check_mode" : true,"log_function":true,"log_print_standard_output": true
+
+			}
+		},
+		{
+			"name" : "ItemClick01",
+			"type" : "Recognition",
+			"condition_list" : "",
+			"result_name":"ItemMax",
+			"settings" : {
+				"#step_check_mode" : true,
+				"action" : "CLICK",
+				"end_condition" : "OK",
+				"end_action" : "END_FOLDER_END_BREAK",
+				"execute_number" : 2,
+				"retry_number" : 2,
+				"image_path" : "../Images/houchi/2000_item/0000_start/*.png",
+				"interval_time" : 1,
+				"recognition_confidence" : 0.93,
+				"recognition_gray_scale" : true,
+				"log_file_path_list": "../Log/log_recognition.json",
+				"log_function":true,"log_print_standard_output": true
+			}
+		},
 	{
-		"name" : "ItemMaintenance",
-		"type" : "Recognition",
-		"condition_list" : "",
-		"result_name":"Result_ContentsStart",
-		"settings" : {
-			"action" : "CLICK",
-			"end_condition" : "OK",
-			"end_action" : "END_CONTINUE",
-			"execute_number" : 1,
-			"retry_number" : 2,
-			"image_path" : "../Images/houchi/2000_item/0010_start/*.png",
-			"interval_time" : 0.7,
-			"recognition_confidence" : 0.93,
-			"recognition_gray_scale" : true,
-			"log_file_path_list": "../Log/log_recognition.json",
-			"log_function":true,"log_print_standard_output": true
-		}
-	},
-	{
-		"name" : "ItemMaintenance",
-		"type" : "Recognition",
-		"condition_list" : "Result_ContentsStart.detail = OK,Result_ContentsStart.detail = ALL_OK",
-		"result_name":"Result_ContentsStart",
-		"settings" : {
-			"action" : "CLICK",
-			"end_condition" : "OK",
-			"end_action" : "END_CONTINUE",
-			"execute_number" : 1,
-			"retry_number" : 0,
-			"image_path" : "../Images/houchi/2000_item/0015_execute/*.png",
-			"interval_time" : 0.7,
-			"recognition_confidence" : 0.93,
-			"recognition_gray_scale" : true,
-			"log_file_path_list": "../Log/log_recognition.json",
-			"log_function":true,"log_print_standard_output": true
-		}
-	}
-],
-"HouchiCharacterGrowth":{
-	"name" : "Item",
+		"name" : "RunPlayList_Item",
 	"type" : "RunPlanLists",
-	"condition_list" : "",
+	"condition_list" : "Condition_ItemMaintenance = true",
 	"result_name":"",
 	"settings" : {
-		"file_path"  : "../Setting/Run_HouchiFunction.json",
-		"plan_lists" : [
-			"CharacterDisplay","CharacterGrowth"
-		]
-	}
-},
-
-
-"BattleClick":
-[
-	{
-		"name" : "BattleClick",
-		"type" : "Recognition",
-		"condition_list" : "",
-		"result_name":"Result_ContentsStart",
-		"settings" : {
-			"action" : "DOUBLE_CLICK",
-			"end_condition" : "OK",
-			"end_action" : "END_CONTINUE",
-			"execute_number" : 1,
-			"retry_number" : 2,
-			"image_path" : "../Images/houchi/1910_battle/*.png",
-			"interval_time" : 0.8,
-			"recognition_confidence" : 0.93,
-			"recognition_gray_scale" : true,
-			"log_file_path_list": "../Log/log_recognition.json",
-			"log_function":true,"log_print_standard_output": true
-		}
-	},
-	{
-		"name" : "ItemError",
-		"type" : "Recognition",
-		"condition_list" : "",
-		"result_name":"ItemError_Click",
-		"settings" : {
-			"action" : "CLICK",
-			"end_condition" : "OK",
-			"end_action" : "END_CONTINUE",
-			"execute_number" : 1,
-			"retry_number" : 2,
-			"image_path" : "../Images/houchi/1910_battle/0006error/*.png",
-			"interval_time" : 0.8,
-			"recognition_confidence" : 0.93,
-			"recognition_gray_scale" : true,
-			"log_file_path_list": "../Log/log_recognition.json",
-			"log_function":true,"log_print_standard_output": true
-		}
-	},
-	{
-		"name" : "Item",
-		"type" : "RunPlanLists",
-		"condition_list" : "ItemError_Click.detail = OK,ItemError_Click.detail = ALL_OK",
-		"result_name":"",
-		"settings" : {
-			"file_path"  : "../Setting/RunHouchiChild.json",
-			  "plan_lists" : [
-				 "ItemMaintenance"
-			]
-		}
-	 }
-
-],
-"ItemEventClick":
-[
-	{
-		"name" : "Growth",
-		"type" : "Recognition",
-		"condition_list" : "",
-		"result_name":"Result_ContentsStart",
-		"settings" : {
-			"action" : "CLICK",
-			"end_condition" : "OK",
-			"end_action" : "END_CONTINUE",
-			"execute_number" : 1,
-			"retry_number" : 1,
-			"image_path" : "../Images/houchi/2000_item/0020_start/*.png",
-			"interval_time" : 0.8,
-			"recognition_confidence" : 0.93,
-			"recognition_gray_scale" : true,
-			"log_file_path_list": "../Log/log_recognition.json",
-			"log_function":true,"log_print_standard_output": true
-		}
-	},
-	{
-		"name" : "Growth",
-		"type" : "Recognition",
-		"condition_list" : "Result_ContentsStart.detail = OK,Result_ContentsStart.detail = ALL_OK",
-		"result_name":"",
-		"settings" : {
-			"action" : "CLICK",
-			"end_condition" : "OK",
-			"end_action" : "END_CONTINUE",
-			"execute_number" : 1,
-			"retry_number" : 0,
-			"image_path" : "../Images/houchi/2000_item/0025_execute/*.png",
-			"start_retry_time" : 0.5,
-			"interval_time" : 0.8,
-			"recognition_confidence" : 0.93,
-			"recognition_gray_scale" : true,
-			"log_file_path_list": "../Log/log_recognition.json",
-			"log_function":true,"log_print_standard_output": true
-		}
-	}
-],
-"TimeEventClick":
-[
-	{
-		"name" : "TimeCheck_TimeEvent02",
-	   "type" : "RunPlanLists",
-	   "condition_list" : "",
-	   "result_name":"",
-	   "settings" : {
-		   "file_path"  : "../Setting/RunHouchiChild.json",
-		   "#step_check_mode" : true,
-			 "plan_lists" : [
-			   "TimeCheck_TimeEvent02"
-		   ]
-	   }
-   },
-   {
-		"name" : "TimeEvent02",
-		"type" : "RunPlanLists",
-		"condition_list" : ["TimeCheck_TimeEvent02 = true","Condition_TimeEvent.detail = OK,Condition_TimeEvent.detail = ALL_OK"],
-		"result_name":"",
-		"settings" : {
 			"file_path"  : "../Setting/RunHouchiChild.json",
 			"#step_check_mode" : true,
 			"plan_lists" : [
-				"TimeEvent02Click"
-			]
-		}
-	},
-
-	{
-		"name" : "TimeEventClick1",
-		"type" : "Recognition",
-		"result_name":"Condition_TimeEvent",
-		"settings" : {
-			"action" : "CLICK",
-			"end_condition" : "OK",
-			"end_action" : "END_CONTINUE",
-			"execute_number" : 2,
-			"retry_number" : 2,
-			"image_path" : "../Images/houchi/1650_timeevent/0010_start/*.png",
-			"interval_time" : 0.5,
-			"recognition_confidence" : 0.95,
-			"recognition_gray_scale" : true,
-			"log_file_path_list": "../Log/log_recognition.json",
-			"log_function":true,"log_print_standard_output": true
-		}
-	},
-	{
-		"name" : "TimeEventClick2",
-		"type" : "Recognition",
-		"condition_list" : "Condition_TimeEvent.detail = OK,Condition_TimeEvent.detail = ALL_OK",
-		"result_name":"",
-		"settings" : {
-			"action" : "CLICK",
-			"end_condition" : "OK",
-			"end_action" : "END_CONTINUE",
-			"execute_number" : 1,
-			"retry_number" : 1,
-			"image_path" : "../Images/houchi/1650_timeevent/0015_execute/*.png",
-			"start_retry_time" : 0.5,
-			"interval_time" : 0.5,
-			"recognition_confidence" : 0.95,
-			"recognition_gray_scale" : true,
-			"log_file_path_list": "../Log/log_recognition.json",
-			"log_function":true,"log_print_standard_output": true
-		}
+			"ItemMaintenance"
+		]
 	}
-],
-"TimeEvent02Click":
-[
-	{
-		"name" : "HimeClick",
-		"type" : "Recognition",
-		"condition_list" : "",
-		"result_name":"Result_TimeEvent02Click",
-		"settings" : {
-			"action" : "CLICK",
-			"end_condition" : "OK",
-			"end_action" : "END_CONTINUE",
-			"execute_number" : 1,
-			"retry_number" : 1,
-			"image_path" : "../Images/houchi/1650_timeevent/0000_start/*.png",
-			"interval_time" : 0.5,
-			"recognition_confidence" : 0.95,
-			"recognition_gray_scale" : true,
-			"log_file_path_list": "../Log/log_recognition.json",
-			"log_function":true,"log_print_standard_output": true
-		}
-	},
-	{
-		"name" : "HimeClick",
-		"type" : "Recognition",
-		"condition_list" : "Result_TimeEvent02Click.detail = OK,Result_TimeEvent02Click.detail = ALL_OK",
-		"result_name":"",
-		"settings" : {
-			"action" : "CLICK",
-			"end_condition" : "OK",
-			"end_action" : "END_CONTINUE",
-			"execute_number" : 1,
-			"retry_number" : 1,
-			"image_path" : "../Images/houchi/1650_timeevent/0005_execute/*.png",
-			"start_retry_time" : 0.5,
-			"interval_time" : 0.5,
-			"recognition_confidence" : 0.95,
-			"recognition_gray_scale" : true,
-			"log_file_path_list": "../Log/log_recognition.json",
-			"log_function":true,"log_print_standard_output": true
-		}
 	}
 
-],
-"InformationClick":
-[
-	{
-		"name" : "InformationClick01",
-		"type" : "Recognition",
-		"condition_list" : "",
-		"result_name":"Result_ContentsStart",
-		"settings" : {
-			"action" : "DOUBLE_CLICK",
-			"end_condition" : "OK",
-			"end_action" : "FOLDER_END_BREAK",
-			"execute_number" : 1,
-			"retry_number" : 0,
-			"image_path" : "../Images/houchi/1200_information/0000_start/*.png",
-			"interval_time" : 0.5,
-			"recognition_confidence" : 0.93,
-			"recognition_gray_scale" : true,
-			"log_file_path_list": "../Log/log_recognition.json",
-			"log_function":true,"log_print_standard_output": true
+
+	],
+	"TimeEventPlay": 
+	[
+		{
+			"name" : "TimeEventPlay",
+			"type" : "RunPlanLists",
+			"condition_list" : "",
+			"result_name":"",
+			"settings" : {
+				"file_path"  : "../Setting/RunHouchiChild.json",
+				"plan_lists" : [
+					"TimeCheck_TimeEvent01","TimeEventPlayContents"
+				]
+			}
 		}
-	},
-	{
-		"name" : "InformationClick02",
-		"type" : "Recognition",
-		"condition_list" : "Result_ContentsStart.detail = OK,Result_ContentsStart.detail = ALL_OK",
-		"result_name":"Result_ContentsStart",
-		"settings" : {
-			"action" : "DOUBLE_CLICK",
-			"end_condition" : "OK",
-			"end_action" : "FOLDER_END_BREAK",
-			"execute_number" : 1,
-			"retry_number" : 3,
-			"image_path" : "../Images/houchi/1200_information/0003_check/*.png",
-			"start_retry_time" : 0.5,
-			"interval_time" : 0.5,
-			"recognition_confidence" : 0.93,
-			"recognition_gray_scale" : true,
-			"log_file_path_list": "../Log/log_recognition.json",
-			"log_function":true,"log_print_standard_output": true
+	],
+	"TimeEventPlayContents": 
+	[
+		{
+			"name" : "TimeEventPlay2",
+			"type" : "RunPlanLists",
+			"condition_list" : "Condition_Execute = True",
+			"result_name":"",
+			"settings" : {
+				"file_path"  : "../Setting/RunHouchiChild.json",
+				"plan_lists" : [
+					"ReturnClick","ReturnHome","TimeEventClick",
+					"ReturnHome","TimeEventClick",
+					"ReturnHome","TimeEventClick"
+				]
+			}
 		}
-	},
-	{
-		"name" : "InformationClick03",
-		"type" : "Recognition",
-		"condition_list" : "Result_ContentsStart.detail = OK,Result_ContentsStart.detail = ALL_OK",
-		"result_name":"Result_ContentsStart",
-		"settings" : {
-			"action" : "DOUBLE_CLICK",
-			"end_condition" : "OK",
-			"end_action" : "FOLDER_END_BREAK",
-			"execute_number" : 1,
-			"retry_number" : 3,
-			"image_path" : "../Images/houchi/1200_information/0005_execute/*.png",
-			"start_retry_time" : 0.5,
-			"interval_time" : 0.2,
-			"recognition_confidence" : 0.93,
-			"recognition_gray_scale" : true,
-			"log_file_path_list": "../Log/log_recognition.json",
-			"log_function":true,"log_print_standard_output": true
+	],
+	"Begin":
+	[
+		{
+			"name" : "StartClick01",
+			"type" : "Recognition",
+			"condition_list" : "",
+			"result_name":"Result_StartClicked",
+			"settings" : {
+				"#step_check_mode" : true,
+				"action" : "CLICK",
+				"end_condition" : "OK",
+				"end_action" : "END_FOLDER_END_BREAK",
+				"execute_number" : 2,
+				"retry_number" : 2,
+				"image_path" : "../Images/houchi/1000_start/Click0*.png",
+				"interval_time" : 2,
+				"recognition_confidence" : 0.93,
+				"recognition_gray_scale" : true,
+				"log_file_path_list": "../Log/log_recognition.json",
+				"log_function":true,"log_print_standard_output": true
+			}
+		}		
+		,"ReturnClick",
+		{
+			"name": "Check_Judge",
+			"result_name": "Condition_Start",
+			"type": "Judge",
+			"settings": {
+				"condition_list": true,
+				"loop_limit_count":2,
+				"loop_condition":"Result_ReturnClick.detail = NG",
+				"terminate_condition":"Result_ReturnClick.detail = ALL_OK,Result_ReturnClick.detail = OK",
+				"terminate_and_delete_condition":["Result_ReturnClick"],
+				"log_file_path_list": "../Log/log_all.json",
+				"log_function":true,"log_print_standard_output": true
+			}
 		}
-	}
-],
-"ReturnClick":
-[
-	{
-		"name" : "ReturnClick",
-		"type" : "Recognition",
-		"result_name":"",
-		"settings" : {
-			"action" : "DOUBLE_CLICK",
-			"end_condition" : "OK",
-			"end_action" : "FOLDER_END_BREAK",
-			"execute_number" : 1,
-			"retry_number" : 0,
-			"image_path" : "../Images/houchi/1010_Return/*.png",
-			"interval_time" : 0.2,
-			"recognition_confidence" : 0.95,
-			"recognition_gray_scale" : true,
-			"log_file_path_list": "../Log/log_recognition.json",
-			"log_function":true,"log_print_standard_output": true
+	],
+
+	"Maintenance":
+	[
+		{
+			"name" : "MaintenanceClick01",
+			"type" : "Recognition",
+			"condition_list" : "",
+			"result_name":"Result_MaintClicked",
+			"settings" : {
+				"#step_check_mode" : true,
+				"action" : "CLICK",
+				"end_condition" : "NG",
+				"end_action" : "END_FOLDER_END_BREAK",
+				"execute_number" : 2,
+				"retry_number" : 2,
+				"image_path" : "../Images/houchi/9999_mainte/*.png",
+				"interval_time" : 0.1,
+				"recognition_confidence" : 0.93,
+				"recognition_gray_scale" : true,
+				"log_file_path_list": "../Log/log_recognition.json",
+				"log_function":true,"log_print_standard_output": true
+			}
 		}
-	}
-],
-"ReturnHome" : 
-[
-	{
-		 "name" : "HomeClick_Loop",
+	],
+
+	"EventPlay08Works":
+	[
+		{
+			"name" : "EventPlay08Click01",
+			"type" : "Recognition",
+			"condition_list" : "",
+			"result_name":"Result_ContentsStart",
+			"settings" : {
+				"action" : "DOUBLE_CLICK",
+				"end_condition" : "OK",
+				"end_action" : "END_CONTINUE",
+				"execute_number" : 1,
+				"retry_number" : 0,
+				"image_path" : "../Images/houchi/1480_event/0000_start/*.png",
+				"interval_time" : 1,
+				"recognition_confidence" : 0.93,
+				"recognition_gray_scale" : true,
+				"log_file_path_list": "../Log/log_recognition.json",
+				"log_function":true,"log_print_standard_output": true
+			}
+		},
+		{
+			"name" : "EventPlay08Click03",
+			"type" : "Recognition",
+			"condition_list" : "Result_ContentsStart.detail=OK,Result_ContentsStart.detail = ALL_OK",
+			"result_name":"Result_ContentsStart",
+			"settings" : {
+				"action" : "CLICK",
+				"end_condition" : "OK",
+				"end_action" : "END_CONTINUE",
+				"execute_number" : 1,
+				"retry_number" : 2,
+				"image_path" : "../Images/houchi/1480_event/0003_check/*.png",
+				"start_retry_time" : 0.5,
+				"interval_time" : 0.8,
+				"recognition_confidence" : 0.93,
+				"recognition_gray_scale" : true,
+				"log_file_path_list": "../Log/log_recognition.json",
+				"log_function":true,"log_print_standard_output": true
+			}
+		},
+		{
+			"name" : "EventPlay08Click05",
+			"type" : "Recognition",
+			"condition_list" : "Result_ContentsStart.detail=OK,Result_ContentsStart.detail = ALL_OK",
+			"result_name":"",
+			"settings" : {
+				"action" : "CLICK",
+				"end_condition" : "OK",
+				"end_action" : "END_CONTINUE",
+				"execute_number" : 1,
+				"retry_number" : 2,
+				"image_path" : "../Images/houchi/1480_event/0005_execute/*.png",
+				"start_retry_time" : 0.5,
+				"interval_time" : 0.5,
+				"recognition_confidence" : 0.93,
+				"recognition_gray_scale" : true,
+				"log_file_path_list": "../Log/log_recognition.json",
+				"log_function":true,"log_print_standard_output": true
+			}
+		},
+		{
+			"name" : "EventPlay08Click07",
+			"type" : "Recognition",
+			"condition_list" : "",
+			"result_name":"Result_ContentsStart",
+			"settings" : {
+				"action" : "CLICK",
+				"end_condition" : "OK",
+				"end_action" : "END_CONTINUE",
+				"execute_number" : 1,
+				"retry_number" : 2,
+				"image_path" : "../Images/houchi/1480_event/0007_next/*.png",
+				"start_retry_time" : 0.5,
+				"interval_time" : 0.5,
+				"recognition_confidence" : 0.93,
+				"recognition_gray_scale" : true,
+				"log_file_path_list": "../Log/log_recognition.json",
+				"log_function":true,"log_print_standard_output": true
+			}
+		},
+		{
+			"name" : "Growth",
+			"type" : "RunPlanLists",
+			"condition_list" : "Result_ContentsStart.detail=OK,Result_ContentsStart.detail = ALL_OK",
+			"result_name":"",
+			"settings" : {
+				"file_path"  : "../Setting/RunHouchiChild.json",
+				"plan_lists" : [
+					"Growth","BattleClick","ItemEventClick"
+				]
+			}
+		},
+		{
+			"name" : "EventPlay08Click08",
+			"type" : "Recognition",
+			"condition_list" : "",
+			"result_name":"",
+			"settings" : {
+				"action" : "CLICK",
+				"end_condition" : "OK",
+				"end_action" : "END_CONTINUE",
+				"execute_number" : 1,
+				"retry_number" : 2,
+				"image_path" : "../Images/houchi/1480_event/0008_loopend/*.png",
+				"start_retry_time" : 0.5,
+				"interval_time" : 0.5,
+				"recognition_confidence" : 0.93,
+				"recognition_gray_scale" : true,
+				"log_file_path_list": "../Log/log_recognition.json",
+				"log_function":true,"log_print_standard_output": true
+			}
+		}
+	],
+
+	"EventPlay09":
+	[
+		{
+			"name" : "ZikaiStart",
+			"type" : "Recognition",
+			"condition_list" : "",
+			"result_name":"Result_ContentsStart",
+			"settings" : {
+				"action" : "DOUBLE_CLICK",
+				"end_condition" : "OK",
+				"end_action" : "FOLDER_END_BREAK",
+				"execute_number" : 1,
+				"retry_number" : 0,
+				"image_path" : "../Images/houchi/1490_event/0000_start/*.png",
+				"interval_time" : 0.5,
+				"recognition_confidence" : 0.93,
+				"recognition_gray_scale" : true,
+				"log_file_path_list": "../Log/log_recognition.json",
+				"log_function":true,"log_print_standard_output": true
+			}
+		},
+		{
+			"name" : "Zikai",
+			"type" : "Recognition",
+			"condition_list" : "",
+			"result_name":"",
+			"settings" : {
+				"action" : "DOUBLE_CLICK",
+				"end_condition" : "OK",
+				"end_action" : "FOLDER_END_BREAK",
+				"execute_number" : 1,
+				"retry_number" : 1,
+				"image_path" : "../Images/houchi/1490_event/0002_execute/*.png",
+				"start_retry_time" : 0.5,
+				"interval_time" : 0.8,
+				"recognition_confidence" : 0.93,
+				"recognition_gray_scale" : true,
+				"log_file_path_list": "../Log/log_recognition.json",
+				"log_function":true,"log_print_standard_output": true
+			}
+		},
+		{
+			"name" : "Zikai",
+			"type" : "Recognition",
+			"condition_list" : "Result_ContentsStart.detail = OK,Result_ContentsStart.detail = ALL_OK",
+			"result_name":"Flag_Check",
+			"settings" : {
+				"action" : "DOUBLE_CLICK",
+				"end_condition" : "OK",
+				"end_action" : "FOLDER_END_BREAK",
+				"execute_number" : 1,
+				"retry_number" : 1,
+				"image_path" : "../Images/houchi/1490_event/0003_check/*.png",
+				"start_retry_time" : 0.5,
+				"interval_time" : 0.8,
+				"recognition_confidence" : 1,
+				"recognition_gray_scale" : false,
+				"log_file_path_list": "../Log/log_recognition.json",
+				"log_function":true,"log_print_standard_output": true
+			}
+		},
+		{
+			"name" : "Zikai",
+			"type" : "Recognition",
+			"condition_list" : "Flag_Check.detail = OK,Flag_Check.detail = ALL_OK",
+			"result_name":"",
+			"settings" : {
+				"action" : "CLICK",
+				"end_condition" : "OK",
+				"end_action" : "END_CONTINUE",
+				"execute_number" : 1,
+				"retry_number" : 1,
+				"image_path" : "../Images/houchi/1490_event/0005_execute/*.png",
+				"start_retry_time" : 0.5,
+				"interval_time" : 0.8,
+				"recognition_confidence" : 0.93,
+				"recognition_gray_scale" : true,
+				"log_file_path_list": "../Log/log_recognition.json",
+				"log_function":true,"log_print_standard_output": true
+			}
+		},
+		{
+			"name" : "ZikaiClick11",
+			"type" : "Recognition",
+			"condition_list" : "Flag_Check.detail = OK,Flag_Check.detail = ALL_OK",
+			"result_name":"Result_ContentsStart",
+			"settings" : {
+				"action" : "DOUBLE_CLICK",
+				"end_condition" : "OK",
+				"end_action" : "END_CONTINUE",
+				"execute_number" : 1,
+				"retry_number" : 0,
+				"image_path" : "../Images/houchi/1490_event/0010_start/*.png",
+				"interval_time" : 1,
+				"recognition_confidence" : 0.93,
+				"recognition_gray_scale" : false,
+				"log_file_path_list": "../Log/log_recognition.json",
+				"log_function":true,"log_print_standard_output": true
+			}
+		},
+		{
+			"name" : "ZikaiClick13",
+			"type" : "Recognition",
+			"condition_list" : "Result_ContentsStart.detail = OK,Result_ContentsStart.detail = ALL_OK",
+			"result_name":"",
+			"settings" : {
+				"action" : "CLICK",
+				"end_condition" : "NG",
+				"end_action" : "END_CONTINUE",
+				"execute_number" : 1,
+				"retry_number" : 5,
+				"image_path" : "../Images/houchi/1490_event/0015_execute/*.png",
+				"start_retry_time" : 0.5,
+				"interval_time" : 1,
+				"recognition_confidence" : 0.93,
+				"recognition_gray_scale" : false,
+				"log_file_path_list": "../Log/log_recognition.json",
+				"log_function":false,"log_print_standard_output": true
+			}
+		},
+		{
+			"name" : "ZikaiClick21",
+			"type" : "Recognition",
+			"condition_list" : "Flag_Check.detail = OK,Flag_Check.detail = ALL_OK",
+			"result_name":"Result_ContentsStart",
+			"settings" : {
+				"action" : "DOUBLE_CLICK",
+				"end_condition" : "OK",
+				"end_action" : "END_CONTINUE",
+				"execute_number" : 1,
+				"retry_number" : 0,
+				"image_path" : "../Images/houchi/1490_event/0020_start/*.png",
+				"interval_time" : 1,
+				"recognition_confidence" : 0.93,
+				"recognition_gray_scale" : false,
+				"log_file_path_list": "../Log/log_recognition.json",
+				"log_function":true,"log_print_standard_output": true
+			}
+		},
+		{
+			"name" : "ZikaiClick23",
+			"type" : "Recognition",
+			"condition_list" : "Result_ContentsStart.detail = OK,Result_ContentsStart.detail = ALL_OK",
+			"result_name":"",
+			"settings" : {
+				"action" : "CLICK",
+				"end_condition" : "OK",
+				"end_action" : "END_CONTINUE",
+				"execute_number" : 2,
+				"retry_number" : 0,
+				"image_path" : "../Images/houchi/1490_event/0025_execute/*.png",
+				"start_retry_time" : 0.5,
+				"interval_time" : 1,
+				"recognition_confidence" : 0.93,
+				"recognition_gray_scale" : false,
+				"log_file_path_list": "../Log/log_recognition.json",
+				"log_function":false,"log_print_standard_output": true
+			}
+		},
+
+
+		{
+			"name" : "ZikaiEnd",
+			"type" : "Recognition",
+			"condition_list" : "Result_ContentsStart.detail = OK,Result_ContentsStart.detail = ALL_OK",
+			"result_name":"",
+			"settings" : {
+				"action" : "CLICK",
+				"end_condition" : "NG",
+				"end_action" : "END_CONTINUE",
+				"execute_number" : 1,
+				"retry_number" : 2,
+				"image_path" : "../Images/houchi/1490_event/0019_end/*.png",
+				"start_retry_time" : 0.5,
+				"interval_time" : 1,
+				"recognition_confidence" : 0.93,
+				"recognition_gray_scale" : true,
+				"log_file_path_list": "../Log/log_recognition.json",
+				"log_function":true,"log_print_standard_output": true
+			}
+		}
+	],
+	"DairyClick":
+	[
+		{
+			"name" : "Dairy01",
+			"type" : "Recognition",
+			"condition_list" : "",
+			"result_name":"Result_ContentsStart",
+			"settings" : {
+				"action" : "DOUBLE_CLICK",
+				"end_condition" : "OK",
+				"end_action" : "END_CONTINUE",
+				"execute_number" : 1,
+				"retry_number" : 0,
+				"image_path" : "../Images/houchi/1500_dairy/0000_start/*.png",
+				"interval_time" : 0.5,
+				"recognition_confidence" : 0.93,
+				"recognition_gray_scale" : true,
+				"log_file_path_list": "../Log/log_recognition.json",
+				"log_function":true,"log_print_standard_output": true
+			}
+		},
+		{
+			"name" : "Dairy02",
+			"type" : "Recognition",
+			"condition_list" : "Result_ContentsStart.detail = OK,Result_ContentsStart.detail = ALL_OK",
+			"result_name":"",
+			"settings" : {
+				"action" : "CLICK",
+				"end_condition" : "OK",
+				"end_action" : "END_CONTINUE",
+				"execute_number" : 1,
+				"retry_number" : 0,
+				"image_path" : "../Images/houchi/1500_dairy/0005_execute/*.png",
+				"start_retry_time" : 0.5,
+				"interval_time" : 0.8,
+				"recognition_confidence" : 0.93,
+				"recognition_gray_scale" : true,
+				"log_file_path_list": "../Log/log_recognition.json",
+				"log_function":true,"log_print_standard_output": true
+			}
+		},
+		{
+			"name" : "Dairy03",
+			"type" : "Recognition",
+			"condition_list" : "Result_ContentsStart.detail = OK,Result_ContentsStart.detail = ALL_OK",
+			"result_name":"Dairy",
+			"settings" : {
+				"action" : "CLICK",
+				"end_condition" : "OK",
+				"end_action" : "END_CONTINUE",
+				"execute_number" : 1,
+				"retry_number" : 0,
+				"image_path" : "../Images/houchi/1500_dairy/0010_start/*.png",
+				"start_retry_time" : 0.5,
+				"interval_time" : 0.8,
+				"recognition_confidence" : 0.93,
+				"recognition_gray_scale" : true,
+				"log_file_path_list": "../Log/log_recognition.json",
+				"log_function":true,"log_print_standard_output": true
+			}
+		},
+		{
+			"name" : "Growth",
+			"type" : "RunPlanLists",
+			"condition_list" : "Dairy.detail = OK,Dairy.detail = ALL_OK",
+			"result_name":"",
+			"settings" : {
+				"file_path"  : "../Setting/RunHouchiChild.json",
+				"plan_lists" : [
+					"Growth","BattleClick"
+				]
+			}
+		}
+	],
+
+	"ItemMaintenance":
+	[
+		{
+			"name" : "ItemMaintenance",
+			"type" : "Recognition",
+			"condition_list" : "",
+			"result_name":"Result_ContentsStart",
+			"settings" : {
+				"action" : "CLICK",
+				"end_condition" : "OK",
+				"end_action" : "END_CONTINUE",
+				"execute_number" : 1,
+				"retry_number" : 0,
+				"image_path" : "../Images/houchi/2000_item/0005_execute/*.png",
+				"interval_time" : 0.7,
+				"recognition_confidence" : 0.95,
+				"recognition_gray_scale" : true,
+				"log_file_path_list": "../Log/log_recognition.json",
+				"log_function":true,"log_print_standard_output": true
+			}
+		},
+		{
+			"name" : "HomeClick",
+			"type" : "RunPlanLists",
+			"condition_list" : "",
+			"result_name":"",
+			"settings" : {
+				"file_path"  : "../Setting/RunHouchiChild.json",
+					"plan_lists" : [
+					"ReturnHome"
+				]
+			}
+		},
+		{
+			"name" : "ItemMaintenance",
+			"type" : "Recognition",
+			"condition_list" : "",
+			"result_name":"Result_ContentsStart",
+			"settings" : {
+				"action" : "CLICK",
+				"end_condition" : "OK",
+				"end_action" : "END_CONTINUE",
+				"execute_number" : 1,
+				"retry_number" : 2,
+				"image_path" : "../Images/houchi/2000_item/0010_start/*.png",
+				"interval_time" : 0.7,
+				"recognition_confidence" : 0.93,
+				"recognition_gray_scale" : true,
+				"log_file_path_list": "../Log/log_recognition.json",
+				"log_function":true,"log_print_standard_output": true
+			}
+		},
+		{
+			"name" : "ItemMaintenance",
+			"type" : "Recognition",
+			"condition_list" : "Result_ContentsStart.detail = OK,Result_ContentsStart.detail = ALL_OK",
+			"result_name":"Result_ContentsStart",
+			"settings" : {
+				"action" : "CLICK",
+				"end_condition" : "OK",
+				"end_action" : "END_CONTINUE",
+				"execute_number" : 1,
+				"retry_number" : 0,
+				"image_path" : "../Images/houchi/2000_item/0015_execute/*.png",
+				"interval_time" : 0.7,
+				"recognition_confidence" : 0.93,
+				"recognition_gray_scale" : true,
+				"log_file_path_list": "../Log/log_recognition.json",
+				"log_function":true,"log_print_standard_output": true
+			}
+		}
+	],
+	"Growth":{
+		"name" : "Growth",
 		"type" : "RunPlanLists",
 		"condition_list" : "",
-		"result_name" : "",
+		"result_name":"",
 		"settings" : {
-			"file_path" : "../Setting/RunHouchiChild.json",
-			"loop_condition":true,
-			"terminate_condition":["Flag_Terminate.detail = OK,Flag_Terminate.detail = ALL_OK"],
-			"delete_condition_after_terminate":["Flag_Terminate"],
-			"loop_limit_count":5,
-			"log_function" : true,"log_print_standard_output" : true,"log_file_path_list" : "../Log/log_all.json",
-			"#step_check_mode" : true,
-			  "plan_lists" : [
-				"HomeClickSequence"
+			"file_path"  : "../Setting/Run_HouchiFunction.json",
+			"plan_lists" : [
+				"CharacterDisplay","GrowthClick"
 			]
 		}
-	}
-],
-"HomeClickSequence":
-[
-	{
-		"name" : "HomeClick",
-		"type" : "Recognition",
-		"result_name":"Flag_Terminate",
+	},
+
+
+	"BattleClick":
+	[
+		{
+			"name" : "BattleClick",
+			"type" : "Recognition",
+			"condition_list" : "",
+			"result_name":"Result_ContentsStart",
+			"settings" : {
+				"action" : "DOUBLE_CLICK",
+				"end_condition" : "OK",
+				"end_action" : "END_CONTINUE",
+				"execute_number" : 1,
+				"retry_number" : 2,
+				"image_path" : "../Images/houchi/1910_battle/*.png",
+				"interval_time" : 0.8,
+				"recognition_confidence" : 0.93,
+				"recognition_gray_scale" : true,
+				"log_file_path_list": "../Log/log_recognition.json",
+				"log_function":true,"log_print_standard_output": true
+			}
+		},
+		{
+			"name" : "BattleContents",
+			"type" : "RunPlanLists",
+			"condition_list" : "",
+			"result_name":"",
+			"settings" : {
+				"file_path"  : "../Setting/Run_HouchiFunction.json",
+				"plan_lists" : [
+					"Battle"
+				]
+			}
+		},
+		{
+			"name" : "ItemError",
+			"type" : "Recognition",
+			"condition_list" : "",
+			"result_name":"ItemError_Click",
+			"settings" : {
+				"action" : "CLICK",
+				"end_condition" : "OK",
+				"end_action" : "END_CONTINUE",
+				"execute_number" : 1,
+				"retry_number" : 2,
+				"image_path" : "../Images/houchi/1910_battle/0006error/*.png",
+				"interval_time" : 0.8,
+				"recognition_confidence" : 0.93,
+				"recognition_gray_scale" : true,
+				"log_file_path_list": "../Log/log_recognition.json",
+				"log_function":true,"log_print_standard_output": true
+			}
+		},
+		{
+			"name" : "Item",
+			"type" : "RunPlanLists",
+			"condition_list" : "ItemError_Click.detail = OK,ItemError_Click.detail = ALL_OK",
+			"result_name":"",
+			"settings" : {
+				"file_path"  : "../Setting/RunHouchiChild.json",
+				"plan_lists" : [
+					"ItemMaintenance"
+				]
+			}
+		}
+
+	],
+	"ItemEventClick":
+	[
+		{
+			"name" : "Growth",
+			"type" : "Recognition",
+			"condition_list" : "",
+			"result_name":"Result_ContentsStart",
+			"settings" : {
+				"action" : "CLICK",
+				"end_condition" : "OK",
+				"end_action" : "END_CONTINUE",
+				"execute_number" : 1,
+				"retry_number" : 1,
+				"image_path" : "../Images/houchi/2000_item/0020_start/*.png",
+				"interval_time" : 0.8,
+				"recognition_confidence" : 0.93,
+				"recognition_gray_scale" : true,
+				"log_file_path_list": "../Log/log_recognition.json",
+				"log_function":true,"log_print_standard_output": true
+			}
+		},
+		{
+			"name" : "Growth",
+			"type" : "Recognition",
+			"condition_list" : "Result_ContentsStart.detail = OK,Result_ContentsStart.detail = ALL_OK",
+			"result_name":"",
+			"settings" : {
+				"action" : "CLICK",
+				"end_condition" : "OK",
+				"end_action" : "END_CONTINUE",
+				"execute_number" : 1,
+				"retry_number" : 0,
+				"image_path" : "../Images/houchi/2000_item/0025_execute/*.png",
+				"start_retry_time" : 0.5,
+				"interval_time" : 0.8,
+				"recognition_confidence" : 0.93,
+				"recognition_gray_scale" : true,
+				"log_file_path_list": "../Log/log_recognition.json",
+				"log_function":true,"log_print_standard_output": true
+			}
+		}
+	],
+	"Start":
+	[
+		{
+			"name" : "StartClick01",
+			"type" : "Recognition",
+			"condition_list" :"" ,
+			"result_name":"Condition_StartClick",
+			"settings" : {
+				"#step_check_mode" : true,
+				"action" : "CLICK",
+				"end_condition" : "OK",
+				"end_action" : "END_CONTINUE",
+				"execute_number" : 1,
+				"retry_number" : 1,
+				"image_path" : "../Images/houchi/1000_start/Click0*.png",
+				"start_retry_time" : 3,
+				"interval_time" : 2,
+				"recognition_confidence" : 0.93,
+				"recognition_gray_scale" : true,
+				"log_file_path_list": ["../Log/log_recognition.json","../Log/log_all.json"],
+				"log_function":true,"log_print_standard_output": true
+			}
+		},
+		"ReturnClick",
+		"ReturnHome",
+		{
+			"name": "Check_Judge",
+			"result_name": "Condition_Start",
+			"type": "Judge",
+			"settings": {
+				"condition_list": "",
+				"loop_limit_count":2,
+				"loop_condition":"Flag_Home.detail = NG",
+				"terminate_condition":"Flag_Home.detail = ALL_OK,Flag_Home.detail = OK",
+				"terminate_and_delete_condition":["Flag_Home"],
+				"log_file_path_list": "../Log/log_all.json",
+				"log_function":true,"log_print_standard_output": true
+			}
+		}
+
+	],
+	"TimeEventClick":
+	[
+		{
+			"name" : "TimeCheck_TimeEvent02",
+		"type" : "RunPlanLists",
+		"condition_list" : "",
+		"result_name":"",
 		"settings" : {
-			"action" : "DOUBLE_CLICK",
-			"end_condition" : "OK",
-			"end_action" : "END_BREAK",
-			"execute_number" : 1,
-			"retry_number" : 0,
-			"image_path" : "../Images/houchi/1011_home/*.png",
-			"interval_time" : 0.1,
-			"recognition_confidence" : 0.95,
-			"recognition_gray_scale" : true,
-			"log_file_path_list": "../Log/log_recognition.json",
-			"log_function":false,"log_print_standard_output": true
+			"file_path"  : "../Setting/RunHouchiChild.json",
+			"#step_check_mode" : true,
+				"plan_lists" : [
+				"TimeCheck_TimeEvent02"
+			]
 		}
 	},
 	{
-		"name" : "ReturnClick",
-		"type" : "Recognition",
-		"condition_list" :"Flag_Terminate.detail = NG",
-		"result_name":"",
-		"settings" : {
-			"action" : "DOUBLE_CLICK",
-			"end_condition" : "OK",
-			"end_action" : "FOLDER_END_BREAK",
-			"execute_number" : 1,
-			"retry_number" : 0,
-			"image_path" : "../Images/houchi/1010_Return/*.png",
-			"interval_time" : 0.3,
-			"recognition_confidence" : 0.95,
-			"recognition_gray_scale" : true,
-			"log_file_path_list": "../Log/log_recognition.json",
-			"log_function":true,"log_print_standard_output": true
-		}
-	}
-],
+			"name" : "TimeEvent02",
+			"type" : "RunPlanLists",
+			"condition_list" : ["TimeCheck_TimeEvent02 = true","Condition_TimeEvent.detail = OK,Condition_TimeEvent.detail = ALL_OK"],
+			"result_name":"",
+			"settings" : {
+				"file_path"  : "../Setting/RunHouchiChild.json",
+				"#step_check_mode" : true,
+				"plan_lists" : [
+					"TimeEvent02Click"
+				]
+			}
+		},
 
-"ReturnHomeIfContentsStart" : 
-[
-	{
-		 "name" : "HomeClick_Loop",
-		"type" : "RunPlanLists",
-		"condition_list" : "Result_ContentsStart.detail = OK,Result_ContentsStart.detail = ALL_OK",
-		"result_name" : "",
-		"settings" : {
-			"file_path" : "../Setting/RunHouchiChild.json",
-			"loop_condition":true,
-			"terminate_condition":["Flag_Terminate.detail = OK,Flag_Terminate.detail = ALL_OK"],
-			"delete_condition_after_terminate":["Flag_Terminate"],
-			"loop_limit_count":3,
-			"log_function" : true,"log_print_standard_output" : true,"log_file_path_list" : "../Log/log_all.json",
-			"#step_check_mode" : true,
-			  "plan_lists" : [
-				"HomeClickSequence"
-			]
+		{
+			"name" : "TimeEventClick1",
+			"type" : "Recognition",
+			"result_name":"Condition_TimeEvent",
+			"settings" : {
+				"action" : "CLICK",
+				"end_condition" : "OK",
+				"end_action" : "END_CONTINUE",
+				"execute_number" : 2,
+				"retry_number" : 2,
+				"image_path" : "../Images/houchi/1650_timeevent/0010_start/*.png",
+				"interval_time" : 0.5,
+				"recognition_confidence" : 0.95,
+				"recognition_gray_scale" : true,
+				"log_file_path_list": "../Log/log_recognition.json",
+				"log_function":true,"log_print_standard_output": true
+			}
+		},
+		{
+			"name" : "TimeEventClick2",
+			"type" : "Recognition",
+			"condition_list" : "Condition_TimeEvent.detail = OK,Condition_TimeEvent.detail = ALL_OK",
+			"result_name":"",
+			"settings" : {
+				"action" : "CLICK",
+				"end_condition" : "OK",
+				"end_action" : "END_CONTINUE",
+				"execute_number" : 1,
+				"retry_number" : 1,
+				"image_path" : "../Images/houchi/1650_timeevent/0015_execute/*.png",
+				"start_retry_time" : 0.5,
+				"interval_time" : 0.5,
+				"recognition_confidence" : 0.95,
+				"recognition_gray_scale" : true,
+				"log_file_path_list": "../Log/log_recognition.json",
+				"log_function":true,"log_print_standard_output": true
+			}
 		}
-	}
-],
+	],
+	"TimeEvent02Click":
+	[
+		{
+			"name" : "HimeClick",
+			"type" : "Recognition",
+			"condition_list" : "",
+			"result_name":"Result_TimeEvent02Click",
+			"settings" : {
+				"action" : "CLICK",
+				"end_condition" : "OK",
+				"end_action" : "END_CONTINUE",
+				"execute_number" : 1,
+				"retry_number" : 1,
+				"image_path" : "../Images/houchi/1650_timeevent/0000_start/*.png",
+				"interval_time" : 0.5,
+				"recognition_confidence" : 0.95,
+				"recognition_gray_scale" : true,
+				"log_file_path_list": "../Log/log_recognition.json",
+				"log_function":true,"log_print_standard_output": true
+			}
+		},
+		{
+			"name" : "HimeClick",
+			"type" : "Recognition",
+			"condition_list" : "Result_TimeEvent02Click.detail = OK,Result_TimeEvent02Click.detail = ALL_OK",
+			"result_name":"",
+			"settings" : {
+				"action" : "CLICK",
+				"end_condition" : "OK",
+				"end_action" : "END_CONTINUE",
+				"execute_number" : 1,
+				"retry_number" : 1,
+				"image_path" : "../Images/houchi/1650_timeevent/0005_execute/*.png",
+				"start_retry_time" : 0.5,
+				"interval_time" : 0.5,
+				"recognition_confidence" : 0.95,
+				"recognition_gray_scale" : true,
+				"log_file_path_list": "../Log/log_recognition.json",
+				"log_function":true,"log_print_standard_output": true
+			}
+		}
 
-"CloseWindow":
-[
-	{
-		"name" : "CloseWindow",
-		"type" : "Recognition",
-		"result_name":"",
-		"settings" : {
-			"action" : "CLICK",
-			"end_condition" : "OK",
-			"end_action" : "END_CONTINUE",
-			"execute_number" : 2,
-			"retry_number" : 2,
-			"image_path" : "../Images/image_end/*.png",
-			"interval_time" : 1.8,
-			"recognition_confidence" : 0.95,
-			"recognition_gray_scale" : true,
-			"log_file_path_list": "../Log/log_recognition.json",
-			"log_function":true,"log_print_standard_output": true
+	],
+	"InformationClick":
+	[
+		{
+			"name" : "InformationClick01",
+			"type" : "Recognition",
+			"condition_list" : "",
+			"result_name":"Result_ContentsStart",
+			"settings" : {
+				"action" : "DOUBLE_CLICK",
+				"end_condition" : "OK",
+				"end_action" : "FOLDER_END_BREAK",
+				"execute_number" : 1,
+				"retry_number" : 0,
+				"image_path" : "../Images/houchi/1200_information/0000_start/*.png",
+				"interval_time" : 0.5,
+				"recognition_confidence" : 0.93,
+				"recognition_gray_scale" : true,
+				"log_file_path_list": "../Log/log_recognition.json",
+				"log_function":true,"log_print_standard_output": true
+			}
+		},
+		{
+			"name" : "InformationClick02",
+			"type" : "Recognition",
+			"condition_list" : "Result_ContentsStart.detail = OK,Result_ContentsStart.detail = ALL_OK",
+			"result_name":"Result_ContentsStart",
+			"settings" : {
+				"action" : "DOUBLE_CLICK",
+				"end_condition" : "OK",
+				"end_action" : "FOLDER_END_BREAK",
+				"execute_number" : 1,
+				"retry_number" : 3,
+				"image_path" : "../Images/houchi/1200_information/0003_check/*.png",
+				"start_retry_time" : 0.5,
+				"interval_time" : 0.5,
+				"recognition_confidence" : 0.93,
+				"recognition_gray_scale" : true,
+				"log_file_path_list": "../Log/log_recognition.json",
+				"log_function":true,"log_print_standard_output": true
+			}
+		},
+		{
+			"name" : "InformationClick03",
+			"type" : "Recognition",
+			"condition_list" : "Result_ContentsStart.detail = OK,Result_ContentsStart.detail = ALL_OK",
+			"result_name":"Result_ContentsStart",
+			"settings" : {
+				"action" : "DOUBLE_CLICK",
+				"end_condition" : "OK",
+				"end_action" : "FOLDER_END_BREAK",
+				"execute_number" : 1,
+				"retry_number" : 3,
+				"image_path" : "../Images/houchi/1200_information/0005_execute/*.png",
+				"start_retry_time" : 0.5,
+				"interval_time" : 0.2,
+				"recognition_confidence" : 0.93,
+				"recognition_gray_scale" : true,
+				"log_file_path_list": "../Log/log_recognition.json",
+				"log_function":true,"log_print_standard_output": true
+			}
 		}
-	}
-]
+	],
+	"ReturnClick":
+	[
+		{
+			"name" : "ReturnClick",
+			"type" : "Recognition",
+			"result_name":"",
+			"settings" : {
+				"action" : "DOUBLE_CLICK",
+				"end_condition" : "OK",
+				"end_action" : "FOLDER_END_BREAK",
+				"execute_number" : 1,
+				"retry_number" : 0,
+				"image_path" : "../Images/houchi/1010_Return/*.png",
+				"interval_time" : 0.2,
+				"recognition_confidence" : 0.95,
+				"recognition_gray_scale" : true,
+				"log_file_path_list": "../Log/log_recognition.json",
+				"log_function":true,"log_print_standard_output": true
+			}
+		}
+	],
+	"ReturnHome" : 
+	[
+		{
+			"name" : "HomeClick_Loop",
+			"type" : "RunPlanLists",
+			"condition_list" : "",
+			"result_name" : "",
+			"settings" : {
+				"file_path" : "../Setting/RunHouchiChild.json",
+				"loop_condition":true,
+				"terminate_condition":["Flag_Terminate.detail = OK,Flag_Terminate.detail = ALL_OK"],
+				"terminate_and_delete_condition":["Flag_Terminate"],
+				"loop_limit_count":5,
+				"log_function" : true,"log_print_standard_output" : true,"log_file_path_list" : "../Log/log_all.json",
+				"#step_check_mode" : true,
+				"plan_lists" : [
+					"HomeClickSequence"
+				]
+			}
+		}
+	],
+	"HomeClickSequence":
+	[
+		{
+			"name" : "HomeClick",
+			"type" : "Recognition",
+			"result_name":"Flag_Terminate",
+			"settings" : {
+				"action" : "DOUBLE_CLICK",
+				"end_condition" : "OK",
+				"end_action" : "END_BREAK",
+				"execute_number" : 1,
+				"retry_number" : 0,
+				"image_path" : "../Images/houchi/1011_home/*.png",
+				"interval_time" : 0.1,
+				"recognition_confidence" : 0.95,
+				"recognition_gray_scale" : true,
+				"log_file_path_list": "../Log/log_recognition.json",
+				"log_function":false,"log_print_standard_output": true
+			}
+		},
+		{
+			"name" : "ReturnClick",
+			"type" : "Recognition",
+			"condition_list" :"Flag_Terminate.detail = NG",
+			"result_name":"",
+			"settings" : {
+				"action" : "DOUBLE_CLICK",
+				"end_condition" : "OK",
+				"end_action" : "FOLDER_END_BREAK",
+				"execute_number" : 1,
+				"retry_number" : 0,
+				"image_path" : "../Images/houchi/1010_Return/*.png",
+				"interval_time" : 0.3,
+				"recognition_confidence" : 0.95,
+				"recognition_gray_scale" : true,
+				"log_file_path_list": "../Log/log_recognition.json",
+				"log_function":true,"log_print_standard_output": true
+			}
+		}
+	],
+
+	"ReturnHomeIfContentsStart" : 
+	[
+		{
+			"name" : "HomeClick_Loop",
+			"type" : "RunPlanLists",
+			"condition_list" : "Result_ContentsStart.detail = OK,Result_ContentsStart.detail = ALL_OK",
+			"result_name" : "",
+			"settings" : {
+				"file_path" : "../Setting/RunHouchiChild.json",
+				"loop_condition":true,
+				"terminate_condition":["Flag_Terminate.detail = OK,Flag_Terminate.detail = ALL_OK"],
+				"terminate_and_delete_condition":["Flag_Terminate"],
+				"loop_limit_count":3,
+				"log_function" : true,"log_print_standard_output" : true,"log_file_path_list" : "../Log/log_all.json",
+				"#step_check_mode" : true,
+				"plan_lists" : [
+					"HomeClickSequence"
+				]
+			}
+		}
+	],
+
+	"CloseWindow":
+	[
+		{
+			"name" : "CloseWindow",
+			"type" : "Recognition",
+			"result_name":"",
+			"settings" : {
+				"action" : "CLICK",
+				"end_condition" : "OK",
+				"end_action" : "END_CONTINUE",
+				"execute_number" : 2,
+				"retry_number" : 2,
+				"image_path" : "../Images/image_end/*.png",
+				"interval_time" : 1.8,
+				"recognition_confidence" : 0.95,
+				"recognition_gray_scale" : true,
+				"log_file_path_list": "../Log/log_recognition.json",
+				"log_function":true,"log_print_standard_output": true
+			}
+		}
+	]
 }

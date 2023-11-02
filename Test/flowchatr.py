@@ -7,7 +7,7 @@ def on_node_click(event):
     if node_id in nodes:
         current_node = node_id
         update_status_label(node_id)
-        process_flowchart()
+        process_Graph()
 
 def update_status_label(node_id):
     status_label.config(text=f"Current Node: {node_data[node_id]['label']}")
@@ -17,15 +17,15 @@ def create_arrow(canvas, start_node, end_node):
     x3, y3, x4, y4 = canvas.coords(end_node)
     return canvas.create_line(x1, y1, x3, y3, arrow=tk.LAST)
 
-def process_flowchart():
+def process_Graph():
     global current_node
     for arrow in arrows:
         canvas.itemconfig(arrow, fill="black")
 
-    for flow in flow_data:
-        if flow["start"] == node_data[current_node]["id"]:
-            if flow["condition"]:
-                target_node = flow["end"]
+    for edge in edge_data:
+        if edge["start"] == node_data[current_node]["id"]:
+            if edge["condition"]:
+                target_node = edge["end"]
                 break
 
     for arrow in arrows:
@@ -40,15 +40,15 @@ def process_flowchart():
             current_node = target_node
             update_status_label(target_node)
 
-def auto_layout(nodes_data, flows):
+def auto_layout(nodes_data, edges):
     node_positions = {}
     node_counts = {}
     vertical_spacing = 100
     horizontal_spacing = 150
 
-    for flow in flows:
-        node_counts[flow["start"]] = node_counts.get(flow["start"], 0) + 1
-        node_counts[flow["end"]] = node_counts.get(flow["end"], 0)
+    for edge in edges:
+        node_counts[edge["start"]] = node_counts.get(edge["start"], 0) + 1
+        node_counts[edge["end"]] = node_counts.get(edge["end"], 0)
 
     for node in nodes_data:
         node_id = node["id"]
@@ -60,7 +60,7 @@ def auto_layout(nodes_data, flows):
     return node_positions
 
 root = tk.Tk()
-root.title("Flowchart GUI")
+root.title("Graph GUI")
 
 canvas = tk.Canvas(root, width=800, height=600)
 canvas.pack()
@@ -70,17 +70,17 @@ nodes = {}
 node_data = {}
 arrows = []
 arrow_data = {}
-flow_data = []
+edge_data = []
 node_id_to_canvas_id = {}
 
 # Load data from JSON file
 with open("flowchart.json", "r") as json_file:
     data = json.load(json_file)
     nodes_data = data["nodes"]
-    flow_data = data["flows"]
+    edge_data = data["edges"]
 
 # Auto-layout nodes
-node_positions = auto_layout(nodes_data, flow_data)
+node_positions = auto_layout(nodes_data, edge_data)
 
 # Create nodes
 for node_info in nodes_data:
@@ -92,9 +92,9 @@ for node_info in nodes_data:
     node_id_to_canvas_id[node_id] = node
 
 # Create arrows (connections)
-for flow in flow_data:
-    start_node_id = flow["start"]
-    end_node_id = flow["end"]
+for edge in edge_data:
+    start_node_id = edge["start"]
+    end_node_id = edge["end"]
     start_node = node_id_to_canvas_id[start_node_id]
     end_node = node_id_to_canvas_id[end_node_id]
     arrow = create_arrow(canvas, start_node, end_node)

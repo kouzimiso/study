@@ -1,28 +1,35 @@
-{ 
+{
     "nodes": [
         {
             "id": "A",
-            "name": "ノードA",
-            "setting": {"x": 1, "y": 2}
-        },
-        {
-            "id": "B",
             "name": "ノードA",
             "plan_list": [
                 {
                     "name": "step1",
                     "type": "image_read",
                     "settings": {"file_path": "a.png"}
+                },
+                {
+                    "name": "step2",
+                    "type": "RunPlayList",
+                    "settings": {"target_node": "B", "condition": "condition1"}
                 }
             ]
         },
         {
-            "id": "E",
-            "name": "ノードE"
-        },
-        {
-            "id": "F",
-            "name": "ノードF"
+            "id": "B",
+            "name": "ノードB",
+            "plan_list": [
+                {
+                    "name": "step3",
+                    "type": "type1"
+                },
+                {
+                    "name": "step4",
+                    "type": "RunPlayList",
+                    "settings": {"target_node": "C", "condition": "condition2"}
+                }
+            ]
         },
         {
             "id": "C",
@@ -31,14 +38,6 @@
         {
             "id": "D",
             "name": "ノードD"
-        },
-        {
-            "id": "E'",
-            "name": "ノードE'"
-        },
-        {
-            "id": "F'",
-            "name": "ノードF'"
         }
     ],
     "edges": [

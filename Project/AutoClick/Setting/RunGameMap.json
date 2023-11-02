@@ -1,0 +1,289 @@
+{
+	"Begin": [
+		{
+			"name": "StartTask",
+			"type": "RunPlanLists",
+			"settings": {
+				"file_path": "",
+				"plan_lists": [
+					"HotSpotON",
+					"Capture",
+					"Houchi",
+					"Mementomori",
+					"Reboot"
+				]
+			},
+			"flow": [
+				{
+					"Capture": [
+						{
+							"name": "ExecuteFileControl",
+							"type": "ExecuteProgram",
+							"result_name": "",
+							"condition_list": "",
+							"settings": {
+								"program_path": "../Resources/FileControl.exe",
+								"file_path": "../Images/capture/capture.png",
+								"file_maxsize": 100,
+								"archivefolder_path": "../Images/capture",
+								"folder_maxsize": 1048576,
+								"files_maxnumber": 5,
+								"log_print_standard_output": true,
+								"log_function": true,
+								"log_file_path_list": "../Log/log_ExecuteProgram.json",
+								"step_check_mode": false,
+								"step_check_comment": ""
+							},
+							"flow": [
+								{
+									"name": "ExecuteCamera",
+									"type": "ExecuteProgram",
+									"result_name": "",
+									"condition_list": "",
+									"settings": {
+										"program_path": "../Resources/Camera.exe",
+										"file_path": "../Images/capture/capture.png",
+										"log_print_standard_output": true,
+										"log_function": true,
+										"log_file_path_list": "../Log/log_ExecuteProgram.json",
+										"step_check_mode": false,
+										"step_check_comment": ""
+									}
+								},
+								{
+									"name": "ExecuteCamera",
+									"type": "ExecuteProgram",
+									"result_name": "",
+									"condition_list": "",
+									"settings": {
+										"program_path": "../Resources/Camera.exe",
+										"file_path": "../Images/capture/capture.png",
+										"log_print_standard_output": true,
+										"log_function": true,
+										"log_file_path_list": "../Log/log_ExecuteProgram.json",
+										"step_check_mode": false,
+										"step_check_comment": ""
+									}
+								}
+							]
+						}
+					]
+					},
+					{
+					"Houchi": [
+						{
+							"name": "PlanStart",
+							"type": "RunPlanLists",
+							"flow": {
+								"PlanStart": {}
+							},
+							"settings": {
+								"file_path": "../Setting/RunHouchi.json",
+								"plan_lists": [
+									"PlanStart"
+								],
+								"#step_check_mode": true
+							}
+						}
+					]
+				},{
+					"DarkTails": [
+						{
+							"name": "PlanStart",
+							"type": "RunPlanLists",
+							"settings": {
+								"file_path": "../Setting/RunDarkTails.json",
+								"plan_lists": [
+									"PlanStart"
+								],
+								"#step_check_mode": true
+							}
+						}
+					
+					]
+				}
+
+			]
+		}
+	],
+	"flow":[					
+		{
+			"plan_list":"Capture",
+			"name": "ExecuteFileControl",
+			"type": "ExecuteProgram",
+			"result_name": "",
+			"condition_list": "",
+			"settings": {
+				"program_path": "../Resources/FileControl.exe",
+				"file_path": "../Images/capture/capture.png",
+				"file_maxsize": 100,
+				"archivefolder_path": "../Images/capture",
+				"folder_maxsize": 1048576,
+				"files_maxnumber": 5,
+				"log_print_standard_output": true,
+				"log_function": true,
+				"log_file_path_list": "../Log/log_ExecuteProgram.json",
+				"step_check_mode": false,
+				"step_check_comment": ""
+			}
+		}
+		,
+		{
+			"name": "PlanStart",
+			"type": "RunPlanLists",
+			"flow": [
+				{
+					"plan_list":"Capture",
+						"name": "ExecuteFileControl",
+						"type": "ExecuteProgram",
+						"result_name": "",
+						"condition_list": "",
+						"settings": {
+							"program_path": "../Resources/FileControl.exe",
+							"file_path": "../Images/capture/capture.png",
+							"file_maxsize": 100,
+							"archivefolder_path": "../Images/capture",
+							"folder_maxsize": 1048576,
+							"files_maxnumber": 5,
+							"log_print_standard_output": true,
+							"log_function": true,
+							"log_file_path_list": "../Log/log_ExecuteProgram.json",
+							"step_check_mode": false,
+							"step_check_comment": ""
+						}
+				},
+				{
+					"plan_list":"Capture",
+						"name": "ExecuteFileControl",
+						"type": "ExecuteProgram",
+						"result_name": "",
+						"condition_list": "",
+						"settings": {
+							"program_path": "../Resources/FileControl.exe",
+							"file_path": "../Images/capture/capture.png",
+							"file_maxsize": 100,
+							"archivefolder_path": "../Images/capture",
+							"folder_maxsize": 1048576,
+							"files_maxnumber": 5,
+							"log_print_standard_output": true,
+							"log_function": true,
+							"log_file_path_list": "../Log/log_ExecuteProgram.json",
+							"step_check_mode": false,
+							"step_check_comment": ""
+						}
+				}
+			],
+			"settings": {
+				"file_path": "../Setting/RunHouchi.json",
+				"plan_lists": [
+					"PlanStart"
+				],
+				"#step_check_mode": true
+			}
+		},
+		{
+			"plan_list_name":"DarkTails",
+			"name": "PlanStart",
+			"type": "RunPlanLists",
+			"settings": {
+				"file_path": "../Setting/RunDarkTails.json",
+				"plan_lists": [
+					"PlanStart"
+				],
+				"#step_check_mode": true
+			}
+		}
+	],
+	"flow2":[
+		"1",
+		"2",
+		"3",
+		[
+			"4-1",
+			"4-2",
+			"4-3",
+			[
+				{	
+					"comment01":"flow形式ではtrue flowの場合は全てが正常だった時のシーケンスが並ぶ。",
+					"comment02":"flow形式はRunPlanLists,CopyPlanListが実行済みの状態なので読み出し無しで実行が可能。",
+					"comment03":"",
+					"plan_list_name":"DarkTails",
+					"name": "PlanStart",
+					"type": "RunPlanLists",
+					"settings": {
+						"file_path": "../Setting/RunDarkTails.json",
+						"plan_lists": [
+							"PlanStart"
+						],
+						"#step_check_mode": true
+					},
+					"flow":[
+						
+							{
+								"plan_list_name":"DarkTails",
+								"name": "PlanStart",
+								"type": "RunPlanLists",
+								"flow":[
+						
+									{
+										"plan_list_name":"DarkTails",
+										"name": "PlanStart",
+										"type": "RunPlanLists",
+										"flow":[
+						
+											{
+												"plan_list_name":"DarkTails",
+												"name": "PlanStart",
+												"type": "RunPlanLists",
+												"settings": {
+													"file_path": "../Setting/RunDarkTails.json",
+													"plan_lists": [
+														"PlanStart"
+													],
+													"#step_check_mode": true
+												}
+											}
+				
+									],
+										"settings": {
+											"file_path": "../Setting/RunDarkTails.json",
+											"plan_lists": [
+												"PlanStart"
+											],
+											"#step_check_mode": true
+										}
+									}
+		
+							],
+								"settings": {
+									"file_path": "../Setting/RunDarkTails.json",
+									"plan_lists": [
+										"PlanStart"
+									],
+									"#step_check_mode": true
+								}
+							}
+
+					]
+
+				},
+				{
+					"plan_list_name":"DarkTails",
+					"name": "PlanStart",
+					"type": "RunPlanLists",
+					"settings": {
+						"file_path": "../Setting/RunDarkTails.json",
+						"plan_lists": [
+							"PlanStart"
+						],
+						"#step_check_mode": true
+					}
+				}
+			],
+			"4-5"
+		]
+	]
+}
+	
+
+	

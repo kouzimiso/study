@@ -1,59 +1,26 @@
 {
-	"Start0": 
+	"Begin": 
 	[
 		{
-			"name" : "Execute",
-			"type": "ExecuteProgram",
-			"result_name":"",
-			"condition_list":"",
-			"settings": {
-					"program_path": "../Resources/Camera.exe",
-					"file_path": "../Images/capture/capture.png",
-					"log_print_standard_output": true,"log_function":true,"log_file_path_list": "../Log/log_ExecuteProgram.json",
-					"#step_check_mode" : true,"step_check_comment":""					
+			"name" : "DebugSetting",
+		 	"type" : "ChangeSettings",
+		 	"settings" : {
+				"#step_check_mode" : true,"step_check_comment":"",
+				"log_function" : true,"log_print_standard_output" : true,"log_file_path_list" : "../Log/log_mementmori.json.json",
+				"change_settings" : {
+					"log_print_standard_output" : true
+				}
 			}
 		},
-		{
-			"name" : "Execute",
-			"type": "ExecuteProgram",
-			"result_name":"",
-			"condition_list":"",
-			"settings": {
-					"program_path": "../Resources/FileControl.exe",
-					"file_path":"../Images/capture" ,
-					"file_maxsize": 100,
-					"archivefolder_path": "../Images/capture",
-					"folder_maxsize" : 1048576,
-					"files_maxnumber" : 5,
-					"log_print_standard_output": true,"log_function":true,"log_file_path_list": "../Log/log_ExecuteProgram.json",
-					"#step_check_mode" : true,"step_check_comment":""
-			}
-		},
-		{
-			"name" : "Print",
-			"type": "PrintInformation",
-			"result_name":"",
-			"condition_list":"",
-			"settings": {
-					"file_path": "../Log/capture.png",
-					"log_print_standard_output": true,"log_function":true,"log_file_path_list": "../Log/log_camera.json",
-					"#step_check_mode" : true,"step_check_comment":""
-			}
-		}
-
-	],
-	"Start": 
-	[
-
 		{
 			"name" : "StartTest02",
 		 	"type" : "RunPlanLists",
 		 	"settings" : {
 				"#step_check_mode" : true,"step_check_comment":"",
-				"log_function" : true,"log_print_standard_output" : false,"log_file_path_list" : "../Log/log_houchi.json.json",
+				"log_function" : true,"log_print_standard_output" : true,"log_file_path_list" : "../Log/log_mementmori.json.json",
 				"file_path" : "../Setting/RunMementomori.json",				
 				"plan_lists" : [
-					"MementomoriPlan"
+					"MementomoriPlan","CloseWindow"
 				]
 			}
 		},
@@ -63,7 +30,7 @@
 				"settings" : {
 				"file_path" : "../Setting/RunTest01.json",
 				"plan_lists" : [
-					"Start","Print Test"
+					"Begin"
 				]
 			}
 		},
@@ -76,7 +43,7 @@
 				"file_path" : "../Setting/RunHouchiChild.json",				
 				"plan_lists" : [
 					"SimpleContents",
-					"TimeCheck_SubAccount","HouchiCharacterGrowth"
+					"TimeCheck_SubAccount","GrowthClick"
 				]
 			}
 		},		

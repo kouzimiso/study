@@ -29,7 +29,7 @@
 			]
 		}
 	],
-	"Start": 
+	"Begin": 
 	[
 		{
 			"name" : "StartTask",
@@ -111,7 +111,6 @@
 	 		"settings" : {
 		 		"file_path"  : "../Setting/RunMementomori.json",
 		 		"plan_lists" : [
-					"CloseWindow",
 					"MementomoriPlan"
 				]
 			}

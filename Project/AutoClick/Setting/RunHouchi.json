@@ -363,7 +363,7 @@
 			"type" : "RunPlanLists",
 			
 			"settings" : {
-				"file_path" : "../Setting/RunHouchi.json",
+				"file_path" : "",
 				"log_function" : true,"log_print_standard_output" : true,
 				"log_file_path_list" : ["../Log/log_manage.json","../Log/log_all.json"],
 				"#step_check_mode" : true,
@@ -386,7 +386,7 @@
 			"condition_list" : "",
 			"settings" : {
 				"log_function" : true,"log_print_standard_output" : true,"log_file_path_list" : ["../Log/log_manage.json","../Log/log_all.json"],
-				"step_check_mode" : false,
+				"#step_check_mode" : true,
  		 		"plan_lists" : [
 					"Condition_TimeEvent","TimeEvent",
 					"CloseWindow","Condition_SubAccount","Account00","Waiting","Server01","ContentsStartAndExecuteGroup",
@@ -459,7 +459,7 @@
 				"log_function" : true,"log_print_standard_output" : true,"log_file_path_list" : ["../Log/log_manage.json","../Log/log_all.json"],
 				"#step_check_mode" : true,
  		 		"plan_lists" : [
-					"TimeCheck_TimeEvent01"
+					"TimeCheck_TimeEvent"
 				]
 			}
 		}
@@ -592,7 +592,7 @@
 				"file_path" : "../Setting/RunHouchi.json",
 				"loop_condition":true,
                 "terminate_condition":["Result_WaitEndClick.detail = OK,Result_WaitEndClick.detail = ALL_OK"],
-				"delete_condition_after_terminate":["Flag_Terminate"],
+				"terminate_and_delete_condition":["Flag_Terminate"],
                 "loop_limit_count":20,
 				"log_function" : true,"log_print_standard_output" : true,"log_file_path_list" : ["../Log/log_manage.json","../Log/log_all.json"],
 				"#step_check_mode" : true,

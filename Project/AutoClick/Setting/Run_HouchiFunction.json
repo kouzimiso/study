@@ -219,7 +219,6 @@
 			}
 		}
 	],
-
 	"Battle" : [
 		{
 			"name": "ChangeSettings_Battle",
@@ -260,7 +259,10 @@
 					"ExecuteClick" : {
 						"image_path" : "../Images/houchi/1910_battle/0005_execute/*.png"
 					},
-					"ResultCheck" : {
+					"ExecuteCompleteCheck" : {
+						"image_path" : "../Images/1910_battle/0007_complete/*.png"
+					} ,
+					"ExecuteResultCheck" : {
 						"image_path" : "../Images/houchi/1910_battle/0007_result/*.png"
 					},
 					"ChangeSettingsBasedOnResult" : {
@@ -294,21 +296,6 @@
 				"loop_limit_count":5,
 				"plan_lists" : [
 					"StartSelectExecuteContents"
-				]
-			}
-		}
-	],
-	"Call_ClickAndJudge" : [
-		{
-			"name" : "Call_ClickAndJudge",
-			"type" : "RunPlanLists",
-			"settings" : {
-				"file_path" : "../Setting/TemplateRunApply.json",
-				"loop_condition":false,
-				"terminate_condition":false,
-				"loop_limit_count":1,
-				"plan_lists" : [
-					"ClickAndJudge"
 				]
 			}
 		}

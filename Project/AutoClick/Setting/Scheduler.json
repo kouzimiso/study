@@ -1,5 +1,5 @@
 {
-	"Start": 
+	"Begin": 
 	[
 		{
 			"name" : "StartTask",
@@ -18,7 +18,7 @@
 	"Mementomori" : 
 	[
 		{
-			"name" : "MementmoriPlanStart",
+			"name" : "PlanStart",
 			"type" : "RunPlanLists",
 	 		"settings" : {
 		 		"file_path" : "",

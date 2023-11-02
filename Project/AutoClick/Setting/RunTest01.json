@@ -1,4 +1,42 @@
 {
+    "Begin": [
+        {
+            "comment": "起動開始のPlanはBeginを基本とする。Alphabet順で早いため、自動Sortに有利だから。GameStart等の動作開始のStartとの区別の意味もある",
+            "name": "StartTest",
+            "settings": {
+                "check_result": {
+                    "result": true,
+                    "test": 2
+                },
+                "check_result_ng_stop": true,
+                "file_path": "../Setting/RunTest01.json",
+                "log_file_path_list": "../Log/log_all.json",
+                "log_function": true,
+                "log_print_standard_output": false,
+                "plan_lists": [
+                    "test0",
+                    "test1",
+                    "test2"
+                ]
+            },
+            "type": "RunPlanLists"
+        },
+        {
+            "name": "print_end_test",
+            "settings": {
+                "#step_check_mode": true,
+                "check_result": {
+                    "result": true
+                },
+                "check_result_ng_stop": true,
+                "log_file_path_list": "../Log/log_all.json",
+                "log_function": true,
+                "log_print_standard_output": false,
+                "message": "End test"
+            },
+            "type": "Print"
+        }
+    ],
     "Call_CloseWindowByName": [
         {
             "name": "CloseWindowByName",
@@ -73,86 +111,19 @@
             "type": "Print"
         }
     ],
-    "Start": [
-        {
-            "comment": "起動開始のTaskは参照できるInformationが少ないので基本的にcondition無しになるかも。",
-            "name": "StartTest",
-            "settings": {
-                "check_result": {
-                    "result": true
-                },
-                "check_result_ng_stop": true,
-                "file_path": "../Setting/RunTest01.json",
-                "log_file_path_list": "../Log/log_all.json",
-                "log_function": true,
-                "log_print_standard_output": false,
-                "plan_lists": [
-                    "test0",
-                    "test1",
-                    "test2"
-                ]
-            },
-            "type": "RunPlanLists"
-        },
-        {
-            "name": "print_end_test",
-            "settings": {
-                "#step_check_mode": true,
-                "check_result": {
-                    "result": true
-                },
-                "check_result_ng_stop": true,
-                "log_file_path_list": "../Log/log_all.json",
-                "log_function": true,
-                "log_print_standard_output": false,
-                "message": "End test"
-            },
-            "type": "Print"
-        }
-    ],
-    "SubAccount": [
-        {
-            "condition_list": "",
-            "name": "AccountPlanSub",
-            "settings": {
-                "#step_check_mode": true,
-                "check_result": {
-                    "result": true
-                },
-                "check_result_ng_stop": true,
-                "file_path": "../Setting/RunHouchi.json",
-                "log_file_path_list": [
-                    "../Log/log_manage.json",
-                    "../Log/log_all.json"
-                ],
-                "log_function": true,
-                "log_print_standard_output": true,
-                "plan_lists": [
-                    "CloseWindow",
-                    "Condition_SubAccount",
-                    "Account00",
-                    "CloseWindow",
-                    "Condition_SubAccount",
-                    "Account01"
-                ]
-            },
-            "type": "RunPlanLists"
-        }
-    ],
     "test0": [
         {
-            "comment": "printと繰り返し動作のTest",
             "name": "plan_list_loop",
             "settings": {
                 "check_result": {
-                    "message": "printの繰り返し2回を4回に設定変更する動作のTest",
+                    "message": "printを繰り返し2回する動作のTest",
                     "result": true
                 },
                 "check_result_ng_stop": true,
                 "log_file_path_list": "../Log/log_all.json",
                 "log_function": true,
                 "log_print_standard_output": false,
-                "message": "printの繰り返し2回を4回に設定変更する動作のTest"
+                "message": "printを繰り返し2回する動作のTest"
             },
             "type": "Print"
         },
@@ -163,10 +134,14 @@
             "settings": {
                 "#step_check_mode": true,
                 "check_result": {
-                    "result": true
+                    "file_path": "../Setting/RunTest01.json",
+                    "loop_count": 2,
+                    "loop_limit_count": 2,
+                    "message": "test_printjudgeLoop2/2",
+                    "plan_list_name": "test_print"
                 },
                 "check_result_ng_stop": true,
-                "delete_condition_after_terminate": [
+                "terminate_and_delete_condition": [
                     "Flag_Terminate"
                 ],
                 "file_path": "../Setting/RunTest01.json",
@@ -188,39 +163,52 @@
             "type": "RunPlanLists"
         },
         {
-            "comment": "",
+            "name": "plan_list_loop",
+            "settings": {
+                "check_result": {
+                    "message": "printの繰り返し2回を4回に設定変更する動作のTest",
+                    "result": true
+                },
+                "check_result_ng_stop": true,
+                "log_file_path_list": "../Log/log_all.json",
+                "log_function": true,
+                "log_print_standard_output": false,
+                "message": "printの繰り返し2回を4回に設定変更する動作のTest"
+            },
+            "type": "Print"
+        },
+        {
             "name": "ChangeSettings",
             "settings": {
                 "#step_check_mode": true,
+                "change_settings": {
+                    "#log_file_path_list": [
+                        "../Log/log_all.json",
+                        "../Log/log_test.json"
+                    ],
+                    "#log_print_standard_output": false,
+                    "log_function": true
+                },
                 "change_settings_by_name": {
-                    "Common": {
-                        "#log_file_path_list": [
-                            "../Log/log_all.json",
-                            "../Log/log_test.json"
-                        ],
-                        "#log_print_standard_output": false,
-                        "log_function": true
-                    },
                     "judge_loop": {
                         "loop_limit_count": 4
                     }
                 },
                 "check_result": {
                     "change_settings_by_name": {
-                        "Common": {
-                            "#log_file_path_list": [
-                                "../Log/log_all.json",
-                                "../Log/log_test.json"
-                            ],
-                            "#log_print_standard_output": false,
-                            "log_function": true
-                        },
                         "judge_loop": {
                             "loop_limit_count": 4
                         }
                     },
                     "result": true,
-                    "settings": {}
+                    "settings": {
+                        "#log_file_path_list": [
+                            "../Log/log_all.json",
+                            "../Log/log_test.json"
+                        ],
+                        "#log_print_standard_output": false,
+                        "log_function": true
+                    }
                 },
                 "check_result_ng_stop": true,
                 "reset_settings": true
@@ -235,7 +223,7 @@
                 "check_result": {},
                 "check_result_ng_stop": true,
                 "condition_list": true,
-                "delete_condition_after_terminate": [
+                "terminate_and_delete_condition": [
                     "Flag_Terminate"
                 ],
                 "log_file_path_list": [
@@ -259,10 +247,13 @@
             "settings": {
                 "#step_check_mode": true,
                 "check_result": {
+                    "condition_list": [],
+                    "detail": "Judge result false.(Flag_Terminate = true:False(Flag_Terminate(It is not in the dictionary) = true(True)))",
+                    "level": "INFO",
                     "result": true
                 },
                 "check_result_ng_stop": true,
-                "delete_condition_after_terminate": [
+                "terminate_and_delete_condition": [
                     "Flag_Terminate"
                 ],
                 "log_file_path_list": [
@@ -374,7 +365,14 @@
                         }
                     },
                     "result": true,
-                    "settings": {}
+                    "settings": {
+                        "#log_file_path_list": [
+                            "../Log/log_all.json",
+                            "../Log/log_test.json"
+                        ],
+                        "#log_print_standard_output": false,
+                        "log_function": true
+                    }
                 },
                 "check_result_ng_stop": true,
                 "log_file_path_list": [
@@ -396,15 +394,13 @@
                     "result": true
                 },
                 "check_result_ng_stop": true,
-                "file_path": "../Setting/RunTest01.json",
+                "file_path": "",
                 "log_file_path_list": "../Log/log_houchi.json",
                 "log_function": true,
                 "log_print_standard_output": true,
                 "plan_lists": [
                     "Call_TimeCheck",
-                    "SubAccount",
-                    "CloseWindowByName",
-                    "#Call_CloseWindowByName",
+                    "Call_CloseWindowByName",
                     "Print_PlanListCopy01",
                     "test_print_result_check",
                     "Print_PlanListCopy02",
@@ -426,6 +422,45 @@
                 "message": "End loop test"
             },
             "type": "Print"
+        },
+        {
+            "name": "print_end_test",
+            "settings": {
+                "check_result": {
+                    "result": true
+                },
+                "check_result_ng_stop": true,
+                "log_file_path_list": "../Log/log_all.json",
+                "log_function": true,
+                "log_print_standard_output": false,
+                "message": "End loop test"
+            },
+            "type": "Print"
+        },
+        {
+            "name": "CopyInformationData",
+            "result_name": "result_copy_information",
+            "settings": {
+                "check_result": {
+                    "result": true,"test":""
+                },
+                "check_result_ng_stop": true,
+                "data_name": "Result_datas",
+                "data_structure": {
+                    "Account01": {
+                        "print_data": "",
+                        "result_recognition": ""
+                    },
+                    "Account02": {
+                        "print_data": "",
+                        "result_recognition": ""
+                    }         
+                },
+                "restructure_settings": {
+                    "print_data": "result_print"
+                }
+            },
+            "type": "CopyInformation"
         }
     ],
     "test1": [

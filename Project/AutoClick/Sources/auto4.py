@@ -7,7 +7,7 @@ import Scheduler
 
 # Main Program実行部
 def main():
-    Scheduler.StartUp("Start","../Setting/RunGame.json")
+    Scheduler.StartUp("Begin","../Setting/RunGame.json")
 
 
 if __name__ == "__main__":

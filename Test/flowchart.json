@@ -7,8 +7,8 @@
         {"id": "E", "label": "Node E", "noRepel": false},
         {"id": "F", "label": "Node F", "noRepel": false}
     ],
-    "flows": [
+    "edges": [
         {"source": "A", "target": "B"},
-        {"source": "A", "target": "C"},
+        {"source": "A", "target": "C"}
     ]
 }

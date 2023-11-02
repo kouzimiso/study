@@ -1,5 +1,5 @@
 // フローチャートのデータ
-const flowchartData = {
+const GraphData = {
     "nodes": [
         {"id": "A", "label": "Node A", "noRepel": false},
         {"id": "B", "label": "Node B", "noRepel": false},
@@ -8,7 +8,7 @@ const flowchartData = {
         {"id": "E", "label": "Node E", "noRepel": false},
         {"id": "F", "label": "Node F", "noRepel": false}
     ],
-    "flows": [
+    "edges": [
         {"source": "A", "target": "B"},
         {"source": "A", "target": "C"},
     ]
@@ -21,8 +21,8 @@ document.getElementById("fileInput").addEventListener("change", function (e) {
         const reader = new FileReader();
         reader.onload = function (event) {
             try {
-                flowchartData = JSON.parse(event.target.result);
-                displayFlowchart(flowchartData);
+                GraphData = JSON.parse(event.target.result);
+                displayGraph(GraphData);
             } catch (error) {
                 alert("Invalid JSON format: " + error);
             }
@@ -32,7 +32,7 @@ document.getElementById("fileInput").addEventListener("change", function (e) {
 });
 
 // チャートの表示処理
-function displayFlowchart(data) {
+function displayGraph(data) {
 
 
 // SVG要素の幅と高さを設定
@@ -46,28 +46,28 @@ const simulation = d3.forceSimulation()
     .force("center", d3.forceCenter(width / 2, height / 2));
 
 // ノードとフローをシミュレーションに結びつける
-simulation.nodes(flowchartData.nodes)
+simulation.nodes(GraphData.nodes)
     .on("tick", ticked);
 
 simulation.force("link")
-    .links(flowchartData.flows);
+    .links(GraphData.edges);
 
 // SVG要素を選択
-const svg = d3.select("#flowchart")
+const svg = d3.select("#Graph")
     .attr("width", width)
     .attr("height", height);
 
 // ノードとフローの描画
 const link = svg.append("g")
     .selectAll("line")
-    .data(flowchartData.flows)
+    .data(GraphData.edges)
     .enter()
     .append("line")
     .style("stroke", "gray");
 
 const node = svg.append("g")
     .selectAll("circle")
-    .data(Object.values(flowchartData.nodes))
+    .data(Object.values(GraphData.nodes))
     .enter()
     .append("circle")
     .attr("r", 40)
@@ -79,7 +79,7 @@ const node = svg.append("g")
 
 const text = svg.append("g")
     .selectAll("text")
-    .data(Object.values(flowchartData.nodes))
+    .data(Object.values(GraphData.nodes))
     .enter()
     .append("text")
     .text(d => d.label)
@@ -88,11 +88,11 @@ const text = svg.append("g")
     .style("fill", "black");
 
 // ノードとフローをシミュレーションに結びつける
-simulation.nodes(Object.values(flowchartData.nodes))
+simulation.nodes(Object.values(GraphData.nodes))
     .on("tick", ticked);
 
 simulation.force("link")
-    .links(flowchartData.flows);
+    .links(GraphData.edges);
 
 // シミュレーションが進行するたびに呼ばれる関数
 function ticked() {
@@ -138,8 +138,8 @@ function dragEnded(d) {
 
 // "Load JSON"ボタンのクリックイベント
 document.getElementById("loadButton").addEventListener("click", function () {
-    if (flowchartData) {
-        displayFlowchart(flowchartData);
+    if (GraphData) {
+        displayGraph(GraphData);
     } else {
         alert("No JSON data loaded.");
     }
@@ -147,7 +147,7 @@ document.getElementById("loadButton").addEventListener("click", function () {
 
 // Printボタンのクリックイベント
 document.getElementById("printButton").addEventListener("click", function () {
-    if (flowchartData) {
+    if (GraphData) {
         // チャートコンテナを一時的に非表示にし、HTML2Canvasを使用して画像に変換
         const chartContainer = document.getElementById("chart");
         chartContainer.style.display = "none";
@@ -181,8 +181,8 @@ document.getElementById("fileInput").addEventListener("change", function (e) {
         const reader = new FileReader();
         reader.onload = function (event) {
             try {
-                flowchartData = JSON.parse(event.target.result);
-                displayFlowchart(flowchartData);
+                GraphData = JSON.parse(event.target.result);
+                displayGraph(GraphData);
             } catch (error) {
                 alert("Invalid JSON format: " + error);
             }
@@ -192,4 +192,4 @@ document.getElementById("fileInput").addEventListener("change", function (e) {
 });
 
 // 初回表示時の処理
-displayFlowchart(flowchartData);
+displayGraph(GraphData);
