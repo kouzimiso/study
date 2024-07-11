@@ -46,7 +46,58 @@ window.addEventListener('load', fetchHTMLFileList);
 
     </script>
 </head>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        line-height: 1.6;
+        margin: 20px;
+    }
+    h1 {
+        color: #333;
+    }
+    code {
+        background-color: #f4f4f4;
+        padding: 2px 4px;
+        border-radius: 4px;
+    }
+    pre {
+        background-color: #f4f4f4;
+        padding: 10px;
+        border-radius: 4px;
+        overflow-x: auto;
+    }
+</style>
+</head>
 <body>
+
+<h1>WSL GitHub Access Guide</h1>
+
+<h2>Prerequisites</h2>
+<ol>
+
+    <li>
+        <strong>Install Git on WSL</strong><br>
+        <pre><code>sudo apt update
+sudo apt install git</code></pre>
+    </li>
+    <li>
+        <strong>Navigate to Desired Directory</strong><br>
+        Move to the directory where you want to clone or pull the repository:
+        <pre><code>cd /path/to/your/directory</code></pre>
+    </li>
+    <li>
+        <strong>Clone the GitHub Repository</strong><br>
+        If cloning for the first time, use the following command (replace <code>username</code> and <code>repository</code> with your details):
+        <pre><code>git clone https://github.com/kouzimiso/study.git</code></pre>
+    </li>
+    <li>
+        <strong>Pull the Repository</strong><br>
+        If the repository already exists, pull the latest changes:
+        <pre><code>cd repository
+git pull</code></pre>
+    </li>
+</ol>
+
     <h1>GitHub HTMLファイルリスト</h1>
     <ul id="file-list"></ul>
 
