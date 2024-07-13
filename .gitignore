@@ -86,3 +86,6 @@ Project/AutoClick/Sources/Common/Recognition_old.py
 Project/AutoClick/Sources/.vscode/launch.json
 build/temp.linux-x86_64-cpython-311/test.o
 test.cpython-311-x86_64-linux-gnu.so
+libffi-3.4.2/*
+
+libffi-3.4.2.tar.gz
