@@ -89,3 +89,4 @@ test.cpython-311-x86_64-linux-gnu.so
 libffi-3.4.2/*
 
 libffi-3.4.2.tar.gz
+.buildozer/*

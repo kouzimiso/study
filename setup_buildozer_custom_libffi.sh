@@ -18,9 +18,25 @@ update_buildozer_spec() {
         echo "p4a.prebuild = ./prebuild.sh" >> $BUILDOZER_SPEC
     fi
 
-    if ! grep -q "libffi" $BUILDOZER_SPEC; then
+    if ! grep -q "title" $BUILDOZER_SPEC; then
+        echo "title = My Application" >> $BUILDOZER_SPEC
+    fi
+
+    if ! grep -q "source.dir" $BUILDOZER_SPEC; then
+        echo "source.dir = ." >> $BUILDOZER_SPEC
+    fi
+
+    if ! grep -q "package.name" $BUILDOZER_SPEC; then
+        echo "package.name = myapp" >> $BUILDOZER_SPEC
+    fi
+
+    if ! grep -q "version" $BUILDOZER_SPEC; then
+        echo "version = 0.1" >> $BUILDOZER_SPEC
+    fi
+
+    if ! grep -q "requirements" $BUILDOZER_SPEC; then
         echo -e "\n[requirements]" >> $BUILDOZER_SPEC
-        echo "libffi = $LIBFFI_DIR" >> $BUILDOZER_SPEC
+        echo "requirements = python3,kivy" >> $BUILDOZER_SPEC
     fi
 }
 
@@ -44,6 +60,7 @@ make install
 export CFLAGS="-I$LIBFFI_DIR/include"
 export LDFLAGS="-L$LIBFFI_DIR/lib"
 export PATH=$NDK_PATH/toolchains/llvm/prebuilt/linux-x86_64/bin:$PATH
+export LD_LIBRARY_PATH=$LIBFFI_DIR/lib:$LD_LIBRARY_PATH
 
 # Verify NDK toolchain
 if ! command -v clang >/dev/null 2>&1; then
