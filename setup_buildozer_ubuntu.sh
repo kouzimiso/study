@@ -35,6 +35,15 @@ sudo apt install -y git zip unzip openjdk-17-jdk python3-pip autoconf libtool pk
 echo "Installing Cython..."
 pip3 install --user --upgrade Cython
 
+# Android NDKのダウンロードとインストール
+echo "Downloading and installing Android NDK..."
+mkdir -p ~/android-ndk
+cd ~/android-ndk
+wget https://dl.google.com/android/repository/android-ndk-r25-linux.zip
+unzip android-ndk-r25-linux.zip
+export ANDROIDNDK=$HOME/android-ndk/android-ndk-r25
+cd ~
+
 # Buildozerバージョン確認
 buildozer version
 
