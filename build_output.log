@@ -1,0 +1,6 @@
+# Check configuration tokens
+# 4 error(s) found in the buildozer.spec
+[app] "title" is missing
+[app] "source.dir" is missing
+[app] "package.name" is missing
+[app] One of "version" or "version.regex" must be set

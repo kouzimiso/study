@@ -2,13 +2,27 @@
 
 set -e
 
-# Define paths
+# Define paths and variables
 LIBFFI_VERSION="3.4.2"
 LIBFFI_DIR="$HOME/.buildozer/android/platform/build-arm64-v8a_armeabi-v7a/build/other_builds/libffi/armeabi-v7a__ndk_target_21/libffi"
 BUILD_DIR="$HOME/study"
 LIBFFI_ARCHIVE="libffi-$LIBFFI_VERSION.tar.gz"
 LIBFFI_SRC_DIR="$BUILD_DIR/libffi-$LIBFFI_VERSION"
 NDK_PATH="/home/kouzimiso/android-ndk/android-ndk-r25"
+
+# Function to check and update buildozer.spec
+update_buildozer_spec() {
+    BUILDOZER_SPEC="$BUILD_DIR/buildozer.spec"
+    if ! grep -q "p4a.prebuild" $BUILDOZER_SPEC; then
+        echo -e "\n[app]" >> $BUILDOZER_SPEC
+        echo "p4a.prebuild = ./prebuild.sh" >> $BUILDOZER_SPEC
+    fi
+
+    if ! grep -q "libffi" $BUILDOZER_SPEC; then
+        echo -e "\n[requirements]" >> $BUILDOZER_SPEC
+        echo "libffi = $LIBFFI_DIR" >> $BUILDOZER_SPEC
+    fi
+}
 
 # Download and extract libffi
 cd $BUILD_DIR
@@ -46,17 +60,7 @@ EOL
 chmod +x $PREBUILD_SCRIPT
 
 # Modify buildozer.spec
-BUILDOZER_SPEC="$BUILD_DIR/buildozer.spec"
-if ! grep -q "p4a.prebuild" $BUILDOZER_SPEC; then
-    echo -e "\n[app]" >> $BUILDOZER_SPEC
-    echo "p4a.prebuild = ./prebuild.sh" >> $BUILDOZER_SPEC
-fi
-
-if ! grep -q "libffi" $BUILDOZER_SPEC; then
-    echo -e "\n[requirements]" >> $BUILDOZER_SPEC
-    echo "libffi = $LIBFFI_DIR" >> $BUILDOZER_SPEC
-fi
+update_buildozer_spec
 
 # Build with Buildozer and save output to a log file
-cd $BUILD_DIR
 buildozer android debug > build_output.log 2>&1
