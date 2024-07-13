@@ -40,8 +40,8 @@ buildozer version
 
 # Python + Kivyプログラムの作成
 echo "Creating a sample Kivy program..."
-mkdir -p ~/kivy_app
-cd ~/kivy_app
+mkdir -p ~/Buildozer
+cd ~/Buildozer
 
 cat << EOF > main.py
 from kivy.app import App
