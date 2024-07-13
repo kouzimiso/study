@@ -119,7 +119,7 @@ fullscreen = 0
 #android.private_storage = True
 
 # (str) Android NDK directory (if empty, it will be automatically downloaded.)
-#android.ndk_path =
+android.ndk_path = /home/kouzimiso/android-ndk/android-ndk-r25
 
 # (str) Android SDK directory (if empty, it will be automatically downloaded.)
 #android.sdk_path =
