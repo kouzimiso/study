@@ -9,36 +9,39 @@ BUILD_DIR="$HOME/study"
 LIBFFI_ARCHIVE="libffi-$LIBFFI_VERSION.tar.gz"
 LIBFFI_SRC_DIR="$BUILD_DIR/libffi-$LIBFFI_VERSION"
 NDK_PATH="/home/kouzimiso/android-ndk/android-ndk-r25"
+BUILDOZER_SPEC="$BUILD_DIR/buildozer.spec"
 
-# Function to check and update buildozer.spec
-update_buildozer_spec() {
-    BUILDOZER_SPEC="$BUILD_DIR/buildozer.spec"
-    if ! grep -q "p4a.prebuild" $BUILDOZER_SPEC; then
-        echo -e "\n[app]" >> $BUILDOZER_SPEC
-        echo "p4a.prebuild = ./prebuild.sh" >> $BUILDOZER_SPEC
-    fi
+# Function to create buildozer.spec
+create_buildozer_spec() {
+    cat <<EOL > $BUILDOZER_SPEC
+[app]
+title = My Application
+source.dir = .
+package.name = myapp
+version = 0.1
+p4a.prebuild = ./prebuild.sh
 
-    if ! grep -q "title" $BUILDOZER_SPEC; then
-        echo "title = My Application" >> $BUILDOZER_SPEC
-    fi
-
-    if ! grep -q "source.dir" $BUILDOZER_SPEC; then
-        echo "source.dir = ." >> $BUILDOZER_SPEC
-    fi
-
-    if ! grep -q "package.name" $BUILDOZER_SPEC; then
-        echo "package.name = myapp" >> $BUILDOZER_SPEC
-    fi
-
-    if ! grep -q "version" $BUILDOZER_SPEC; then
-        echo "version = 0.1" >> $BUILDOZER_SPEC
-    fi
-
-    if ! grep -q "requirements" $BUILDOZER_SPEC; then
-        echo -e "\n[requirements]" >> $BUILDOZER_SPEC
-        echo "requirements = python3,kivy" >> $BUILDOZER_SPEC
-    fi
+[requirements]
+requirements = python3,kivy
+EOL
 }
+
+# Ask user for action on existing buildozer.spec
+if [ -f $BUILDOZER_SPEC ]; then
+    read -p "buildozer.spec already exists. Do you want to (d)elete and recreate or (k)eep the existing file? (d/k): " choice
+    if [[ "$choice" == "d" ]]; then
+        echo "Deleting and recreating buildozer.spec"
+        rm $BUILDOZER_SPEC
+        create_buildozer_spec
+    elif [[ "$choice" == "k" ]]; then
+        echo "Keeping the existing buildozer.spec"
+    else
+        echo "Invalid choice. Exiting."
+        exit 1
+    fi
+else
+    create_buildozer_spec
+fi
 
 # Download and extract libffi
 cd $BUILD_DIR
@@ -76,8 +79,7 @@ cp -r $LIBFFI_DIR/* $HOME/.buildozer/android/platform/build-arm64-v8a_armeabi-v7
 EOL
 chmod +x $PREBUILD_SCRIPT
 
-# Modify buildozer.spec
-update_buildozer_spec
-
 # Build with Buildozer and save output to a log file
 buildozer android debug > build_output.log 2>&1
+cp /home/kouzimiso/study/.buildozer/android/platform/build-arm64-v8a_armeabi-v7a/build/other_builds/libffi/arm64-v8a__ndk_target_21/libffi/config.log ./config.log
+
