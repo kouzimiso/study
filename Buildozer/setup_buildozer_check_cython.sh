@@ -1,5 +1,7 @@
 #!/bin/bash
 
+
+
 # Function to read ndk_path from buildozer.spec
 get_ndk_path() {
     ndk_path=$(grep -E '^\s*android.ndk_path\s*=' buildozer.spec | awk -F '=' '{gsub(/ /, "", $2); print $2}')
