@@ -1,4 +1,4 @@
-# Check configuration tokens
+# WARNING: Config token app android.sdk is deprecated and ignored, but you set value 21
 # Ensure build layout
 # Check configuration tokens
 # Preparing build
@@ -8,26 +8,23 @@
 # Search for Cython (cython)
 #  -> found at /home/kouzimiso/.local/bin/cython
 # Search for Java compiler (javac)
-#  -> found at /usr/lib/jvm/java-17-openjdk-amd64/bin/javac
+#  -> found at /usr/bin/javac
 # Search for Java keytool (keytool)
-#  -> found at /usr/lib/jvm/java-17-openjdk-amd64/bin/keytool
+#  -> found at /usr/bin/keytool
 # Install platform
-# Run ['git', 'config', '--get', 'remote.origin.url']
+# Run 'git config --get remote.origin.url' ...
 # Cwd /home/kouzimiso/study/.buildozer/android/platform/python-for-android
 https://github.com/kivy/python-for-android.git
-# Run ['git', 'branch', '-vv']
+# Run 'git branch -vv' ...
 # Cwd /home/kouzimiso/study/.buildozer/android/platform/python-for-android
 * master 957a3e5f [origin/master] Merge pull request #2959 from kivy/release-2024.01.21
-# Run ['/home/kouzimiso/.pyenv/versions/3.11.9/bin/python3.11', '-m', 'pip', 'install', '-q', '--user', 'appdirs', 'colorama>=0.3.3', 'jinja2', 'sh>=1.10, <2.0; sys_platform!="win32"', 'build', 'toml', 'packaging', 'setuptools']
+# Run '/usr/bin/python3 -m pip install -q --user appdirs colorama>=0.3.3 jinja2 sh>=1.10, <2.0; sys_platform!="win32" build toml packaging setuptools' ...
 # Cwd None
-
-[notice] A new release of pip is available: 24.0 -> 24.1.2
-[notice] To update, run: /home/kouzimiso/.pyenv/versions/3.11.9/bin/python3.11 -m pip install --upgrade pip
 # Apache ANT found at /home/kouzimiso/.buildozer/android/platform/apache-ant-1.9.4
 # Android SDK found at /home/kouzimiso/.buildozer/android/platform/android-sdk
 # Recommended android's NDK version by p4a is: 25b
 # Android NDK found at /home/kouzimiso/.buildozer/android/platform/android-ndk-r25b
-# Run ['/home/kouzimiso/.pyenv/versions/3.11.9/bin/python3.11', '-m', 'pythonforandroid.toolchain', 'aab', '-h', '--color=always', '--storage-dir=/home/kouzimiso/study/.buildozer/android/platform/build-arm64-v8a_armeabi-v7a', '--ndk-api=21', '--ignore-setup-py', '--debug']
+# Run '/usr/bin/python3 -m pythonforandroid.toolchain aab -h --color=always --storage-dir=/home/kouzimiso/study/.buildozer/android/platform/build-arm64-v8a_armeabi-v7a --ndk-api=31 --ignore-setup-py --debug' ...
 # Cwd /home/kouzimiso/study/.buildozer/android/platform/python-for-android
 [WARNING]: prerequisites.py is experimental and does not support all prerequisites yet.
 [WARNING]: Please report any issues to the python-for-android issue tracker.
@@ -149,7 +146,7 @@ options:
   --no-copy-libs        (this is the default)
 # Check application requirements
 # Compile platform
-# Run ['/home/kouzimiso/.pyenv/versions/3.11.9/bin/python3.11', '-m', 'pythonforandroid.toolchain', 'create', '--dist_name=myapp', '--bootstrap=sdl2', '--requirements=python3,kivy', '--arch=arm64-v8a', '--arch=armeabi-v7a', '--copy-libs', '--color=always', '--storage-dir=/home/kouzimiso/study/.buildozer/android/platform/build-arm64-v8a_armeabi-v7a', '--ndk-api=21', '--ignore-setup-py', '--debug']
+# Run '/usr/bin/python3 -m pythonforandroid.toolchain create --dist_name=myapp --bootstrap=sdl2 --requirements=python3,kivy,libffi --arch=arm64-v8a --arch=armeabi-v7a --copy-libs --color=always --storage-dir=/home/kouzimiso/study/.buildozer/android/platform/build-arm64-v8a_armeabi-v7a --ndk-api=31 --ignore-setup-py --debug' ...
 # Cwd /home/kouzimiso/study/.buildozer/android/platform/python-for-android
 [WARNING]: prerequisites.py is experimental and does not support all prerequisites yet.
 [WARNING]: Please report any issues to the python-for-android issue tracker.
@@ -157,7 +154,7 @@ options:
 [WARNING]: Please report any issues to the python-for-android issue tracker.
 [1m[INFO][0m:    Will compile for the following archs: armeabi-v7a, arm64-v8a
 [1m[INFO][0m:    Found Android API target in $ANDROIDAPI: 31
-[1m[INFO][0m:    Available Android APIs are (31)
+[1m[INFO][0m:    Available Android APIs are (21, 31)
 [1m[INFO][0m:    Requested API target 31 is available, continuing.
 [1m[INFO][0m:    Found NDK dir in $ANDROIDNDK: /home/kouzimiso/.buildozer/android/platform/android-ndk-r25b
 [1m[INFO][0m:    Found NDK version 25b
@@ -172,9 +169,9 @@ options:
 [1m[INFO][0m:    Found a single valid recipe set: ['hostpython3', 'libffi', 'openssl', 'sdl2_image', 'sdl2_mixer', 'sdl2_ttf', 'sqlite3', 'python3', 'sdl2', 'setuptools', 'six', 'pyjnius', 'android', 'kivy']
 [1m[INFO][0m:    The selected bootstrap is sdl2
 [1m[INFO][0m:    [1m[32m# Creating dist with sdl2 bootstrap[0m[39m
-[1m[INFO][0m:    [1m[94mDist will have name myapp and requirements (python3, kivy)[0m
+[1m[INFO][0m:    [1m[94mDist will have name myapp and requirements (python3, kivy, libffi)[0m
 [1m[INFO][0m:    Dist contains the following requirements as recipes: ['hostpython3', 'libffi', 'openssl', 'sdl2_image', 'sdl2_mixer', 'sdl2_ttf', 'sqlite3', 'python3', 'sdl2', 'setuptools', 'six', 'pyjnius', 'android', 'kivy']
-[1m[INFO][0m:    Dist will also contain modules (urllib3, requests, certifi, idna, chardet) installed from pip
+[1m[INFO][0m:    Dist will also contain modules (urllib3, idna, certifi, chardet, requests) installed from pip
 [1m[INFO][0m:    Dist will be build in mode debug
 [1m[INFO][0m:    [36m-> directory context /home/kouzimiso/study/.buildozer/android/platform/build-arm64-v8a_armeabi-v7a/build/bootstrap_builds/sdl2[39m
 [1m[INFO][0m:    [36m<- directory context /home/kouzimiso/study/.buildozer/android/platform/python-for-android[39m
@@ -270,17 +267,19 @@ options:
 [1m[INFO][0m:    [36m-> directory context /home/kouzimiso/study/.buildozer/android/platform/build-arm64-v8a_armeabi-v7a/build/other_builds/hostpython3/desktop[39m
 [1m[INFO][0m:    hostpython3 is already unpacked, skipping
 [1m[INFO][0m:    [36m<- directory context /home/kouzimiso/study/.buildozer/android/platform/python-for-android[39m
+[1m[90m[DEBUG][39m[0m:   Create directory /home/kouzimiso/study/.buildozer/android/platform/build-arm64-v8a_armeabi-v7a/build/other_builds/libffi/armeabi-v7a__ndk_target_31
 [1m[INFO][0m:    [1m[32mUnpacking libffi for armeabi-v7a[0m[39m
 [1m[90m[DEBUG][39m[0m:   [90m->[0m running basename https://github.com/libffi/libffi/archive/v3.4.2.tar.gz[0m
 [1m[90m[DEBUG][39m[0m:   	v3.4.2.tar.gz
-[1m[INFO][0m:    [36m-> directory context /home/kouzimiso/study/.buildozer/android/platform/build-arm64-v8a_armeabi-v7a/build/other_builds/libffi/armeabi-v7a__ndk_target_21[39m
-[1m[INFO][0m:    libffi is already unpacked, skipping
+[1m[INFO][0m:    [36m-> directory context /home/kouzimiso/study/.buildozer/android/platform/build-arm64-v8a_armeabi-v7a/build/other_builds/libffi/armeabi-v7a__ndk_target_31[39m
+[1m[90m[DEBUG][39m[0m:   Moving libffi-3.4.2 to /home/kouzimiso/study/.buildozer/android/platform/build-arm64-v8a_armeabi-v7a/build/other_builds/libffi/armeabi-v7a__ndk_target_31/libffi
 [1m[INFO][0m:    [36m<- directory context /home/kouzimiso/study/.buildozer/android/platform/python-for-android[39m
+[1m[90m[DEBUG][39m[0m:   Create directory /home/kouzimiso/study/.buildozer/android/platform/build-arm64-v8a_armeabi-v7a/build/other_builds/openssl/armeabi-v7a__ndk_target_31
 [1m[INFO][0m:    [1m[32mUnpacking openssl for armeabi-v7a[0m[39m
 [1m[90m[DEBUG][39m[0m:   [90m->[0m running basename https://www.openssl.org/source/openssl-1.1.1w.tar.gz[0m
 [1m[90m[DEBUG][39m[0m:   	openssl-1.1.1w.tar.gz
-[1m[INFO][0m:    [36m-> directory context /home/kouzimiso/study/.buildozer/android/platform/build-arm64-v8a_armeabi-v7a/build/other_builds/openssl/armeabi-v7a__ndk_target_21[39m
-[1m[INFO][0m:    openssl is already unpacked, skipping
+[1m[INFO][0m:    [36m-> directory context /home/kouzimiso/study/.buildozer/android/platform/build-arm64-v8a_armeabi-v7a/build/other_builds/openssl/armeabi-v7a__ndk_target_31[39m
+[1m[90m[DEBUG][39m[0m:   Moving openssl-1.1.1w to /home/kouzimiso/study/.buildozer/android/platform/build-arm64-v8a_armeabi-v7a/build/other_builds/openssl/armeabi-v7a__ndk_target_31/openssl1.1
 [1m[INFO][0m:    [36m<- directory context /home/kouzimiso/study/.buildozer/android/platform/python-for-android[39m
 [1m[INFO][0m:    [1m[32mUnpacking sdl2_image for armeabi-v7a[0m[39m
 [1m[90m[DEBUG][39m[0m:   [90m->[0m running basename https://github.com/libsdl-org/SDL_image/releases/download/release-2.8.0/SDL2_image-2.8.0.tar.gz[0m
@@ -300,17 +299,19 @@ options:
 [1m[INFO][0m:    [36m-> directory context /home/kouzimiso/study/.buildozer/android/platform/build-arm64-v8a_armeabi-v7a/build/bootstrap_builds/sdl2/jni[39m
 [1m[INFO][0m:    sdl2_ttf is already unpacked, skipping
 [1m[INFO][0m:    [36m<- directory context /home/kouzimiso/study/.buildozer/android/platform/python-for-android[39m
+[1m[90m[DEBUG][39m[0m:   Create directory /home/kouzimiso/study/.buildozer/android/platform/build-arm64-v8a_armeabi-v7a/build/other_builds/sqlite3/armeabi-v7a__ndk_target_31
 [1m[INFO][0m:    [1m[32mUnpacking sqlite3 for armeabi-v7a[0m[39m
 [1m[90m[DEBUG][39m[0m:   [90m->[0m running basename https://www.sqlite.org/2021/sqlite-amalgamation-3350500.zip[0m
 [1m[90m[DEBUG][39m[0m:   	sqlite-amalgamation-3350500.zip
-[1m[INFO][0m:    [36m-> directory context /home/kouzimiso/study/.buildozer/android/platform/build-arm64-v8a_armeabi-v7a/build/other_builds/sqlite3/armeabi-v7a__ndk_target_21[39m
-[1m[INFO][0m:    sqlite3 is already unpacked, skipping
+[1m[INFO][0m:    [36m-> directory context /home/kouzimiso/study/.buildozer/android/platform/build-arm64-v8a_armeabi-v7a/build/other_builds/sqlite3/armeabi-v7a__ndk_target_31[39m
+[1m[90m[DEBUG][39m[0m:   Moving sqlite-amalgamation-3350500 to /home/kouzimiso/study/.buildozer/android/platform/build-arm64-v8a_armeabi-v7a/build/other_builds/sqlite3/armeabi-v7a__ndk_target_31/sqlite3
 [1m[INFO][0m:    [36m<- directory context /home/kouzimiso/study/.buildozer/android/platform/python-for-android[39m
+[1m[90m[DEBUG][39m[0m:   Create directory /home/kouzimiso/study/.buildozer/android/platform/build-arm64-v8a_armeabi-v7a/build/other_builds/python3/armeabi-v7a__ndk_target_31
 [1m[INFO][0m:    [1m[32mUnpacking python3 for armeabi-v7a[0m[39m
 [1m[90m[DEBUG][39m[0m:   [90m->[0m running basename https://www.python.org/ftp/python/3.11.5/Python-3.11.5.tgz[0m
 [1m[90m[DEBUG][39m[0m:   	Python-3.11.5.tgz
-[1m[INFO][0m:    [36m-> directory context /home/kouzimiso/study/.buildozer/android/platform/build-arm64-v8a_armeabi-v7a/build/other_builds/python3/armeabi-v7a__ndk_target_21[39m
-[1m[INFO][0m:    python3 is already unpacked, skipping
+[1m[INFO][0m:    [36m-> directory context /home/kouzimiso/study/.buildozer/android/platform/build-arm64-v8a_armeabi-v7a/build/other_builds/python3/armeabi-v7a__ndk_target_31[39m
+[1m[90m[DEBUG][39m[0m:   Moving Python-3.11.5 to /home/kouzimiso/study/.buildozer/android/platform/build-arm64-v8a_armeabi-v7a/build/other_builds/python3/armeabi-v7a__ndk_target_31/python3
 [1m[INFO][0m:    [36m<- directory context /home/kouzimiso/study/.buildozer/android/platform/python-for-android[39m
 [1m[INFO][0m:    [1m[32mUnpacking sdl2 for armeabi-v7a[0m[39m
 [1m[90m[DEBUG][39m[0m:   [90m->[0m running basename https://github.com/libsdl-org/SDL/releases/download/release-2.28.5/SDL2-2.28.5.tar.gz[0m
@@ -318,31 +319,35 @@ options:
 [1m[INFO][0m:    [36m-> directory context /home/kouzimiso/study/.buildozer/android/platform/build-arm64-v8a_armeabi-v7a/build/bootstrap_builds/sdl2/jni[39m
 [1m[INFO][0m:    sdl2 is already unpacked, skipping
 [1m[INFO][0m:    [36m<- directory context /home/kouzimiso/study/.buildozer/android/platform/python-for-android[39m
+[1m[90m[DEBUG][39m[0m:   Create directory /home/kouzimiso/study/.buildozer/android/platform/build-arm64-v8a_armeabi-v7a/build/other_builds/setuptools/armeabi-v7a__ndk_target_31
 [1m[INFO][0m:    [1m[32mUnpacking setuptools for armeabi-v7a[0m[39m
 [1m[90m[DEBUG][39m[0m:   [90m->[0m running basename https://pypi.python.org/packages/source/s/setuptools/setuptools-51.3.3.tar.gz[0m
 [1m[90m[DEBUG][39m[0m:   	setuptools-51.3.3.tar.gz
-[1m[INFO][0m:    [36m-> directory context /home/kouzimiso/study/.buildozer/android/platform/build-arm64-v8a_armeabi-v7a/build/other_builds/setuptools/armeabi-v7a__ndk_target_21[39m
-[1m[INFO][0m:    setuptools is already unpacked, skipping
+[1m[INFO][0m:    [36m-> directory context /home/kouzimiso/study/.buildozer/android/platform/build-arm64-v8a_armeabi-v7a/build/other_builds/setuptools/armeabi-v7a__ndk_target_31[39m
+[1m[90m[DEBUG][39m[0m:   Moving setuptools-51.3.3 to /home/kouzimiso/study/.buildozer/android/platform/build-arm64-v8a_armeabi-v7a/build/other_builds/setuptools/armeabi-v7a__ndk_target_31/setuptools
 [1m[INFO][0m:    [36m<- directory context /home/kouzimiso/study/.buildozer/android/platform/python-for-android[39m
+[1m[90m[DEBUG][39m[0m:   Create directory /home/kouzimiso/study/.buildozer/android/platform/build-arm64-v8a_armeabi-v7a/build/other_builds/six/armeabi-v7a__ndk_target_31
 [1m[INFO][0m:    [1m[32mUnpacking six for armeabi-v7a[0m[39m
 [1m[90m[DEBUG][39m[0m:   [90m->[0m running basename https://pypi.python.org/packages/source/s/six/six-1.15.0.tar.gz[0m
 [1m[90m[DEBUG][39m[0m:   	six-1.15.0.tar.gz
-[1m[INFO][0m:    [36m-> directory context /home/kouzimiso/study/.buildozer/android/platform/build-arm64-v8a_armeabi-v7a/build/other_builds/six/armeabi-v7a__ndk_target_21[39m
-[1m[INFO][0m:    six is already unpacked, skipping
+[1m[INFO][0m:    [36m-> directory context /home/kouzimiso/study/.buildozer/android/platform/build-arm64-v8a_armeabi-v7a/build/other_builds/six/armeabi-v7a__ndk_target_31[39m
+[1m[90m[DEBUG][39m[0m:   Moving six-1.15.0 to /home/kouzimiso/study/.buildozer/android/platform/build-arm64-v8a_armeabi-v7a/build/other_builds/six/armeabi-v7a__ndk_target_31/six
 [1m[INFO][0m:    [36m<- directory context /home/kouzimiso/study/.buildozer/android/platform/python-for-android[39m
+[1m[90m[DEBUG][39m[0m:   Create directory /home/kouzimiso/study/.buildozer/android/platform/build-arm64-v8a_armeabi-v7a/build/other_builds/pyjnius-sdl2/armeabi-v7a__ndk_target_31
 [1m[INFO][0m:    [1m[32mUnpacking pyjnius for armeabi-v7a[0m[39m
 [1m[90m[DEBUG][39m[0m:   [90m->[0m running basename https://github.com/kivy/pyjnius/archive/1.6.1.zip[0m
 [1m[90m[DEBUG][39m[0m:   	1.6.1.zip
-[1m[INFO][0m:    [36m-> directory context /home/kouzimiso/study/.buildozer/android/platform/build-arm64-v8a_armeabi-v7a/build/other_builds/pyjnius-sdl2/armeabi-v7a__ndk_target_21[39m
-[1m[INFO][0m:    pyjnius is already unpacked, skipping
+[1m[INFO][0m:    [36m-> directory context /home/kouzimiso/study/.buildozer/android/platform/build-arm64-v8a_armeabi-v7a/build/other_builds/pyjnius-sdl2/armeabi-v7a__ndk_target_31[39m
+[1m[90m[DEBUG][39m[0m:   Moving pyjnius-1.6.1 to /home/kouzimiso/study/.buildozer/android/platform/build-arm64-v8a_armeabi-v7a/build/other_builds/pyjnius-sdl2/armeabi-v7a__ndk_target_31/pyjnius
 [1m[INFO][0m:    [36m<- directory context /home/kouzimiso/study/.buildozer/android/platform/python-for-android[39m
-[1m[90m[DEBUG][39m[0m:   Remove directory and subdirectory /home/kouzimiso/study/.buildozer/android/platform/build-arm64-v8a_armeabi-v7a/build/other_builds/android-sdl2/armeabi-v7a__ndk_target_21/android
-[1m[90m[DEBUG][39m[0m:   [90m->[0m running cp -a /home/kouzimiso/study/.buildozer/android/platform/python-for-android/pythonforandroid/recipes/android/src /home/kouzimiso/study/.buildozer/android/platform/build-arm64-v8a_armeabi-v7a/build/other_builds/android-sdl2/armeabi-v7a__ndk_target_21/android[0m
+[1m[90m[DEBUG][39m[0m:   Create directory /home/kouzimiso/study/.buildozer/android/platform/build-arm64-v8a_armeabi-v7a/build/other_builds/android-sdl2/armeabi-v7a__ndk_target_31
+[1m[90m[DEBUG][39m[0m:   [90m->[0m running cp -a /home/kouzimiso/study/.buildozer/android/platform/python-for-android/pythonforandroid/recipes/android/src /home/kouzimiso/study/.buildozer/android/platform/build-arm64-v8a_armeabi-v7a/build/other_builds/android-sdl2/armeabi-v7a__ndk_target_31/android[0m
+[1m[90m[DEBUG][39m[0m:   Create directory /home/kouzimiso/study/.buildozer/android/platform/build-arm64-v8a_armeabi-v7a/build/other_builds/kivy/armeabi-v7a__ndk_target_31
 [1m[INFO][0m:    [1m[32mUnpacking kivy for armeabi-v7a[0m[39m
 [1m[90m[DEBUG][39m[0m:   [90m->[0m running basename https://github.com/kivy/kivy/archive/2.3.0.zip[0m
 [1m[90m[DEBUG][39m[0m:   	2.3.0.zip
-[1m[INFO][0m:    [36m-> directory context /home/kouzimiso/study/.buildozer/android/platform/build-arm64-v8a_armeabi-v7a/build/other_builds/kivy/armeabi-v7a__ndk_target_21[39m
-[1m[INFO][0m:    kivy is already unpacked, skipping
+[1m[INFO][0m:    [36m-> directory context /home/kouzimiso/study/.buildozer/android/platform/build-arm64-v8a_armeabi-v7a/build/other_builds/kivy/armeabi-v7a__ndk_target_31[39m
+[1m[90m[DEBUG][39m[0m:   Moving kivy-2.3.0 to /home/kouzimiso/study/.buildozer/android/platform/build-arm64-v8a_armeabi-v7a/build/other_builds/kivy/armeabi-v7a__ndk_target_31/kivy
 [1m[INFO][0m:    [36m<- directory context /home/kouzimiso/study/.buildozer/android/platform/python-for-android[39m
 [1m[INFO][0m:    [1m[32m# Prebuilding recipes[0m[39m
 [1m[INFO][0m:    [1m[32mPrebuilding hostpython3 for armeabi-v7a[0m[39m
@@ -352,7 +357,10 @@ options:
 [1m[INFO][0m:    [1m[32mPrebuilding libffi for armeabi-v7a[0m[39m
 [1m[INFO][0m:    libffi has no prebuild_armeabi_v7a, skipping
 [1m[INFO][0m:    [1m[32mApplying patches for libffi[armeabi-v7a][0m[39m
-[1m[INFO][0m:    [1m[32mlibffi already patched, skipping[0m[39m
+[1m[INFO][0m:    Applying patch remove-version-info.patch
+[1m[90m[DEBUG][39m[0m:   [90m->[0m running patch -t -d /home/kouzimiso/study/.buildozer/android/platform/build-arm64-v8a_armeabi-v7a/build/other_builds/libffi/armeabi-v7a__ndk_target_31/libffi -p1 -i /home/kouzimiso/study/.buildozer/android/platform/python-for-android/pythonforandroid/recipes/libffi/remove-version-info.patch[0m
+[1m[90m[DEBUG][39m[0m:   	patching file Makefile.am
+[1m[90m[DEBUG][39m[0m:   	Hunk #1 succeeded at 138 with fuzz 2 (offset -18 lines).
 [1m[INFO][0m:    [1m[32mPrebuilding openssl for armeabi-v7a[0m[39m
 [1m[INFO][0m:    openssl has no prebuild_armeabi_v7a, skipping
 [1m[INFO][0m:    [1m[32mPrebuilding sdl2_image for armeabi-v7a[0m[39m
@@ -365,10 +373,21 @@ options:
 [1m[INFO][0m:    sdl2_ttf has no prebuild_armeabi_v7a, skipping
 [1m[INFO][0m:    [1m[32mPrebuilding sqlite3 for armeabi-v7a[0m[39m
 [1m[INFO][0m:    sqlite3 has no prebuild_armeabi_v7a, skipping
+[1m[90m[DEBUG][39m[0m:   Create directory /home/kouzimiso/study/.buildozer/android/platform/build-arm64-v8a_armeabi-v7a/build/other_builds/sqlite3/armeabi-v7a__ndk_target_31/sqlite3/jni
 [1m[INFO][0m:    [1m[32mPrebuilding python3 for armeabi-v7a[0m[39m
 [1m[INFO][0m:    python3 has no prebuild_armeabi_v7a, skipping
 [1m[INFO][0m:    [1m[32mApplying patches for python3[armeabi-v7a][0m[39m
-[1m[INFO][0m:    [1m[32mpython3 already patched, skipping[0m[39m
+[1m[INFO][0m:    Applying patch patches/pyconfig_detection.patch
+[1m[90m[DEBUG][39m[0m:   [90m->[0m running patch -t -d /home/kouzimiso/study/.buildozer/android/platform/build-arm64-v8a_armeabi-v7a/build/other_builds/python3/armeabi-v7a__ndk_target_31/python3 -p1 -i /home/kouzimiso/study/.buildozer/android/platform/python-for-android/pythonforandroid/recipes/python3/patches/pyconfig_detection.patch[0m
+[1m[90m[DEBUG][39m[0m:   	patching file Lib/site.py
+[1m[90m[DEBUG][39m[0m:   	Hunk #1 succeeded at 523 (offset 36 lines).
+[1m[INFO][0m:    Applying patch patches/reproducible-buildinfo.diff
+[1m[90m[DEBUG][39m[0m:   [90m->[0m running patch -t -d /home/kouzimiso/study/.buildozer/android/platform/build-arm64-v8a_armeabi-v7a/build/other_builds/python3/armeabi-v7a__ndk_target_31/python3 -p1 -i /home/kouzimiso/study/.buildozer/android/platform/python-for-android/pythonforandroid/recipes/python3/patches/reproducible-buildinfo.diff[0m
+[1m[90m[DEBUG][39m[0m:   	patching file Makefile.pre.in
+[1m[90m[DEBUG][39m[0m:   	Hunk #1 succeeded at 1238 with fuzz 1 (offset 453 lines).
+[1m[INFO][0m:    Applying patch patches/cpython-311-ctypes-find-library.patch
+[1m[90m[DEBUG][39m[0m:   [90m->[0m running patch -t -d /home/kouzimiso/study/.buildozer/android/platform/build-arm64-v8a_armeabi-v7a/build/other_builds/python3/armeabi-v7a__ndk_target_31/python3 -p1 -i /home/kouzimiso/study/.buildozer/android/platform/python-for-android/pythonforandroid/recipes/python3/patches/cpython-311-ctypes-find-library.patch[0m
+[1m[90m[DEBUG][39m[0m:   	patching file Lib/ctypes/util.py
 [1m[INFO][0m:    [1m[32mPrebuilding sdl2 for armeabi-v7a[0m[39m
 [1m[INFO][0m:    sdl2 has no prebuild_armeabi_v7a, skipping
 [1m[INFO][0m:    [1m[32mPrebuilding setuptools for armeabi-v7a[0m[39m
@@ -378,20 +397,130 @@ options:
 [1m[INFO][0m:    [1m[32mPrebuilding pyjnius for armeabi-v7a[0m[39m
 [1m[INFO][0m:    pyjnius has no prebuild_armeabi_v7a, skipping
 [1m[INFO][0m:    [1m[32mApplying patches for pyjnius[armeabi-v7a][0m[39m
-[1m[INFO][0m:    [1m[32mpyjnius already patched, skipping[0m[39m
 [1m[INFO][0m:    [1m[32mPrebuilding android for armeabi-v7a[0m[39m
 [1m[INFO][0m:    android has no prebuild_armeabi_v7a, skipping
-[1m[INFO][0m:    [36m-> directory context /home/kouzimiso/study/.buildozer/android/platform/build-arm64-v8a_armeabi-v7a/build/other_builds/android-sdl2/armeabi-v7a__ndk_target_21/android[39m
+[1m[INFO][0m:    [36m-> directory context /home/kouzimiso/study/.buildozer/android/platform/build-arm64-v8a_armeabi-v7a/build/other_builds/android-sdl2/armeabi-v7a__ndk_target_31/android[39m
 [1m[INFO][0m:    [36m<- directory context /home/kouzimiso/study/.buildozer/android/platform/python-for-android[39m
 [1m[INFO][0m:    [1m[32mPrebuilding kivy for armeabi-v7a[0m[39m
 [1m[INFO][0m:    kivy has no prebuild_armeabi_v7a, skipping
 [1m[INFO][0m:    [1m[32mApplying patches for kivy[armeabi-v7a][0m[39m
-[1m[INFO][0m:    [1m[32mkivy already patched, skipping[0m[39m
+[1m[INFO][0m:    [36m-> directory context /home/kouzimiso/study/.buildozer/android/platform/build-arm64-v8a_armeabi-v7a/build/other_builds/kivy/armeabi-v7a__ndk_target_31/kivy/kivy[39m
+[1m[90m[DEBUG][39m[0m:   [90m->[0m running python3 -c import _version; print(_version.__version__)[0m
+[1m[90m[DEBUG][39m[0m:   	2.3.0
+[1m[INFO][0m:    [36m<- directory context /home/kouzimiso/study/.buildozer/android/platform/python-for-android[39m
 [1m[INFO][0m:    [1m[32m# Building recipes[0m[39m
 [1m[INFO][0m:    [1m[32mBuilding hostpython3 for armeabi-v7a[0m[39m
 [1m[INFO][0m:    hostpython3 said it is already built, skipping
 [1m[INFO][0m:    [1m[32mBuilding libffi for armeabi-v7a[0m[39m
-[1m[INFO][0m:    [36m-> directory context /home/kouzimiso/study/.buildozer/android/platform/build-arm64-v8a_armeabi-v7a/build/other_builds/libffi/armeabi-v7a__ndk_target_21/libffi[39m
+[1m[INFO][0m:    [36m-> directory context /home/kouzimiso/study/.buildozer/android/platform/build-arm64-v8a_armeabi-v7a/build/other_builds/libffi/armeabi-v7a__ndk_target_31/libffi[39m
+[1m[90m[DEBUG][39m[0m:   [90m->[0m running autogen.sh[0m
+[1m[90m[DEBUG][39m[0m:   	autoreconf: export WARNINGS=
+[1m[90m[DEBUG][39m[0m:   	autoreconf: Entering directory '.'
+[1m[90m[DEBUG][39m[0m:   	autoreconf: configure.ac: not using Gettext
+[1m[90m[DEBUG][39m[0m:   	autoreconf: running: aclocal -I m4
+[1m[90m[DEBUG][39m[0m:   	autoreconf: configure.ac: tracing
+[1m[90m[DEBUG][39m[0m:   	autoreconf: running: libtoolize --copy
+[1m[90m[DEBUG][39m[0m:   	libtoolize: putting auxiliary files in '.'.
+[1m[90m[DEBUG][39m[0m:   	libtoolize: copying file './ltmain.sh'
+[1m[90m[DEBUG][39m[0m:   	libtoolize: putting macros in AC_CONFIG_MACRO_DIRS, 'm4'.
+[1m[90m[DEBUG][39m[0m:   	libtoolize: copying file 'm4/libtool.m4'
+[1m[90m[DEBUG][39m[0m:   	libtoolize: copying file 'm4/ltoptions.m4'
+[1m[90m[DEBUG][39m[0m:   	libtoolize: copying file 'm4/ltsugar.m4'
+[1m[90m[DEBUG][39m[0m:   	libtoolize: copying file 'm4/ltversion.m4'
+[1m[90m[DEBUG][39m[0m:   	libtoolize: copying file 'm4/lt~obsolete.m4'
+[1m[90m[DEBUG][39m[0m:   	autoreconf: configure.ac: not using Intltool
+[1m[90m[DEBUG][39m[0m:   	autoreconf: configure.ac: not using Gtkdoc
+[1m[90m[DEBUG][39m[0m:   	autoreconf: running: aclocal -I m4
+[1m[90m[DEBUG][39m[0m:   	autoreconf: running: /usr/bin/autoconf
+[1m[90m[DEBUG][39m[0m:   	configure.ac:8: warning: The macro `AC_CANONICAL_SYSTEM' is obsolete.
+[1m[90m[DEBUG][39m[0m:   	configure.ac:8: You should run autoupdate.
+[1m[90m[DEBUG][39m[0m:   	./lib/autoconf/general.m4:2081: AC_CANONICAL_SYSTEM is expanded from...
+[1m[90m[DEBUG][39m[0m:   	configure.ac:8: the top level
+[1m[90m[DEBUG][39m[0m:   	configure.ac:41: warning: The macro `AC_PROG_LIBTOOL' is obsolete.
+[1m[90m[DEBUG][39m[0m:   	configure.ac:41: You should run autoupdate.
+[1m[90m[DEBUG][39m[0m:   	m4/libtool.m4:99: AC_PROG_LIBTOOL is expanded from...
+[1m[90m[DEBUG][39m[0m:   	configure.ac:41: the top level
+[1m[90m[DEBUG][39m[0m:   	configure.ac:74: warning: The macro `AC_TRY_COMPILE' is obsolete.
+[1m[90m[DEBUG][39m[0m:   	configure.ac:74: You should run autoupdate.
+[1m[90m[DEBUG][39m[0m:   	./lib/autoconf/general.m4:2847: AC_TRY_COMPILE is expanded from...
+[1m[90m[DEBUG][39m[0m:   	lib/m4sugar/m4sh.m4:692: _AS_IF_ELSE is expanded from...
+[1m[90m[DEBUG][39m[0m:   	lib/m4sugar/m4sh.m4:699: AS_IF is expanded from...
+[1m[90m[DEBUG][39m[0m:   	./lib/autoconf/general.m4:2249: AC_CACHE_VAL is expanded from...
+[1m[90m[DEBUG][39m[0m:   	./lib/autoconf/general.m4:2270: AC_CACHE_CHECK is expanded from...
+[1m[90m[DEBUG][39m[0m:   	acinclude.m4:3: AC_FUNC_MMAP_BLACKLIST is expanded from...
+[1m[90m[DEBUG][39m[0m:   	configure.ac:74: the top level
+[1m[90m[DEBUG][39m[0m:   	configure.ac:91: warning: The macro `AC_HEADER_STDC' is obsolete.
+[1m[90m[DEBUG][39m[0m:   	configure.ac:91: You should run autoupdate.
+[1m[90m[DEBUG][39m[0m:   	./lib/autoconf/headers.m4:704: AC_HEADER_STDC is expanded from...
+[1m[90m[DEBUG][39m[0m:   	configure.ac:91: the top level
+[1m[90m[DEBUG][39m[0m:   	configure.ac:118: warning: The macro `AC_TRY_COMPILE' is obsolete.
+[1m[90m[DEBUG][39m[0m:   	configure.ac:118: You should run autoupdate.
+[1m[90m[DEBUG][39m[0m:   	./lib/autoconf/general.m4:2847: AC_TRY_COMPILE is expanded from...
+[1m[90m[DEBUG][39m[0m:   	lib/m4sugar/m4sh.m4:692: _AS_IF_ELSE is expanded from...
+[1m[90m[DEBUG][39m[0m:   	lib/m4sugar/m4sh.m4:699: AS_IF is expanded from...
+[1m[90m[DEBUG][39m[0m:   	./lib/autoconf/general.m4:2249: AC_CACHE_VAL is expanded from...
+[1m[90m[DEBUG][39m[0m:   	./lib/autoconf/general.m4:2270: AC_CACHE_CHECK is expanded from...
+[1m[90m[DEBUG][39m[0m:   	m4/asmcfi.m4:1: GCC_AS_CFI_PSEUDO_OP is expanded from...
+[1m[90m[DEBUG][39m[0m:   	configure.ac:118: the top level
+[1m[90m[DEBUG][39m[0m:   	configure.ac:122: warning: The macro `AC_TRY_LINK' is obsolete.
+[1m[90m[DEBUG][39m[0m:   	configure.ac:122: You should run autoupdate.
+[1m[90m[DEBUG][39m[0m:   	./lib/autoconf/general.m4:2920: AC_TRY_LINK is expanded from...
+[1m[90m[DEBUG][39m[0m:   	lib/m4sugar/m4sh.m4:692: _AS_IF_ELSE is expanded from...
+[1m[90m[DEBUG][39m[0m:   	lib/m4sugar/m4sh.m4:699: AS_IF is expanded from...
+[1m[90m[DEBUG][39m[0m:   	./lib/autoconf/general.m4:2249: AC_CACHE_VAL is expanded from...
+[1m[90m[DEBUG][39m[0m:   	./lib/autoconf/general.m4:2270: AC_CACHE_CHECK is expanded from...
+[1m[90m[DEBUG][39m[0m:   	configure.ac:122: the top level
+[1m[90m[DEBUG][39m[0m:   	configure.ac:138: warning: The macro `AC_TRY_COMPILE' is obsolete.
+[1m[90m[DEBUG][39m[0m:   	configure.ac:138: You should run autoupdate.
+[1m[90m[DEBUG][39m[0m:   	./lib/autoconf/general.m4:2847: AC_TRY_COMPILE is expanded from...
+[1m[90m[DEBUG][39m[0m:   	lib/m4sugar/m4sh.m4:692: _AS_IF_ELSE is expanded from...
+[1m[90m[DEBUG][39m[0m:   	lib/m4sugar/m4sh.m4:699: AS_IF is expanded from...
+[1m[90m[DEBUG][39m[0m:   	./lib/autoconf/general.m4:2249: AC_CACHE_VAL is expanded from...
+[1m[90m[DEBUG][39m[0m:   	./lib/autoconf/general.m4:2270: AC_CACHE_CHECK is expanded from...
+[1m[90m[DEBUG][39m[0m:   	configure.ac:138: the top level
+[1m[90m[DEBUG][39m[0m:   	configure.ac:185: warning: The macro `AC_TRY_COMPILE' is obsolete.
+[1m[90m[DEBUG][39m[0m:   	configure.ac:185: You should run autoupdate.
+[1m[90m[DEBUG][39m[0m:   	./lib/autoconf/general.m4:2847: AC_TRY_COMPILE is expanded from...
+[1m[90m[DEBUG][39m[0m:   	lib/m4sugar/m4sh.m4:692: _AS_IF_ELSE is expanded from...
+[1m[90m[DEBUG][39m[0m:   	lib/m4sugar/m4sh.m4:699: AS_IF is expanded from...
+[1m[90m[DEBUG][39m[0m:   	./lib/autoconf/general.m4:2249: AC_CACHE_VAL is expanded from...
+[1m[90m[DEBUG][39m[0m:   	./lib/autoconf/general.m4:2270: AC_CACHE_CHECK is expanded from...
+[1m[90m[DEBUG][39m[0m:   	configure.ac:185: the top level
+[1m[90m[DEBUG][39m[0m:   	configure.ac:310: warning: The macro `AC_HELP_STRING' is obsolete.
+[1m[90m[DEBUG][39m[0m:   	configure.ac:310: You should run autoupdate.
+[1m[90m[DEBUG][39m[0m:   	./lib/autoconf/general.m4:204: AC_HELP_STRING is expanded from...
+[1m[90m[DEBUG][39m[0m:   	configure.ac:310: the top level
+[1m[90m[DEBUG][39m[0m:   	configure.ac:418: warning: The macro `AC_HELP_STRING' is obsolete.
+[1m[90m[DEBUG][39m[0m:   	configure.ac:418: You should run autoupdate.
+[1m[90m[DEBUG][39m[0m:   	./lib/autoconf/general.m4:204: AC_HELP_STRING is expanded from...
+[1m[90m[DEBUG][39m[0m:   	acinclude.m4:353: LIBFFI_ENABLE_SYMVERS is expanded from...
+[1m[90m[DEBUG][39m[0m:   	configure.ac:418: the top level
+[1m[90m[DEBUG][39m[0m:   	configure.ac:418: warning: The macro `AC_PROG_LD' is obsolete.
+[1m[90m[DEBUG][39m[0m:   	configure.ac:418: You should run autoupdate.
+[1m[90m[DEBUG][39m[0m:   	m4/libtool.m4:3341: AC_PROG_LD is expanded from...
+[1m[90m[DEBUG][39m[0m:   	acinclude.m4:251: LIBFFI_CHECK_LINKER_FEATURES is expanded from...
+[1m[90m[DEBUG][39m[0m:   	acinclude.m4:353: LIBFFI_ENABLE_SYMVERS is expanded from...
+[1m[90m[DEBUG][39m[0m:   	configure.ac:418: the top level
+[1m[90m[DEBUG][39m[0m:   	configure.ac:418: warning: The macro `AC_TRY_RUN' is obsolete.
+[1m[90m[DEBUG][39m[0m:   	configure.ac:418: You should run autoupdate.
+[1m[90m[DEBUG][39m[0m:   	./lib/autoconf/general.m4:2997: AC_TRY_RUN is expanded from...
+[1m[90m[DEBUG][39m[0m:   	acinclude.m4:251: LIBFFI_CHECK_LINKER_FEATURES is expanded from...
+[1m[90m[DEBUG][39m[0m:   	acinclude.m4:353: LIBFFI_ENABLE_SYMVERS is expanded from...
+[1m[90m[DEBUG][39m[0m:   	configure.ac:418: the top level
+[1m[90m[DEBUG][39m[0m:   	configure.ac:418: warning: The macro `AC_TRY_LINK' is obsolete.
+[1m[90m[DEBUG][39m[0m:   	configure.ac:418: You should run autoupdate.
+[1m[90m[DEBUG][39m[0m:   	./lib/autoconf/general.m4:2920: AC_TRY_LINK is expanded from...
+[1m[90m[DEBUG][39m[0m:   	acinclude.m4:353: LIBFFI_ENABLE_SYMVERS is expanded from...
+[1m[90m[DEBUG][39m[0m:   	configure.ac:418: the top level
+[1m[90m[DEBUG][39m[0m:   	autoreconf: running: /usr/bin/autoheader
+[1m[90m[DEBUG][39m[0m:   	autoreconf: running: automake --add-missing --copy --no-force
+[1m[90m[DEBUG][39m[0m:   	configure.ac:31: installing './compile'
+[1m[90m[DEBUG][39m[0m:   	configure.ac:19: installing './install-sh'
+[1m[90m[DEBUG][39m[0m:   	configure.ac:19: installing './missing'
+[1m[90m[DEBUG][39m[0m:   	Makefile.am: installing './depcomp'
+[1m[90m[DEBUG][39m[0m:   	doc/Makefile.am:3: installing 'doc/mdate-sh'
+[1m[90m[DEBUG][39m[0m:   	doc/Makefile.am:3: installing 'doc/texinfo.tex'
+[1m[90m[DEBUG][39m[0m:   	autoreconf: Leaving directory '.'
 [1m[90m[DEBUG][39m[0m:   [90m->[0m running autoreconf -vif[0m
 [1m[90m[DEBUG][39m[0m:   	autoreconf: export WARNINGS=
 [1m[90m[DEBUG][39m[0m:   	autoreconf: Entering directory '.'
@@ -497,7 +626,7 @@ options:
 [1m[90m[DEBUG][39m[0m:   	configure.ac:19: installing './missing'
 [1m[90m[DEBUG][39m[0m:   	Makefile.am: installing './depcomp'
 [1m[90m[DEBUG][39m[0m:   	autoreconf: Leaving directory '.'
-[1m[90m[DEBUG][39m[0m:   [90m->[0m running configure --host=arm-linux-androideabi --prefix=/home/kouzimiso/study/.buildozer/android/platform/build-arm64-v8a_armeabi-v7a/build/other_builds/libffi/armeabi-v7a__ndk_target_21/libffi --disable-builddir --enable-shared[0m
+[1m[90m[DEBUG][39m[0m:   [90m->[0m running configure --host=arm-linux-androideabi --prefix=/home/kouzimiso/study/.buildozer/android/platform/build-arm64-v8a_armeabi-v7a/build/other_builds/libffi/armeabi-v7a__ndk_target_31/libffi --disable-builddir --enable-shared[0m
 [1m[90m[DEBUG][39m[0m:   	checking build system type... x86_64-pc-linux-gnu
 [1m[90m[DEBUG][39m[0m:   	checking host system type... arm-unknown-linux-androideabi
 [1m[90m[DEBUG][39m[0m:   	checking target system type... arm-unknown-linux-androideabi
@@ -509,29 +638,28 @@ options:
 [1m[90m[DEBUG][39m[0m:   	checking for gawk... gawk
 [1m[90m[DEBUG][39m[0m:   	checking whether make -j8 sets $(MAKE)... yes
 [1m[90m[DEBUG][39m[0m:   	checking whether make -j8 supports nested variables... yes
-[1m[90m[DEBUG][39m[0m:   	checking for arm-linux-androideabi-gcc... /home/kouzimiso/.buildozer/android/platform/android-ndk-r25b/toolchains/llvm/prebuilt/linux-x86_64/bin/clang -target armv7a-linux-androideabi21 -fomit-frame-pointer -march=armv7-a -mfloat-abi=softfp -mfpu=vfp -mthumb -fPIC
+[1m[90m[DEBUG][39m[0m:   	checking for arm-linux-androideabi-gcc... /home/kouzimiso/.buildozer/android/platform/android-ndk-r25b/toolchains/llvm/prebuilt/linux-x86_64/bin/clang -target armv7a-linux-androideabi31 -fomit-frame-pointer -march=armv7-a -mfloat-abi=softfp -mfpu=vfp -mthumb -fPIC
 [1m[90m[DEBUG][39m[0m:   	checking whether the C compiler works... no
-[1m[90m[DEBUG][39m[0m:   	configure: error: in `/home/kouzimiso/study/.buildozer/android/platform/build-arm64-v8a_armeabi-v7a/build/other_builds/libffi/armeabi-v7a__ndk_target_21/libffi':
+[1m[90m[DEBUG][39m[0m:   	configure: error: in `/home/kouzimiso/study/.buildozer/android/platform/build-arm64-v8a_armeabi-v7a/build/other_builds/libffi/armeabi-v7a__ndk_target_31/libffi':
 [1m[90m[DEBUG][39m[0m:   	configure: error: C compiler cannot create executables
 [1m[90m[DEBUG][39m[0m:   	See `config.log' for more details
-Exception in thread background thread for pid 6975:
+Exception in thread background thread for pid 3475:
 Traceback (most recent call last):
-  File "/home/kouzimiso/.pyenv/versions/3.11.9/lib/python3.11/threading.py", line 1045, in _bootstrap_inner
+  File "/usr/lib/python3.10/threading.py", line 1016, in _bootstrap_inner
     self.run()
-  File "/home/kouzimiso/.pyenv/versions/3.11.9/lib/python3.11/threading.py", line 982, in run
+  File "/usr/lib/python3.10/threading.py", line 953, in run
     self._target(*self._args, **self._kwargs)
-  File "/home/kouzimiso/.local/lib/python3.11/site-packages/sh.py", line 1641, in wrap
+  File "/home/kouzimiso/.local/lib/python3.10/site-packages/sh.py", line 1641, in wrap
     fn(*rgs, **kwargs)
-  File "/home/kouzimiso/.local/lib/python3.11/site-packages/sh.py", line 2569, in background_thread
+  File "/home/kouzimiso/.local/lib/python3.10/site-packages/sh.py", line 2569, in background_thread
     handle_exit_code(exit_code)
-  File "/home/kouzimiso/.local/lib/python3.11/site-packages/sh.py", line 2269, in fn
+  File "/home/kouzimiso/.local/lib/python3.10/site-packages/sh.py", line 2269, in fn
     return self.command.handle_command_exit_code(exit_code)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/kouzimiso/.local/lib/python3.11/site-packages/sh.py", line 869, in handle_command_exit_code
+  File "/home/kouzimiso/.local/lib/python3.10/site-packages/sh.py", line 869, in handle_command_exit_code
     raise exc
 sh.ErrorReturnCode_77: 
 
-  RAN: /home/kouzimiso/study/.buildozer/android/platform/build-arm64-v8a_armeabi-v7a/build/other_builds/libffi/armeabi-v7a__ndk_target_21/libffi/configure --host=arm-linux-androideabi --prefix=/home/kouzimiso/study/.buildozer/android/platform/build-arm64-v8a_armeabi-v7a/build/other_builds/libffi/armeabi-v7a__ndk_target_21/libffi --disable-builddir --enable-shared
+  RAN: /home/kouzimiso/study/.buildozer/android/platform/build-arm64-v8a_armeabi-v7a/build/other_builds/libffi/armeabi-v7a__ndk_target_31/libffi/configure --host=arm-linux-androideabi --prefix=/home/kouzimiso/study/.buildozer/android/platform/build-arm64-v8a_armeabi-v7a/build/other_builds/libffi/armeabi-v7a__ndk_target_31/libffi --disable-builddir --enable-shared
 
   STDOUT:
 checking build system type... x86_64-pc-linux-gnu
@@ -545,9 +673,9 @@ checking for a race-free mkdir -p... /usr/bin/mkdir -p
 checking for gawk... gawk
 checking whether make -j8 sets $(MAKE)... yes
 checking whether make -j8 supports nested variables... yes
-checking for arm-linux-androideabi-gcc... /home/kouzimiso/.buildozer/android/platform/android-ndk-r25b/toolchains/llvm/prebuilt/linux-x86_64/bin/clang -target armv7a-linux-androideabi21 -fomit-frame-pointer -march=armv7-a -mfloat-abi=softfp -mfpu=vfp -mthumb -fPIC
+checking for arm-linux-androideabi-gcc... /home/kouzimiso/.buildozer/android/platform/android-ndk-r25b/toolchains/llvm/prebuilt/linux-x86_64/bin/clang -target armv7a-linux-androideabi31 -fomit-frame-pointer -march=armv7-a -mfloat-abi=softfp -mfpu=vfp -mthumb -fPIC
 checking whether the C compiler works... no
-configure: error: in `/home/kouzimiso/study/.buildozer/android/platform/build-arm64-v8a_armeabi-v7a/build/other_builds/libffi/armeabi-v7a__ndk_target_21/libffi':
+configure: error: in `/home/kouzimiso/study/.buildozer/android/platform/build-arm64-v8a_armeabi-v7a/build/other_builds/libffi/armeabi-v7a__ndk_target_31/libffi':
 configure: error: C compiler cannot create executables
 See `config.log' for more details
 
@@ -555,8 +683,10 @@ See `config.log' for more details
   STDERR:
 
 Traceback (most recent call last):
-  File "<frozen runpy>", line 198, in _run_module_as_main
-  File "<frozen runpy>", line 88, in _run_code
+  File "/usr/lib/python3.10/runpy.py", line 196, in _run_module_as_main
+    return _run_code(code, main_globals, None,
+  File "/usr/lib/python3.10/runpy.py", line 86, in _run_code
+    exec(code, run_globals)
   File "/home/kouzimiso/study/.buildozer/android/platform/python-for-android/pythonforandroid/toolchain.py", line 1256, in <module>
     main()
   File "/home/kouzimiso/study/.buildozer/android/platform/python-for-android/pythonforandroid/entrypoints.py", line 18, in main
@@ -573,15 +703,15 @@ Traceback (most recent call last):
     shprint(sh.Command('./configure'),
   File "/home/kouzimiso/study/.buildozer/android/platform/python-for-android/pythonforandroid/logger.py", line 167, in shprint
     for line in output:
-  File "/home/kouzimiso/.local/lib/python3.11/site-packages/sh.py", line 915, in next
+  File "/home/kouzimiso/.local/lib/python3.10/site-packages/sh.py", line 915, in next
     self.wait()
-  File "/home/kouzimiso/.local/lib/python3.11/site-packages/sh.py", line 845, in wait
+  File "/home/kouzimiso/.local/lib/python3.10/site-packages/sh.py", line 845, in wait
     self.handle_command_exit_code(exit_code)
-  File "/home/kouzimiso/.local/lib/python3.11/site-packages/sh.py", line 869, in handle_command_exit_code
+  File "/home/kouzimiso/.local/lib/python3.10/site-packages/sh.py", line 869, in handle_command_exit_code
     raise exc
 sh.ErrorReturnCode_77: 
 
-  RAN: /home/kouzimiso/study/.buildozer/android/platform/build-arm64-v8a_armeabi-v7a/build/other_builds/libffi/armeabi-v7a__ndk_target_21/libffi/configure --host=arm-linux-androideabi --prefix=/home/kouzimiso/study/.buildozer/android/platform/build-arm64-v8a_armeabi-v7a/build/other_builds/libffi/armeabi-v7a__ndk_target_21/libffi --disable-builddir --enable-shared
+  RAN: /home/kouzimiso/study/.buildozer/android/platform/build-arm64-v8a_armeabi-v7a/build/other_builds/libffi/armeabi-v7a__ndk_target_31/libffi/configure --host=arm-linux-androideabi --prefix=/home/kouzimiso/study/.buildozer/android/platform/build-arm64-v8a_armeabi-v7a/build/other_builds/libffi/armeabi-v7a__ndk_target_31/libffi --disable-builddir --enable-shared
 
   STDOUT:
 checking build system type... x86_64-pc-linux-gnu
@@ -595,23 +725,23 @@ checking for a race-free mkdir -p... /usr/bin/mkdir -p
 checking for gawk... gawk
 checking whether make -j8 sets $(MAKE)... yes
 checking whether make -j8 supports nested variables... yes
-checking for arm-linux-androideabi-gcc... /home/kouzimiso/.buildozer/android/platform/android-ndk-r25b/toolchains/llvm/prebuilt/linux-x86_64/bin/clang -target armv7a-linux-androideabi21 -fomit-frame-pointer -march=armv7-a -mfloat-abi=softfp -mfpu=vfp -mthumb -fPIC
+checking for arm-linux-androideabi-gcc... /home/kouzimiso/.buildozer/android/platform/android-ndk-r25b/toolchains/llvm/prebuilt/linux-x86_64/bin/clang -target armv7a-linux-androideabi31 -fomit-frame-pointer -march=armv7-a -mfloat-abi=softfp -mfpu=vfp -mthumb -fPIC
 checking whether the C compiler works... no
-configure: error: in `/home/kouzimiso/study/.buildozer/android/platform/build-arm64-v8a_armeabi-v7a/build/other_builds/libffi/armeabi-v7a__ndk_target_21/libffi':
+configure: error: in `/home/kouzimiso/study/.buildozer/android/platform/build-arm64-v8a_armeabi-v7a/build/other_builds/libffi/armeabi-v7a__ndk_target_31/libffi':
 configure: error: C compiler cannot create executables
 See `config.log' for more details
 
 
   STDERR:
 
-# Command failed: ['/home/kouzimiso/.pyenv/versions/3.11.9/bin/python3.11', '-m', 'pythonforandroid.toolchain', 'create', '--dist_name=myapp', '--bootstrap=sdl2', '--requirements=python3,kivy', '--arch=arm64-v8a', '--arch=armeabi-v7a', '--copy-libs', '--color=always', '--storage-dir=/home/kouzimiso/study/.buildozer/android/platform/build-arm64-v8a_armeabi-v7a', '--ndk-api=21', '--ignore-setup-py', '--debug']
+# Command failed: ('/usr/bin/python3', '-m', 'pythonforandroid.toolchain', 'create', '--dist_name=myapp', '--bootstrap=sdl2', '--requirements=python3,kivy,libffi', '--arch=arm64-v8a', '--arch=armeabi-v7a', '--copy-libs', '--color=always', '--storage-dir=/home/kouzimiso/study/.buildozer/android/platform/build-arm64-v8a_armeabi-v7a', '--ndk-api=31', '--ignore-setup-py', '--debug')
+# Error code: 1
 # ENVIRONMENT:
 #     SHELL = '/bin/bash'
 #     WSL_DISTRO_NAME = 'Ubuntu-22.04'
 #     NAME = 'DESKTOP-RAFM420'
 #     PWD = '/home/kouzimiso/study'
 #     LOGNAME = 'kouzimiso'
-#     _ = '/home/kouzimiso/.local/bin/buildozer'
 #     MOTD_SHOWN = 'update-motd'
 #     HOME = '/home/kouzimiso'
 #     LANG = 'C.UTF-8'
@@ -620,7 +750,7 @@ See `config.log' for more details
 #     TERM = 'xterm-256color'
 #     LESSOPEN = '| /usr/bin/lesspipe %s'
 #     USER = 'kouzimiso'
-#     SHLVL = '2'
+#     SHLVL = '1'
 #     WSLENV = ''
 #     XDG_DATA_DIRS = '/usr/local/share:/usr/share:/var/lib/snapd/desktop'
 #     PATH = ('/home/kouzimiso/.buildozer/android/platform/apache-ant-1.9.4/bin:/home/kouzimiso/.local/bin:/home/kouzimiso/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/mnt/c/Program '
@@ -645,7 +775,8 @@ See `config.log' for more details
  'Files/Git/cmd:/mnt/c/Users/Public/Documents/Embar:/mnt/c/Users/kouzi/AppData/Local/JetBrains/Toolbox/scripts:/mnt/c/Users/kouzi/AppData/Local/Programs/Microsoft '
  'VS Code Insiders/bin:/snap/bin')
 #     HOSTTYPE = 'x86_64'
-#     OLDPWD = '/home/kouzimiso'
+#     _ = '/home/kouzimiso/.local/bin/buildozer'
+#     OLDPWD = '/home/kouzimiso/study/buildozer'
 #     PACKAGES_PATH = '/home/kouzimiso/.buildozer/android/packages'
 #     ANDROIDSDK = '/home/kouzimiso/.buildozer/android/platform/android-sdk'
 #     ANDROIDNDK = '/home/kouzimiso/.buildozer/android/platform/android-ndk-r25b'
