@@ -1,4 +1,5 @@
 [app]
+p4a.prebuild = ./prebuild.sh
 
 # (str) Title of your application
 title = My Application

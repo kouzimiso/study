@@ -6,7 +6,7 @@
 # Search for Git (git)
 #  -> found at /usr/bin/git
 # Search for Cython (cython)
-#  -> found at /home/kouzimiso/.pyenv/shims/cython
+#  -> found at /home/kouzimiso/.local/bin/cython
 # Search for Java compiler (javac)
 #  -> found at /usr/lib/jvm/java-17-openjdk-amd64/bin/javac
 # Search for Java keytool (keytool)
@@ -155,7 +155,7 @@ options:
 [WARNING]: Please report any issues to the python-for-android issue tracker.
 [WARNING]: prerequisites.py is experimental and does not support all prerequisites yet.
 [WARNING]: Please report any issues to the python-for-android issue tracker.
-[1m[INFO][0m:    Will compile for the following archs: arm64-v8a, armeabi-v7a
+[1m[INFO][0m:    Will compile for the following archs: armeabi-v7a, arm64-v8a
 [1m[INFO][0m:    Found Android API target in $ANDROIDAPI: 31
 [1m[INFO][0m:    Available Android APIs are (31)
 [1m[INFO][0m:    Requested API target 31 is available, continuing.
@@ -174,7 +174,7 @@ options:
 [1m[INFO][0m:    [1m[32m# Creating dist with sdl2 bootstrap[0m[39m
 [1m[INFO][0m:    [1m[94mDist will have name myapp and requirements (python3, kivy)[0m
 [1m[INFO][0m:    Dist contains the following requirements as recipes: ['hostpython3', 'libffi', 'openssl', 'sdl2_image', 'sdl2_mixer', 'sdl2_ttf', 'sqlite3', 'python3', 'sdl2', 'setuptools', 'six', 'pyjnius', 'android', 'kivy']
-[1m[INFO][0m:    Dist will also contain modules (certifi, requests, idna, chardet, urllib3) installed from pip
+[1m[INFO][0m:    Dist will also contain modules (urllib3, requests, certifi, idna, chardet) installed from pip
 [1m[INFO][0m:    Dist will be build in mode debug
 [1m[INFO][0m:    [36m-> directory context /home/kouzimiso/study/.buildozer/android/platform/build-arm64-v8a_armeabi-v7a/build/bootstrap_builds/sdl2[39m
 [1m[INFO][0m:    [36m<- directory context /home/kouzimiso/study/.buildozer/android/platform/python-for-android[39m
@@ -262,9 +262,9 @@ options:
 [1m[90m[DEBUG][39m[0m:   	2.3.0.zip
 [1m[INFO][0m:    kivy download already cached, skipping
 [1m[INFO][0m:    [36m<- directory context /home/kouzimiso/study/.buildozer/android/platform/python-for-android[39m
-[1m[INFO][0m:    [1m[32m# Building all recipes for arch arm64-v8a[0m[39m
+[1m[INFO][0m:    [1m[32m# Building all recipes for arch armeabi-v7a[0m[39m
 [1m[INFO][0m:    [1m[32m# Unpacking recipes[0m[39m
-[1m[INFO][0m:    [1m[32mUnpacking hostpython3 for arm64-v8a[0m[39m
+[1m[INFO][0m:    [1m[32mUnpacking hostpython3 for armeabi-v7a[0m[39m
 [1m[90m[DEBUG][39m[0m:   [90m->[0m running basename https://www.python.org/ftp/python/3.11.5/Python-3.11.5.tgz[0m
 [1m[90m[DEBUG][39m[0m:   	Python-3.11.5.tgz
 [1m[INFO][0m:    [36m-> directory context /home/kouzimiso/study/.buildozer/android/platform/build-arm64-v8a_armeabi-v7a/build/other_builds/hostpython3/desktop[39m
@@ -514,7 +514,7 @@ options:
 [1m[90m[DEBUG][39m[0m:   	configure: error: in `/home/kouzimiso/study/.buildozer/android/platform/build-arm64-v8a_armeabi-v7a/build/other_builds/libffi/armeabi-v7a__ndk_target_21/libffi':
 [1m[90m[DEBUG][39m[0m:   	configure: error: C compiler cannot create executables
 [1m[90m[DEBUG][39m[0m:   	See `config.log' for more details
-Exception in thread background thread for pid 15519:
+Exception in thread background thread for pid 6975:
 Traceback (most recent call last):
   File "/home/kouzimiso/.pyenv/versions/3.11.9/lib/python3.11/threading.py", line 1045, in _bootstrap_inner
     self.run()
@@ -610,9 +610,8 @@ See `config.log' for more details
 #     WSL_DISTRO_NAME = 'Ubuntu-22.04'
 #     NAME = 'DESKTOP-RAFM420'
 #     PWD = '/home/kouzimiso/study'
-#     PYENV_VIRTUALENV_INIT = '1'
 #     LOGNAME = 'kouzimiso'
-#     ANDROIDNDK = '/home/kouzimiso/.buildozer/android/platform/android-ndk-r25b'
+#     _ = '/home/kouzimiso/.local/bin/buildozer'
 #     MOTD_SHOWN = 'update-motd'
 #     HOME = '/home/kouzimiso'
 #     LANG = 'C.UTF-8'
@@ -621,11 +620,10 @@ See `config.log' for more details
 #     TERM = 'xterm-256color'
 #     LESSOPEN = '| /usr/bin/lesspipe %s'
 #     USER = 'kouzimiso'
-#     SHLVL = '5'
-#     PYENV_ROOT = '/home/kouzimiso/.pyenv'
+#     SHLVL = '2'
 #     WSLENV = ''
 #     XDG_DATA_DIRS = '/usr/local/share:/usr/share:/var/lib/snapd/desktop'
-#     PATH = ('/home/kouzimiso/.buildozer/android/platform/apache-ant-1.9.4/bin:/home/kouzimiso/.pyenv/plugins/pyenv-virtualenv/shims:/home/kouzimiso/.pyenv/shims:/home/kouzimiso/.pyenv/bin:/home/kouzimiso/.pyenv/plugins/pyenv-virtualenv/shims:/home/kouzimiso/.pyenv/bin:/home/kouzimiso/.pyenv/plugins/pyenv-virtualenv/shims:/home/kouzimiso/.pyenv/bin:/home/kouzimiso/.pyenv/plugins/pyenv-virtualenv/shims:/home/kouzimiso/.pyenv/bin:/home/kouzimiso/.pyenv/plugins/pyenv-virtualenv/shims:/home/kouzimiso/.pyenv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/mnt/c/Program '
+#     PATH = ('/home/kouzimiso/.buildozer/android/platform/apache-ant-1.9.4/bin:/home/kouzimiso/.local/bin:/home/kouzimiso/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/mnt/c/Program '
  'Files/WindowsApps/CanonicalGroupLimited.Ubuntu22.04LTS_2204.3.63.0_x64__79rhkp1fndgsc:/mnt/c/Program '
  'Files '
  '(x86)/Embarcadero/Studio/22.0/bin:/mnt/c/Users/Public/Documents/Embarcadero/Studio/22.0/Bpl:/mnt/c/Program '
@@ -645,13 +643,12 @@ See `config.log' for more details
  'Toolkit/:/mnt/c/Program Files/dotnet/:/mnt/c/Program Files/Microsoft SQL '
  'Server/Client SDK/ODBC/170/Tools/Binn/:/mnt/c/Program '
  'Files/Git/cmd:/mnt/c/Users/Public/Documents/Embar:/mnt/c/Users/kouzi/AppData/Local/JetBrains/Toolbox/scripts:/mnt/c/Users/kouzi/AppData/Local/Programs/Microsoft '
- 'VS Code '
- 'Insiders/bin:/snap/bin:/home/kouzimiso/.local/bin/:/home/kouzimiso/.local/bin/:/home/kouzimiso/.local/bin/:/home/kouzimiso/.local/bin/:/home/kouzimiso/buildozer:/home/kouzimiso/buildozer:/home/kouzimiso/buildozer')
+ 'VS Code Insiders/bin:/snap/bin')
 #     HOSTTYPE = 'x86_64'
-#     OLDPWD = '/home/kouzimiso/study/Buildozer'
-#     _ = '/home/kouzimiso/.local/bin/buildozer'
+#     OLDPWD = '/home/kouzimiso'
 #     PACKAGES_PATH = '/home/kouzimiso/.buildozer/android/packages'
 #     ANDROIDSDK = '/home/kouzimiso/.buildozer/android/platform/android-sdk'
+#     ANDROIDNDK = '/home/kouzimiso/.buildozer/android/platform/android-ndk-r25b'
 #     ANDROIDAPI = '31'
 #     ANDROIDMINAPI = '21'
 # 
