@@ -1,3 +1,9 @@
+echo WSL1ではlibffiがBinaryの問題を起こす。WSL2で起動必要。
+echo Ubuntu 20.04 buildozerのInstallではManufest NG
+echo Ubuntu 20.04 buildozerのSourceをGitでDLしBuildしandroid debugするとOK.
+echo Ubuntu 22.04 buildozerのInstallでは
+echo Ubuntu 22.04 buildozerのSourceをGitでDLしBuildしandroid debugすると権限問題で停止。sudo buildozer ・・・で起動必要
+
 sudo apt update
 sudo apt upgrade
 sudo apt-get install -y build-essential libssl-dev zlib1g-dev libbz2-dev libreadline-dev libsqlite3-dev wget curl llvm libncurses5-dev libncursesw5-dev xz-utils tk-dev libffi-dev liblzma-dev python3-openssl git zip unzip openjdk-17-jdk python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libtinfo5 cmake libffi-dev libssl-dev
@@ -84,5 +90,6 @@ EOF
 
 export PATH=$PATH:~/buildozer
 buildozer init
-buildozer -v android debug 2>&1 | tee buildozer.log
+buildozer android debug clean
+sudo buildozer -v android debug 2>&1 | tee buildozer.log
 

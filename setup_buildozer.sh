@@ -93,5 +93,5 @@ echo "Initializing and building the Buildozer project..."
 source ~/.bashrc
 
 buildozer init
-buildozer -v android debug 2>&1 | tee buildozer.log
+sudo buildozer -v android debug 2>&1 | tee buildozer.log
 
