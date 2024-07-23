@@ -64,8 +64,9 @@ if platform == 'win':
     # Windowsの場合はシステムフォントを使用
     LabelBase.register(DEFAULT_FONT, fn_regular=font_path)
 elif platform == 'android':
-    # Androidの場合は適切なフォントを指定する
-    LabelBase.register(DEFAULT_FONT, fn_regular='DroidSans.ttf')
+    # Androidの場合はプロジェクトディレクトリに含めたフォントファイルを使用
+    font_path = os.path.join(os.path.dirname(__file__), 'DroidSans.ttf')
+    LabelBase.register(DEFAULT_FONT, fn_regular=font_path)
 else:
     # その他のプラットフォームではデフォルトフォントを使用
     LabelBase.register(DEFAULT_FONT, fn_regular='DejaVuSans.ttf')
