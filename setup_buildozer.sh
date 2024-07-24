@@ -14,21 +14,22 @@ sudo apt upgrade -y
 
 # 必要なパッケージのインストール
 echo "Installing required packages..."
-sudo apt-get install -y build-essential wget git zip unzip openjdk-17-jdk  autoconf libtool cmake python3.11 python3-pip
+sudo apt-get install -y build-essential wget git zip unzip openjdk-17-jdk  autoconf libtool cmake python3.11 python3-pip fonts-takao
 
 # Pythonのバージョン確認
 python3.11 --version
 
 # 必要なPythonパッケージのインストール
 echo "Installing Python packages..."
-python3.11 -m pip install --upgrade pip
-python3.11 -m pip install kivy cython buildozer
+python3 -m pip install --upgrade pip
+python3 -m pip install kivy cython buildozer
 
 # PATHに~/.local/binを追加
 echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc
 
 # 設定を反映
 source ~/.bashrc
+export PATH=$PATH:~/.local/bin
 
 # 日本語フォントをassetsフォルダにコピー
 echo "Copying Japanese font to assets folder..."

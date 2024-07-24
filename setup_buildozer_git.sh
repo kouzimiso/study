@@ -13,7 +13,7 @@ sudo apt upgrade -y
 
 # 必要なパッケージのインストール
 echo "Installing required packages..."
-sudo apt-get install -y build-essential wget git zip unzip openjdk-17-jdk  autoconf libtool cmake python3.11 python3-pip
+sudo apt-get install -y build-essential wget git zip unzip openjdk-17-jdk  autoconf libtool cmake python3.11 python3-pip fonts-takao
 curl https://pyenv.run | bash
 
 export PYENV_ROOT="$HOME/.pyenv"
