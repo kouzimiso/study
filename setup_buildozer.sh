@@ -4,7 +4,7 @@ echo pyenvでのInstallを行うと仮想環境に.buildozerをInstallする為�
 echo 日本語フォントを使用するとapk起動しない問題あり。ubuntuのフォントを移植する方法が使える。
 echo Ubuntu 20.04 buildozerのInstallをし、android debugするとOK.
 echo Ubuntu 20.04 buildozerのSourceをGitでDLしBuildしandroid debugするとOK.
-echo Ubuntu 22.04 sudoを付けてbuildozer android debugをしないと権限問題で停止。
+echo Ubuntu 22.04 sudoを付けてinstallし、sudo buildozer android debugをしないと権限問題で停止。
 
 # システムの更新
 # システムの更新
@@ -21,8 +21,8 @@ python3.11 --version
 
 # 必要なPythonパッケージのインストール
 echo "Installing Python packages..."
-python3 -m pip install --upgrade pip
-python3 -m pip install kivy cython buildozer
+sudo pip install --upgrade pip
+sudo pip install kivy cython buildozer 
 
 # PATHに~/.local/binを追加
 echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc
@@ -90,5 +90,5 @@ sed -i '/^source.include_patterns = /d' buildozer.spec
 echo 'source.include_patterns = assets/*.ttf' >> buildozer.spec
 
 
-buildozer android clean
+sudo buildozer android clean
 sudo buildozer -v android debug 2>&1 | tee buildozer.log
