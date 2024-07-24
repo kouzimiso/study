@@ -13,7 +13,7 @@ sudo apt upgrade -y
 
 # 必要なパッケージのインストール
 echo "Installing required packages..."
-sudo apt install -y python3.11 python3.11-venv python3.11-dev python3-pip openjdk-17-jdk unzip autoconf fonts-takao
+sudo apt-get install -y build-essential wget git zip unzip openjdk-17-jdk  autoconf libtool cmake python3.11 python3-pip
 
 # Pythonのバージョン確認
 python3.11 --version
@@ -36,7 +36,7 @@ cp /usr/share/fonts/truetype/fonts-japanese-gothic.ttf assets/
 
 # Buildozerバージョン確認
 buildozer version
-read
+read 
 
 # サンプルアプリの作成
 echo "Creating a sample Kivy app..."
@@ -89,4 +89,4 @@ echo 'source.include_patterns = assets/*.ttf' >> buildozer.spec
 
 
 buildozer android clean
-sudo buildozer android debug 2>&1 | tee buildozer.log
+sudo buildozer -v android debug 2>&1 | tee buildozer.log

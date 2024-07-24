@@ -1,3 +1,4 @@
+#!/bin/bash
 echo WSL1ではlibffiがBinaryの問題を起こす。WSL2で起動必要。
 echo pyenvでのInstallを行うと仮想環境に.buildozerをInstallする為、NGになる事あり。
 echo 日本語フォントを使用するとapk起動しない問題あり。ubuntuのフォントを移植する方法が使える。
@@ -5,10 +6,14 @@ echo Ubuntu 20.04 buildozerのInstallをし、android debugするとOK.
 echo Ubuntu 20.04 buildozerのSourceをGitでDLしBuildしandroid debugするとOK.
 echo Ubuntu 22.04 sudoを付けてbuildozer android debugをしないと権限問題で停止。
 
+# システムの更新
+echo "Updating and upgrading the system..."
 sudo apt update
-sudo apt upgrade
-sudo apt-get install -y build-essential libssl-dev zlib1g-dev libbz2-dev libreadline-dev libsqlite3-dev wget curl llvm libncurses5-dev libncursesw5-dev xz-utils tk-dev libffi-dev liblzma-dev python3-openssl git zip unzip openjdk-17-jdk python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libtinfo5 cmake libffi-dev libssl-dev
+sudo apt upgrade -y
 
+# 必要なパッケージのインストール
+echo "Installing required packages..."
+sudo apt-get install -y build-essential wget git zip unzip openjdk-17-jdk  autoconf libtool cmake python3.11 python3-pip
 curl https://pyenv.run | bash
 
 export PYENV_ROOT="$HOME/.pyenv"
@@ -21,6 +26,8 @@ eval "$(pyenv virtualenv-init -)"
 
 #export PATH=$PATH:~/.local/bin/
 #buildozer version
+# 設定を反映
+source ~/.bashrc
 
 pyenv install 3.11
 
@@ -58,7 +65,6 @@ cp /usr/share/fonts/truetype/fonts-japanese-gothic.ttf assets/
 buildozer version
 read 
 
-cat << EOF > main.py
 # サンプルアプリの作成
 echo "Creating a sample Kivy app..."
 cat << EOF > main.py
@@ -94,10 +100,19 @@ class MyApp(App):
 
     def on_button_click(self, instance):
         self.label.text = 'ボタンがクリックされました！'
+
+if __name__ == '__main__':
+    MyApp().run()
 EOF
 
 export PATH=$PATH:~/buildozer
 buildozer init
-buildozer android debug clean
-sudo buildozer -v android debug 2>&1 | tee buildozer.log
+# buildozer.specファイルの修正
+echo "Updating buildozer.spec file..."
+sed -i 's/^source.include_exts = .*/source.include_exts = py,png,jpg,kv,atlas,ttf/' buildozer.spec
+sed -i '/^source.include_patterns = /d' buildozer.spec
+echo 'source.include_patterns = assets/*.ttf' >> buildozer.spec
 
+
+buildozer android clean
+sudo buildozer -v android debug 2>&1 | tee buildozer.log
