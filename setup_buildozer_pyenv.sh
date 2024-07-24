@@ -1,26 +1,48 @@
 #!/bin/bash
 
-# システムの更新
+# 更新とアップグレード
 echo "Updating and upgrading the system..."
 sudo apt update
 sudo apt upgrade -y
 
 # 必要なパッケージのインストール
 echo "Installing required packages..."
-#sudo apt install -y software-properties-common
-#sudo add-apt-repository -y ppa:deadsnakes/ppa
-#sudo apt update
-sudo apt install -y python3.11 python3.11-venv python3.11-dev python3-pip openjdk-17-jdk unzip autoconf
+sudo apt install -y build-essential libssl-dev zlib1g-dev libbz2-dev libreadline-dev libsqlite3-dev wget curl llvm libncurses5-dev libncursesw5-dev xz-utils tk-dev libffi-dev liblzma-dev python3-openssl git openjdk-17-jdk unzip autoconf
+# pyenvをインストール
+echo "Installing pyenv..."
+curl https://pyenv.run | bash
 
-# Pythonのバージョン確認
-python3.11 --version
+# 環境変数の設定
+sudo export PYENV_ROOT="$HOME/.pyenv"
+sudo export PATH="$PYENV_ROOT/bin:$PATH"
+eval "$(pyenv init --path)"
+eval "$(pyenv virtualenv-init -)"
 
-# 必要なPythonパッケージのインストール
+# .bashrc または .zshrc に pyenv の設定を追加
+echo 'export PYENV_ROOT="$HOME/.pyenv"' >> ~/.bashrc
+echo 'export PATH="$PYENV_ROOT/bin:$PATH"' >> ~/.bashrc
+echo 'eval "$(pyenv init --path)"' >> ~/.bashrc
+echo 'eval "$(pyenv virtualenv-init -)"' >> ~/.bashrc
+
+# 設定を反映
+source ~/.bashrc
+
+# pyenvを使用してPython 3.11をインストール
+echo "Installing Python 3.11 via pyenv..."
+pyenv install 3.11
+pyenv global 3.11
+pyenv rehash
+
+# 必要なパッケージのインストール
 echo "Installing Python packages..."
-python3.11 -m pip install --upgrade pip
-python3.11 -m pip install kivy cython buildozer
+sudo apt install -y python3-pip
+
+# BuildozerとKivyのインストール
+sudo pip install --upgrade pip
+sudo pip install kivy cython buildozer
 
 # PATHに~/.local/binを追加
+sudo export PATH="$HOME/.local/bin:$PATH"
 echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc
 
 # 設定を反映
@@ -40,7 +62,6 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.lang import Builder
 from kivy.core.text import LabelBase, DEFAULT_FONT
 from kivy.utils import platform
-
 # システムフォントのパスを指定してフォントを設定する
 font_path = "C:/Windows/Fonts/YuGothR.ttc"
 
@@ -53,6 +74,7 @@ elif platform == 'android':
 else:
     # その他のプラットフォームではデフォルトフォントを使用
     LabelBase.register(DEFAULT_FONT, fn_regular='DejaVuSans.ttf')
+
 
 class MyApp(App):
     def build(self):
@@ -74,4 +96,4 @@ EOF
 # Buildozerプロジェクトの初期化とビルド
 echo "Initializing and building the Buildozer project..."
 buildozer init
-sudo buildozer -v android debug 2>&1 | tee buildozer.log
+sudo env "PATH=＄HOME/.pyenv/shims:$PATH" buildozer -v android debug 2>&1 | tee buildozer.log
