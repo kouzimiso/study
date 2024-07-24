@@ -7,10 +7,7 @@ sudo apt upgrade -y
 
 # 必要なパッケージのインストール
 echo "Installing required packages..."
-#sudo apt install -y software-properties-common
-#sudo add-apt-repository -y ppa:deadsnakes/ppa
-#sudo apt update
-sudo apt install -y python3.11 python3.11-venv python3.11-dev python3-pip openjdk-17-jdk unzip autoconf
+sudo apt install -y python3.11 python3.11-venv python3.11-dev python3-pip openjdk-17-jdk unzip autoconf fonts-takao
 
 # Pythonのバージョン確認
 python3.11 --version
@@ -29,6 +26,11 @@ source ~/.bashrc
 # Buildozerバージョン確認
 buildozer version
 
+# 日本語フォントをassetsフォルダにコピー
+echo "Copying Japanese font to assets folder..."
+mkdir -p assets
+cp /usr/share/fonts/truetype/takao/TakaoPGothic.ttf assets/
+
 # サンプルアプリの作成
 echo "Creating a sample Kivy app..."
 cat << EOF > main.py
@@ -37,19 +39,17 @@ from kivy.uix.button import Button
 from kivy.uix.label import Label
 from kivy.uix.boxlayout import BoxLayout
 
-from kivy.lang import Builder
 from kivy.core.text import LabelBase, DEFAULT_FONT
 from kivy.utils import platform
 
-# システムフォントのパスを指定してフォントを設定する
-font_path = "C:/Windows/Fonts/YuGothR.ttc"
-
+# フォントのパスを指定してフォントを設定する
 if platform == 'win':
     # Windowsの場合はシステムフォントを使用
+    font_path = "C:/Windows/Fonts/YuGothR.ttc"
     LabelBase.register(DEFAULT_FONT, fn_regular=font_path)
 elif platform == 'android':
-    # Androidの場合は適切なフォントを指定する
-    LabelBase.register(DEFAULT_FONT, fn_regular='DroidSans.ttf')
+    # Androidの場合はassetsフォルダ内のフォントを使用
+    LabelBase.register(DEFAULT_FONT, fn_regular='assets/TakaoPGothic.ttf')
 else:
     # その他のプラットフォームではデフォルトフォントを使用
     LabelBase.register(DEFAULT_FONT, fn_regular='DejaVuSans.ttf')
@@ -74,4 +74,12 @@ EOF
 # Buildozerプロジェクトの初期化とビルド
 echo "Initializing and building the Buildozer project..."
 buildozer init
-sudo buildozer -v android debug 2>&1 | tee buildozer.log
+# buildozer.specファイルの修正
+echo "Updating buildozer.spec file..."
+sed -i 's/^source.include_exts = .*/source.include_exts = py,png,jpg,kv,atlas,ttf/' buildozer.spec
+sed -i '/^source.include_patterns = /d' buildozer.spec
+echo 'source.include_patterns = assets/*.ttf' >> buildozer.spec
+
+
+buildozer android clean
+buildozer android debug 2>&1 | tee buildozer.log
