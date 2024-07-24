@@ -1,8 +1,9 @@
 echo WSL1ではlibffiがBinaryの問題を起こす。WSL2で起動必要。
-echo Ubuntu 20.04 buildozerのInstallではManufest NG
+echo pyenvでのInstallを行うと仮想環境に.buildozerをInstallする為、NGになる事あり。
+echo 日本語フォントを使用するとapk起動しない問題あり。ubuntuのフォントを移植する方法が使える。
+echo Ubuntu 20.04 buildozerのInstallをし、android debugするとOK.
 echo Ubuntu 20.04 buildozerのSourceをGitでDLしBuildしandroid debugするとOK.
-echo Ubuntu 22.04 buildozerのInstallでは
-echo Ubuntu 22.04 buildozerのSourceをGitでDLしBuildしandroid debugすると権限問題で停止。sudo buildozer ・・・で起動必要
+echo Ubuntu 22.04 sudoを付けてbuildozer android debugをしないと権限問題で停止。
 
 sudo apt update
 sudo apt upgrade
@@ -46,28 +47,37 @@ sudo python3 setup.py install
 
 
 
-read 
 
 cd ~\buildozer\
+# 日本語フォントをassetsフォルダにコピー
+echo "Copying Japanese font to assets folder..."
+mkdir -p assets
+cp /usr/share/fonts/truetype/fonts-japanese-gothic.ttf assets/
+
+# Buildozerバージョン確認
+buildozer version
+read 
+
+cat << EOF > main.py
+# サンプルアプリの作成
+echo "Creating a sample Kivy app..."
 cat << EOF > main.py
 from kivy.app import App
 from kivy.uix.button import Button
 from kivy.uix.label import Label
 from kivy.uix.boxlayout import BoxLayout
 
-from kivy.lang import Builder
 from kivy.core.text import LabelBase, DEFAULT_FONT
 from kivy.utils import platform
-# システムフォントのパスを指定してフォントを設定する
-font_path = "C:/Windows/Fonts/YuGothR.ttc"
 
+# フォントのパスを指定してフォントを設定する
 if platform == 'win':
     # Windowsの場合はシステムフォントを使用
+    font_path = "C:/Windows/Fonts/YuGothR.ttc"
     LabelBase.register(DEFAULT_FONT, fn_regular=font_path)
 elif platform == 'android':
-    # Androidの場合はプロジェクトディレクトリに含めたフォントファイルを使用
-    font_path = os.path.join(os.path.dirname(__file__), 'DroidSans.ttf')
-    LabelBase.register(DEFAULT_FONT, fn_regular=font_path)
+    # Androidの場合はassetsフォルダ内のフォントを使用
+    LabelBase.register(DEFAULT_FONT, fn_regular='assets/fonts-japanese-gothic.ttf')
 else:
     # その他のプラットフォームではデフォルトフォントを使用
     LabelBase.register(DEFAULT_FONT, fn_regular='DejaVuSans.ttf')
@@ -84,9 +94,6 @@ class MyApp(App):
 
     def on_button_click(self, instance):
         self.label.text = 'ボタンがクリックされました！'
-
-if __name__ == '__main__':
-    MyApp().run()
 EOF
 
 export PATH=$PATH:~/buildozer

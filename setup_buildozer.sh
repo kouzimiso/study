@@ -1,4 +1,10 @@
 #!/bin/bash
+echo WSL1ではlibffiがBinaryの問題を起こす。WSL2で起動必要。
+echo pyenvでのInstallを行うと仮想環境に.buildozerをInstallする為、NGになる事あり。
+echo 日本語フォントを使用するとapk起動しない問題あり。ubuntuのフォントを移植する方法が使える。
+echo Ubuntu 20.04 buildozerのInstallをし、android debugするとOK.
+echo Ubuntu 20.04 buildozerのSourceをGitでDLしBuildしandroid debugするとOK.
+echo Ubuntu 22.04 sudoを付けてbuildozer android debugをしないと権限問題で停止。
 
 # システムの更新
 echo "Updating and upgrading the system..."
@@ -23,13 +29,14 @@ echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc
 # 設定を反映
 source ~/.bashrc
 
-# Buildozerバージョン確認
-buildozer version
-
 # 日本語フォントをassetsフォルダにコピー
 echo "Copying Japanese font to assets folder..."
 mkdir -p assets
-cp /usr/share/fonts/truetype/takao/TakaoPGothic.ttf assets/
+cp /usr/share/fonts/truetype/fonts-japanese-gothic.ttf assets/
+
+# Buildozerバージョン確認
+buildozer version
+read
 
 # サンプルアプリの作成
 echo "Creating a sample Kivy app..."
@@ -49,7 +56,7 @@ if platform == 'win':
     LabelBase.register(DEFAULT_FONT, fn_regular=font_path)
 elif platform == 'android':
     # Androidの場合はassetsフォルダ内のフォントを使用
-    LabelBase.register(DEFAULT_FONT, fn_regular='assets/TakaoPGothic.ttf')
+    LabelBase.register(DEFAULT_FONT, fn_regular='assets/fonts-japanese-gothic.ttf')
 else:
     # その他のプラットフォームではデフォルトフォントを使用
     LabelBase.register(DEFAULT_FONT, fn_regular='DejaVuSans.ttf')
@@ -82,4 +89,4 @@ echo 'source.include_patterns = assets/*.ttf' >> buildozer.spec
 
 
 buildozer android clean
-buildozer android debug 2>&1 | tee buildozer.log
+sudo buildozer android debug 2>&1 | tee buildozer.log
