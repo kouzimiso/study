@@ -7,6 +7,7 @@ echo Ubuntu 20.04 buildozerのSourceをGitでDLしBuildしandroid debugすると
 echo Ubuntu 22.04 sudoを付けてbuildozer android debugをしないと権限問題で停止。
 
 # システムの更新
+# システムの更新
 echo "Updating and upgrading the system..."
 sudo apt update
 sudo apt upgrade -y
