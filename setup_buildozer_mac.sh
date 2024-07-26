@@ -1,92 +1,135 @@
 #!/bin/bash
 
-# 更新とアップグレード
-echo "Updating and upgrading the system..."
-brew update
-brew upgrade
+echo "macOSでのBuildozerとKivyの設定を開始します。"
 
-# 必要なパッケージをインストール
-echo "Installing necessary packages..."
-brew install git zip unzip openjdk python3 autoconf libtool pkg-config zlib ncurses cmake libffi openssl
+# 必要なコマンドラインツールのインストール
+echo "Xcode Command Line Toolsのインストールを確認..."
+xcode-select --install
 
-# Pythonパッケージのインストール
-echo "Installing Python packages..."
-pip3 install --user --upgrade Cython==0.29.33 virtualenv
-pip3 install --user --upgrade buildozer
+# Homebrewのインストール確認
+if ! command -v brew &> /dev/null; then
+    echo "Homebrewが見つかりません。Homebrewをインストールします。"
+    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+else
+    echo "Homebrewは既にインストールされています。"
+fi
 
-# PATHを追加
-echo "Updating PATH..."
-export PATH=$PATH:~/.local/bin/
-echo 'export PATH=$PATH:~/.local/bin/' >> ~/.bash_profile
+# 必要なパッケージのインストール
+echo "必要なパッケージをインストールします..."
+brew install git wget python@3.11 openjdk
+
+# Pythonのバージョン確認
+echo "Pythonのバージョン確認..."
+python3.11 --version
+
+# pyenvのインストールと設定
+if ! command -v pyenv &> /dev/null; then
+    echo "pyenvが見つかりません。pyenvをインストールします。"
+    brew install pyenv
+fi
+
+echo 'export PYENV_ROOT="$HOME/.pyenv"' >> ~/.bash_profile
+echo 'export PATH="$PYENV_ROOT/bin:$PATH"' >> ~/.bash_profile
+echo 'eval "$(pyenv init --path)"' >> ~/.bash_profile
 source ~/.bash_profile
 
+# Python 3.11のインストールと設定
+echo "Python 3.11のインストールと設定..."
+pyenv install 3.11.4
+pyenv global 3.11.4
+
+# 仮想環境の作成とアクティベート
+echo "仮想環境を作成し、アクティベートします..."
+python3 -m venv kivy_env
+source kivy_env/bin/activate
+
+# 必要なPythonパッケージのインストール
+echo "必要なPythonパッケージをインストールします..."
+pip install --upgrade pip
+pip install setuptools
+pip install kivy cython buildozer
+
+# 日本語フォントのコピー元をビルド環境に応じて設定
+echo "日本語フォントをassetsフォルダにコピーします..."
+mkdir -p assets
+
+if [[ "$OSTYPE" == "darwin"* ]]; then
+    # macOSの場合
+    cp /Library/Fonts/ヒラギノ角ゴシック\ W6.ttc assets/
+elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
+    # Linuxの場合
+    cp /usr/share/fonts/truetype/fonts-japanese-gothic.ttf assets/
+fi
+
 # Buildozerバージョン確認
-echo "Buildozer version:"
+echo "Buildozerのバージョン確認..."
 buildozer --version
 
-# Kivyプロジェクトのサンプルを作成
-echo "Creating a sample Kivy project..."
-mkdir -p ~/kivy_app
-cd ~/kivy_app
-
+# サンプルアプリの作成
+echo "サンプルKivyアプリを作成します..."
 cat << EOF > main.py
 from kivy.app import App
-from kivy.uix.boxlayout import BoxLayout
-from kivy.uix.label import Label
-from kivy.uix.textinput import TextInput
-from kivy.uix.checkbox import CheckBox
-from kivy.uix.switch import Switch
-from kivy.uix.slider import Slider
-from kivy.uix.spinner import Spinner
 from kivy.uix.button import Button
-from kivy.uix.togglebutton import ToggleButton
-from kivy.uix.progressbar import ProgressBar
-from kivy.uix.filechooser import FileChooserListView
+from kivy.uix.label import Label
+from kivy.uix.boxlayout import BoxLayout
+from kivy.core.text import LabelBase, DEFAULT_FONT
+from kivy.utils import platform
+import os
 
-class FormItemApp(App):
+class MyApp(App):
     def build(self):
-        layout = BoxLayout(orientation='vertical', padding=10, spacing=10)
-
-        layout.add_widget(Label(text='FileChooserListView:'))
-        filechooser = FileChooserListView()
-        layout.add_widget(filechooser)
-
-        layout.add_widget(Label(text='TextInput:'))
-        layout.add_widget(TextInput(hint_text='Enter text here'))
-
-        layout.add_widget(Label(text='CheckBox:'))
-        layout.add_widget(CheckBox())
-
-        layout.add_widget(Label(text='Switch:'))
-        layout.add_widget(Switch())
-
-        layout.add_widget(Label(text='Slider:'))
-        slider = Slider(min=0, max=100, value=25)
-        layout.add_widget(slider)
-        
-        layout.add_widget(Label(text='Spinner:'))
-        spinner = Spinner(
-            text='Option 1',
-            values=('Option 1', 'Option 2', 'Option 3', 'Option 4'))
-        layout.add_widget(spinner)
-
-        layout.add_widget(Label(text='Button:'))
-        layout.add_widget(Button(text='Click me'))
-
-        layout.add_widget(Label(text='ToggleButton:'))
-        layout.add_widget(ToggleButton(text='Toggle me'))
-
-        layout.add_widget(Label(text='ProgressBar:'))
-        progress_bar = ProgressBar(value=50, max=100)
-        layout.add_widget(progress_bar)
-
+        layout = BoxLayout(orientation='vertical', spacing=10, padding=10)
+        button = Button(text='クリックしてください')
+        button.bind(on_press=self.on_button_click)
+        self.label = Label(text='ボタンがクリックされるとここに表示されます')
+        layout.add_widget(button)
+        layout.add_widget(self.label)
         return layout
 
+    def on_button_click(self, instance):
+        self.label.text = 'ボタンがクリックされました！'
+
+    def set_custom_font(self):
+        # フォントファイルのパスを設定
+        if platform == 'macosx':
+            # macOSの場合はシステムフォントを使用
+            font_path = "/System/Library/Fonts/ヒラギノ角ゴシック W6.ttc"
+        elif platform == 'win':
+            # Windowsの場合はシステムフォントを使用
+            font_path = "C:/Windows/Fonts/YuGothR.ttc"
+        elif platform == 'android':
+            # Androidの場合はassetsフォルダ内のフォントを使用
+            # assetsフォルダ内のフォントファイルを動的に探す
+            assets_dir = os.path.join(os.path.dirname(__file__), 'assets')
+            font_files = [f for f in os.listdir(assets_dir) if f.endswith('.ttf') or f.endswith('.ttc')]
+            
+            if font_files:
+                font_path = os.path.join(assets_dir, font_files[0])
+                LabelBase.register(DEFAULT_FONT, fn_regular=font_path)
+        else:
+            # その他のプラットフォームではデフォルトフォントを使用
+            font_path = None
+         # フォントを登録
+        if font_path and os.path.exists(font_path):
+            LabelBase.register(DEFAULT_FONT, fn_regular=font_path)
+            
 if __name__ == '__main__':
-    FormItemApp().run()
+    app = MyApp()
+    app.set_custom_font()
+    app.run()
 EOF
 
-# Buildozerプロジェクトの初期化とビルド
-echo "Initializing and building the Buildozer project..."
+# Buildozerプロジェクトの初期化
+echo "Buildozerプロジェクトを初期化します..."
 buildozer init
-buildozer -v android debug
+
+# buildozer.specファイルの修正
+echo "buildozer.specファイルを更新します..."
+sed -i '' 's/^source.include_exts = .*/source.include_exts = py,png,jpg,kv,atlas,ttf,ttc/' buildozer.spec
+sed -i '' '/^source.include_patterns = /d' buildozer.spec
+echo 'source.include_patterns = assets/*.ttf, assets/*.ttc' >> buildozer.spec
+
+# ビルド
+echo "ビルドを開始します..."
+buildozer android clean
+buildozer -v android debug 2>&1 | tee buildozer.log
