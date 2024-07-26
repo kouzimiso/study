@@ -2,6 +2,7 @@
 echo WSL1ではlibffiがBinaryの問題を起こす。WSL2で起動必要。
 echo pyenvでのInstallを行うと仮想環境に.buildozerをInstallする為、NGになる事あり。
 echo 日本語フォントを使用するとapk起動しない問題あり。ubuntuのフォントを移植する方法が使える。
+echo libssl-dev libffi-dev zlib1g-dev辺りをInstallしないとopenssl==1.1.1はDownload失敗？
 echo Ubuntu 20.04 buildozerのInstallをし、android debugするとOK.
 echo Ubuntu 20.04 buildozerのSourceをGitでDLしBuildしandroid debugするとOK.
 echo Ubuntu 22.04 sudoを付けてinstallし、sudo buildozer android debugをしないと権限問題で停止。
@@ -14,7 +15,7 @@ sudo apt upgrade -y
 
 # 必要なパッケージのインストール
 echo "Installing required packages..."
-sudo apt-get install -y build-essential wget git zip unzip openjdk-17-jdk  autoconf libtool cmake python3.11 python3-pip fonts-takao
+sudo apt-get install -y build-essential libssl-dev libffi-dev zlib1g-dev wget git zip unzip openjdk-17-jdk  autoconf libtool cmake  python3-openssl python3.11 python3-pip fonts-takao
 
 # Pythonのバージョン確認
 python3.11 --version
@@ -38,6 +39,7 @@ cp /usr/share/fonts/truetype/fonts-japanese-gothic.ttf assets/
 
 # Buildozerバージョン確認
 buildozer version
+echo "Please Enter"
 read 
 
 # サンプルアプリの作成
@@ -87,6 +89,7 @@ buildozer init
 echo "Updating buildozer.spec file..."
 sed -i 's/^source.include_exts = .*/source.include_exts = py,png,jpg,kv,atlas,ttf/' buildozer.spec
 sed -i '/^source.include_patterns = /d' buildozer.spec
+
 echo 'source.include_patterns = assets/*.ttf' >> buildozer.spec
 
 
