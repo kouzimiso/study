@@ -46,6 +46,7 @@ source kivy_env/bin/activate
 # 必要なPythonパッケージのインストール
 echo "必要なPythonパッケージをインストールします..."
 pip install --upgrade pip
+pip install setuptools
 pip install kivy cython buildozer
 
 # 日本語フォントのコピー元をビルド環境に応じて設定
@@ -89,22 +90,37 @@ class MyApp(App):
         self.label.text = 'ボタンがクリックされました！'
 
     def set_custom_font(self):
-        # assetsフォルダ内のフォントファイルを動的に探す
-        assets_dir = os.path.join(os.path.dirname(__file__), 'assets')
-        font_files = [f for f in os.listdir(assets_dir) if f.endswith('.ttf') or f.endswith('.ttc')]
-        
-        if font_files:
-            font_path = os.path.join(assets_dir, font_files[0])
+        # フォントファイルのパスを設定
+        if platform == 'macosx':
+            # macOSの場合はシステムフォントを使用
+            font_path = "/System/Library/Fonts/ヒラギノ角ゴシック W6.ttc"
+        elif platform == 'win':
+            # Windowsの場合はシステムフォントを使用
+            font_path = "C:/Windows/Fonts/YuGothR.ttc"
+        elif platform == 'android':
+            # Androidの場合はassetsフォルダ内のフォントを使用
+            # assetsフォルダ内のフォントファイルを動的に探す
+            assets_dir = os.path.join(os.path.dirname(__file__), 'assets')
+            font_files = [f for f in os.listdir(assets_dir) if f.endswith('.ttf') or f.endswith('.ttc')]
+            
+            if font_files:
+                font_path = os.path.join(assets_dir, font_files[0])
+                LabelBase.register(DEFAULT_FONT, fn_regular=font_path)
+        else:
+            # その他のプラットフォームではデフォルトフォントを使用
+            font_path = None
+         # フォントを登録
+        if font_path and os.path.exists(font_path):
             LabelBase.register(DEFAULT_FONT, fn_regular=font_path)
-
+            
 if __name__ == '__main__':
     app = MyApp()
     app.set_custom_font()
     app.run()
 EOF
 
-# Buildozerプロジェクトの初期化とビルド
-echo "Buildozerプロジェクトを初期化し、ビルドします..."
+# Buildozerプロジェクトの初期化
+echo "Buildozerプロジェクトを初期化します..."
 buildozer init
 
 # buildozer.specファイルの修正
