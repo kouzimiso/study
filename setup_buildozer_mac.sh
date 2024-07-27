@@ -55,12 +55,13 @@ mkdir -p assets
 
 if [[ "$OSTYPE" == "darwin"* ]]; then
     # macOSの場合
-    cp /Library/Fonts/ヒラギノ角ゴシック\ W6.ttc assets/
+    cp "/System/Library/Fonts/ヒラギノ角ゴシック W6.ttc" assets/
 elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
     # Linuxの場合
     cp /usr/share/fonts/truetype/fonts-japanese-gothic.ttf assets/
 fi
-
+echo Press Enter to continue...
+read
 # Buildozerバージョン確認
 echo "Buildozerのバージョン確認..."
 buildozer --version
@@ -109,10 +110,10 @@ class MyApp(App):
         else:
             # その他のプラットフォームではデフォルトフォントを使用
             font_path = None
-         # フォントを登録
+        # フォントを登録
         if font_path and os.path.exists(font_path):
             LabelBase.register(DEFAULT_FONT, fn_regular=font_path)
-            
+
 if __name__ == '__main__':
     app = MyApp()
     app.set_custom_font()

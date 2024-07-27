@@ -86,7 +86,7 @@ class MyApp(App):
         else:
             # その他のプラットフォームではデフォルトフォントを使用
             font_path = None
-         # フォントを登録
+        # フォントを登録
         if font_path and os.path.exists(font_path):
             LabelBase.register(DEFAULT_FONT, fn_regular=font_path)
             
