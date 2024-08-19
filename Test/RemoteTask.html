@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Command Dashboard</title>
+</head>
+<body>
+    <h1>Command Dashboard</h1>
+    <form id="commandForm">
+        <label for="command">Enter Command:</label>
+        <input type="text" id="command" name="command" required>
+        <button type="submit">Submit Command</button>
+    </form>
+    <h2>Pending Commands</h2>
+    <ul id="commandList"></ul>
+    <h2>Results</h2>
+    <ul id="resultList"></ul>
+
+    <script>
+        async function fetchCommands() {
+            const response = await fetch('commands.json');
+            const data = await response.json();
+            const commandList = document.getElementById('commandList');
+            commandList.innerHTML = '';
+            data.commands.forEach(command => {
+                const li = document.createElement('li');
+                li.textContent = `ID: ${command.id}, Command: ${command.command}, Status: ${command.status}`;
+                commandList.appendChild(li);
+            });
+        }
+
+        async function fetchResults() {
+            const response = await fetch('results.json');
+            const data = await response.json();
+            const resultList = document.getElementById('resultList');
+            resultList.innerHTML = '';
+            data.results.forEach(result => {
+                const li = document.createElement('li');
+                li.textContent = `ID: ${result.id}, Output: ${result.output}, Download: ${result.downloadUrl}`;
+                resultList.appendChild(li);
+            });
+        }
+
+        document.getElementById('commandForm').addEventListener('submit', async event => {
+            event.preventDefault();
+            const command = document.getElementById('command').value;
+            await fetch('commands.json', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ command: command })
+            });
+            fetchCommands();
+        });
+
+        fetchCommands();
+        fetchResults();
+    </script>
+</body>
+</html>
