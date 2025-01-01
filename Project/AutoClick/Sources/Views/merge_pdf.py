@@ -2,7 +2,7 @@ from pathlib import Path
 import PyPDF2
 
 
-def merge_pdf_files(folder_path, file_name, reverse):
+def merge_pdf_files(folder_path, file_path, reverse):
     # フォルダ内のPDFファイル一覧
     pdf_dir = Path(folder_path)
     pdf_files = sorted(pdf_dir.glob("*.pdf"), reverse=reverse)
@@ -15,7 +15,7 @@ def merge_pdf_files(folder_path, file_name, reverse):
             pdf_writer.addPage(pdf_reader.getPage(i))
 
     # 保存
-    with open(file_name, "wb") as f:
+    with open(file_path, "wb") as f:
         pdf_writer.write(f)
 
 

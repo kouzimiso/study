@@ -23,13 +23,13 @@ def list_files_and_folders(path):
     if files:
         print(", ".join(files))
 
-def get_file_path_by_name(path, file_name):
+def get_file_path_by_name(path, file_path):
     """
     指定されたディレクトリ内でファイル名に一致するファイルの絶対パスを取得する関数。
     """
     for root, _, files in os.walk(path):
-        if file_name in files:
-            return os.path.abspath(os.path.join(root, file_name))
+        if file_path in files:
+            return os.path.abspath(os.path.join(root, file_path))
     return None
 
 def select_file_or_folder_path(current_path):

@@ -17,9 +17,9 @@ def duplicate_rename(file_path,dupplicate_format="{}({:0=3}){}"):
 
 def Name_AddDays(file_path):
     date_now = datetime.datetime.now()
-    file_name, file_ext = os.path.splitext(file_path)
-    #os.rename(file_name, date_now.strftime("%Y%m%d %H%M%S") + file_ext)
+    file_path, file_ext = os.path.splitext(file_path)
+    #os.rename(file_path, date_now.strftime("%Y%m%d %H%M%S") + file_ext)
     
-    return file_name +"_"+ date_now.strftime("%Y%m%d_%H%M%S") + file_ext
+    return file_path +"_"+ date_now.strftime("%Y%m%d_%H%M%S") + file_ext
 
 

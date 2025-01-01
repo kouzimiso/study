@@ -1,0 +1,40 @@
+<RootWidget>
+    orientation: 'vertical'
+    BoxLayout:
+        BoxLayout:
+            canvas:
+                Color:
+                    rgba: 1,0,0,1
+                Rectangle:
+                    size: self.size
+                    pos: self.pos
+            Label:
+                text: 'RED'
+        BoxLayout:
+            canvas:
+                Color:
+                    rgba: 0,1,0,1
+                Rectangle:
+                    size: self.size
+                    pos: self.pos
+            Label:
+                text: 'GREEN'
+    BoxLayout:
+        BoxLayout:
+            canvas:
+                Color:
+                    rgba: 0,0,1,1
+                Rectangle:
+                    size: self.size
+                    pos: self.pos
+            Label:
+                text: 'BLUE'
+        BoxLayout:
+            canvas:
+                Color:
+                    rgba: 1,0,1,1
+                Rectangle:
+                    size: self.size
+                    pos: self.pos
+            Label:
+                text: 'PURPLE'

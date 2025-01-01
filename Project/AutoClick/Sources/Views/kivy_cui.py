@@ -5,13 +5,13 @@ from kivy_popup import MyApp  # popup_guiのAppを直接インポート
 sys.path.append("./Sources/Common")
 sys.path.append("./Common")
 import SharedMemory
-def launch_popup(key_name, shared_dict):
-    # Kivyのアプリを起動して、結果を共有メモリに保存
-    MyApp(key_name, shared_dict).run()
+def launch_popup(shared_memory_name, key_name):
+    # Kivyのアプリを起動して、結果を共有メモリにxxb保存
+    MyApp(shared_memory_name, key_name).run()
 
 def main():
     # 共有メモリを作成
-    shared_memory_name = "shared_memory"
+    shared_memory_name = "shared_memory.dat"
     # 保存するKey名と共有メモリ名を設定
     key_name = "user_input"
 
