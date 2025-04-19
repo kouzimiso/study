@@ -1,0 +1,25 @@
+{
+    "grammar": {
+      "Program": [
+        {"type": "sequence", "rules": ["Statement", {"type": "repeat", "rule": "Statement"}]}
+      ],
+      "Statement": [
+        {"type": "ordered_choice", "rules": ["Assignment", "PrintStatement"]}
+      ],
+      "Assignment": [
+        {"type": "sequence", "rules": ["Identifier", {"type": "terminal", "regex": "="}, "Expression", {"type": "terminal", "regex": ";"}]}
+      ],
+      "PrintStatement": [
+        {"type": "sequence", "rules": [{"type": "terminal", "regex": "print"}, "Expression", {"type": "terminal", "regex": ";"}]}
+      ],
+      "Expression": [
+        {"type": "ordered_choice", "rules": ["Number", "Identifier"]}
+      ],
+      "Identifier": {"type": "terminal", "regex": "[a-zA-Z_][a-zA-Z0-9_]*"},
+      "Number": {"type": "terminal", "regex": "[0-9]+"}
+    },
+    "error_reporting": {
+      "missing_semicolon": "文末にセミコロンが必要です。",
+      "invalid_assignment": "無効な代入です。"
+    }
+  }

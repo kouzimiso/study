@@ -60,8 +60,8 @@ elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
     # Linuxの場合
     cp /usr/share/fonts/truetype/fonts-japanese-gothic.ttf assets/
 fi
-echo Press Enter to continue...
-read
+#echo Press Enter to continue...
+#read
 # Buildozerバージョン確認
 echo "Buildozerのバージョン確認..."
 buildozer --version
