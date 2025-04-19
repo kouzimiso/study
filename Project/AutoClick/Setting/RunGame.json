@@ -36,7 +36,7 @@
 		 	"type" : "RunPlanLists",
 		 	"settings" : {
 				"file_path"  : "",
-				"plan_lists" : [
+				"run_plan_name_list" : [
 					"HotSpotON",
 					"Capture",
  					"Houchi",
@@ -86,7 +86,7 @@
 			"type" : "RunPlanLists",
 	 		"settings" : {
 		 		"file_path"  : "../Setting/RunHouchiChild.json",
-		 		"plan_lists" : [
+		 		"run_plan_name_list" : [
 					"TimeCheck_TimeEvent01","TimeEventPlay"
 					
 				]
@@ -97,7 +97,7 @@
 			"type" : "RunPlanLists",
 	 		"settings" : {
 		 		"file_path"  : "../Setting/RunHouchi.json",
-		 		"plan_lists" : [
+		 		"run_plan_name_list" : [
 					"TimeEventPlay"
 				]
 			}
@@ -110,7 +110,7 @@
 			"type" : "RunPlanLists",
 	 		"settings" : {
 		 		"file_path"  : "../Setting/RunMementomori.json",
-		 		"plan_lists" : [
+		 		"run_plan_name_list" : [
 					"MementomoriPlan"
 				]
 			}
@@ -123,7 +123,7 @@
 			"type" : "RunPlanLists",
 			"settings" : {
 				"file_path"  : "../Setting/RunHouchi.json",
-				"plan_lists" : [
+				"run_plan_name_list" : [
 					"PlanStart"
 				],
 				"#step_check_mode" : true
@@ -137,7 +137,7 @@
 			"type" : "RunPlanLists",
 			"settings" : {
 				"file_path"  : "../Setting/RunDarkTails.json",
-				"plan_lists" : [
+				"run_plan_name_list" : [
 					"PlanStart"
 				],
 				"#step_check_mode" : true

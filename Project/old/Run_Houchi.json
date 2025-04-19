@@ -9,7 +9,7 @@
 				"file_path" : "../Setting/Run_Houchi.json",
 				"log_function" : true,"log_print_standard_output" : true,"log_file_path_list" : "../Log/log_manage.json.json",
 				"#step_check_mode" : true,
-				"plan_lists" : [
+				"run_plan_name_list" : [
 					"HouchiACM",
 					"HouchiMain",
 					"HouchiSub"
@@ -28,7 +28,7 @@
 				"file_path" : "../Setting/Run_Houchi.json",
 				"log_function" : true,"log_print_standard_output" : true,"log_file_path_list" : "../Log/log_manage.json.json",
 				"#step_check_mode" : true,
- 		 		"plan_lists" : [
+ 		 		"run_plan_name_list" : [
 					"HouchiCondition_TimeEvent","TimeEvent",
 					"CloseWindow","HouchiCondition_Sub","HouchiAccount00","HouchiWaiting","HouchiServer01","HouchiClickGroup",
 					"CloseWindow","HouchiCondition_Sub","HouchiAccount00","HouchiWaiting","HouchiServer02","HouchiClickGroup",
@@ -59,7 +59,7 @@
 				"file_path" : "../Setting/Run_Houchi.json",
 				"log_function" : true,"log_print_standard_output" : true,"log_file_path_list" : "../Log/log_manage.json.json",
 				"#step_check_mode" : true,
- 		 		"plan_lists" : [
+ 		 		"run_plan_name_list" : [
 					"HouchiCondition_TimeEvent","TimeEvent",
 					"CloseWindow","HouchiCondition_Main","HouchiAccount03","HouchiWaiting","HouchiServer09","HouchiClickGroup",
 					"CloseWindow","HouchiCondition_Main","HouchiAccount04","HouchiWaiting","HouchiServer09","HouchiClickGroup",
@@ -82,7 +82,7 @@
 				"file_path" : "../Setting/Run_Houchi.json",
 				"log_function" : true,"log_print_standard_output" : true,"log_file_path_list" : "../Log/log_manage.json",
 				"#step_check_mode" : true,
- 		 		"plan_lists" : [
+ 		 		"run_plan_name_list" : [
 					"HouchiCondition_TimeEvent","TimeEvent",
 					"CloseWindow","HouchiCondition_ACM","HouchiAccount06","HouchiWaiting","HouchiServer09","HouchiClickGroup"
 				]
@@ -100,7 +100,7 @@
 				"file_path" : "../Setting/Run_HouchiChild.json",
 				"log_function" : true,"log_print_standard_output" : true,"log_file_path_list" : "../Log/log_manage.json",
 				"#step_check_mode" : true,
- 		 		"plan_lists" : [
+ 		 		"run_plan_name_list" : [
 					"TimeCheck_MainAccount"
 				]
 			}
@@ -117,7 +117,7 @@
 				"file_path" : "../Setting/Run_HouchiChild.json",
 				"log_function" : true,"log_print_standard_output" : true,"log_file_path_list" : "../Log/log_manage.json",
 				"#step_check_mode" : true,
- 		 		"plan_lists" : [
+ 		 		"run_plan_name_list" : [
 					"TimeCheck_SubAccount"
 				]
 			}
@@ -134,7 +134,7 @@
 				"file_path" : "../Setting/Run_HouchiChild.json",
 				"log_function" : true,"log_print_standard_output" : true,"log_file_path_list" : "../Log/log_manage.json",
 				"#step_check_mode" : true,
- 		 		"plan_lists" : [
+ 		 		"run_plan_name_list" : [
 					"TimeCheck_MainAccount"
 				]
 			}
@@ -151,7 +151,7 @@
 				"file_path" : "../Setting/Run_HouchiChild.json",
 				"log_function" : true,"log_print_standard_output" : true,"log_file_path_list" : "../Log/log_manage.json",
 				"#step_check_mode" : true,
- 		 		"plan_lists" : [
+ 		 		"run_plan_name_list" : [
 					"TimeCheck_TimeEvent"
 				]
 			}
@@ -168,7 +168,7 @@
 				"file_path" : "../Setting/Run_HouchiChild.json",
 				"log_function" : true,"log_print_standard_output" : true,"log_file_path_list" : "../Log/log_manage.json",
 				"#step_check_mode" : true,
- 		 		"plan_lists" : [
+ 		 		"run_plan_name_list" : [
 					"HouchiStart","HouchiMainte","HouchiPlay"
 				]
 			}
@@ -185,7 +185,7 @@
 				"file_path" : "../Setting/Run_Houchi.json",
 				"log_function" : true,"log_print_standard_output" : true,"log_file_path_list" : "../Log/log_manage.json",
 				"#step_check_mode" : true,
- 		 		"plan_lists" : [
+ 		 		"run_plan_name_list" : [
 					"CloseWindow","HouchiCondition_TimeEvent","HouchiAccount00","HouchiWaiting","HouchiServer01","TimeEventClickGroup",
 					"CloseWindow","HouchiCondition_TimeEvent","HouchiAccount00","HouchiWaiting","HouchiServer02","TimeEventClickGroup",
 					"CloseWindow","HouchiCondition_TimeEvent","HouchiAccount00","HouchiWaiting","HouchiServer03","TimeEventClickGroup",
@@ -224,7 +224,7 @@
 				"file_path" : "../Setting/Run_HouchiChild.json",
 				"log_function" : true,"log_print_standard_output" : true,"log_file_path_list" : "../Log/log_manage.json",
 				"#step_check_mode" : true,
- 		 		"plan_lists" : [
+ 		 		"run_plan_name_list" : [
 					"HouchiStart","TimeEventPlay"
 				]
 			}
@@ -266,7 +266,7 @@
 			   "loop_limit_count":2,
 			   "log_function" : true,"log_print_standard_output" : true,"log_file_path_list" : "../Log/log_manage.json",
 			   "#step_check_mode" : true,
-				 "plan_lists" : [
+				 "run_plan_name_list" : [
 				   "HouchiWaitingSequence"
 			   ]
 		   }
@@ -320,7 +320,7 @@
 			   "loop_limit_count":2,
 			   "log_function" : true,"log_print_standard_output" : true,"log_file_path_list" : "../Log/log_manage.json",
 			   "#step_check_mode" : true,
-				 "plan_lists" : [
+				 "run_plan_name_list" : [
 				   "HouchiWaitingSequence"
 			   ]
 		   }
@@ -374,7 +374,7 @@
 			   "loop_limit_count":2,
 			   "log_function" : true,"log_print_standard_output" : true,"log_file_path_list" : "../Log/log_manage.json",
 			   "#step_check_mode" : true,
-				 "plan_lists" : [
+				 "run_plan_name_list" : [
 				   "HouchiWaitingSequence"
 			   ]
 		   }
@@ -428,7 +428,7 @@
 			   "loop_limit_count":2,
 			   "log_function" : true,"log_print_standard_output" : true,"log_file_path_list" : "../Log/log_manage.json",
 			   "#step_check_mode" : true,
-				 "plan_lists" : [
+				 "run_plan_name_list" : [
 				   "HouchiWaitingSequence"
 			   ]
 		   }
@@ -506,7 +506,7 @@
 			   "loop_limit_count":2,
 			   "log_function" : true,"log_print_standard_output" : true,"log_file_path_list" : "../Log/log_manage.json",
 			   "#step_check_mode" : true,
-				 "plan_lists" : [
+				 "run_plan_name_list" : [
 				   "HouchiWaitingSequence"
 			   ]
 		   }
@@ -560,7 +560,7 @@
 			   "loop_limit_count":2,
 			   "log_function" : true,"log_print_standard_output" : true,"log_file_path_list" : "../Log/log_manage.json",
 			   "#step_check_mode" : true,
-				 "plan_lists" : [
+				 "run_plan_name_list" : [
 				   "HouchiWaitingSequence"
 			   ]
 		   }
@@ -592,7 +592,7 @@
 				"loop_limit_count":20,
 				"log_function" : true,"log_print_standard_output" : true,"log_file_path_list" : "../Log/log_manage.json",
 				"#step_check_mode" : true,
- 		 		"plan_lists" : [
+ 		 		"run_plan_name_list" : [
 					"HouchiWaitingSequence"
 				]
 			}
@@ -800,7 +800,7 @@
 				"file_path" : "../Setting/Run_HouchiFunction.json",
 				"log_function" : true,"log_print_standard_output" : true,"log_file_path_list" : "../Log/log_apply.json",
 				"#step_check_mode" : true,
-					"plan_lists" : [
+					"run_plan_name_list" : [
 					"Call_CloseWindowByName"
 				]
 			}

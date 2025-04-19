@@ -229,7 +229,7 @@
 					"Start_Loop" : {
 						"#loop_condition":true,
 						"#loop_limit_count":1,
-						"plan_lists" : [
+						"run_plan_name_list" : [
 							"ReturnHome","StartContents"
 						]
 					},
@@ -237,7 +237,7 @@
 						"image_path" : "../Images/houchi/1910_battle/0000_start/*.png"
 					},
 					"ScrollSelect_Loop" : {
-						"plan_lists" : [
+						"run_plan_name_list" : [
 							"ScrollSelectContents"
 						]
 					},
@@ -252,7 +252,7 @@
 						"image_path" : "../Images/houchi/1910_battle/0004_check/*.png"
 					},
 					"Execute_Loop" : {
-						"plan_lists" : [
+						"run_plan_name_list" : [
 							"ExecuteContents"
 						]
 					},
@@ -294,7 +294,7 @@
 				"loop_condition":true,
 				"terminate_condition":false,
 				"loop_limit_count":5,
-				"plan_lists" : [
+				"run_plan_name_list" : [
 					"StartSelectExecuteContents"
 				]
 			}
@@ -309,7 +309,7 @@
 				"loop_condition":false,
 				"terminate_condition":false,
 				"loop_limit_count":1,
-				"plan_lists" : [
+				"run_plan_name_list" : [
 					"CloseWindowByName"
 				]
 			}

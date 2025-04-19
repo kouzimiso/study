@@ -98,7 +98,7 @@
 				"loop_condition":false,
        		    "log_function" : true,"log_print_standard_output" : true,"log_file_path_list" : ["../Log/log_manage.json","../Log/log_all.json"],
 			    "#step_check_mode" : true,
-				"plan_lists" : [
+				"run_plan_name_list" : [
 				   "WaitingSequence"
 			   ]
 		   }
@@ -129,7 +129,7 @@
                 "loop_limit_count":20,
 				"log_function" : true,"log_print_standard_output" : true,"log_file_path_list" : ["../Log/log_manage.json","../Log/log_all.json"],
 				"#step_check_mode" : true,
- 		 		"plan_lists" : [
+ 		 		"run_plan_name_list" : [
 					"WaitingSequence"
 				]
 			}
@@ -214,7 +214,7 @@
 				"file_path" : "../Setting/applycation.json",
 				"log_function" : true,"log_print_standard_output" : true,"log_file_path_list" : ["../Log/log_manage.json","../Log/log_all.json"],
 				"#step_check_mode" : true,
- 		 		"plan_lists" : [
+ 		 		"run_plan_name_list" : [
 					"Start","ContentsPlay"
 				]
 			}
@@ -383,7 +383,7 @@
 			    "terminate_and_delete_condition":"Flag_Terminate",
 			    "log_function" : true,"log_print_standard_output" : true,"log_file_path_list" : "../Log/log_apply.json",
 			    "#step_check_mode" : true,
-				"plan_lists" : [
+				"run_plan_name_list" : [
 					"ScrollSelectContents",
 					"ExecuteContents",
 					"ResultJudge",
@@ -615,7 +615,7 @@
 				"log_function" : true,"log_print_standard_output" : true,"log_file_path_list" : "../Log/log_all.json",
 				"#step_check_mode" : true,
 				"file_path":"",
- 		 		"plan_lists" : [
+ 		 		"run_plan_name_list" : [
 					"ReturnHome"
 				]
 			}
@@ -635,6 +635,7 @@
 				"retry_number" : 0,
 				"image_path" : "../Images/1010_Return/*.png",
 				"interval_time" : 0.2,
+				"start_retry_time" : 0.5,
 				"recognition_confidence" : 0.95,
 				"recognition_gray_scale" : true,
 				"log_file_path_list": "../Log/log_recognition.json",

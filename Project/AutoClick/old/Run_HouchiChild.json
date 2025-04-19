@@ -196,7 +196,7 @@
 				"loop_limit_count":2,
                 "terminate_condition":["Flag_Terminate.detail = OK,Flag_Terminate.detail = ALL_OK"],
 				"delete_condition_after_terminate":["Flag_Terminate"],
- 		 		"plan_lists" : [
+ 		 		"run_plan_name_list" : [
 					"ReturnClick",
 					"ReturnHome","SimpleContents",
 					"ReturnHomeIfContentsStart","InformationClick",
@@ -368,7 +368,7 @@
 			"result_name":"",
 			"settings" : {
 				"file_path"  : "../Setting/RunHouchiChild.json",
- 		 		"plan_lists" : [
+ 		 		"run_plan_name_list" : [
 					"ReturnHomeIfContentsStart","EventPlay09",
 					"ReturnHomeIfContentsStart","EventPlay09"
 				]
@@ -384,7 +384,7 @@
 			"result_name":"",
 			"settings" : {
 				"file_path"  : "../Setting/RunHouchiChild.json",
- 		 		"plan_lists" : [
+ 		 		"run_plan_name_list" : [
 					"ReturnHomeIfContentsStart","DairyClick","growthClick","BattleClick",
 					"ReturnHomeIfContentsStart","DairyClick","growthClick","BattleClick",
 					"ReturnHomeIfContentsStart","DairyClick","growthClick","BattleClick"
@@ -402,7 +402,7 @@
 			"settings" : {
 				"file_path"  : "../Setting/RunHouchiChild.json",
 				"#step_check_mode" : true,
- 		 		"plan_lists" : [
+ 		 		"run_plan_name_list" : [
 					"EventPlay08",
 					"ReturnHomeIfContentsStart","Item",
 					"ReturnHomeIfContentsStart","HouchiHighSpeedClick",
@@ -426,7 +426,7 @@
 				"delete_condition_after_terminate":["Flag_Terminate"],
 				"log_function" : true,"log_print_standard_output" : true,"log_file_path_list" : "../Log/log_all.json",
 				"#step_check_mode" : true,
- 		 		"plan_lists" : [
+ 		 		"run_plan_name_list" : [
 					"ReturnHomeIfContentsStart","EventPlay08Works"
 				]
 			}
@@ -505,7 +505,7 @@
 			"result_name":"",
 			"settings" : {
 				"file_path"  : "../Setting/RunHouchiChild.json",
- 		 		"plan_lists" : [
+ 		 		"run_plan_name_list" : [
 					"ReturnClick",
 					"TimeEvent01Play",
 					"TimeEvent02Play"
@@ -520,7 +520,7 @@
 			"result_name":"",
 			"settings" : {
 			   	"file_path"  : "../Setting/RunHouchiChild.json",
-				"plan_lists" : [
+				"run_plan_name_list" : [
 					"TimeEvent01Play",
 					"TimeEvent02Play"
 				]
@@ -537,7 +537,7 @@
 			"result_name":"",
 			"settings" : {
 				"file_path"  : "../Setting/RunHouchiChild.json",
- 		 		"plan_lists" : [
+ 		 		"run_plan_name_list" : [
 					"ReturnHome",
 					"TimeCheck_TimeEvent01",
 					"TimeEvent01Click"
@@ -555,7 +555,7 @@
 			"result_name":"",
 			"settings" : {
 				"file_path"  : "../Setting/RunHouchiChild.json",
- 		 		"plan_lists" : [
+ 		 		"run_plan_name_list" : [
 					"ReturnHome",
 					"TimeCheck_TimeEvent02",
 					"TimeEvent02Click"
@@ -699,7 +699,7 @@
 		   "result_name":"",
 		   "settings" : {
 			   "file_path"  : "../Setting/RunHouchiChild.json",
-				 "plan_lists" : [
+				 "run_plan_name_list" : [
 				   "growthClick","BattleClick","ItemEventClick"
 			   ]
 		   }
@@ -979,7 +979,7 @@
 			"result_name":"",
 			"settings" : {
 				"file_path"  : "../Setting/RunHouchiChild.json",
-				"plan_lists" : [
+				"run_plan_name_list" : [
 					"growthClick","BattleClick"
 				]
 			}
@@ -1129,7 +1129,7 @@
 			"terminate_condition":[],
 			"delete_condition_after_terminate":["Flag_Terminate"],
 			"loop_limit_count":5,
-			"plan_lists" : [
+			"run_plan_name_list" : [
 				"CharacterDisplay","CharacterGrowth"
 			]
 		}
@@ -1183,7 +1183,7 @@
 			"result_name":"",
 			"settings" : {
 				"file_path"  : "../Setting/RunHouchiChild.json",
-				    "plan_lists" : [
+				    "run_plan_name_list" : [
 					    "ItemMaintenance"
 				]
 			}
@@ -1421,7 +1421,7 @@
 				"loop_limit_count":3,
 				"log_function" : true,"log_print_standard_output" : true,"log_file_path_list" : "../Log/log_all.json",
 				"#step_check_mode" : true,
- 		 		"plan_lists" : [
+ 		 		"run_plan_name_list" : [
 					"HomeClickSequence"
 				]
 			}
@@ -1442,7 +1442,7 @@
 				"loop_limit_count":3,
 				"log_function" : true,"log_print_standard_output" : true,"log_file_path_list" : "../Log/log_all.json",
 				"#step_check_mode" : true,
- 		 		"plan_lists" : [
+ 		 		"run_plan_name_list" : [
 					"HomeClickSequence"
 				]
 			}
@@ -1501,7 +1501,7 @@
 				"file_path" : "../Setting/Run_HouchiFunction.json",
 				"log_function" : true,"log_print_standard_output" : true,"log_file_path_list" : "../Log/log_apply.json",
 				"#step_check_mode" : true,
-				"plan_lists" : [
+				"run_plan_name_list" : [
 					"Call_CloseWindowByName"
 				]
 			}

@@ -2,7 +2,6 @@
 echo WSL1ではlibffiがBinaryの問題を起こす。WSL2で起動必要。
 echo pyenvでのInstallを行うと仮想環境に.buildozerをInstallする為、NGになる事あり。
 echo 日本語フォントを使用するとapk起動しない問題あり。ubuntuのフォントを移植する方法が使える。
-echo libssl-dev libffi-dev zlib1g-dev辺りをInstallしないとopenssl==1.1.1はDownload失敗？
 echo Ubuntu 20.04 buildozerのInstallをし、android debugするとOK.
 echo Ubuntu 20.04 buildozerのSourceをGitでDLしBuildしandroid debugするとOK.
 echo Ubuntu 22.04 sudoを付けてinstallし、sudo buildozer android debugをしないと権限問題で停止。
@@ -15,7 +14,7 @@ sudo apt upgrade -y
 
 # 必要なパッケージのインストール
 echo "Installing required packages..."
-sudo apt-get install -y build-essential libssl-dev libffi-dev zlib1g-dev wget git zip unzip openjdk-17-jdk  autoconf libtool cmake  python3-openssl python3.11 python3-pip fonts-takao
+sudo apt-get install -y build-essential wget git zip unzip openjdk-17-jdk  autoconf libtool cmake python3.11 python3-pip fonts-takao
 
 # Pythonのバージョン確認
 python3.11 --version
@@ -39,7 +38,6 @@ cp /usr/share/fonts/truetype/fonts-japanese-gothic.ttf assets/
 
 # Buildozerバージョン確認
 buildozer version
-echo "Please Enter"
 read 
 
 # サンプルアプリの作成
@@ -49,9 +47,21 @@ from kivy.app import App
 from kivy.uix.button import Button
 from kivy.uix.label import Label
 from kivy.uix.boxlayout import BoxLayout
+
 from kivy.core.text import LabelBase, DEFAULT_FONT
 from kivy.utils import platform
-import os
+
+# フォントのパスを指定してフォントを設定する
+if platform == 'win':
+    # Windowsの場合はシステムフォントを使用
+    font_path = "C:/Windows/Fonts/YuGothR.ttc"
+    LabelBase.register(DEFAULT_FONT, fn_regular=font_path)
+elif platform == 'android':
+    # Androidの場合はassetsフォルダ内のフォントを使用
+    LabelBase.register(DEFAULT_FONT, fn_regular='assets/fonts-japanese-gothic.ttf')
+else:
+    # その他のプラットフォームではデフォルトフォントを使用
+    LabelBase.register(DEFAULT_FONT, fn_regular='DejaVuSans.ttf')
 
 class MyApp(App):
     def build(self):
@@ -66,34 +76,8 @@ class MyApp(App):
     def on_button_click(self, instance):
         self.label.text = 'ボタンがクリックされました！'
 
-    def set_custom_font(self):
-        # フォントファイルのパスを設定
-        if platform == 'macosx':
-            # macOSの場合はシステムフォントを使用
-            font_path = "/System/Library/Fonts/ヒラギノ角ゴシック W6.ttc"
-        elif platform == 'win':
-            # Windowsの場合はシステムフォントを使用
-            font_path = "C:/Windows/Fonts/YuGothR.ttc"
-        elif platform == 'android':
-            # Androidの場合はassetsフォルダ内のフォントを使用
-            # assetsフォルダ内のフォントファイルを動的に探す
-            assets_dir = os.path.join(os.path.dirname(__file__), 'assets')
-            font_files = [f for f in os.listdir(assets_dir) if f.endswith('.ttf') or f.endswith('.ttc')]
-            
-            if font_files:
-                font_path = os.path.join(assets_dir, font_files[0])
-                LabelBase.register(DEFAULT_FONT, fn_regular=font_path)
-        else:
-            # その他のプラットフォームではデフォルトフォントを使用
-            font_path = None
-        # フォントを登録
-        if font_path and os.path.exists(font_path):
-            LabelBase.register(DEFAULT_FONT, fn_regular=font_path)
-            
 if __name__ == '__main__':
-    app = MyApp()
-    app.set_custom_font()
-    app.run()
+    MyApp().run()
 EOF
 
 # Buildozerプロジェクトの初期化とビルド
@@ -103,7 +87,6 @@ buildozer init
 echo "Updating buildozer.spec file..."
 sed -i 's/^source.include_exts = .*/source.include_exts = py,png,jpg,kv,atlas,ttf/' buildozer.spec
 sed -i '/^source.include_patterns = /d' buildozer.spec
-
 echo 'source.include_patterns = assets/*.ttf' >> buildozer.spec
 
 

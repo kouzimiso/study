@@ -20,7 +20,7 @@
 			"settings" : {
 				"#step_check_mode" : true,
 				"file_path" : "../Setting/RunDarkTails.json",
-				"plan_lists" : [
+				"run_plan_name_list" : [
 					"MainAccount",
 					"AcountSub"
 				]
@@ -35,7 +35,7 @@
 			"condition_list" : "",
 			"settings" : {
 				"file_path" : "../Setting/RunDarkTails.json",
- 		 		"plan_lists" : [
+ 		 		"run_plan_name_list" : [
 					"Condition_TimeEvent","TimeEvent",
 					"CloseWindow","Condition_SubAccuont","Account00","Waiting","Server01","ContentsPlayGroup"
 				]
@@ -50,7 +50,7 @@
 			"condition_list" : "",
 			"settings" : {
 				"file_path" : "../Setting/RunDarkTails.json",
- 		 		"plan_lists" : [
+ 		 		"run_plan_name_list" : [
 					"Condition_TimeEvent","TimeEvent",
 					"CloseWindow","Condition_MainAccount","Account00","Waiting","Server00","ContentsPlayGroup"
 				]
@@ -67,7 +67,7 @@
 			"settings" : {
 				"file_path" : "../Setting/RunDarkTailsChild.json",
 				"#step_check_mode" : true,
- 		 		"plan_lists" : [
+ 		 		"run_plan_name_list" : [
 					"TimeEvent01_Check_Main"
 				]
 			}
@@ -83,7 +83,7 @@
 			"settings" : {
 				"file_path" : "../Setting/RunDarkTailsChild.json",
 				"#step_check_mode" : true,
- 		 		"plan_lists" : [
+ 		 		"run_plan_name_list" : [
 					"TimeEvent01_Check_Sub"
 				]
 			}
@@ -99,7 +99,7 @@
 			"settings" : {
 				"file_path" : "../Setting/RunDarkTailsChild.json",
 				"#step_check_mode" : true,
- 		 		"plan_lists" : [
+ 		 		"run_plan_name_list" : [
 					"TimeEvent01_Check_Main"
 				]
 			}
@@ -115,7 +115,7 @@
 			"settings" : {
 				"file_path" : "../Setting/RunDarkTailsChild.json",
 				"#step_check_mode" : true,
- 		 		"plan_lists" : [
+ 		 		"run_plan_name_list" : [
 					"TimeCheck_TimeEvent01"
 				]
 			}
@@ -131,7 +131,7 @@
 			"settings" : {
 				"file_path" : "../Setting/RunDarkTailsChild.json",
 				"#step_check_mode" : true,
- 		 		"plan_lists" : [
+ 		 		"run_plan_name_list" : [
 					"DarkTailsStart","Maintenance","DarkTailsPlay"
 				]
 			}
@@ -146,7 +146,7 @@
 			"result_name":"",
 			"settings" : {
 				"file_path" : "../Setting/RunDarkTails.json",
- 		 		"plan_lists" : [
+ 		 		"run_plan_name_list" : [
 					"CloseWindow","Condition_TimeEvent","Account00","Waiting","Server01","TimeEventClickGroup"
 				]
 			}
@@ -162,7 +162,7 @@
 			"result_name":"",
 			"settings" : {
 				"file_path" : "../Setting/RunDarkTailsChild.json",
- 		 		"plan_lists" : [
+ 		 		"run_plan_name_list" : [
 					"DarkTailsStart","TimeEvent01Play"
 				]
 			}

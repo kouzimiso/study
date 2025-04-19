@@ -9,7 +9,7 @@
 			"settings" : {
 				"step_check_mode" : false,
 				"file_path" : "../Setting/RunMementomori.json",
-				"plan_lists" : [
+				"run_plan_name_list" : [
 					"PlanStart"
 				]
 			}
@@ -145,7 +145,7 @@
 						"change_settings_by_name" : {
 							"ContentsStartAndExecuteGroup" : {
 								"file_path" : "",	
-								"plan_lists" : [
+								"run_plan_name_list" : [
 									"Start","ContentsPlay"
 								]
 							}
@@ -195,7 +195,7 @@
 		   	"settings" : {
 			   "step_check_mode" : false,
 			   "file_path" : "",
-			   "plan_lists" : [
+			   "run_plan_name_list" : [
 				   "MainAccount"
 			   ]
 		   }
@@ -212,7 +212,7 @@
 				"log_function" : true,"log_print_standard_output" : true,
 				"log_file_path_list" : ["../Log/log_manage.json","../Log/log_all.json"],
 				"step_check_mode" : false,
- 		 		"plan_lists" : [
+ 		 		"run_plan_name_list" : [
 					"CloseWindow","Condition_MainAccount","Account00","Waiting","Server01","ContentsStartAndExecuteGroup"
 				]
 			}
@@ -270,7 +270,7 @@
 				"file_path"  : "",
 				"loop_condition":true,
 				"loop_limit_count":2,
- 		 		"plan_lists" : [
+ 		 		"run_plan_name_list" : [
 					"SimpleContents"
 				]
 			}

@@ -19,7 +19,7 @@
 				"#step_check_mode" : true,"step_check_comment":"",
 				"log_function" : true,"log_print_standard_output" : true,"log_file_path_list" : "../Log/log_mementmori.json.json",
 				"file_path" : "../Setting/RunMementomori.json",				
-				"plan_lists" : [
+				"run_plan_name_list" : [
 					"MementomoriPlan","CloseWindow"
 				]
 			}
@@ -29,7 +29,7 @@
 				"type" : "RunPlanLists",
 				"settings" : {
 				"file_path" : "../Setting/RunTest01.json",
-				"plan_lists" : [
+				"run_plan_name_list" : [
 					"Begin"
 				]
 			}
@@ -41,7 +41,7 @@
 				"#step_check_mode" : true,"step_check_comment":"",
 				"log_function" : true,"log_print_standard_output" : false,"log_file_path_list" : "../Log/log_houchi.json.json",
 				"file_path" : "../Setting/RunHouchiChild.json",				
-				"plan_lists" : [
+				"run_plan_name_list" : [
 					"SimpleContents",
 					"TimeCheck_SubAccount","GrowthClick"
 				]
@@ -54,7 +54,7 @@
 		 	"settings" : {
 				"#step_check_mode" : true,"step_check_comment":"",
 				"file_path" : "../Setting/Run_HouchiFunction.json",
-				"plan_lists" : [
+				"run_plan_name_list" : [
 					"#FreeClick"
 				]
 			}
@@ -64,7 +64,7 @@
 		 	"type" : "RunPlanLists",
 		 	"settings" : {
 				"file_path" : "../Setting/RunTest01.json",
-				"plan_lists" : [
+				"run_plan_name_list" : [
 					"#DarkTails"
 				]
 			}
@@ -74,7 +74,7 @@
 		 	"type" : "RunPlanLists",
 		 	"settings" : {
 				"file_path" : "../Setting/RunGame.json",
-				"plan_lists" : [
+				"run_plan_name_list" : [
 					"#DarkTails"
 				]
 			}
@@ -87,7 +87,7 @@
 				"loop_condition":true,
                 "terminate_condition":false,
                 "loop_limit_count":5,
-				"plan_lists" : [
+				"run_plan_name_list" : [
 					"#PlayContents","#PlayContents","#PlayContents"
 				]
 			}
@@ -100,7 +100,7 @@
 				"loop_condition":true,
                 "terminate_condition":false,
                 "loop_limit_count":5,
-				"plan_lists" : [
+				"run_plan_name_list" : [
 					"#ACMAccount","#DarkTailsClickGroup",
 					"#TimeCheck_TimeEvent01","#TimeEventPlay"
 				]
@@ -114,7 +114,7 @@
                 "loop_condition":true,
                 "terminate_condition":false,
                 "loop_limit_count":5,
-				"plan_lists" : [
+				"run_plan_name_list" : [
 					"#ReturnHome","#Casting","#Item",
 					"#EventPlay01","#EventPlay02","#ReturnHome","#EventPlay08",
 					"#growth","#Etc#"

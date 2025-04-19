@@ -210,7 +210,7 @@
 						"change_settings_by_name" : {
 							"ContentsStartAndExecuteGroup" : {
 								"file_path":"../Setting/RunHouchiChild.json",
-								"plan_lists" : [
+								"run_plan_name_list" : [
 									"Start","ContentsPlay"
 								]
 							}
@@ -367,7 +367,7 @@
 				"log_function" : true,"log_print_standard_output" : true,
 				"log_file_path_list" : ["../Log/log_manage.json","../Log/log_all.json"],
 				"#step_check_mode" : true,
-				"plan_lists" : [
+				"run_plan_name_list" : [
 					"SubAccount",
 					"MainAccount",
 					"ACMAccount"
@@ -387,7 +387,7 @@
 			"settings" : {
 				"log_function" : true,"log_print_standard_output" : true,"log_file_path_list" : ["../Log/log_manage.json","../Log/log_all.json"],
 				"#step_check_mode" : true,
- 		 		"plan_lists" : [
+ 		 		"run_plan_name_list" : [
 					"Condition_TimeEvent","TimeEvent",
 					"CloseWindow","Condition_SubAccount","Account00","Waiting","Server01","ContentsStartAndExecuteGroup",
 					"CloseWindow","Condition_SubAccount","Account00","Waiting","Server02","ContentsStartAndExecuteGroup",
@@ -418,7 +418,7 @@
 				"log_function" : true,"log_print_standard_output" : true,
 				"log_file_path_list" : ["../Log/log_manage.json","../Log/log_all.json"],
 				"step_check_mode" : false,
- 		 		"plan_lists" : [
+ 		 		"run_plan_name_list" : [
 					"Condition_TimeEvent","TimeEvent",
 					"CloseWindow","Condition_MainAccount","Account03","Waiting","Server09","ContentsStartAndExecuteGroup",
 					"CloseWindow","Condition_MainAccount","Account04","Waiting","Server09","ContentsStartAndExecuteGroup",
@@ -440,7 +440,7 @@
 			"settings" : {
 				"log_function" : true,"log_print_standard_output" : true,"log_file_path_list" : ["../Log/log_manage.json","../Log/log_all.json"],
 				"step_check_mode" : false,
- 		 		"plan_lists" : [
+ 		 		"run_plan_name_list" : [
 					"Condition_TimeEvent","TimeEvent",
 					"CloseWindow","Condition_MainAccount","Account06","Waiting","Server09","ContentsStartAndExecuteGroup"
 				]
@@ -458,7 +458,7 @@
 				"file_path" : "../Setting/RunHouchiChild.json",
 				"log_function" : true,"log_print_standard_output" : true,"log_file_path_list" : ["../Log/log_manage.json","../Log/log_all.json"],
 				"#step_check_mode" : true,
- 		 		"plan_lists" : [
+ 		 		"run_plan_name_list" : [
 					"TimeCheck_TimeEvent"
 				]
 			}
@@ -475,7 +475,7 @@
 				"file_path" : "../Setting/RunHouchiChild.json",
 				"log_function" : true,"log_print_standard_output" : true,"log_file_path_list" : ["../Log/log_manage.json","../Log/log_all.json"],
 				"#step_check_mode" : true,
- 		 		"plan_lists" : [
+ 		 		"run_plan_name_list" : [
 					"Start","Maintenance","ContentsPlay"
 				]
 			}
@@ -491,7 +491,7 @@
 			"settings" : {
 				"log_function" : true,"log_print_standard_output" : true,"log_file_path_list" : ["../Log/log_manage.json","../Log/log_all.json"],
 				"#step_check_mode" : true,
- 		 		"plan_lists" : [
+ 		 		"run_plan_name_list" : [
 					"CloseWindow","Condition_TimeEvent","Account00","Waiting","Server01","TimeEventPlayGroup",
 					"CloseWindow","Condition_TimeEvent","Account00","Waiting","Server02","TimeEventPlayGroup",
 					"CloseWindow","Condition_TimeEvent","Account00","Waiting","Server03","TimeEventPlayGroup",
@@ -530,7 +530,7 @@
 				"file_path" : "../Setting/RunHouchiChild.json",
 				"log_function" : true,"log_print_standard_output" : true,"log_file_path_list" : ["../Log/log_manage.json","../Log/log_all.json"],
 				"#step_check_mode" : true,
- 		 		"plan_lists" : [
+ 		 		"run_plan_name_list" : [
 					"Start","Condition_TimeEvent","TimeEventPlay"
 				]
 			}
@@ -596,7 +596,7 @@
                 "loop_limit_count":20,
 				"log_function" : true,"log_print_standard_output" : true,"log_file_path_list" : ["../Log/log_manage.json","../Log/log_all.json"],
 				"#step_check_mode" : true,
- 		 		"plan_lists" : [
+ 		 		"run_plan_name_list" : [
 					"WaitingSequence"
 				]
 			}
@@ -658,7 +658,7 @@
 				"file_path" : "../Setting/Run_HouchiFunction.json",
 				"log_function" : true,"log_print_standard_output" : true,"log_file_path_list" : "../Log/log_apply.json",
 				"#step_check_mode" : true,
-				"plan_lists" : [
+				"run_plan_name_list" : [
 					"Call_CloseWindowByName"
 				]
 			}
