@@ -200,7 +200,7 @@
 				"loop_limit_count":1,
 				"terminate_condition":["Flag_Terminate.detail = OK,Flag_Terminate.detail = ALL_OK"],
 				"terminate_and_delete_condition":["Flag_Terminate"],
-				"plan_lists" : [
+				"run_plan_name_list" : [
 					"ReturnHome","SimpleContents",
 					"ReturnHomeIfContentsStart","InformationClick",
 					"ReturnHome","SimpleContents",
@@ -416,7 +416,7 @@
 			"result_name":"",
 			"settings" : {
 				"file_path"  : "../Setting/RunHouchiChild.json",
-				"plan_lists" : [
+				"run_plan_name_list" : [
 					"FreeClick"
 				]
 			}
@@ -431,7 +431,7 @@
 			"result_name":"",
 			"settings" : {
 				"file_path"  : "../Setting/RunHouchiChild.json",
-				"plan_lists" : [
+				"run_plan_name_list" : [
 					"ReturnHome","EventPlay09",
 					"ReturnHome","EventPlay09"
 				]
@@ -447,7 +447,7 @@
 			"result_name":"",
 			"settings" : {
 				"file_path"  : "../Setting/RunHouchiChild.json",
-				"plan_lists" : [
+				"run_plan_name_list" : [
 					"ReturnHome","DairyClick","Growth","BattleClick",
 					"ReturnHome","DairyClick","Growth","BattleClick",
 					"ReturnHome","DairyClick","Growth","BattleClick"
@@ -465,7 +465,7 @@
 			"settings" : {
 				"file_path"  : "../Setting/RunHouchiChild.json",
 				"#step_check_mode" : true,
-				"plan_lists" : [
+				"run_plan_name_list" : [
 					"EventPlay08",
 					"ReturnHome","Item"
 				]
@@ -515,7 +515,7 @@
 				"terminate_and_delete_condition":["Flag_Terminate"],
 				"log_function" : true,"log_print_standard_output" : true,"log_file_path_list" : "../Log/log_all.json",
 				"#step_check_mode" : true,
-				"plan_lists" : [
+				"run_plan_name_list" : [
 					"EventPlay08Works","ReturnHomeIfContentsStart"
 				]
 			}
@@ -609,7 +609,7 @@
 	"settings" : {
 			"file_path"  : "../Setting/RunHouchiChild.json",
 			"#step_check_mode" : true,
-			"plan_lists" : [
+			"run_plan_name_list" : [
 			"ItemMaintenance"
 		]
 	}
@@ -626,7 +626,7 @@
 			"result_name":"",
 			"settings" : {
 				"file_path"  : "../Setting/RunHouchiChild.json",
-				"plan_lists" : [
+				"run_plan_name_list" : [
 					"TimeCheck_TimeEvent01","TimeEventPlayContents"
 				]
 			}
@@ -641,7 +641,7 @@
 			"result_name":"",
 			"settings" : {
 				"file_path"  : "../Setting/RunHouchiChild.json",
-				"plan_lists" : [
+				"run_plan_name_list" : [
 					"ReturnClick","ReturnHome","TimeEventClick",
 					"ReturnHome","TimeEventClick",
 					"ReturnHome","TimeEventClick"
@@ -800,7 +800,7 @@
 			"result_name":"",
 			"settings" : {
 				"file_path"  : "../Setting/RunHouchiChild.json",
-				"plan_lists" : [
+				"run_plan_name_list" : [
 					"Growth","BattleClick","ItemEventClick"
 				]
 			}
@@ -1077,7 +1077,7 @@
 			"result_name":"",
 			"settings" : {
 				"file_path"  : "../Setting/RunHouchiChild.json",
-				"plan_lists" : [
+				"run_plan_name_list" : [
 					"Growth","BattleClick"
 				]
 			}
@@ -1112,7 +1112,7 @@
 			"result_name":"",
 			"settings" : {
 				"file_path"  : "../Setting/RunHouchiChild.json",
-					"plan_lists" : [
+					"run_plan_name_list" : [
 					"ReturnHome"
 				]
 			}
@@ -1163,7 +1163,7 @@
 		"result_name":"",
 		"settings" : {
 			"file_path"  : "../Setting/Run_HouchiFunction.json",
-			"plan_lists" : [
+			"run_plan_name_list" : [
 				"CharacterDisplay","GrowthClick"
 			]
 		}
@@ -1198,7 +1198,7 @@
 			"result_name":"",
 			"settings" : {
 				"file_path"  : "../Setting/Run_HouchiFunction.json",
-				"plan_lists" : [
+				"run_plan_name_list" : [
 					"Battle"
 				]
 			}
@@ -1229,7 +1229,7 @@
 			"result_name":"",
 			"settings" : {
 				"file_path"  : "../Setting/RunHouchiChild.json",
-				"plan_lists" : [
+				"run_plan_name_list" : [
 					"ItemMaintenance"
 				]
 			}
@@ -1329,7 +1329,7 @@
 		"settings" : {
 			"file_path"  : "../Setting/RunHouchiChild.json",
 			"#step_check_mode" : true,
-				"plan_lists" : [
+				"run_plan_name_list" : [
 				"TimeCheck_TimeEvent02"
 			]
 		}
@@ -1342,7 +1342,7 @@
 			"settings" : {
 				"file_path"  : "../Setting/RunHouchiChild.json",
 				"#step_check_mode" : true,
-				"plan_lists" : [
+				"run_plan_name_list" : [
 					"TimeEvent02Click"
 				]
 			}
@@ -1528,7 +1528,7 @@
 				"loop_limit_count":5,
 				"log_function" : true,"log_print_standard_output" : true,"log_file_path_list" : "../Log/log_all.json",
 				"#step_check_mode" : true,
-				"plan_lists" : [
+				"run_plan_name_list" : [
 					"HomeClickSequence"
 				]
 			}
@@ -1590,7 +1590,7 @@
 				"loop_limit_count":3,
 				"log_function" : true,"log_print_standard_output" : true,"log_file_path_list" : "../Log/log_all.json",
 				"#step_check_mode" : true,
-				"plan_lists" : [
+				"run_plan_name_list" : [
 					"HomeClickSequence"
 				]
 			}

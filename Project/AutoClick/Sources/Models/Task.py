@@ -122,7 +122,7 @@ class Task(threading.Thread):
         context["result_name"] = self.result_name
         context["information"] = self.information
         context["condition"] = self.condition
-        context["plan_lists"] = self.plan_lists
+        context["run_plan_name_list"] = self.run_plan_list
         context["plan_lists_no"] = self.plan_lists_no
         context["settings"] = self.settings
 
@@ -253,8 +253,8 @@ class Task(threading.Thread):
     
     def RunPlanListsBySettings(self , settings ,plan_lists,details = {}):
         #実行するPlan_listの名前listを得る。
-        plan_list_names_execute = settings.get("plan_lists","")
-        if plan_list_names_execute == "":
+        run_plan_list_execute = settings.get("run_plan_name_list","")
+        if run_plan_list_execute == "":
             details = {"error":""}
             return details
         #PlanListを読込む。
@@ -284,8 +284,8 @@ class Task(threading.Thread):
         judge_details = {}
         while flag_loop:
             flag_loop = False
-            if type(plan_list_names_execute) is list:
-                for plan_list_name in plan_list_names_execute:
+            if type(run_plan_list_execute) is list:
+                for plan_list_name in run_plan_list_execute:
                     self.RunPlanList(plan_list_name,plan_lists_execute,details)
                     #中断条件が成立した場合は動作をやめて中断する。
                     flag_terminate = self.judgeLoopTerminate(terminate_condition ,settings, self.information,judge_details)
@@ -293,7 +293,7 @@ class Task(threading.Thread):
                         details["message"] = plan_list_name+"terminate"+str(count)+"/"+str(loop_limit_count)
                         break
             else:
-                plan_list_name = plan_list_names_execute
+                plan_list_name = run_plan_list_execute
                 self.RunPlanList(plan_list_name,plan_lists,details)
                  #中断条件が成立した場合は動作をやめて中断する。
                 flag_terminate = self.judgeLoopTerminate(terminate_condition ,settings, self.information,judge_details)    
@@ -376,16 +376,16 @@ class Task(threading.Thread):
                 filtered_dictionary[key] = input_dictionary[key]
         return filtered_dictionary
 
-    #plan_list_names:実行するplan_listの名前
+    #run_plan_list:実行するplan_listの名前
     #plan_lists:plan_listsの設定
-    def RunPlanLists(self , plan_list_names ,plan_lists,details = None):
+    def RunPlanLists(self , run_plan_list ,plan_lists,details = None):
         if details == None:
             details = {}
-        if type(plan_list_names) is list:
-            for plan_list_name in plan_list_names:
+        if type(run_plan_list) is list:
+            for plan_list_name in run_plan_list:
                 self.RunPlanList(plan_list_name,plan_lists,details)
         else:
-            plan_list_name = plan_list_names
+            plan_list_name = run_plan_list
             self.RunPlanList(plan_list_name,plan_lists,details)
 
     def SelectKey(self,data_dictionary):
@@ -465,7 +465,7 @@ class Task(threading.Thread):
                                     message_list.append(f"{check_file_path} exists")
                                 else:
                                     message_list.append(f"{check_file_path} does not exists")
-                                check_run_plan_list = self.task_settings.get("plan_lists",{})
+                                check_run_plan_list = self.task_settings.get("run_plan_name_list",{})
                                 if check_file_path == "":
                                     check_plan_lists = self.plan_lists
                                 else:
@@ -474,7 +474,7 @@ class Task(threading.Thread):
                                     if not check_run_plan in check_plan_lists:
                                         message_list.append(check_run_plan + " is not in plan lists.")
 
-                                details_step_check = {"plan_lists": check_plan_lists.get(self.plan_list_name,""), "message_list" :message_list}
+                                details_step_check = {"run_plan_name_list": check_plan_lists.get(self.plan_list_name,""), "message_list" :message_list}
                             step_check_comment = self.task_settings.get("step_check_comment","")                   
                             if step_check_comment != "":
                                 print (step_check_comment)
@@ -544,7 +544,7 @@ class Task(threading.Thread):
         self.task_terminate = False
         arguments = {
             "settings" : self.task_settings,
-            "plan_list_name" :plan_list_name,
+            "run_plan_name_list" :plan_list_name,
             "plan_lists" : plan_lists,
             "result_details" : {}
         }
@@ -671,18 +671,18 @@ class Task(threading.Thread):
     
     def Call_RunPlanListsBySettings(self , arguments):
         settings = arguments.get("settings",{})
-        plan_lists = self.plan_lists #arguments.get("plan_lists",{})
+        plan_lists = self.plan_lists #arguments.get("run_plan_name_list",{})
         result_details = arguments.get("result_details",{})
         result_details = self.RunPlanListsBySettings(settings,plan_lists,result_details)
         return result_details
     
     def Call_CopyPlanListsBySettings(self , arguments):
         settings = arguments.get("settings",{})
-        plan_lists = self.plan_lists #arguments.get("plan_lists",{})
+        plan_lists = self.plan_lists #arguments.get("run_plan_name_list",{})
         result_details = arguments.get("result_details",{})
         result_details = self.CopyPlanListsBySettings(settings,plan_lists,result_details)
         
-        self.plan_lists.update(result_details.get("plan_lists",{}))
+        self.plan_lists.update(result_details.get("run_plan_name_list",{}))
         return result_details
 
     def Call_Judge(self , arguments):

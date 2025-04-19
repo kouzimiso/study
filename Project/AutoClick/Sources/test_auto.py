@@ -49,7 +49,7 @@ check_planlist={
 		 	"type" : "RunPlanLists",
 		 	"settings" : {
 				"file_path" : "",
-				"plan_lists" : [
+				"run_plan_name_list" : [
 					"HotSpotON",
 			 		"Mementomori",
  					"Houchi",
@@ -144,7 +144,7 @@ class Test(unittest.TestCase):
                     "settings" :
                     {
                         "file_path":"PlanLists.json",
-                        "plan_lists":[
+                        "run_plan_name_list":[
                             "test2-1" ,
                             "test2-2"],
                         "log_file_path_list":["../Log/log_test_all.log","../Log/log_test2.log"],

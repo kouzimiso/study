@@ -192,7 +192,7 @@
 			"settings" : {
 				"file_path"  : "../Setting/RunDarkTailsChild.json",
 				"#step_check_mode" : true,
- 		 		"plan_lists" : [
+ 		 		"run_plan_name_list" : [
 					"PlayContents"
 				]
 			}
@@ -208,7 +208,7 @@
 			"settings" : {
 				"file_path"  : "../Setting/RunDarkTailsChild.json",
 				"#step_check_mode" : true,
- 		 		"plan_lists" : [
+ 		 		"run_plan_name_list" : [
 					"ReturnClick","HomeClick","FreeClick",
 					"HomeClick","Mail",
 					"HomeClick","Casting",
@@ -229,7 +229,7 @@
 			"result_name":"",
 			"settings" : {
 				"file_path"  : "../Setting/RunDarkTailsChild.json",
- 		 		"plan_lists" : [
+ 		 		"run_plan_name_list" : [
 					"HomeClick","DarkTailsEvent01Click",
 					"HomeClick","DarkTailsEvent01Click",
 					"HomeClick","DarkTailsEvent01Click"
@@ -246,7 +246,7 @@
 			"result_name":"",
 			"settings" : {
 				"file_path"  : "../Setting/RunDarkTailsChild.json",
- 		 		"plan_lists" : [
+ 		 		"run_plan_name_list" : [
 					"HomeClick","DarkTailsEvent02Click",
 					"HomeClick","DarkTailsEvent02Click"
 				]
@@ -262,7 +262,7 @@
 			"result_name":"",
 			"settings" : {
 				"file_path"  : "../Setting/RunDarkTailsChild.json",
- 		 		"plan_lists" : [
+ 		 		"run_plan_name_list" : [
 					"HomeClick","DarkTailsDairyClick","DarkTailsgrowthClick","DarkTailsBattleClick",
 					"HomeClick","DarkTailsDairyClick","DarkTailsgrowthClick","DarkTailsBattleClick",
 					"HomeClick","DarkTailsDairyClick","DarkTailsgrowthClick","DarkTailsBattleClick"
@@ -280,7 +280,7 @@
 			"settings" : {
 				"file_path"  : "../Setting/RunDarkTailsChild.json",
 				"#step_check_mode" : true,
- 		 		"plan_lists" : [
+ 		 		"run_plan_name_list" : [
 					"HomeClick","Item"
 				]
 			}
@@ -374,7 +374,7 @@
 	   "settings" : {
 		   	"file_path"  : "../Setting/RunDarkTailsChild.json",
 		   	"#step_check_mode" : true,
-			"plan_lists" : [
+			"run_plan_name_list" : [
 			   "ItemMaintenance"
 		   ]
 	   }
@@ -391,7 +391,7 @@
 			"result_name":"",
 			"settings" : {
 				"file_path"  : "../Setting/RunDarkTailsChild.json",
- 		 		"plan_lists" : [
+ 		 		"run_plan_name_list" : [
 					"TimeCheck_TimeEvent01","TimeEvent01Click"
 				]
 			}
@@ -406,7 +406,7 @@
 			"result_name":"",
 			"settings" : {
 				"file_path"  : "../Setting/RunDarkTailsChild.json",
- 		 		"plan_lists" : [
+ 		 		"run_plan_name_list" : [
 					"ReturnClick","HomeClick","TimeEventClick",
 					"HomeClick","TimeEventClick",
 					"HomeClick","TimeEventClick"
@@ -623,7 +623,7 @@
 		   "result_name":"",
 		   "settings" : {
 			   "file_path"  : "../Setting/RunDarkTailsChild.json",
-				 "plan_lists" : [
+				 "run_plan_name_list" : [
 					"HomeClick"
 			   ]
 		   }
@@ -673,7 +673,7 @@
 		   "result_name":"",
 		   "settings" : {
 			   "file_path"  : "../Setting/RunDarkTailsChild.json",
-				 "plan_lists" : [
+				 "run_plan_name_list" : [
 					"HomeClick"
 			   ]
 		   }
@@ -723,7 +723,7 @@
 		   "result_name":"",
 		   "settings" : {
 			   "file_path"  : "../Setting/RunDarkTailsChild.json",
-				 "plan_lists" : [
+				 "run_plan_name_list" : [
 					"HomeClick"
 			   ]
 		   }
@@ -1085,7 +1085,7 @@
 			"result_name":"",
 			"settings" : {
 				"file_path"  : "../Setting/RunDarkTailsChild.json",
-				"plan_lists" : [
+				"run_plan_name_list" : [
 					"DarkTailsgrowthClick","DarkTailsBattleClick"
 				]
 			}
@@ -1142,7 +1142,7 @@
 			"result_name":"",
 			"settings" : {
 				"file_path"  : "../Setting/RunDarkTailsChild.json",
-					"plan_lists" : [
+					"run_plan_name_list" : [
 					"HomeClick"
 				]
 			}
@@ -1255,7 +1255,7 @@
 			"result_name":"",
 			"settings" : {
 				"file_path"  : "../Setting/RunDarkTailsChild.json",
-				  "plan_lists" : [
+				  "run_plan_name_list" : [
 					 "ItemMaintenance"
 				]
 			}
@@ -1350,7 +1350,7 @@
 		   "settings" : {
 			   "file_path"  : "../Setting/RunDarkTailsChild.json",
 			   "#step_check_mode" : true,
-				 "plan_lists" : [
+				 "run_plan_name_list" : [
 				   "TimeCheck_TimeEvent02"
 			   ]
 		   }
@@ -1363,7 +1363,7 @@
 			"settings" : {
 				"file_path"  : "../Setting/RunDarkTailsChild.json",
 				"#step_check_mode" : true,
-				"plan_lists" : [
+				"run_plan_name_list" : [
 					"TimeEvent02Click"
 				]
 			}

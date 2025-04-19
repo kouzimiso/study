@@ -272,7 +272,7 @@ class Test(unittest.TestCase):
                         "file_path"  : "../Setting/RunHouchi.json",
                         "log_function":True,"log_print_standard_output": True,"log_file_path_list": "../Log/log_RunPlanList.json.json",
                         "#step_check_mode" : True,
-                        "plan_lists" : [
+                        "run_plan_name_list" : [
                             "CallSetting"
                         ]
                     }

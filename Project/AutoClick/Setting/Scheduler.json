@@ -6,7 +6,7 @@
 		 	"type" : "RunPlanLists",
 		 	"settings" : {
 				"file_path" : "",
-				"plan_lists" : [
+				"run_plan_name_list" : [
 					"HotSpotON",
 			 		"Mementomori",
  					"Houchi",
@@ -22,7 +22,7 @@
 			"type" : "RunPlanLists",
 	 		"settings" : {
 		 		"file_path" : "",
-		 		"plan_lists" : [
+		 		"run_plan_name_list" : [
 					"CloseWindow",
 					"MementomoriClick01",
 		 			"MementomoriClick02",
@@ -38,7 +38,7 @@
 			"type" : "RunPlanLists",
 			"settings" : {
 				"file_path" : "",
- 		 		"plan_lists" : [
+ 		 		"run_plan_name_list" : [
 		 			"SubAccount",
 					"MainAccount",
 					"ACMAccount"
@@ -54,7 +54,7 @@
 			"condition" : "",
 			"settings" : {
 				"file_path" : "",
- 		 		"plan_lists" : [
+ 		 		"run_plan_name_list" : [
 					"CloseWindow","TimeCheck_Houch_Sub","Account01","Waiting","HouchServer01","HouchClickGroupSub",
 					"CloseWindow","TimeCheck_Houch_Sub","Account01","Waiting","HouchServer02","HouchClickGroupSub",
 					"CloseWindow","TimeCheck_Houch_Sub","Account01","Waiting","HouchServer03","HouchClickGroupSub",
@@ -83,7 +83,7 @@
 			"condition" : "",
 			"settings" : {
 				"file_path" : "",
- 		 		"plan_lists" : [
+ 		 		"run_plan_name_list" : [
 					"CloseWindow","TimeCheck_Houch_Main","Account01","Waiting","HouchServer09","HouchClickGroupMain",
 					"CloseWindow","TimeCheck_Houch_Main","Account02","Waiting","HouchServer09","HouchClickGroupMain",
 					"CloseWindow","TimeCheck_Houch_Main","Account03","Waiting","HouchServer09","HouchClickGroupMain",
@@ -101,7 +101,7 @@
 			"condition" : "",
 			"settings" : {
 				"file_path" : "",
- 		 		"plan_lists" : [
+ 		 		"run_plan_name_list" : [
 					"CloseWindow","TimeCheck_Houch_ACM","Account06","Waiting","HouchServer09","HouchClickGroupACM"
 				]
 			}
@@ -115,7 +115,7 @@
 			"condition" : "Result_ServerClicked = Result.OK",
 			"settings" : {
 				"file_path" : "",
- 		 		"plan_lists" : [
+ 		 		"run_plan_name_list" : [
 					"Account01","Account02","Account03","Account04","Account05","Account06"
 				]
 			}

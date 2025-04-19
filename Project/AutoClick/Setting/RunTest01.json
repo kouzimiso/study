@@ -13,7 +13,7 @@
                 "log_file_path_list": "../Log/log_all.json",
                 "log_function": true,
                 "log_print_standard_output": false,
-                "plan_lists": [
+                "run_plan_name_list": [
                     "test0",
                     "test1",
                     "test2"
@@ -48,7 +48,7 @@
                 "file_path": "../Setting/TemplateRunApply.json",
                 "loop_condition": false,
                 "loop_limit_count": 1,
-                "plan_lists": [
+                "run_plan_name_list": [
                     "CloseWindowByName"
                 ],
                 "terminate_condition": false
@@ -71,7 +71,7 @@
                 "log_file_path_list": "../Log/log_houchi.json",
                 "log_function": true,
                 "log_print_standard_output": true,
-                "plan_lists": [
+                "run_plan_name_list": [
                     "TimeCheck_TimeEvent01"
                 ]
             },
@@ -153,7 +153,7 @@
                 "log_print_standard_output": false,
                 "loop_condition": true,
                 "loop_limit_count": 2,
-                "plan_lists": [
+                "run_plan_name_list": [
                     "test_print"
                 ],
                 "terminate_condition": [
@@ -276,7 +276,7 @@
             "settings": {
                 "check_result": {
                     "file_path": "../Setting/RunTest01.json",
-                    "plan_lists": {
+                    "run_plan_name_list": {
                         "Print_PlanListCopy01": [
                             {
                                 "name": "Print_PlanCopy01",
@@ -398,7 +398,7 @@
                 "log_file_path_list": "../Log/log_houchi.json",
                 "log_function": true,
                 "log_print_standard_output": true,
-                "plan_lists": [
+                "run_plan_name_list": [
                     "Call_TimeCheck",
                     "Call_CloseWindowByName",
                     "Print_PlanListCopy01",
