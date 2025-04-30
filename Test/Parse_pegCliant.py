@@ -157,7 +157,7 @@ async def main():
 if __name__ == "__main__":
     # peg_grammar.json が存在することを確認
     try:
-        with open('peg_grammar.json', 'r') as f:
+        with open('./Test/peg_grammar.json', 'r') as f:
             json.load(f)
     except FileNotFoundError:
         print("Error: peg_grammar.json not found. Please create this file in the same directory.")
