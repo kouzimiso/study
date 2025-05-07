@@ -22,8 +22,8 @@ def ToString(data_dictionary=None):
 def ReadDictionary(file_path,data_dictionary=None,details = None):
     if data_dictionary == None:
         data_dictionary ={}
-    if details == None :
-        details = {"success":True}
+    if details == {}:
+        details.update({"success":True})
     if os.path.isfile(file_path):
         try:
             file = open(file_path,'r', encoding='utf-8')
@@ -44,7 +44,7 @@ def ReadDictionary(file_path,data_dictionary=None,details = None):
             details.update({"success":False ,"message":"Exception" , "level" :"ERROR","error":error_dictionary})
         file.close()
     else:
-        details.update({"success":False ,"message":"FileNotFoundError", "level" :"ERROR","error":"The specifeed file is nothing"})
+        details.update({"success":False ,"message":"FileNotFoundError", "level" :"ERROR","error":"The specifeed file is nothing:"+file_path})
         
     return data_dictionary
 

@@ -303,7 +303,7 @@ def ChangeDictionary(change_settings, data):
                             print(f"警告: 不明な操作です: {operation}")
 
         except Exception as e:
-            print(f"エラーが発生しました: {e}, 設定: {change}")
+            print(f"ChangeDictionaryでエラーが発生しました: {e}, 設定: {change}")
 
     return new_data
 # Defaultの辞書Dataを設定

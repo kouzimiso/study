@@ -6,7 +6,7 @@ def list_processes():
     
     print("プロセス一覧:")
     for idx, process in enumerate(processes, start=1):
-        process_info = process.info()
+        process_info = process.info
         print(f"{idx}. PID: {process_info['pid']} - Name: {process_info['name']}")
     
     return processes

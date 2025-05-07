@@ -23,13 +23,13 @@ from System.Collections.Generic import List as NetList
 def get_default_csc_path() -> str:
     """
     デフォルトの CSC のパスを返す。
-    デフォルトは %SystemRoot%\Microsoft.NET\Framework\v4.0.30319\csc.exe 。
+    デフォルトは %SystemRoot%/Microsoft.NET/Framework/v4.0.30319/csc.exe 。
     """
     system_root = os.environ.get("SystemRoot", "C:\\Windows")
     return os.path.join(system_root, "Microsoft.NET", "Framework", "v4.0.30319", "csc.exe")
 
-def compile_source_to_dll(cs_file: str, output_dll: str="test.dll", build_method: str = "csc",
-                          csc_path: str = None, references: list = None) -> bool:
+def compile_source_to_dll(cs_file_path: str, output_dll_path: str="test.dll", build_method: str = "csc",
+                          cs_compiler_path: str = None, references: list = None) -> bool:
     """
     指定された C# ソースファイルを DLL 化する関数。
     build_method が "csc" の場合、CSC の実行ファイル（直接パス指定）を用いてコンパイルする。
@@ -37,14 +37,14 @@ def compile_source_to_dll(cs_file: str, output_dll: str="test.dll", build_method
     追加の参照 DLL は references リストで指定する。
     """
     if build_method == "csc":
-        if csc_path is None:
+        if cs_compiler_path is None:
             csc_path = get_default_csc_path()
-        compile_command = [csc_path, "/target:library", f"/out:{os.path.abspath(output_dll)}", os.path.abspath(cs_file)]
+        compile_command = [cs_compiler_path, "/target:library", f"/out:{os.path.abspath(output_dll_path)}", os.path.abspath(cs_file_path)]
         if references:
             for ref in references:
                 compile_command.append(f'/reference:"{ref}"')
     elif build_method == "msbuild":
-        compile_command = ["msbuild", cs_file]
+        compile_command = ["msbuild", cs_file_path]
     else:
         raise ValueError(f"Unsupported build method: {build_method}")
     
@@ -62,11 +62,11 @@ def compile_source_to_dll(cs_file: str, output_dll: str="test.dll", build_method
         print(result.stderr)
         return False
 
-    if not os.path.exists(output_dll):
-        print(f"Compilation succeeded but {output_dll} not found.")
+    if not os.path.exists(output_dll_path):
+        print(f"Compilation succeeded but {output_dll_path} not found.")
         return False
 
-    print(f"Compilation succeeded: {output_dll} created.")
+    print(f"Compilation succeeded: {output_dll_path} created.")
     return True
 
 def load_native_dll(dll_path: str) -> object:

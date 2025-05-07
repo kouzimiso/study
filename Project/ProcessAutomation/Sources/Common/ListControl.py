@@ -181,20 +181,12 @@ def replace_list_values(list_data: Union[Any, List[Any]], replace_dictionary: Di
     return [replace_dictionary.get(item, item) for item in list_data]
 
 def format_merge_multiple_list(
-    format_string: str, 
+    format_string: str,
     placeholder_format: Union[str, List[Union[str, None]]] = "list{index}_",
-    **str_lists: List[any]
+    **str_lists: List[Any]
 ) -> List[str]:
     """
     複数のリストを指定フォーマットで結合し、足りない部分を補完する汎用関数。
-
-    :param format_string: 変数を含むフォーマット文字列 (例: "{list1}={list2},{list3},{list4}")
-    :param placeholder_format: 
-        - 文字列の場合: 余分な値に割り当てるプレースホルダーのフォーマット (例: "list{index}")
-        - リストの場合: 各引数ごとに異なるプレースホルダーを指定可能 (例: ["list1{index}", "list2{index}", None])
-        - None の場合: 余った値を出力しない
-    :param str_lists: 任意の数のリスト（例: list1=[...], list2=[...]）
-    :return: フォーマット済みの引数リスト
     """
     result = []
     max_length = 0
@@ -203,10 +195,9 @@ def format_merge_multiple_list(
             str_lists[key] = [value]
         max_length = max(max_length, len(str_lists[key]))
 
-    # プレースホルダーのリストが指定されていなければ、すべて同じフォーマットを使用
     if isinstance(placeholder_format, str):
         placeholder_format = [placeholder_format] * len(str_lists)
-    
+
     list_keys = list(str_lists.keys())
 
     for i in range(max_length):
@@ -215,13 +206,22 @@ def format_merge_multiple_list(
         for idx, key in enumerate(list_keys):
             values = str_lists[key]
             if i < len(values):
-                formatted_lists[key] = str(values[i])  # 値がある場合
+                formatted_lists[key] = str(values[i])
             else:
                 if idx < len(placeholder_format) and placeholder_format[idx] is not None:
-                    formatted_lists[key] = placeholder_format[idx].format(index=i+1)  # プレースホルダーを使用
+                    try:
+                        formatted_lists[key] = placeholder_format[idx].format(index=i+1)
+                    except Exception as e:
+                        raise ValueError(f"プレースホルダーのフォーマットに失敗しました: {placeholder_format[idx]} (index={i+1}) - {e}")
 
-        # `format()` を適用
-        formatted_str = format_string.format(**{k: v for k, v in formatted_lists.items() if v is not None})
+        try:
+            formatted_str = format_string.format(**{k: v for k, v in formatted_lists.items() if v is not None})
+        except KeyError as e:
+            missing_key = e.args[0]
+            raise ValueError(f"フォーマット文字列で指定されたキー '{missing_key}' が提供されていません。formatted_lists={formatted_lists}")
+        except Exception as e:
+            raise ValueError(f"フォーマット処理中にエラーが発生しました: {e}")
+
         result.append(formatted_str)
 
     return result

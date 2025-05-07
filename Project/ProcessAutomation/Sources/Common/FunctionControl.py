@@ -109,39 +109,36 @@ def get_python_class_init_info(module: ast.Module) -> list:
 # ====================================================
 # 1. 型推論＆テスト値生成（設定ベース・マッチ数対応）
 # ====================================================
-def infer_possible_types_and_values(arg_name, arg_index, scenario, settings):
+def infer_possible_types_and_values(arg_name, arg_index, scenario, settings,arg_type = None):
     """
     指定シナリオ（"normal" や "value_error"）の設定から、
     引数名と引数位置を考慮して、マッチするルール候補を全件取得する。
 
     設定例:
       settings = {
-        "test_pattern": {
           "normal": {
             "match_count": 2,
-            "argument_type_inference_rules": [ ... ]
+            "argument_rules": [ ... ]
           },
           "value_error": {
             "match_count": 2,
             "rules": [ ... ]
-          }
-        },
-        "scenarios": ["normal", "value_error"],
+          }        
         "combination_mode": "cartesian"
       }
       
     ※ルール内で "arg_index" が設定されている場合、該当位置にのみ適用される。
     """
-    test_pattern = settings.get("test_pattern", {})
-    scenario_conf = test_pattern.get(scenario, {})
+    scenario_conf = settings.get(scenario, {})
     max_matches = scenario_conf.get("match_count", 1)
-    # キーは、normalの場合は "argument_type_inference_rules"、それ以外は "rules" を利用
-    rule_key = "argument_type_inference_rules" if scenario == "normal" else "rules"
-    rules = scenario_conf.get(rule_key, [])
+    rules = scenario_conf.get("argument_rules", [])
     
     lower_name = arg_name.lower()
     candidates = []
     for rule in rules:
+        if arg_type:
+            if arg_type != rule.get("type"):
+                continue
         # もし "arg_index" 指定があれば、該当でなければスキップ
         if "arg_index" in rule and rule["arg_index"] != arg_index:
             continue
@@ -155,29 +152,15 @@ def infer_possible_types_and_values(arg_name, arg_index, scenario, settings):
         return [("unknown", [None])]
     return candidates
 
-def generate_argument_candidate_list(arg_name, arg_index, scenario, settings, explicit_type=None):
+def generate_argument_candidate_list(arg_name, arg_index, scenario, settings, argument_types=None):
     """
     引数名・位置・シナリオおよび設定に基づいて候補リストを作成する。
-    explicit_type が与えられている場合はそれを優先して値リスト（デフォルト値）を返す。
+    argument_types が与えられている場合はそれを優先して値リスト（デフォルト値）を返す。
     
     結果は候補リスト [(型, 値), …] となり、各ルールの value_list から展開します。
     """
     candidates = []
-    if explicit_type:
-        default_values = {
-            "int": [1, 0, 2147483647, -2147483648],
-            "double": [1.0, 0.0, -1.0, 3.14],
-            "bool": [True, False],
-            "DateTime": ["2023-10-27T10:00:00", "1970-01-01T00:00:00"],
-            "string": ["", "sample", "a"*10],
-            "string[]": [["a"], ["sample", "test"]],
-            "List<string>": [["a"], ["sample", "test"]],
-            "Dictionary<string,string>": [{"key": "value"}, {}],
-            "Object": [{"key": "value"}]
-        }
-        candidates = [(explicit_type, default_values.get(explicit_type, [None]))]
-    else:
-        candidates = infer_possible_types_and_values(arg_name, arg_index, scenario, settings)
+    candidates = infer_possible_types_and_values(arg_name, arg_index, scenario, settings,argument_types)
     # 展開して (型, 値) の組リストを生成
     candidate_list = []
     for _type, values in candidates:
@@ -231,25 +214,19 @@ def generate_combinations(lists, mode="cartesian", random_sample_size=None):
 # ====================================================
 # 3. テストケース作成
 # ====================================================
-def create_test_case(test_info, scenario):
-    """
-    テストケース辞書にテスト名（シナリオ付き）を追加して返す。
-    """
-    test_info["test_name"] = f"test_{test_info.get('result', 'unknown')}_{scenario}"
-    return test_info
 
 def generate_test_cases(function_informations, settings, 
                         combination_mode=None, random_sample_size=None):
     """
     ・function_informations に "methods" が存在すればクラスとして扱い、  
       コンストラクタ引数と各メソッド引数の候補を生成してテストケースを作成します。  
-    ・各引数は、引数名、位置、explicitな型情報（あれば）と設定から候補リストを生成し、  
+    ・各引数は、引数名、位置、型情報（あれば）と設定から候補リストを生成し、  
       その組み合わせによりテストケース（辞書）を作成します。
     
     settings からは、テストシナリオ（"scenarios"）や  
     組み合わせモード（"combination_mode"）が利用されます。
     """
-    scenarios = settings.get("scenarios", ["normal"])
+    scenarios = settings.keys()
     if not combination_mode:
         combination_mode = settings.get("combination_mode", "cartesian")
         
@@ -261,15 +238,15 @@ def generate_test_cases(function_informations, settings,
             class_name = info.get("class_name", "")
             init_arg_names = info.get("init_argument_names", [])
             # 各シナリオごとのコンストラクタ引数候補
-            init_candidates_by_scenario = {s: [] for s in scenarios}
-            init_types = []  # 型情報（explicit 指定または最初の候補）
+            init_candidates_by_scenario = {scenario: [] for scenario in scenarios}
+            init_types = []  # 型情報（argument_types 指定または最初の候補）
             for index, arg in enumerate(init_arg_names):
-                for s in scenarios:
-                    explicit = None
+                for scenario in scenarios:
+                    argument_types = None
                     if info.get("init_argument_types", [None]*len(init_arg_names))[index]:
-                        explicit = info["init_argument_types"][index]
-                    cand = generate_argument_candidate_list(arg, index, s, settings, explicit_type=explicit)
-                    init_candidates_by_scenario[s].append(cand)
+                        argument_types = info["init_argument_types"][index]
+                    cand = generate_argument_candidate_list(arg, index, scenario, settings, argument_types=argument_types)
+                    init_candidates_by_scenario[scenario].append(cand)
                 # １シナリオ目の候補から採用
                 if info.get("init_argument_types", [None]*len(init_arg_names))[index]:
                     init_types.append(info["init_argument_types"][index])
@@ -277,30 +254,31 @@ def generate_test_cases(function_informations, settings,
                     init_types.append(init_candidates_by_scenario[scenarios[0]][index][0][0])
             
             methods_info = info.get("methods", [])
-            method_tests_lists_by_scenario = {s: [] for s in scenarios}
+            method_tests_lists_by_scenario = {scenario: [] for scenario in scenarios}
             
             for method in methods_info:
                 method_name = method.get("method_name", "")
                 m_arg_names = method.get("argument_names", [])
-                m_candidates_by_scenario = {s: [] for s in scenarios}
+                m_candidates_by_scenario = {scenario: [] for scenario in scenarios}
                 m_types = []
                 for index, arg in enumerate(m_arg_names):
-                    for s in scenarios:
-                        explicit = None
+                    for scenario in scenarios:
+                        argument_types = None
                         if method.get("argument_types", [None]*len(m_arg_names))[index]:
-                            explicit = method["argument_types"][index]
-                        cand = generate_argument_candidate_list(arg, index, s, settings, explicit_type=explicit)
-                        m_candidates_by_scenario[s].append(cand)
+                            argument_types = method["argument_types"][index]
+                        cand = generate_argument_candidate_list(arg, index, scenario, settings, argument_types=argument_types)
+                        m_candidates_by_scenario[scenario].append(cand)
                     if method.get("argument_types", [None]*len(m_arg_names))[index]:
                         m_types.append(method["argument_types"][index])
                     else:
                         m_types.append(m_candidates_by_scenario[scenarios[0]][index][0][0])
                 # 各シナリオごとに組み合わせ生成
-                for s in scenarios:
-                    m_comb = generate_combinations(m_candidates_by_scenario[s], mode=combination_mode, random_sample_size=random_sample_size)
+                for scenario in scenarios:
+                    m_comb = generate_combinations(m_candidates_by_scenario[scenario], mode=combination_mode, random_sample_size=random_sample_size)
                     method_tests = []
                     for comb in m_comb:
                         test_setting = {
+                            "name":f"test_{scenario}_{method_name}",
                             "method_name": method_name,
                             "argument_names": m_arg_names,
                             "argument_types": m_types,
@@ -308,20 +286,21 @@ def generate_test_cases(function_informations, settings,
                             "check_result": {},
                             "result": "result_" + method_name
                         }
-                        method_tests.append(create_test_case(test_setting, s))
-                    method_tests_lists_by_scenario[s].append(method_tests)
+                        method_tests.append(test_setting)
+                    method_tests_lists_by_scenario[scenario].append(method_tests)
             
             # クラス全体のテストケース生成（コンストラクタとメソッドの直積）
-            for s in scenarios:
-                init_comb = generate_combinations(init_candidates_by_scenario[s], mode=combination_mode, random_sample_size=random_sample_size)
-                if method_tests_lists_by_scenario[s]:
-                    methods_all = list(itertools.product(*method_tests_lists_by_scenario[s]))
+            for scenario in scenarios:
+                init_comb = generate_combinations(init_candidates_by_scenario[scenario], mode=combination_mode, random_sample_size=random_sample_size)
+                if method_tests_lists_by_scenario[scenario]:
+                    methods_all = list(itertools.product(*method_tests_lists_by_scenario[scenario]))
                 else:
                     methods_all = [[]]
                 for i_comb in init_comb:
                     for m_comb in methods_all:
-                        tc = {
+                        test_case = {
                             "type": "ExecuteProgram",
+                            "name":f"test_{scenario}_{class_name}_{program_path}",
                             "settings": {
                                 "program_path": program_path,
                                 "class_name": class_name,
@@ -333,41 +312,46 @@ def generate_test_cases(function_informations, settings,
                                 "result": "result_" + class_name
                             }
                         }
-                        test_cases.append(create_test_case(tc, s))
+                        test_cases.append(test_case)
         else:
             # グローバル関数の場合
             function_name = info.get("function_name", "")
             argument_names = info.get("argument_names", [])
-            arg_candidates_by_scenario = {s: [] for s in scenarios}
+            arg_candidates_by_scenario = {scenario: [] for scenario in scenarios}
             arg_types = []
             for index, arg in enumerate(argument_names):
-                for s in scenarios:
-                    explicit = None
+                arg_type=""
+                for scenario in scenarios:
+                    argument_types = None
                     if info.get("argument_types", [None]*len(argument_names))[index]:
-                        explicit = info["argument_types"][index]
-                    cand = generate_argument_candidate_list(arg, index, s, settings, explicit_type=explicit)
-                    arg_candidates_by_scenario[s].append(cand)
+                        argument_types = info["argument_types"][index]
+                for scenario in scenarios:
+                    cand = generate_argument_candidate_list(arg, index, scenario , settings, argument_types=argument_types)
+                    arg_candidates_by_scenario[scenario].append(cand)
+                    if cand[0][0] != "unknown":
+                        arg_type=cand[0][0]
                 if info.get("argument_types", [None]*len(argument_names))[index]:
                     arg_types.append(info["argument_types"][index])
                 else:
-                    arg_types.append(arg_candidates_by_scenario[scenarios[0]][index][0][0])
-            for s in scenarios:
-                comb = generate_combinations(arg_candidates_by_scenario[s], mode=combination_mode, random_sample_size=random_sample_size)
-                for c in comb:
-                    tc = {
+                    arg_types.append(arg_type)
+            for scenario in scenarios:
+                combinations = generate_combinations(arg_candidates_by_scenario[scenario], mode=combination_mode, random_sample_size=random_sample_size)
+                for combination in combinations:
+                    test_case = {
                         "type": "ExecuteProgram",
+                        "name":f"test_{scenario}_{function_name}_{program_path}",
                         "settings": {
                             "program_path": program_path,
                             "function_name": function_name,
                             "class_name": info.get("class_name", ""),
                             "argument_names": argument_names,
                             "argument_types": arg_types,
-                            "arguments": [x[1] for x in c],
+                            "arguments": [x[1] for x in combination],
                             "check_result": {},
                             "result": "result_" + function_name
                         }
                     }
-                    test_cases.append(create_test_case(tc, s))
+                    test_cases.append(test_case)
     return test_cases
 # --- グローバル関数用テスト実行 ---
 def execute_function(settings):
@@ -386,6 +370,7 @@ def execute_function(settings):
             if target_type:
                 method = target_type.GetMethod(function_name)
                 if method:
+                    argument_values = ListControl.replace_list_values(argument_values,settings) 
                     converted_args = [DLLControl.convert_python_to_cs(val, typ) for val, typ in zip(argument_values, argument_types)]
                     format_str = ",".join(ListControl.format_merge_multiple_list(
                         "{list3} {list1} = {list2}", "",
@@ -409,6 +394,7 @@ def execute_function(settings):
             spec.loader.exec_module(module)
             function = getattr(module, function_name)
             argument_names = get_argument_names(function)
+            argument_values = ListControl.replace_list_values(argument_values,settings) 
             format_str = ",".join(ListControl.format_merge_multiple_list(
                 "{list1} = {list2}", "",
                 list1=argument_names, list2=argument_values))
@@ -416,11 +402,11 @@ def execute_function(settings):
             result_value = function(*argument_values)
         return result_value
     except FileNotFoundError:
-        raise(f"ファイルが見つかりません: {program_path}")
+        raise Exception(f"ファイルが見つかりません: {os.path.abspath(program_path)}")
     except AttributeError as e:
-        raise(f"クラスのインスタンス化またはメソッド呼び出しに失敗しました: {e}")
+        raise Exception(f"クラスのインスタンス化またはメソッド呼び出しに失敗しました: {e}")
     except Exception as e:
-        raise(f"エラーが発生しました: {e}")
+        raise Exception(f"execute_functionでエラーが発生しました: {e}")
 
 
 # --- クラステスト用：インスタンス生成＋各メソッド実行 ---
@@ -446,11 +432,12 @@ def execute_class(settings):
             # 各メソッド実行
             for method_setting in methods:
                 method_name = method_setting.get("method_name", "")
-                m_argument_names = method_setting.get("argument_names", [])
-                m_argument_types = method_setting.get("argument_types", [])
-                m_argument_values = method_setting.get("arguments", [])
-                fmt = ",".join(ListControl.format_merge_multiple_list("{list3} {list1}={list2}", "", list1=m_argument_names, list2=m_argument_values,list3 = m_argument_types))
-                converted_m_args = [DLLControl.convert_python_to_cs(val, typ) for val, typ in zip(m_argument_values, m_argument_types)]
+                argument_names = method_setting.get("argument_names", [])
+                argument_types = method_setting.get("argument_types", [])
+                argument_values = method_setting.get("arguments", [])
+                argument_values = ListControl.replace_list_values(argument_values,method_setting)
+                fmt = ",".join(ListControl.format_merge_multiple_list("{list3} {list1}={list2}", "", list1=argument_names, list2=argument_values,list3 = argument_types))
+                converted_m_args = [DLLControl.convert_python_to_cs(val, typ) for val, typ in zip(argument_values, argument_types)]
                 print(f"{class_name}({class_fmt}).{method_name}({fmt})")
                 method = instance.GetType().GetMethod(method_name)
                 if not method:
@@ -473,15 +460,16 @@ def execute_class(settings):
             # 各メソッド実行
             for method_setting in methods:
                 method_name = method_setting.get("method_name", "")
-                m_argument_names = method_setting.get("argument_names", [])
-                m_argument_types = method_setting.get("argument_types", [])
-                m_argument_values = method_setting.get("arguments", [])
-                fmt = ",".join(ListControl.format_merge_multiple_list("{list1}={list2}", "", list1=m_argument_names, list2=m_argument_values))
+                argument_names = method_setting.get("argument_names", [])
+                argument_types = method_setting.get("argument_types", [])
+                argument_values = method_setting.get("arguments", [])
+                argument_values = ListControl.replace_list_values(argument_values,method_setting)
+                fmt = ",".join(ListControl.format_merge_multiple_list("{list1}={list2}", "", list1=argument_names, list2=argument_values))
                 print(f"{class_name}.{method_name}({fmt})")
                 if not hasattr(instance, method_name):
                     raise AttributeError(f"メソッドが見つかりません: {method_name}")
                 method = getattr(instance, method_name)
-                result = method(*m_argument_values)
+                result = method(*argument_values)
                 method_setting = CheckResult(method_setting,result)
         settings["methods"] = methods 
         return  settings         
@@ -506,6 +494,7 @@ def create_instance(settings):
         target_type = assembly.GetType(class_name)
         if not target_type:
             raise AttributeError(f"クラスが見つかりません: {class_name}")
+        init_argument_values = ListControl.replace_list_values(init_argument_values,settings)
         converted_init_args = [DLLControl.convert_python_to_cs(val, typ) for val, typ in zip(init_argument_values, init_argument_types)]
         instance = DLLControl.create_instance(assembly, class_name, *converted_init_args)
     else:
@@ -516,16 +505,17 @@ def create_instance(settings):
         target = getattr(module, class_name)
         if not inspect.isclass(target):
             raise AttributeError(f"{class_name} is not a class")
+        init_argument_values = ListControl.replace_list_values(init_argument_values,settings)
         instance = target(*init_argument_values)
     
     return instance
 
 def execute_methods_cs(instance,  method_setting):
     method_name = method_setting.get("method_name", "")
-    m_argument_types = method_setting.get("argument_types", [])
-    m_argument_values = method_setting.get("arguments", [])
+    argument_types = method_setting.get("argument_types", [])
+    argument_values = method_setting.get("arguments", [])
     
-    converted_m_args = [DLLControl.convert_python_to_cs(val, typ) for val, typ in zip(m_argument_values, m_argument_types)]
+    converted_m_args = [DLLControl.convert_python_to_cs(val, typ) for val, typ in zip(argument_values, argument_types)]
     method = instance.GetType().GetMethod(method_name)
     if not method:
         raise AttributeError(f"メソッドが見つかりません: {method_name}")
@@ -535,11 +525,11 @@ def execute_methods_cs(instance,  method_setting):
 
 def execute_methods_python(instance,  method_setting):
     method_name = method_setting.get("method_name", "")
-    m_argument_values = method_setting.get("arguments", [])
+    argument_values = method_setting.get("arguments", [])
     if not hasattr(instance, method_name):
         raise AttributeError(f"メソッドが見つかりません: {method_name}")
     method = getattr(instance, method_name)
-    result = method(*m_argument_values)
+    result = method(*argument_values)
     method_setting = CheckResult(method_setting,result)
     return result
 
@@ -548,11 +538,11 @@ def execute_methods_python(instance,  method_setting):
 
 def method_format(method_setting):
     method_name = method_setting.get("method_name", "")
-    m_argument_names = method_setting.get("argument_names", [])
-    m_argument_types = method_setting.get("argument_types", [])
-    m_argument_values = method_setting.get("arguments", [])
+    argument_names = method_setting.get("argument_names", [])
+    argument_types = method_setting.get("argument_types", [])
+    argument_values = method_setting.get("arguments", [])
 
-    fmt = ",".join(ListControl.format_merge_multiple_list("{list3} {list1}={list2}", "", list1=m_argument_names, list2=m_argument_values, list3=m_argument_types))
+    fmt = ",".join(ListControl.format_merge_multiple_list("{list3} {list1}={list2}", "", list1=argument_names, list2=argument_values, list3=argument_types))
     return f"{method_name}({fmt})"
 
 # --- テストケース全体の実行 ---
@@ -592,11 +582,11 @@ def ExecuteProgram(settings):
                         WriteDatas(result_settings,result_dictionary,result_value)
             return result_dictionary
         except FileNotFoundError:
-            raise(f"ファイルが見つかりません: {settings.get('program_path', '')}")
+            raise Exception(f"ファイルが見つかりません: {settings.get('program_path', '')}")
         except AttributeError as e:
-            raise(f"クラスのインスタンス生成またはメソッド呼び出しに失敗しました: {e}")
+            raise Exception(f"クラスのインスタンス生成またはメソッド呼び出しに失敗しました: {e}")
         except Exception as e:
-            raise(f"エラーが発生しました: {e}")
+            raise Exception(f"ExecuteProgramでエラーが発生しました: {e}")
     else:
         return execute_function(settings)
         
@@ -650,9 +640,18 @@ def normalize_program_output(output):
         return {"success": True, "result_value": output, "error": None}
     else:
         return {"success": True, "result_value": output, "error": None}
-def RunPlanLists(settings):
-    data_store = settings.get("data_store",{})
-    plan_lists = settings.get("plan_lists",{})
+def RunPlanLists(settings,data_store={},plan_lists={}):
+    data_store = settings.get("data_store",data_store)
+    plan_lists = settings.get("plan_lists",plan_lists)
+    plan_lists_file_path = settings.get("plan_lists_file_path","")
+    if plan_lists_file_path:
+        details = {}
+        read_plan_lists = JSON_Control.ReadDictionary(plan_lists_file_path,{},details=details)
+        if details.get("success",True) == False:
+            print(str(details))
+            input("file error.please push and skip."+plan_lists_file_path)
+        if read_plan_lists:
+            plan_lists = read_plan_lists
     run_plan_name_list = settings.get("run_plan_name_list")
     if run_plan_name_list == "":
         details = {"success":False,"error":"run_plan_name_list is nothing."}
@@ -665,24 +664,19 @@ def RunPlanLists(settings):
             if not isinstance(plan_list,list):
                 plan_list=[plan_list]
             for num,plan in enumerate(plan_list):
-                plan_list_filepath = settings.get("plan_lists_file_path","")
-                if plan_list_filepath:
-                    plan_lists = JSON_Control.ReadDictionary(plan_list_filepath,{},details = details)
-                    if details.get("success",True) == False:
-                        print(str(details))
-                        input("file error.please push and skip."+plan_list_filepath)
                 plan_settings = {
-                    "data_store":data_store,
-                    "plan_lists":plan_lists,
                     "run_plan_name":run_plan_name,
                     "run_plan_number": num
                 }
-                result = ExecutePlan(plan_settings)
+                if plan_lists_file_path:
+                    plan_settings["plan_lists_file_path"] = plan_lists_file_path
+                result = ExecutePlan(plan_settings,data_store,plan_lists)
+
         
-def ExecutePlan(settings):
+def ExecutePlan(settings,data_store={},plan_lists={}):
+    data_store = settings.get("data_store",data_store)
+    plan_lists = settings.get("plan_lists",plan_lists)
     # 実行する設定の読込
-    data_store = settings.get("data_store",{})
-    plan_lists = settings.get("plan_lists",{})
     run_plan_name = settings.get("run_plan_name","")
     run_plan_number = settings.get("run_plan_number","")
 
@@ -691,18 +685,19 @@ def ExecutePlan(settings):
         return {"success":False,"error":"plan_list is nothing"}
     if not isinstance(plan_list,list):
         plan_list=[plan_list]
-    plan = plan_list[run_plan_number]
-    if not plan:
-        return {"success":False,"error":"plan is nothing"}
+    try:
+        plan = plan_list[run_plan_number]
+    except Exception as e:
+        return {"success":False,"error":"plan is nothing."+ str(e)}
     plan_copy = copy.deepcopy(plan)
     
     plan_type= plan_copy.get("type","Action")
     plan_settings = plan_copy.get("settings",{})        
     check_result = plan_settings.get("check_result",None)
     # 実行するPlan内容の表示
-    if check_result:
+    if check_result is not None:
         plan_name =plan_copy.get("name","")
-        message= plan_name+"("+str(settings)+")" 
+        message= "Plan:"+plan_name+"("+str(settings)+")" 
         print(message)
     # referenceの内容をdata_store,shared_memoryから参照して反映する。      
     apply_reference_values(plan_settings,data_store,shared_memory_file_path="")
@@ -711,11 +706,21 @@ def ExecutePlan(settings):
         current_module = inspect.getmodule(inspect.currentframe())
         loaded_function = ClassControl.load_function_from_module(current_module,plan_type)
         plan_settings_backup = copy.deepcopy(plan_settings)
-        result_value = loaded_function(plan_settings)    
+        # シグネチャを解析して引数の個数をチェック
+        sig = inspect.signature(loaded_function)
+        parameter_names = list(sig.parameters.keys())
+        parameter_number = len(parameter_names)
+        # 引数の数に応じて関数を呼び出す
+        if parameter_number == 3:
+            result_value = loaded_function(plan_settings, data_store,plan_lists)
+        elif parameter_number == 2:
+            result_value = loaded_function(plan_settings, data_store)
+        else:
+            result_value = loaded_function(plan_settings)
     except Exception as e:
         message = str(e)
         result_value = {"success":False,"error": message}
-    plan_settings["result_value"]=result_value
+        print(message)
     check_result = plan_settings.get("check_result",None)
     if check_result is not None:
         check_result_settings ={
@@ -723,9 +728,22 @@ def ExecutePlan(settings):
             "check_result":check_result                    
         }
         CheckResult(check_result_settings)
+    # plan実行後のsettingsのFeed Back内容を反映する。
     result_diff = DictionaryControl.DiffDictionaries(plan_settings_backup,plan_settings)
     if result_diff:
         plan["settings"] = DictionaryControl.ChangeDictionary(result_diff,plan.get("settings",{}))
+        plan_list_file_path = settings.get("plan_lists_file_path","")
+        if plan_list_file_path:
+            read_plan_lists = JSON_Control.ReadDictionary(plan_list_file_path,{})
+            if read_plan_lists:
+                read_plan_list = read_plan_lists.get(run_plan_name,[])
+                if read_plan_list:
+                    if isinstance(plan_list,list):
+                        read_plan_list[run_plan_number] = plan
+                    else:
+                        read_plan_list = plan                        
+                    JSON_Control.WriteDictionary(plan_list_file_path, read_plan_lists)
+
     result_settings = plan_settings.get("result")
     if result_settings:
         WriteDatas(result_settings,data_store,result_value)
@@ -793,126 +811,92 @@ def apply_reference_values(settings,data_store,shared_memory_file_path=""):
                         settings[key] = value
 
 def main():
-    settings= {
-        "test_pattern":{
-            "normal": {
-                "match_count": 2, 
-                "argument_type_inference_rules": [
-                    {"type": "numeric", "match": ["num", ".+count", ".+size", ".+length"],
-                    "value_list": [1, 2, 3, 4, 5, 6]},
-                    {"type": "string", "match": ["name", "str"],
-                    "value_list": ["name1", "name2", "name3"]},
-                    {"type": "string", "match": ["text"],
-                    "value_list": ["text1", "text2", "text3"], "arg_index": 1},
-                    # C#向けルール例
-    
-                    {"type": "int", "match": ["id"], "value_list": [10, 20, 30]},
-                    {"type": "bool", "match": ["flag", "is_"], "value_list": [True, False]},
-                    {"type": "DateTime", "match": ["date", "time"],"value_list": ["2023-10-27T10:00:00", "1970-01-01T00:00:00"]},
-                    {"type": "string[]", "match": ["array"], "value_list": [["a"], ["test", "sample"]]},
-                    {"type": "Dictionary<string,string>", "match": ["array"], "value_list": [["a"], ["test", "sample"]]},
-                    {"type": "Dictionary`2", "match": ["array"], "value_list": [["a"], ["test", "sample"]]}
-                ]
+    plan_lists = {
+        "test_plan":[
+            {
+                "type":"ExecuteProgram",
+                "settings":{
+                    "arguments":["test_program_path", "output_filename", "data_name", "test_pattern", "options"],
+                    "program_path" : "./Sources/Common/FunctionControl.py",
+                    "test_program_path" : "./Sources/Common/DLLControl.py",
+                    "function_name" : "write_test_cases",
+                    "output_filename" : "Test_DLLControl.json",
+                    "data_name" : "test",
+                    "test_pattern":{
+                        "normal": {
+                            "match_count": 2, 
+                            "argument_rules": [
+                                {"type": "numeric", "match": ["num", ".+count", ".+size", ".+length"],
+                                "value_list": [1, 2, 3, 4, 5, 6]},
+                                {"type": "string", "match": ["name", "str"],
+                                "value_list": ["name1", "name2", "name3"]},
+                                {"type": "string", "match": ["text"],
+                                "value_list": ["text1", "text2", "text3"]},
+                                {"type": "string", "match": [".*dll_path"],
+                                "value_list": ["../../../Tools/diff.dll", "../../../Tools/diff.dll", "../../../Tools/diff.dll"]},
+                                {"type": "string", "match": [".*cs_file_path"],
+                                "value_list": ["./Sources/Test/test1.cs", "./Sources/Test/test2.cs", "./Sources/Test/test3.cs"]},
+                                {"type": "string", "match": [".*text_file_path"],
+                                "value_list": ["./Sources/Test/test1.txt", "./Sources/Test/test2.txt", "./Sources/Test/test3.txt"]},
+                                # C#向けルール例                
+                                {"type": "int", "match": ["id"], "value_list": [10, 20, 30]},
+                                {"type": "bool", "match": ["flag", "is_"], "value_list": [True, False]},
+                                {"type": "DateTime", "match": ["date", "time"],"value_list": ["2023-10-27T10:00:00", "1970-01-01T00:00:00"]},
+                                {"type": "string[]", "match": ["array"], "value_list": [["a"], ["test", "sample"]]},
+                                {"type": "Dictionary<string,string>", "match": ["array"], "value_list": [["a"], ["test", "sample"]]},
+                                {"type": "Dictionary`2", "match": ["array"], "value_list": [["a"], ["test", "sample"]]}
+                            ]
+                        },
+                        "value_error": {
+                            "match_count": 2, 
+                            "argument_rules": [
+                                {"type": "numeric", "match": ["num", ".+count", ".+size", ".+length"],
+                                "value_list": [None, None, None, None, None, None]},
+                                {"type": "string", "match": ["name", "str", "text"],
+                                "value_list": [1, 2, 3]},
+                                # C# 向けエラー例
+                                {"type": "int", "match": ["id"], "value_list": [None]},
+                                {"type": "bool", "match": ["flag", "is_"], "value_list": [None]},
+                                {"type": "string[]", "match": ["array"], "value_list": [["a"], ["test", "sample"]]},
+                                {"type": "Dictionary<string,string>", "match": ["array"], "value_list": [["a"], ["test", "sample"]]},
+                                {"type": "Dictionary`2", "match": ["array"], "value_list": [["a"], ["test", "sample"]]}
+                            ]
+                        }
+                    },
+                    "scenarios":["normal", "value_error"],
+                    "combination_mode":"cartesian",
+                    "options" : {"references": [".\\Reference\\Newtonsoft.Json.13.0.3\\lib\\net35\\Newtonsoft.Json.dll"]}
+                }
             },
-            "value_error": {
-                "match_count": 2, 
-                "rules": [
-                    {"type": "numeric", "match": ["num", ".+count", ".+size", ".+length"],
-                    "value_list": [None, None, None, None, None, None]},
-                    {"type": "string", "match": ["name", "str", "text"],
-                    "value_list": [1, 2, 3]},
-                    # C# 向けエラー例
-                    {"type": "int", "match": ["id"], "value_list": [None]},
-                    {"type": "bool", "match": ["flag", "is_"], "value_list": [None]},
-                    {"type": "string[]", "match": ["array"], "value_list": [["a"], ["test", "sample"]]},
-                    {"type": "Dictionary<string,string>", "match": ["array"], "value_list": [["a"], ["test", "sample"]]},
-                    {"type": "Dictionary`2", "match": ["array"], "value_list": [["a"], ["test", "sample"]]}
-                ]
+            {
+                "type":"RunPlanLists",
+                "settings" :{
+                    "plan_lists_file_path":"Test_DLLControl.json",
+                    "run_plan_name_list":"test",
+                    "data_store" : {"key1":"value1","key2":"value2"}
+                }
             }
-        },
-        "scenarios":["normal", "value_error"],
-        "combination_mode":"cartesian"
+        ]
     }
 
     
-    options = {"references": [".\\Reference\\Newtonsoft.Json.13.0.3\\lib\\net35\\Newtonsoft.Json.dll"]}
-    data_store ={"key1":"value1","key2":"value2"}
-    
     # Pythonのテスト
-    program_path = "./Sources/Common/DLLControl.py"
-    output_filename = "Test_Self.json"
-    data_name = "test"
-    try:
-        text = load_python_file("dummy.txt")
-    except Exception as e:
-        print(f"捕捉成功: {e}")
+    settings = {
+        "plan_lists": plan_lists,
+        "run_plan_name_list": "test_plan",
+    }
+        
+    RunPlanLists(settings)
 
-    try:
-        test_cases = write_test_cases(program_path, output_filename, data_name, settings, options)
-    except Exception as e:
-        tb = traceback.extract_tb(sys.exc_info()[2])
-        # 最後にエラーが起きた関数
-        last_call = tb[-1]
-        print(f"[ERROR]'{last_call.name}': {e}")
-    if test_cases:
-        settings ={
-            "plan_lists":test_cases,
-            "run_plan_name_list":data_name,
-            "function_name":"execute_methods_python",
-            "data_store":data_store
-        }
-        RunPlanLists(settings)
-        test_cases=settings.get("plan_lists")
-        JSON_Control.WriteDictionary(output_filename, test_cases)
-        #RunPlanLists(settings)
-    # Python ファイルのテスト（クラスの初期化やメソッドのテストを含む）
-    program_path = "./Sources/Common/Text.py"
-    output_filename = "Test_py.json"
-    data_name = "test"
-    try:
-        test_cases = write_test_cases(program_path, output_filename, data_name, settings, options)
-    except Exception as e:
-        print(f"Error in write_test_cases: {e}")
-
-    if test_cases:
-        settings ={
-            "plan_lists":test_cases,
-            "run_plan_name_list":data_name
-        }
-        RunPlanLists(settings)
-        test_cases=settings.get("plan_lists")
-        JSON_Control.WriteDictionary(output_filename, test_cases)
-        #RunPlanLists(settings)        
     # DLL のテスト
-    program_path = "../../../Tools/diff.dll"
-    output_filename = "Test_dll.json"
-    data_name = "test_dll"
-    test_cases = write_test_cases(program_path, output_filename, data_name, settings, options)
-    if test_cases:
-        settings ={
-            "plan_lists":test_cases,
-            "run_plan_name_list":data_name,
-            "data_store":data_store        
-        }
-        RunPlanLists(settings)
-        test_cases=settings.get("plan_lists")
-        JSON_Control.WriteDictionary(output_filename, test_cases)
-        #RunPlanLists(settings)
-      
-    # Python ファイルのテスト（クラスの初期化やメソッドのテストを含む）
-    program_path = "./Sources/Common/Text.py"
-    output_filename = "Test_py.json"
-    data_name = "test"
-    test_cases = write_test_cases(program_path, output_filename, data_name, settings, options)
-    if test_cases:
-        settings ={
-            "plan_lists":test_cases,
-            "run_plan_name_list":data_name
-        }
-        RunPlanLists(settings)
-        test_cases=settings.get("plan_lists")
-        JSON_Control.WriteDictionary(output_filename, test_cases)
-        #RunPlanLists(settings)
+    plan_lists["test_plan"][0]["settings"]["test_program_path"]= "../../../Tools/diff.dll"
+    plan_lists["test_plan"][0]["settings"]["output_filename"]= "Test_dll.json"
+    plan_lists["test_plan"][0]["settings"]["data_name"]= "test_dll"
+    plan_lists["test_plan"][1]["settings"]["plan_lists_file_path"]= "Test_dll.json"
+    plan_lists["test_plan"][1]["settings"]["run_plan_name_list"]= "test_dll"
+
+    RunPlanLists(settings)
+
       
 if __name__ == "__main__":
     main()
