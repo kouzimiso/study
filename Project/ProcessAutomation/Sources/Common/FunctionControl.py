@@ -755,7 +755,10 @@ def CheckResult(settings,result_value={}):
     if not result_value:
         result_value = settings.get("result_value")
     if check_result=={}:
-        check_result["expected"] = result_value
+        if isinstance(result_value, (str, list, dict, int, float, bool, type(None))): 
+            check_result["expected"] = result_value
+        else :
+            check_result["expected"] = {"error":"The result cannot write to JSON.","result_type":type(result_value).__name__}            
         settings["check_result"] = check_result
         print(f"Write expected: {result_value}")
 
@@ -767,7 +770,10 @@ def CheckResult(settings,result_value={}):
             print(f"NG Result: {result_value}, expected: {expected}")
             user_input = input("OverWrite the expected result setting with the actual results? :(W) ")
             if user_input.upper() == "W":
-                check_result["expected"] = result_value
+                if isinstance(result_value, (str, list, dict, int, float, bool, type(None))): 
+                    check_result["expected"] = result_value
+                else :
+                    check_result["expected"] = {"error":"The result cannot write to JSON.","result_type":type(result_value).__name__}
                 settings["check_result"] = check_result
     return settings 
 def WriteDatas(settings,data_store,datas):
@@ -822,49 +828,64 @@ def main():
                     "function_name" : "write_test_cases",
                     "output_filename" : "Test_DLLControl.json",
                     "data_name" : "test",
-                    "test_pattern":{
+                    "test_pattern": {
                         "normal": {
-                            "match_count": 2, 
+                            "match_count": 2,
                             "argument_rules": [
                                 {"type": "numeric", "match": ["num", ".+count", ".+size", ".+length"],
-                                "value_list": [1, 2, 3, 4, 5, 6]},
+                                "value_list": [1, 2, 100, 0, -5]},
                                 {"type": "string", "match": ["name", "str"],
-                                "value_list": ["name1", "name2", "name3"]},
+                                "value_list": ["name1", "test_name", "valid", "path"]},
                                 {"type": "string", "match": ["text"],
-                                "value_list": ["text1", "text2", "text3"]},
+                                "value_list": ["text1", "long text", "一行\n複数行", "<xml>data</xml>"]},
                                 {"type": "string", "match": [".*dll_path"],
-                                "value_list": ["../../../Tools/diff.dll", "../../../Tools/diff.dll", "../../../Tools/diff.dll"]},
+                                "value_list": ["../../../Tools/diff.dll", "./mydll.dll", "./valid.dll"]},
                                 {"type": "string", "match": [".*cs_file_path"],
-                                "value_list": ["./Sources/Test/test1.cs", "./Sources/Test/test2.cs", "./Sources/Test/test3.cs"]},
+                                "value_list": ["./Sources/Test/valid_code.cs", "/tmp/valid_code.cs"]},
                                 {"type": "string", "match": [".*text_file_path"],
-                                "value_list": ["./Sources/Test/test1.txt", "./Sources/Test/test2.txt", "./Sources/Test/test3.txt"]},
-                                # C#向けルール例                
-                                {"type": "int", "match": ["id"], "value_list": [10, 20, 30]},
+                                "value_list": ["./Sources/Test/valid_text.txt", "C:\\data\\valid.txt"]},
+                                {"type": "int", "match": ["id"], "value_list": [10, 0, -1, 999]},
                                 {"type": "bool", "match": ["flag", "is_"], "value_list": [True, False]},
-                                {"type": "DateTime", "match": ["date", "time"],"value_list": ["2023-10-27T10:00:00", "1970-01-01T00:00:00"]},
-                                {"type": "string[]", "match": ["array"], "value_list": [["a"], ["test", "sample"]]},
-                                {"type": "Dictionary<string,string>", "match": ["array"], "value_list": [["a"], ["test", "sample"]]},
-                                {"type": "Dictionary`2", "match": ["array"], "value_list": [["a"], ["test", "sample"]]}
+                                {"type": "DateTime", "match": ["date", "time"],
+                                "value_list": ["2023-10-27T10:00:00", "1970-01-01T00:00:00", "2024-12-31T23:59:59"]},
+                                {"type": "string[]", "match": ["array"],
+                                "value_list": [["a"], ["test", "sample"], ["item1", "item2"]]},
+                                {"type": "Dictionary<string,string>", "match": ["settings"],
+                                "value_list": [{"key1": "value1"}, {"settingA": "1", "settingB": "true"}, {"path": "/opt/data"}]},
+                                {"type": "Dictionary`2", "match": ["array"], "value_list": [["a"], ["test", "sample"]]},
+                                {"type": "string", "match": ["helpFolder"], "value_list": ["./help", "/opt/help", "/usr/share/doc"]},
+                                {"type": "string[]", "match": ["configFolders"],
+                                "value_list": [["./config"], ["/etc/config", "/usr/local/config"], ["C:\\config"]]},
+                                {"type": "Object", "match": ["settings"], "value_list": [{}, {"a": 1}, {"valid": True}]},
+                                {"type": "Object", "match": ["helpFolder"], "value_list": ["valid_help_string", {"path": "./help"}]},
+                                {"type": "Object", "match": ["configFolders"], "value_list": [["valid_folder"], {"paths": ["/etc/config"]}]},
+                                {"type": "Object", "match": ["obj"], "value_list": [123, "test", True, {"key": "value"}]}
                             ]
                         },
                         "value_error": {
-                            "match_count": 2, 
+                            "match_count": 2,
                             "argument_rules": [
                                 {"type": "numeric", "match": ["num", ".+count", ".+size", ".+length"],
-                                "value_list": [None, None, None, None, None, None]},
+                                "value_list": [None, "abc", True]},
                                 {"type": "string", "match": ["name", "str", "text"],
-                                "value_list": [1, 2, 3]},
-                                # C# 向けエラー例
-                                {"type": "int", "match": ["id"], "value_list": [None]},
-                                {"type": "bool", "match": ["flag", "is_"], "value_list": [None]},
-                                {"type": "string[]", "match": ["array"], "value_list": [["a"], ["test", "sample"]]},
-                                {"type": "Dictionary<string,string>", "match": ["array"], "value_list": [["a"], ["test", "sample"]]},
-                                {"type": "Dictionary`2", "match": ["array"], "value_list": [["a"], ["test", "sample"]]}
+                                "value_list": [1, True, None]},
+                                {"type": "int", "match": ["id"], "value_list": [None, "abc", True]},
+                                {"type": "bool", "match": ["flag", "is_"], "value_list": [None, 0, 1]},
+                                {"type": "DateTime", "match": ["date", "time"], "value_list": ["invalid date", 123, None]},
+                                {"type": "string[]", "match": ["array"], "value_list": ["not an array", 1, None]},
+                                {"type": "Dictionary<string,string>", "match": ["settings"], "value_list": ["not a dict", 1, None]},
+                                {"type": "Dictionary`2", "match": ["array"], "value_list": [["a"], ["test", "sample"]]},
+                                {"type": "string", "match": ["helpFolder"], "value_list": [123, None]},
+                                {"type": "string[]", "match": ["configFolders"], "value_list": ["not an array", None]},
+                                {"type": "Object", "match": ["settings"], "value_list": [123, "string"]},
+                                {"type": "Object", "match": ["helpFolder"], "value_list": [1]},
+                                {"type": "Object", "match": ["configFolders"], "value_list": ["string"]},
+                                {"type": "Object", "match": ["obj"], "value_list": [["a"], {"b": 2}]}
                             ]
                         }
                     },
-                    "scenarios":["normal", "value_error"],
-                    "combination_mode":"cartesian",
+                    "scenarios": ["normal", "value_error"],
+                    "combination_mode": "cartesian",
                     "options" : {"references": [".\\Reference\\Newtonsoft.Json.13.0.3\\lib\\net35\\Newtonsoft.Json.dll"]}
                 }
             },

@@ -5,8 +5,10 @@ import pefile
 from typing import Dict, Any, List, Optional
 import subprocess
 import ctypes
-from pythonnet import load
-load("mono")
+import platform
+if platform.system() in ("Darwin", "Linux"):
+    from pythonnet import load
+    load("mono")
 import clr
 try:
     clr.AddReference("System.Reflection")
@@ -277,7 +279,7 @@ def convert_cs_to_python(obj):
     obj_type = clr.GetClrType(type(obj))  # .NET の型を取得
     
     # obj の型をデバッグ用に出力
-    print(f"Result type: {obj_type.FullName}")  # obj の型のフルネームを表示
+    print(f"result type: {obj_type.FullName}")  # obj の型のフルネームを表示
 
     if obj_type == NET_DICT_TYPE:  # .NET Dictionary の場合
         py_dict = {}
@@ -296,13 +298,13 @@ def convert_cs_to_python(obj):
         return str(obj)
     elif obj_type.FullName =="System.RuntimeType":
         result = {
-            "Error": obj_type.FullName+"can not convert this object type",
-            "Result_type": obj_type.FullName  # クラスの完全修飾名
+            "error": obj_type.FullName+" can not convert this object type",
+            "result_type": obj_type.FullName  # クラスの完全修飾名
         }
         return result  # クラスの情報を返す
     else:
         result = {
-            "Error":obj_type.FullName+"can not convert this object type",
-            "Result_type": obj_type.FullName  # クラスの完全修飾名
+            "error":obj_type.FullName+" can not convert this object type",
+            "result_type": obj_type.FullName  # クラスの完全修飾名
         }
         return result
