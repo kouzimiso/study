@@ -165,20 +165,29 @@ def get_pop_keys(pop_settings: Dict[str, Any]) -> List[str]:
             keys.append(config)
     return keys
 
-def replace_list_values(list_data: Union[Any, List[Any]], replace_dictionary: Dict[str, str]) -> List[str]:
+def replace_list_values(list_data: Union[Any, List[Any]], replace_dictionary: Dict[str, str]) -> List[Any]:
     """
     元のリストを変更せず、置換設定に従って新しいリストを作成する。
 
     Args:
-        list_data (List[str]): 置換前のリスト
+        list_data (Union[Any, List[Any]]): 置換前のリストまたは単一要素
         replace_dictionary (Dict[str, str]): 置換設定（元の値: 置換後の値）
 
     Returns:
-        List[str]: 置換後の新しいリスト
+        List[Any]: 置換後の新しいリスト
     """
     if not isinstance(list_data, list):
         list_data = [list_data]
-    return [replace_dictionary.get(item, item) for item in list_data]
+
+    result = []
+    for item in list_data:
+        if isinstance(item, str):
+            result.append(replace_dictionary.get(item, item))
+        else:
+            result.append(item)
+    return result
+
+
 
 def format_merge_multiple_list(
     format_string: str,

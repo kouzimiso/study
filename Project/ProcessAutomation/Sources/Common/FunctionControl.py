@@ -19,6 +19,10 @@ import ClassControl
 import DictionaryControl
 import traceback
 
+class ExternalFunctionError(Exception):
+    """外部関数呼び出しに失敗したことを示す例外"""
+    pass
+
 def get_file_type(file_path: str) -> str:
     """ファイルパスからファイルタイプを判別する純粋関数"""
     _, ext = os.path.splitext(file_path)
@@ -156,18 +160,20 @@ def generate_argument_candidate_list(arg_name, arg_index, scenario, settings, ar
     """
     引数名・位置・シナリオおよび設定に基づいて候補リストを作成する。
     argument_types が与えられている場合はそれを優先して値リスト（デフォルト値）を返す。
-    
+
     結果は候補リスト [(型, 値), …] となり、各ルールの value_list から展開します。
     """
-    candidates = []
-    candidates = infer_possible_types_and_values(arg_name, arg_index, scenario, settings,argument_types)
-    # 展開して (型, 値) の組リストを生成
+    candidates = infer_possible_types_and_values(arg_name, arg_index, scenario, settings, argument_types)
     candidate_list = []
     for _type, values in candidates:
-        for val in values:
-            candidate_list.append((_type, val))
+        # arg_index に対応する引数のみに value_list の値を適用する
+        if len(candidate_list) == arg_index:
+            for val in values:
+                candidate_list.append((_type, val))
+        else:
+            # それ以外の引数は、candidates の最初の値を使用する (デフォルト値)
+            candidate_list.append((_type, values[0] if values else None))  # values が空の場合は None を使用
     return candidate_list
-
 # ====================================================
 # 2. 組み合わせ生成方法
 # ====================================================
@@ -377,7 +383,10 @@ def execute_function(settings):
                         list1=argument_names, list2=converted_args, list3=argument_types))
                     print(f"{class_name}().{function_name}({format_str})")
                     if method.IsStatic:
-                        result_value = method.Invoke(None, converted_args)
+                        try:
+                            result_value = method.Invoke(None, converted_args)
+                        except Exception as e:
+                            raise ExternalFunctionError(f"execute_functionの呼出先{class_name}().{function_name}でエラーが発生しました: {e}") from e  
                     else:
                         # インスタンス生成（デフォルトコンストラクタ）してメソッド実行
                         instance = DLLControl.create_instance(assembly, class_name, *[])
@@ -399,14 +408,15 @@ def execute_function(settings):
                 "{list1} = {list2}", "",
                 list1=argument_names, list2=argument_values))
             print(f"Function: {function_name}({format_str})")
-            result_value = function(*argument_values)
+            try:
+                result_value = function(*argument_values)
+            except Exception as e:
+                raise ExternalFunctionError(f"execute_functionの呼出先{function_name}でエラーが発生しました: {e}") from e     
         return result_value
     except FileNotFoundError:
         raise Exception(f"ファイルが見つかりません: {os.path.abspath(program_path)}")
     except AttributeError as e:
         raise Exception(f"クラスのインスタンス化またはメソッド呼び出しに失敗しました: {e}")
-    except Exception as e:
-        raise Exception(f"execute_functionでエラーが発生しました: {e}")
 
 
 # --- クラステスト用：インスタンス生成＋各メソッド実行 ---
@@ -442,7 +452,10 @@ def execute_class(settings):
                 method = instance.GetType().GetMethod(method_name)
                 if not method:
                     raise AttributeError(f"メソッドが見つかりません: {method_name}")
-                cs_result = method.Invoke(instance, converted_m_args)
+                try:
+                    cs_result = method.Invoke(instance, converted_m_args)
+                except Exception as e:
+                    raise ExternalFunctionError(f"execute_classの呼出先{class_name}().{method_name}でエラーが発生しました: {e}") from e      
                 result = DLLControl.convert_cs_to_python(cs_result)
                 method_setting = CheckResult(method_setting,result)
 
@@ -469,7 +482,10 @@ def execute_class(settings):
                 if not hasattr(instance, method_name):
                     raise AttributeError(f"メソッドが見つかりません: {method_name}")
                 method = getattr(instance, method_name)
-                result = method(*argument_values)
+                try:
+                    result = method(*argument_values)
+                except Exception as e:
+                    raise ExternalFunctionError(f"execute_classの呼出先{class_name}().{method_name}でエラーが発生しました: {e}") from e    
                 method_setting = CheckResult(method_setting,result)
         settings["methods"] = methods 
         return  settings         
@@ -477,8 +493,6 @@ def execute_class(settings):
         print(f"ファイルが見つかりません: {program_path}")
     except AttributeError as e:
         print(f"クラスのインスタンス生成またはメソッド呼び出しに失敗しました: {e}")
-    except Exception as e:
-        print(f"エラーが発生しました: {e}")
 
 
 def create_instance(settings):
@@ -562,7 +576,8 @@ def ExecuteProgram(settings):
                     try:
                         result_value = execute_methods_cs(instance, method_setting)
                     except Exception as e:
-                        result_value = {"success": False, "error": str(e)}
+                        trace = traceback.format_exc()
+                        result_value = {"success": False, "error": str(e),"trace":trace}
                     methods[i] = CheckResult(method_setting, result_value)
                     result_settings = method_setting.get("result")
                     if result_settings:
@@ -575,7 +590,9 @@ def ExecuteProgram(settings):
                     try:
                         result_value = execute_methods_python(instance, method_setting)
                     except Exception as e:
-                        result_value ={"success":False,"error":str(e)}
+                        trace = traceback.format_exc()
+                        result_value = {"success": False, "error": str(e),"trace":trace}
+
                     method_setting = CheckResult(method_setting,result_value)
                     result_settings = method_setting.get("result")
                     if result_settings:
@@ -585,8 +602,6 @@ def ExecuteProgram(settings):
             raise Exception(f"ファイルが見つかりません: {settings.get('program_path', '')}")
         except AttributeError as e:
             raise Exception(f"クラスのインスタンス生成またはメソッド呼び出しに失敗しました: {e}")
-        except Exception as e:
-            raise Exception(f"ExecuteProgramでエラーが発生しました: {e}")
     else:
         return execute_function(settings)
         
@@ -719,8 +734,10 @@ def ExecutePlan(settings,data_store={},plan_lists={}):
             result_value = loaded_function(plan_settings)
     except Exception as e:
         message = str(e)
-        result_value = {"success":False,"error": message}
+        trace = traceback.format_exc()
+        result_value = {"success": False, "error": message,"trace":trace}
         print(message)
+        print(trace)
     check_result = plan_settings.get("check_result",None)
     if check_result is not None:
         check_result_settings ={
@@ -859,7 +876,17 @@ def main():
                                 {"type": "Object", "match": ["settings"], "value_list": [{}, {"a": 1}, {"valid": True}]},
                                 {"type": "Object", "match": ["helpFolder"], "value_list": ["valid_help_string", {"path": "./help"}]},
                                 {"type": "Object", "match": ["configFolders"], "value_list": [["valid_folder"], {"paths": ["/etc/config"]}]},
-                                {"type": "Object", "match": ["obj"], "value_list": [123, "test", True, {"key": "value"}]}
+                                {"type": "Object", "match": ["obj"], "value_list": [123, "test", True, {"key": "value"}]},
+                                # 追加: build_method 関連
+                                {"type": "string", "match": ["build_method"], "value_list": ["csc", "msbuild"]},
+                                {"type": "string", "match": ["cs_compiler_path"],
+                                "value_list": ["C:\\Windows\\Microsoft.NET\\Framework\\v4.0.30319\\csc.exe", "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Community\\MSBuild\\Current\\Bin\\MSBuild.exe"]},
+                                {"type": "string[]", "match": ["references"],
+                                "value_list": [["System.dll"], ["System.Core.dll", "System.Data.dll"]]},
+                                # 追加: 各関数に対する正常系テスト値 (null 以外の代表的な値)
+                                {"type": "string", "match": ["file_path"], "value_list": ["./dummy.dll", "./image.png", "./config.txt"]},
+                                {"type": "Assembly", "match": ["assembly"], "value_list": ["valid_assembly_object_1", "valid_assembly_object_2"]},
+                                {"type": "string", "match": ["class_name"], "value_list": ["ValidClassA", "Another.ValidClassB"]}
                             ]
                         },
                         "value_error": {
@@ -867,7 +894,7 @@ def main():
                             "argument_rules": [
                                 {"type": "numeric", "match": ["num", ".+count", ".+size", ".+length"],
                                 "value_list": [None, "abc", True]},
-                                {"type": "string", "match": ["name", "str", "text"],
+                                {"type": "string", "match": ["name", "str", "text", ".*_path"],
                                 "value_list": [1, True, None]},
                                 {"type": "int", "match": ["id"], "value_list": [None, "abc", True]},
                                 {"type": "bool", "match": ["flag", "is_"], "value_list": [None, 0, 1]},
@@ -880,13 +907,21 @@ def main():
                                 {"type": "Object", "match": ["settings"], "value_list": [123, "string"]},
                                 {"type": "Object", "match": ["helpFolder"], "value_list": [1]},
                                 {"type": "Object", "match": ["configFolders"], "value_list": ["string"]},
-                                {"type": "Object", "match": ["obj"], "value_list": [["a"], {"b": 2}]}
+                                {"type": "Object", "match": ["obj"], "value_list": [["a"], {"b": 2}]},
+                                # 追加: build_method 関連のエラー値
+                                {"type": "string", "match": ["build_method"], "value_list": ["invalid_method", 123, None]},
+                                {"type": "string", "match": ["cs_compiler_path"], "value_list": [123, True]},
+                                {"type": "string[]", "match": ["references"], "value_list": ["not an array", 123]},
+                                # 追加: 各関数に対するエラーテスト値 (null を含む)
+                                {"type": "string", "match": ["file_path"], "value_list": [None, 123, True]},
+                                {"type": "Assembly", "match": ["assembly"], "value_list": [None, 123, "string"]},
+                                {"type": "string", "match": ["class_name"], "value_list": [None, 123, True]}
                             ]
                         }
                     },
                     "scenarios": ["normal", "value_error"],
                     "combination_mode": "cartesian",
-                    "options" : {"references": [".\\Reference\\Newtonsoft.Json.13.0.3\\lib\\net35\\Newtonsoft.Json.dll"]}
+                    "options": {"references": [".\\Reference\\Newtonsoft.Json.13.0.3\\lib\\net35\\Newtonsoft.Json.dll"]}
                 }
             },
             {
