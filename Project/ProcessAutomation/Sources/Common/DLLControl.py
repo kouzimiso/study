@@ -7,8 +7,9 @@ import subprocess
 import ctypes
 import platform
 if platform.system() in ("Darwin", "Linux"):
-    from pythonnet import load
-    load("mono")
+    import pythonnet
+    pythonnet.load("coreclr")
+
 import clr
 try:
     clr.AddReference("System.Reflection")

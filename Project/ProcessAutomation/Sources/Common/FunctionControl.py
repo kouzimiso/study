@@ -113,67 +113,86 @@ def get_python_class_init_info(module: ast.Module) -> list:
 # ====================================================
 # 1. 型推論＆テスト値生成（設定ベース・マッチ数対応）
 # ====================================================
-def infer_possible_types_and_values(arg_name, arg_index, scenario, settings,arg_type = None):
+import re
+
+def infer_possible_types_and_values(func_name, arg_name, arg_index, scenario, settings, arg_type=None):
     """
     指定シナリオ（"normal" や "value_error"）の設定から、
     引数名と引数位置を考慮して、マッチするルール候補を全件取得する。
 
-    設定例:
-      settings = {
-          "normal": {
-            "match_count": 2,
-            "argument_rules": [ ... ]
-          },
-          "value_error": {
-            "match_count": 2,
-            "rules": [ ... ]
-          }        
-        "combination_mode": "cartesian"
-      }
-      
-    ※ルール内で "arg_index" が設定されている場合、該当位置にのみ適用される。
+    "function_match" があれば、関数名にマッチしたときだけルールを適用する。
+    "function_match" がなければ、全関数に対して適用される。
+
+    ルール内で "arg_index" が設定されている場合は、該当位置にのみ適用される。
     """
     scenario_conf = settings.get(scenario, {})
     max_matches = scenario_conf.get("match_count", 1)
-    rules = scenario_conf.get("argument_rules", [])
-    
+    rules = scenario_conf.get("argument_rules", [])  # or "rules" depending on naming convention
+
     lower_name = arg_name.lower()
     candidates = []
+
     for rule in rules:
-        if arg_type:
-            if arg_type != rule.get("type"):
-                continue
-        # もし "arg_index" 指定があれば、該当でなければスキップ
+        # 型が指定されていれば一致するもののみ対象
+        if arg_type and arg_type != rule.get("type"):
+            continue
+
+        # arg_index が指定されている場合、そのインデックスと一致する必要がある
         if "arg_index" in rule and rule["arg_index"] != arg_index:
             continue
-        for pattern in rule.get("match", []):
+
+        # function_match が存在する場合は関数名がマッチする必要がある
+        function_patterns = rule.get("function_match")
+        if function_patterns:
+            if not isinstance(function_patterns,list):
+                function_patterns = [function_patterns]
+            if not any(re.search(pat, func_name) for pat in function_patterns):
+                continue  # マッチしなければスキップ
+
+        # 引数名がマッチするか確認
+        for pattern in rule.get("argument_match", []):
             if re.search(pattern, lower_name):
                 candidates.append((rule["type"], rule["value_list"]))
-                break  # １ルール内でマッチしたら次のルールへ
+                break  # 1ルール内でマッチしたら次のルールへ
+
         if len(candidates) >= max_matches:
             break
+    
     if not candidates:
-        return [("unknown", [None])]
-    return candidates
+        missing = {
+            "function_match": func_name,
+            "argument_match": arg_name,
+            "value_list": ["please set value"]
+        }
+        if arg_type:
+            missing["type"] = arg_type
+        else:
+            missing["type"] = "unknown"
+        
+        return [("unknown", [None])], missing
 
-def generate_argument_candidate_list(arg_name, arg_index, scenario, settings, argument_types=None):
+    return candidates, []
+
+def generate_argument_candidate_list(func_name, arg_name, arg_index, scenario, settings, argument_types=None):
     """
     引数名・位置・シナリオおよび設定に基づいて候補リストを作成する。
     argument_types が与えられている場合はそれを優先して値リスト（デフォルト値）を返す。
 
     結果は候補リスト [(型, 値), …] となり、各ルールの value_list から展開します。
     """
-    candidates = infer_possible_types_and_values(arg_name, arg_index, scenario, settings, argument_types)
+    candidates, missing = infer_possible_types_and_values(func_name, arg_name, arg_index, scenario, settings, argument_types)
     candidate_list = []
+
     for _type, values in candidates:
-        # arg_index に対応する引数のみに value_list の値を適用する
-        if len(candidate_list) == arg_index:
-            for val in values:
-                candidate_list.append((_type, val))
+        if not values:
+            candidate_value = None
         else:
-            # それ以外の引数は、candidates の最初の値を使用する (デフォルト値)
-            candidate_list.append((_type, values[0] if values else None))  # values が空の場合は None を使用
-    return candidate_list
+            candidate_value = values[arg_index % len(values)]
+        candidate_list.append((_type, candidate_value))
+
+    return candidate_list, missing
+
+
 # ====================================================
 # 2. 組み合わせ生成方法
 # ====================================================
@@ -232,12 +251,12 @@ def generate_test_cases(function_informations, settings,
     settings からは、テストシナリオ（"scenarios"）や  
     組み合わせモード（"combination_mode"）が利用されます。
     """
-    scenarios = settings.keys()
+    scenarios = [key for key, value in settings.items() if isinstance(value, dict)]
     if not combination_mode:
         combination_mode = settings.get("combination_mode", "cartesian")
         
     test_cases = []
-    
+    missing_patterns = []
     for info in function_informations:
         program_path = info.get("program_path", "")
         if "methods" in info:  # クラスの場合
@@ -251,7 +270,9 @@ def generate_test_cases(function_informations, settings,
                     argument_types = None
                     if info.get("init_argument_types", [None]*len(init_arg_names))[index]:
                         argument_types = info["init_argument_types"][index]
-                    cand = generate_argument_candidate_list(arg, index, scenario, settings, argument_types=argument_types)
+                    cand ,missing= generate_argument_candidate_list(class_name,arg, index, scenario, settings, argument_types=argument_types)
+                    if missing:
+                        missing_patterns.append(missing)
                     init_candidates_by_scenario[scenario].append(cand)
                 # １シナリオ目の候補から採用
                 if info.get("init_argument_types", [None]*len(init_arg_names))[index]:
@@ -272,7 +293,9 @@ def generate_test_cases(function_informations, settings,
                         argument_types = None
                         if method.get("argument_types", [None]*len(m_arg_names))[index]:
                             argument_types = method["argument_types"][index]
-                        cand = generate_argument_candidate_list(arg, index, scenario, settings, argument_types=argument_types)
+                        cand , missing = generate_argument_candidate_list(method_name,arg, index, scenario, settings, argument_types=argument_types)
+                        if missing:
+                            missing_patterns.append(missing)
                         m_candidates_by_scenario[scenario].append(cand)
                     if method.get("argument_types", [None]*len(m_arg_names))[index]:
                         m_types.append(method["argument_types"][index])
@@ -332,7 +355,9 @@ def generate_test_cases(function_informations, settings,
                     if info.get("argument_types", [None]*len(argument_names))[index]:
                         argument_types = info["argument_types"][index]
                 for scenario in scenarios:
-                    cand = generate_argument_candidate_list(arg, index, scenario , settings, argument_types=argument_types)
+                    cand , missing = generate_argument_candidate_list(function_name,arg, index, scenario , settings, argument_types=argument_types)
+                    if missing:
+                        missing_patterns.append(missing)
                     arg_candidates_by_scenario[scenario].append(cand)
                     if cand[0][0] != "unknown":
                         arg_type=cand[0][0]
@@ -358,7 +383,74 @@ def generate_test_cases(function_informations, settings,
                         }
                     }
                     test_cases.append(test_case)
-    return test_cases
+    return test_cases,missing_patterns
+# ====================================================
+# 4. テストケース出力
+# ====================================================
+
+def save_missing_argument_patterns(name,missing_patterns, filepath="missing_argument_patterns.json"):
+    """
+    既存のファイルがある場合は読み出して、{name: missing_patterns} 形式で結合して保存。
+    """
+    if not missing_patterns:
+        print("未マッチ引数パターンはありませんでした。")
+        return
+
+    # 既存ファイルの読み込み
+    if os.path.exists(filepath):
+        with open(filepath, "r", encoding="utf-8") as f:
+            try:
+                read_data = json.load(f)
+                if not isinstance(read_data,dict):
+                    existing_data = {"old_data": read_data}
+                else:
+                    existing_data = read_data
+
+            except json.JSONDecodeError:
+                existing_data = {}
+            
+    else:
+        existing_data = {}
+    # name（テストケース名）で上書き・追加
+    existing_data[name] = missing_patterns
+
+    # 保存
+    with open(filepath, "w", encoding="utf-8") as f:
+        json.dump(existing_data, f, indent=2, ensure_ascii=False)
+
+    print(f"{name} の未マッチ引数パターンを {filepath} に保存しました。")
+
+def write_test_cases(program_path, output_file_path, test_data_name, test_pattern, test_pattern_path = "" , missing_pattern_path = "", options={}):
+    # 設定ファイルが指定されている場合は読み込む
+    if test_pattern_path and os.path.exists(test_pattern_path):
+        with open(test_pattern_path, "r", encoding="utf-8") as f:
+            base_test_pattern = json.load(f)
+    else:
+        base_test_pattern = {}
+
+    # test_pattern で base_test_pattern を上書き（base_test_pattern をベースにする）
+    merged_test_pattern = base_test_pattern.copy()
+    merged_test_pattern.update(test_pattern)
+
+    # 関数情報取得
+    function_informations = get_function_info(program_path, options)
+    if not function_informations:
+        return
+
+    # テストケース生成
+    test_cases , missing_patterns = generate_test_cases(function_informations, merged_test_pattern)
+
+    # テスト計画としてまとめる
+    test_plan_list = {test_data_name: test_cases}
+
+    # JSONファイルに出力
+    JSON_Control.WriteDictionary(output_file_path, test_plan_list)
+    # missing_patterns を保存
+    save_missing_argument_patterns(test_data_name,missing_patterns, missing_pattern_path)
+
+    return test_plan_list
+
+
 # --- グローバル関数用テスト実行 ---
 def execute_function(settings):
     program_path = settings.get("program_path", "")
@@ -606,15 +698,6 @@ def ExecuteProgram(settings):
         return execute_function(settings)
         
         
-def write_test_cases(program_path, output_file_path, test_data_name, settings, options={}):
-    function_informations = get_function_info(program_path, options)
-    if not function_informations:
-        return
-    test_cases = generate_test_cases(function_informations, settings)
-    test_plan_list = {test_data_name: test_cases}
-    # JSONファイルに出力
-    JSON_Control.WriteDictionary(output_file_path, test_plan_list)
-    return test_plan_list
 
 def get_argument_names(func: Any) -> list:
     """
@@ -839,85 +922,15 @@ def main():
             {
                 "type":"ExecuteProgram",
                 "settings":{
-                    "arguments":["test_program_path", "output_filename", "data_name", "test_pattern", "options"],
+                    "arguments":["test_program_path", "output_filename", "data_name", "test_pattern","test_pattern_path","missing_pattern_path", "options"],
                     "program_path" : "./Sources/Common/FunctionControl.py",
                     "test_program_path" : "./Sources/Common/DLLControl.py",
                     "function_name" : "write_test_cases",
                     "output_filename" : "Test_DLLControl.json",
                     "data_name" : "test",
+                    "test_pattern_path":"test_pattern.json",
+                    "missing_pattern_path":"missing_pattern.json",
                     "test_pattern": {
-                        "normal": {
-                            "match_count": 2,
-                            "argument_rules": [
-                                {"type": "numeric", "match": ["num", ".+count", ".+size", ".+length"],
-                                "value_list": [1, 2, 100, 0, -5]},
-                                {"type": "string", "match": ["name", "str"],
-                                "value_list": ["name1", "test_name", "valid", "path"]},
-                                {"type": "string", "match": ["text"],
-                                "value_list": ["text1", "long text", "一行\n複数行", "<xml>data</xml>"]},
-                                {"type": "string", "match": [".*dll_path"],
-                                "value_list": ["../../../Tools/diff.dll", "./mydll.dll", "./valid.dll"]},
-                                {"type": "string", "match": [".*cs_file_path"],
-                                "value_list": ["./Sources/Test/valid_code.cs", "/tmp/valid_code.cs"]},
-                                {"type": "string", "match": [".*text_file_path"],
-                                "value_list": ["./Sources/Test/valid_text.txt", "C:\\data\\valid.txt"]},
-                                {"type": "int", "match": ["id"], "value_list": [10, 0, -1, 999]},
-                                {"type": "bool", "match": ["flag", "is_"], "value_list": [True, False]},
-                                {"type": "DateTime", "match": ["date", "time"],
-                                "value_list": ["2023-10-27T10:00:00", "1970-01-01T00:00:00", "2024-12-31T23:59:59"]},
-                                {"type": "string[]", "match": ["array"],
-                                "value_list": [["a"], ["test", "sample"], ["item1", "item2"]]},
-                                {"type": "Dictionary<string,string>", "match": ["settings"],
-                                "value_list": [{"key1": "value1"}, {"settingA": "1", "settingB": "true"}, {"path": "/opt/data"}]},
-                                {"type": "Dictionary`2", "match": ["array"], "value_list": [["a"], ["test", "sample"]]},
-                                {"type": "string", "match": ["helpFolder"], "value_list": ["./help", "/opt/help", "/usr/share/doc"]},
-                                {"type": "string[]", "match": ["configFolders"],
-                                "value_list": [["./config"], ["/etc/config", "/usr/local/config"], ["C:\\config"]]},
-                                {"type": "Object", "match": ["settings"], "value_list": [{}, {"a": 1}, {"valid": True}]},
-                                {"type": "Object", "match": ["helpFolder"], "value_list": ["valid_help_string", {"path": "./help"}]},
-                                {"type": "Object", "match": ["configFolders"], "value_list": [["valid_folder"], {"paths": ["/etc/config"]}]},
-                                {"type": "Object", "match": ["obj"], "value_list": [123, "test", True, {"key": "value"}]},
-                                # 追加: build_method 関連
-                                {"type": "string", "match": ["build_method"], "value_list": ["csc", "msbuild"]},
-                                {"type": "string", "match": ["cs_compiler_path"],
-                                "value_list": ["C:\\Windows\\Microsoft.NET\\Framework\\v4.0.30319\\csc.exe", "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Community\\MSBuild\\Current\\Bin\\MSBuild.exe"]},
-                                {"type": "string[]", "match": ["references"],
-                                "value_list": [["System.dll"], ["System.Core.dll", "System.Data.dll"]]},
-                                # 追加: 各関数に対する正常系テスト値 (null 以外の代表的な値)
-                                {"type": "string", "match": ["file_path"], "value_list": ["./dummy.dll", "./image.png", "./config.txt"]},
-                                {"type": "Assembly", "match": ["assembly"], "value_list": ["valid_assembly_object_1", "valid_assembly_object_2"]},
-                                {"type": "string", "match": ["class_name"], "value_list": ["ValidClassA", "Another.ValidClassB"]}
-                            ]
-                        },
-                        "value_error": {
-                            "match_count": 2,
-                            "argument_rules": [
-                                {"type": "numeric", "match": ["num", ".+count", ".+size", ".+length"],
-                                "value_list": [None, "abc", True]},
-                                {"type": "string", "match": ["name", "str", "text", ".*_path"],
-                                "value_list": [1, True, None]},
-                                {"type": "int", "match": ["id"], "value_list": [None, "abc", True]},
-                                {"type": "bool", "match": ["flag", "is_"], "value_list": [None, 0, 1]},
-                                {"type": "DateTime", "match": ["date", "time"], "value_list": ["invalid date", 123, None]},
-                                {"type": "string[]", "match": ["array"], "value_list": ["not an array", 1, None]},
-                                {"type": "Dictionary<string,string>", "match": ["settings"], "value_list": ["not a dict", 1, None]},
-                                {"type": "Dictionary`2", "match": ["array"], "value_list": [["a"], ["test", "sample"]]},
-                                {"type": "string", "match": ["helpFolder"], "value_list": [123, None]},
-                                {"type": "string[]", "match": ["configFolders"], "value_list": ["not an array", None]},
-                                {"type": "Object", "match": ["settings"], "value_list": [123, "string"]},
-                                {"type": "Object", "match": ["helpFolder"], "value_list": [1]},
-                                {"type": "Object", "match": ["configFolders"], "value_list": ["string"]},
-                                {"type": "Object", "match": ["obj"], "value_list": [["a"], {"b": 2}]},
-                                # 追加: build_method 関連のエラー値
-                                {"type": "string", "match": ["build_method"], "value_list": ["invalid_method", 123, None]},
-                                {"type": "string", "match": ["cs_compiler_path"], "value_list": [123, True]},
-                                {"type": "string[]", "match": ["references"], "value_list": ["not an array", 123]},
-                                # 追加: 各関数に対するエラーテスト値 (null を含む)
-                                {"type": "string", "match": ["file_path"], "value_list": [None, 123, True]},
-                                {"type": "Assembly", "match": ["assembly"], "value_list": [None, 123, "string"]},
-                                {"type": "string", "match": ["class_name"], "value_list": [None, 123, True]}
-                            ]
-                        }
                     },
                     "scenarios": ["normal", "value_error"],
                     "combination_mode": "cartesian",
