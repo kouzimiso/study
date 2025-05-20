@@ -29,7 +29,6 @@
     }
     .group-rect {
       fill: none;
-      stroke: black;
       stroke-width: 2;
       stroke-dasharray: 5 5;
     }
@@ -77,6 +76,20 @@
     const width = window.innerWidth - 300;
     const height = window.innerHeight;
     const g = svg.append("g");
+    // 矢印マーカー定義
+    svg.append("defs").append("marker")
+      .attr("id", "arrowhead")
+      .attr("viewBox", "-0 -5 10 10")
+      .attr("refX", 20)  // ノードのサイズに合わせて調整
+      .attr("refY", 0)
+      .attr("orient", "auto")
+      .attr("markerWidth", 6)
+      .attr("markerHeight", 6)
+      .attr("xoverflow", "visible")
+      .append("svg:path")
+      .attr("d", "M0,-5L10,0L0,5")
+      .attr("fill", "#999")
+      .style("stroke", "none");
 
     function expandNodes() {
       currentStrength -= 100;
@@ -129,32 +142,29 @@
         const elements = data.elements;
         let groups = data.groups || {};
 
-        // ノード生成（idをキー名として明示的に渡す）
         const nodes = Object.entries(elements).map(([id, el]) => ({
           id,
           ...el,
           label: el.label || id
         }));
-        globalNodes = nodes;
         const nodeIds = new Set(nodes.map(n => n.id));
-        // links 配列を整形
         const links = [];
         const missingNodes = [];
+
         nodes.forEach(node => {
           if (node.links) {
             node.links.forEach(link => {
               let targetId = null;
               let color = null;
-        
+
               if (typeof link === 'string') {
                 targetId = link;
               } else if (typeof link === 'object' && link.name) {
                 targetId = link.name;
                 color = link.color;
               }
-        
+
               if (targetId) {
-                // リンク先ノードが存在しない場合は新規作成
                 if (!nodeIds.has(targetId)) {
                   nodeIds.add(targetId);
                   missingNodes.push({
@@ -169,9 +179,9 @@
           }
         });
 
-// missingNodesをnodesに追加
-nodes.push(...missingNodes);
-        // groups に含まれないノードを抽出し、新しいグループとして追加
+        nodes.push(...missingNodes); // 修正箇所
+        globalNodes = nodes;         // 修正箇所
+
         const groupedNodeIds = new Set();
         Object.values(groups).forEach(group => {
           group.elements.forEach(id => groupedNodeIds.add(id));
@@ -180,7 +190,6 @@ nodes.push(...missingNodes);
         const ungroupedNodes = nodes.filter(n => !groupedNodeIds.has(n.id));
         if (ungroupedNodes.length > 0) {
           const newGroupId = "ungrouped";
-          // 既に存在する場合はIDを変える（連番で対応）
           let suffix = 1;
           while(groups[newGroupId + (suffix > 1 ? suffix : "")]) {
             suffix++;
@@ -204,8 +213,8 @@ nodes.push(...missingNodes);
           .data(links)
           .enter().append("line")
           .attr("class", "link")
-          .attr("stroke", d => d.color || "#999");
-
+          .attr("stroke", d => d.color || "#999")
+          .attr("marker-end", "url(#arrowhead)");
         const node = g.selectAll(".node")
           .data(nodes)
           .enter().append("g")
@@ -215,10 +224,10 @@ nodes.push(...missingNodes);
             .on("drag", dragged)
             .on("end", dragended));
 
-        node.append("circle").attr("r", 20);
+        node.append("circle").attr("r", 5);
         node.append("text")
+          .attr("x", 12)
           .attr("dy", 4)
-          .attr("text-anchor", "middle")
           .text(d => d.label);
 
         node.on("click", (event, d) => {
@@ -264,45 +273,65 @@ nodes.push(...missingNodes);
         });
 
         groupSelect.onchange = () => {
-          const selected = groupSelect.value;
+          selectedGroupId = groupSelect.value;
           node.select("text").attr("fill", "black");
-          document.getElementById("groupInfo").textContent = selected && groups[selected]
-            ? JSON.stringify(groups[selected], null, 2)
+          document.getElementById("groupInfo").textContent = selectedGroupId && groups[selectedGroupId]
+            ? JSON.stringify(groups[selectedGroupId], null, 2)
             : "";
-
-          if (selected && groups[selected]) {
-            const ids = groups[selected].elements;
+        
+          if (selectedGroupId && groups[selectedGroupId]) {
+            const ids = groups[selectedGroupId].elements;
             node.filter(n => ids.includes(n.id))
               .select("text")
               .attr("fill", "red");
           }
+        
+          renderGroups(globalGroups, globalNodes);  // ★選択グループだけ赤表示
+
         };
       } catch (err) {
         alert("グラフ描画中にエラーが発生しました: " + err.message);
         console.error(err);
       }
     }
-
     function renderGroups(groups, nodes) {
       g.selectAll("rect.group-rect").remove();
-
-      Object.values(groups).forEach(group => {
+      g.selectAll("text.group-label").remove();
+    
+      Object.entries(groups).forEach(([groupId, group]) => {
         const ids = group.elements;
         const groupNodes = nodes.filter(n => ids.includes(n.id));
-
         if (groupNodes.length === 0) return;
-
+    
         const xExtent = d3.extent(groupNodes, d => d.x);
         const yExtent = d3.extent(groupNodes, d => d.y);
-
+        const x = xExtent[0] - 40;
+        const y = yExtent[0] - 40;
+        const width = xExtent[1] - xExtent[0] + 80;
+        const height = yExtent[1] - yExtent[0] + 80;
+    
+        const color = groupId === selectedGroupId ? "red" : (group.color || "blue");
+    
         g.append("rect")
           .attr("class", "group-rect")
-          .attr("x", xExtent[0] - 40)
-          .attr("y", yExtent[0] - 40)
-          .attr("width", xExtent[1] - xExtent[0] + 80)
-          .attr("height", yExtent[1] - yExtent[0] + 80);
+          .attr("x", x)
+          .attr("y", y)
+          .attr("width", width)
+          .attr("height", height)
+          .attr("fill", "none")
+          .attr("stroke", color)
+          .attr("stroke-width", 2);
+    
+        g.append("text")
+          .attr("class", "group-label")
+          .attr("x", x + 5)
+          .attr("y", y + 15)
+          .attr("fill", color)
+          .attr("font-size", "12px")
+          .text(group.label || groupId);
       });
     }
+    
   </script>
 </body>
 </html>

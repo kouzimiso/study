@@ -109,18 +109,30 @@ def analyze_directory(dir_path):
     groups = {}
 
     for func_name, info in funcs.items():
+        path = info["program_path"]
+        argument_names= info.get("argument_names", []),
+        if argument_names:
+            flattened = []
+            for item in argument_names:
+                if isinstance(item, list):
+                    flattened.extend(map(str, item))
+                else:
+                    flattened.append(str(item))
+            argument_names_str = ",".join(flattened)
+        else:
+            argument_names_str =""
         # elementsに関数情報
         elements[func_name] = {
-            "label": func_name,
+            "label": func_name+"("+argument_names_str+")",
             "type": "function",
             "description": "",
+            "program_path":path,
             "links": [{"name": l, "color": "blue"} for l in info["links"]],
-            "argument_names": info.get("argument_names", []),
+            "argument_names": argument_names,
             "argument_types": info.get("argument_types", [])
         }
 
         # groupsは program_pathごとにグループ化
-        path = info["program_path"]
         if path not in groups:
             groups[path] = {
                 "label": path,
