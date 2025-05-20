@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>D3.js グラフ表示</title>
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <style>
+    body {
+      display: flex;
+      font-family: sans-serif;
+      margin: 0;
+      height: 100vh;
+    }
+    #sidebar {
+      width: 300px;
+      padding: 10px;
+      background: #f0f0f0;
+      overflow-y: auto;
+      box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+    }
+    #graph {
+      flex: 1;
+      overflow: hidden;
+    }
+    svg {
+      width: 100%;
+      height: 100%;
+      background: #fff;
+    }
+    .group-rect {
+      fill: none;
+      stroke: black;
+      stroke-width: 2;
+      stroke-dasharray: 5 5;
+    }
+    .node circle {
+      stroke: #333;
+      stroke-width: 1.5px;
+      fill: lightblue;
+    }
+    .node text {
+      pointer-events: none;
+      font-size: 12px;
+    }
+    .link {
+      stroke: #999;
+      stroke-opacity: 0.6;
+    }
+  </style>
+</head>
+<body>
+  <div id="sidebar">
+    <h3>操作</h3>
+    <input type="file" id="fileInput" accept=".json" /><br /><br />
+    <button onclick="expandNodes()">ノードを広げる</button>
+    <button onclick="compressNodes()">ノードを詰める</button>
+    <h4>グループ選択</h4>
+    <select id="groupSelect">
+      <option value="">選択してください</option>
+    </select>
+    <div id="groupInfo"></div>
+    <h4>ノード情報</h4>
+    <pre id="nodeInfo"></pre>
+  </div>
+  <div id="graph">
+    <svg></svg>
+  </div>
+
+  <script>
+    let simulation;
+    let currentStrength = -200;
+    let globalGroups = {};
+    let globalNodes = [];
+    let selectedGroupId = null;
+
+    const svg = d3.select("svg");
+    const width = window.innerWidth - 300;
+    const height = window.innerHeight;
+    const g = svg.append("g");
+
+    function expandNodes() {
+      currentStrength -= 100;
+      updateForceStrength();
+    }
+
+    function compressNodes() {
+      currentStrength += 100;
+      updateForceStrength();
+    }
+
+    function updateForceStrength() {
+      if (simulation) {
+        simulation
+          .force("charge", d3.forceManyBody().strength(currentStrength))
+          .alpha(1)
+          .restart();
+      }
+    }
+
+    const zoom = d3.zoom()
+      .scaleExtent([0.5, 5])
+      .on("zoom", (event) => {
+        g.attr("transform", event.transform);
+      });
+
+    svg.call(zoom);
+
+    document.getElementById("fileInput").addEventListener("change", function () {
+      const file = this.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          try {
+            const json = JSON.parse(e.target.result);
+            renderGraph(json);
+          } catch (err) {
+            alert("JSONファイルの読み込み中にエラーが発生しました: " + err.message);
+            console.error(err);
+          }
+        };
+        reader.readAsText(file);
+      }
+    });
+
+    function renderGraph(data) {
+      try {
+        g.selectAll("*").remove();
+
+        const elements = data.elements;
+        let groups = data.groups || {};
+
+        // ノード生成（idをキー名として明示的に渡す）
+        const nodes = Object.entries(elements).map(([id, el]) => ({
+          id,
+          ...el,
+          label: el.label || id
+        }));
+        globalNodes = nodes;
+        const nodeIds = new Set(nodes.map(n => n.id));
+        // links 配列を整形
+        const links = [];
+        const missingNodes = [];
+        nodes.forEach(node => {
+          if (node.links) {
+            node.links.forEach(link => {
+              let targetId = null;
+              let color = null;
+        
+              if (typeof link === 'string') {
+                targetId = link;
+              } else if (typeof link === 'object' && link.name) {
+                targetId = link.name;
+                color = link.color;
+              }
+        
+              if (targetId) {
+                // リンク先ノードが存在しない場合は新規作成
+                if (!nodeIds.has(targetId)) {
+                  nodeIds.add(targetId);
+                  missingNodes.push({
+                    id: targetId,
+                    label: targetId + " (存在しません)",
+                    missing: true
+                  });
+                }
+                links.push({ source: node.id, target: targetId, color });
+              }
+            });
+          }
+        });
+
+// missingNodesをnodesに追加
+nodes.push(...missingNodes);
+        // groups に含まれないノードを抽出し、新しいグループとして追加
+        const groupedNodeIds = new Set();
+        Object.values(groups).forEach(group => {
+          group.elements.forEach(id => groupedNodeIds.add(id));
+        });
+
+        const ungroupedNodes = nodes.filter(n => !groupedNodeIds.has(n.id));
+        if (ungroupedNodes.length > 0) {
+          const newGroupId = "ungrouped";
+          // 既に存在する場合はIDを変える（連番で対応）
+          let suffix = 1;
+          while(groups[newGroupId + (suffix > 1 ? suffix : "")]) {
+            suffix++;
+          }
+          const finalGroupId = newGroupId + (suffix > 1 ? suffix : "");
+          groups[finalGroupId] = {
+            label: "未分類ノード",
+            elements: ungroupedNodes.map(n => n.id)
+          };
+        }
+
+        globalGroups = groups;
+
+        simulation = d3.forceSimulation(nodes)
+          .force("link", d3.forceLink(links).id(d => d.id).distance(120))
+          .force("charge", d3.forceManyBody().strength(currentStrength))
+          .force("center", d3.forceCenter(width / 2, height / 2))
+          .on("tick", ticked);
+
+        const link = g.selectAll(".link")
+          .data(links)
+          .enter().append("line")
+          .attr("class", "link")
+          .attr("stroke", d => d.color || "#999");
+
+        const node = g.selectAll(".node")
+          .data(nodes)
+          .enter().append("g")
+          .attr("class", "node")
+          .call(d3.drag()
+            .on("start", dragstarted)
+            .on("drag", dragged)
+            .on("end", dragended));
+
+        node.append("circle").attr("r", 20);
+        node.append("text")
+          .attr("dy", 4)
+          .attr("text-anchor", "middle")
+          .text(d => d.label);
+
+        node.on("click", (event, d) => {
+          document.getElementById("nodeInfo").textContent = JSON.stringify(d, null, 2);
+        });
+
+        function ticked() {
+          link
+            .attr("x1", d => d.source.x)
+            .attr("y1", d => d.source.y)
+            .attr("x2", d => d.target.x)
+            .attr("y2", d => d.target.y);
+
+          node.attr("transform", d => `translate(${d.x},${d.y})`);
+
+          renderGroups(globalGroups, globalNodes);
+        }
+
+        function dragstarted(event, d) {
+          if (!event.active) simulation.alphaTarget(0.3).restart();
+          d.fx = d.x;
+          d.fy = d.y;
+        }
+
+        function dragged(event, d) {
+          d.fx = event.x;
+          d.fy = event.y;
+        }
+
+        function dragended(event, d) {
+          if (!event.active) simulation.alphaTarget(0);
+          d.fx = null;
+          d.fy = null;
+        }
+
+        const groupSelect = document.getElementById("groupSelect");
+        groupSelect.innerHTML = '<option value="">選択してください</option>';
+        Object.entries(groups).forEach(([key, val]) => {
+          const opt = document.createElement("option");
+          opt.value = key;
+          opt.textContent = val.label || key;
+          groupSelect.appendChild(opt);
+        });
+
+        groupSelect.onchange = () => {
+          const selected = groupSelect.value;
+          node.select("text").attr("fill", "black");
+          document.getElementById("groupInfo").textContent = selected && groups[selected]
+            ? JSON.stringify(groups[selected], null, 2)
+            : "";
+
+          if (selected && groups[selected]) {
+            const ids = groups[selected].elements;
+            node.filter(n => ids.includes(n.id))
+              .select("text")
+              .attr("fill", "red");
+          }
+        };
+      } catch (err) {
+        alert("グラフ描画中にエラーが発生しました: " + err.message);
+        console.error(err);
+      }
+    }
+
+    function renderGroups(groups, nodes) {
+      g.selectAll("rect.group-rect").remove();
+
+      Object.values(groups).forEach(group => {
+        const ids = group.elements;
+        const groupNodes = nodes.filter(n => ids.includes(n.id));
+
+        if (groupNodes.length === 0) return;
+
+        const xExtent = d3.extent(groupNodes, d => d.x);
+        const yExtent = d3.extent(groupNodes, d => d.y);
+
+        g.append("rect")
+          .attr("class", "group-rect")
+          .attr("x", xExtent[0] - 40)
+          .attr("y", yExtent[0] - 40)
+          .attr("width", xExtent[1] - xExtent[0] + 80)
+          .attr("height", yExtent[1] - yExtent[0] + 80);
+      });
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,689 @@
+{
+  "elements": {
+    "if": {
+      "label": "if",
+      "type": "function",
+      "description": "",
+      "links": [],
+      "argument_names": [
+        "0"
+      ],
+      "argument_types": [
+        "slp <"
+      ]
+    },
+    "gem_init": {
+      "label": "gem_init",
+      "type": "function",
+      "description": "",
+      "links": [
+        {
+          "name": "sizeof",
+          "color": "blue"
+        },
+        {
+          "name": "strncpy",
+          "color": "blue"
+        },
+        {
+          "name": "get_str",
+          "color": "blue"
+        },
+        {
+          "name": "sprintf",
+          "color": "blue"
+        },
+        {
+          "name": "GEM3",
+          "color": "blue"
+        },
+        {
+          "name": "GetClass",
+          "color": "blue"
+        },
+        {
+          "name": "is_used_mid",
+          "color": "blue"
+        },
+        {
+          "name": "strcpy",
+          "color": "blue"
+        },
+        {
+          "name": "GEM",
+          "color": "blue"
+        },
+        {
+          "name": "get_int",
+          "color": "blue"
+        },
+        {
+          "name": "GEM2",
+          "color": "blue"
+        }
+      ],
+      "argument_names": [],
+      "argument_types": []
+    },
+    "gem_error_init": {
+      "label": "gem_error_init",
+      "type": "function",
+      "description": "",
+      "links": [],
+      "argument_names": [],
+      "argument_types": []
+    },
+    "ChanRead": {
+      "label": "ChanRead",
+      "type": "function",
+      "description": "",
+      "links": [
+        {
+          "name": "strcpyl",
+          "color": "blue"
+        },
+        {
+          "name": "sizeof",
+          "color": "blue"
+        },
+        {
+          "name": "gem_error",
+          "color": "blue"
+        },
+        {
+          "name": "MyPlace",
+          "color": "blue"
+        },
+        {
+          "name": "bug",
+          "color": "blue"
+        },
+        {
+          "name": "ChanRead",
+          "color": "blue"
+        },
+        {
+          "name": "log_out",
+          "color": "blue"
+        },
+        {
+          "name": "Place",
+          "color": "blue"
+        }
+      ],
+      "argument_names": [
+        "",
+        "&&\n\t\tChanRead(Place(C2M_place)",
+        "&&\n\t\tChanRead(Place(C2M_place)",
+        "STG_STOPPING@\n#endif\n\t\tChanRead(MyPlace(CM2_MOD)",
+        "&&\n\t\tChanRead(MyPlace(CM2_MOD)",
+        "&&\n\t\tChanRead(MyPlace(CM2_MOD)",
+        "STG_STOPPING"
+      ],
+      "argument_types": [
+        "Place(C2M_place)",
+        "stage) != STG_READY",
+        "stage) != STG_BUSY",
+        "stage) !=",
+        "stage) != STG_READY",
+        "stage) != STG_BUSY",
+        "stage) !="
+      ]
+    },
+    "smic_recipe": {
+      "label": "smic_recipe",
+      "type": "function",
+      "description": "",
+      "links": [
+        {
+          "name": "fopen",
+          "color": "blue"
+        },
+        {
+          "name": "getenv",
+          "color": "blue"
+        },
+        {
+          "name": "time_gatcha",
+          "color": "blue"
+        },
+        {
+          "name": "sprintf",
+          "color": "blue"
+        },
+        {
+          "name": "fprintf",
+          "color": "blue"
+        },
+        {
+          "name": "fclose",
+          "color": "blue"
+        },
+        {
+          "name": "fgets",
+          "color": "blue"
+        },
+        {
+          "name": "ChanRead",
+          "color": "blue"
+        },
+        {
+          "name": "log_out",
+          "color": "blue"
+        },
+        {
+          "name": "Place",
+          "color": "blue"
+        }
+      ],
+      "argument_names": [],
+      "argument_types": []
+    },
+    "init_troute": {
+      "label": "init_troute",
+      "type": "function",
+      "description": "",
+      "links": [],
+      "argument_names": [],
+      "argument_types": []
+    },
+    "switch": {
+      "label": "switch",
+      "type": "function",
+      "description": "",
+      "links": [
+        {
+          "name": "sim_body",
+          "color": "blue"
+        }
+      ],
+      "argument_names": [
+        ""
+      ],
+      "argument_types": [
+        "__gdb_inq_external()"
+      ]
+    },
+    "rck_shutdown": {
+      "label": "rck_shutdown",
+      "type": "function",
+      "description": "",
+      "links": [
+        {
+          "name": "preshot_check",
+          "color": "blue"
+        }
+      ],
+      "argument_names": [],
+      "argument_types": []
+    },
+    "rck_exit": {
+      "label": "rck_exit",
+      "type": "function",
+      "description": "",
+      "links": [
+        {
+          "name": "sizeof",
+          "color": "blue"
+        },
+        {
+          "name": "eqp_check",
+          "color": "blue"
+        },
+        {
+          "name": "ChanBRead",
+          "color": "blue"
+        },
+        {
+          "name": "chem_a_check",
+          "color": "blue"
+        },
+        {
+          "name": "preshot_check",
+          "color": "blue"
+        },
+        {
+          "name": "caset_check",
+          "color": "blue"
+        },
+        {
+          "name": "door_open_check",
+          "color": "blue"
+        },
+        {
+          "name": "rob_illegal_stop",
+          "color": "blue"
+        },
+        {
+          "name": "exit_scheduling_ng",
+          "color": "blue"
+        },
+        {
+          "name": "door_lock_check",
+          "color": "blue"
+        },
+        {
+          "name": "sc1_check",
+          "color": "blue"
+        },
+        {
+          "name": "o3w_check",
+          "color": "blue"
+        },
+        {
+          "name": "dhf_check",
+          "color": "blue"
+        },
+        {
+          "name": "init_check",
+          "color": "blue"
+        },
+        {
+          "name": "chem_b_check",
+          "color": "blue"
+        },
+        {
+          "name": "module_check",
+          "color": "blue"
+        }
+      ],
+      "argument_names": [],
+      "argument_types": []
+    },
+    "exit_scheduling_ng": {
+      "label": "exit_scheduling_ng",
+      "type": "function",
+      "description": "",
+      "links": [
+        {
+          "name": "sizeof",
+          "color": "blue"
+        },
+        {
+          "name": "SpmENV",
+          "color": "blue"
+        },
+        {
+          "name": "EqpENV",
+          "color": "blue"
+        },
+        {
+          "name": "ChanBRead",
+          "color": "blue"
+        },
+        {
+          "name": "GetSubClass",
+          "color": "blue"
+        },
+        {
+          "name": "module_check",
+          "color": "blue"
+        }
+      ],
+      "argument_names": [],
+      "argument_types": []
+    },
+    "rck_startup": {
+      "label": "rck_startup",
+      "type": "function",
+      "description": "",
+      "links": [
+        {
+          "name": "rob_illegal_stop",
+          "color": "blue"
+        },
+        {
+          "name": "preshot_check",
+          "color": "blue"
+        },
+        {
+          "name": "door_open_check",
+          "color": "blue"
+        },
+        {
+          "name": "door_lock_check",
+          "color": "blue"
+        },
+        {
+          "name": "init_check",
+          "color": "blue"
+        }
+      ],
+      "argument_names": [],
+      "argument_types": []
+    },
+    "chem_empty_check": {
+      "label": "chem_empty_check",
+      "type": "function",
+      "description": "",
+      "links": [
+        {
+          "name": "axm_Chem_Supply_Check3",
+          "color": "blue"
+        }
+      ],
+      "argument_names": [
+        "select"
+      ],
+      "argument_types": [
+        "int"
+      ]
+    },
+    "init_check": {
+      "label": "init_check",
+      "type": "function",
+      "description": "",
+      "links": [
+        {
+          "name": "EqpENV",
+          "color": "blue"
+        }
+      ],
+      "argument_names": [],
+      "argument_types": []
+    },
+    "eqp_check": {
+      "label": "eqp_check",
+      "type": "function",
+      "description": "",
+      "links": [
+        {
+          "name": "EqpENV",
+          "color": "blue"
+        }
+      ],
+      "argument_names": [],
+      "argument_types": []
+    },
+    "preshot_check": {
+      "label": "preshot_check",
+      "type": "function",
+      "description": "",
+      "links": [
+        {
+          "name": "SpmENV",
+          "color": "blue"
+        }
+      ],
+      "argument_names": [],
+      "argument_types": []
+    },
+    "rob_illegal_stop": {
+      "label": "rob_illegal_stop",
+      "type": "function",
+      "description": "",
+      "links": [],
+      "argument_names": [],
+      "argument_types": []
+    },
+    "pause": {
+      "label": "pause",
+      "type": "function",
+      "description": "",
+      "links": [
+        {
+          "name": "exit",
+          "color": "blue"
+        },
+        {
+          "name": "WaitForSingleObject",
+          "color": "blue"
+        },
+        {
+          "name": "fprintf",
+          "color": "blue"
+        },
+        {
+          "name": "pause",
+          "color": "blue"
+        }
+      ],
+      "argument_names": [],
+      "argument_types": []
+    },
+    "intercept": {
+      "label": "intercept",
+      "type": "function",
+      "description": "",
+      "links": [],
+      "argument_names": [
+        "*p"
+      ],
+      "argument_types": [
+        "void"
+      ]
+    },
+    "sigmask": {
+      "label": "sigmask",
+      "type": "function",
+      "description": "",
+      "links": [],
+      "argument_names": [
+        "p"
+      ],
+      "argument_types": [
+        "int"
+      ]
+    },
+    "alm_set": {
+      "label": "alm_set",
+      "type": "function",
+      "description": "",
+      "links": [
+        {
+          "name": "exit",
+          "color": "blue"
+        },
+        {
+          "name": "CreateWaitableTimer",
+          "color": "blue"
+        },
+        {
+          "name": "fprintf",
+          "color": "blue"
+        },
+        {
+          "name": "SetWaitableTimer",
+          "color": "blue"
+        }
+      ],
+      "argument_names": [
+        "p1",
+        "p2"
+      ],
+      "argument_types": [
+        "int",
+        "int"
+      ]
+    },
+    "alm_set2": {
+      "label": "alm_set2",
+      "type": "function",
+      "description": "",
+      "links": [
+        {
+          "name": "exit",
+          "color": "blue"
+        },
+        {
+          "name": "CreateWaitableTimer",
+          "color": "blue"
+        },
+        {
+          "name": "fprintf",
+          "color": "blue"
+        },
+        {
+          "name": "SetWaitableTimer",
+          "color": "blue"
+        }
+      ],
+      "argument_names": [
+        "p1",
+        "p2"
+      ],
+      "argument_types": [
+        "int",
+        "int"
+      ]
+    },
+    "write_cycle": {
+      "label": "write_cycle",
+      "type": "function",
+      "description": "",
+      "links": [
+        {
+          "name": "EqpENV",
+          "color": "blue"
+        },
+        {
+          "name": "set_tick",
+          "color": "blue"
+        },
+        {
+          "name": "timeGetTime",
+          "color": "blue"
+        }
+      ],
+      "argument_names": [],
+      "argument_types": []
+    },
+    "dodrv": {
+      "label": "dodrv",
+      "type": "function",
+      "description": "",
+      "links": [],
+      "argument_names": [],
+      "argument_types": []
+    },
+    "syshold": {
+      "label": "syshold",
+      "type": "function",
+      "description": "",
+      "links": [
+        {
+          "name": "DOG_OFF",
+          "color": "blue"
+        }
+      ],
+      "argument_names": [],
+      "argument_types": []
+    },
+    "sysresume": {
+      "label": "sysresume",
+      "type": "function",
+      "description": "",
+      "links": [
+        {
+          "name": "DOG_ON",
+          "color": "blue"
+        }
+      ],
+      "argument_names": [],
+      "argument_types": []
+    },
+    "GetPrivilege": {
+      "label": "GetPrivilege",
+      "type": "function",
+      "description": "",
+      "links": [
+        {
+          "name": "GetCurrentProcess",
+          "color": "blue"
+        },
+        {
+          "name": "OpenProcessToken",
+          "color": "blue"
+        },
+        {
+          "name": "LookupPrivilegeValue",
+          "color": "blue"
+        },
+        {
+          "name": "AdjustTokenPrivileges",
+          "color": "blue"
+        },
+        {
+          "name": "GetLastError",
+          "color": "blue"
+        },
+        {
+          "name": "fprintf",
+          "color": "blue"
+        },
+        {
+          "name": "exit",
+          "color": "blue"
+        },
+        {
+          "name": "CloseHandle",
+          "color": "blue"
+        }
+      ],
+      "argument_names": [],
+      "argument_types": []
+    },
+    "modules_init": {
+      "label": "modules_init",
+      "type": "function",
+      "description": "",
+      "links": [
+        {
+          "name": "int",
+          "color": "blue"
+        }
+      ],
+      "argument_names": [],
+      "argument_types": []
+    }
+  },
+  "groups": {
+    "K:\\NowWorksGit\\SC300HTI8S_TSMC\\sc300ht8s\\ctrl\\u\\syslink.c": {
+      "label": "K:\\NowWorksGit\\SC300HTI8S_TSMC\\sc300ht8s\\ctrl\\u\\syslink.c",
+      "elements": [
+        "if",
+        "switch",
+        "pause",
+        "intercept",
+        "sigmask",
+        "alm_set",
+        "alm_set2",
+        "write_cycle",
+        "dodrv",
+        "syshold",
+        "sysresume",
+        "GetPrivilege",
+        "modules_init"
+      ]
+    },
+    "K:\\NowWorksGit\\SC300HTI8S_TSMC\\sc300ht8s\\ctrl\\u\\gem.c": {
+      "label": "K:\\NowWorksGit\\SC300HTI8S_TSMC\\sc300ht8s\\ctrl\\u\\gem.c",
+      "elements": [
+        "gem_init",
+        "gem_error_init",
+        "ChanRead",
+        "smic_recipe"
+      ]
+    },
+    "K:\\NowWorksGit\\SC300HTI8S_TSMC\\sc300ht8s\\ctrl\\u\\route_const.c": {
+      "label": "K:\\NowWorksGit\\SC300HTI8S_TSMC\\sc300ht8s\\ctrl\\u\\route_const.c",
+      "elements": [
+        "init_troute"
+      ]
+    },
+    "K:\\NowWorksGit\\SC300HTI8S_TSMC\\sc300ht8s\\ctrl\\u\\r_check.c": {
+      "label": "K:\\NowWorksGit\\SC300HTI8S_TSMC\\sc300ht8s\\ctrl\\u\\r_check.c",
+      "elements": [
+        "rck_shutdown",
+        "rck_exit",
+        "exit_scheduling_ng",
+        "rck_startup",
+        "chem_empty_check",
+        "init_check",
+        "eqp_check",
+        "preshot_check",
+        "rob_illegal_stop"
+      ]
+    }
+  }
+}

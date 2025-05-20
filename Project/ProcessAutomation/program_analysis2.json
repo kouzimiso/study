@@ -1,0 +1,270 @@
+{
+  "elements": {
+    "toggleMaintenanceMode": {
+      "label": "メンテナンスモード切替",
+      "type": "user_interface",
+      "description": "メンテナンスモードを切り替えるUI操作",
+      "links": [
+        {
+          "name": "checkMaintenanceMode",
+          "color": "yellow"
+        }
+      ]
+    },
+    "checkMaintenanceMode": {
+      "label": "メンテナンスモード判定",
+      "type": "function",
+      "description": "現在のメンテナンスモード状態を確認する",
+      "links": []
+    },
+    "editSchedule": {
+      "label": "スケジュール編集",
+      "type": "user_interface",
+      "description": "スケジュールを編集するUI操作",
+      "links": [
+        {
+          "name": "updateAutoSchedule",
+          "color": "blue"
+        }
+      ]
+    },
+    "updateAutoSchedule": {
+      "label": "自動搬送スケジュール更新",
+      "type": "function",
+      "description": "スケジュール情報を更新する関数",
+      "links": []
+    },
+    "if": {
+      "program_path": "K:\\NowWorksGit\\SC300HTI8S_TSMC\\sc300ht8s\\ctrl\\u\\syslink.c",
+      "links": []
+    },
+    "gem_init": {
+      "program_path": "K:\\NowWorksGit\\SC300HTI8S_TSMC\\sc300ht8s\\ctrl\\u\\gem.c",
+      "links": [
+        "strncpy",
+        "GEM2",
+        "sizeof",
+        "GEM3",
+        "get_str",
+        "is_used_mid",
+        "strcpy",
+        "GEM",
+        "get_int",
+        "sprintf",
+        "GetClass"
+      ]
+    },
+    "gem_error_init": {
+      "program_path": "K:\\NowWorksGit\\SC300HTI8S_TSMC\\sc300ht8s\\ctrl\\u\\gem.c",
+      "links": []
+    },
+    "ChanRead": {
+      "program_path": "K:\\NowWorksGit\\SC300HTI8S_TSMC\\sc300ht8s\\ctrl\\u\\gem.c",
+      "links": [
+        "strcpyl",
+        "Place",
+        "ChanRead",
+        "MyPlace",
+        "sizeof",
+        "gem_error",
+        "bug",
+        "log_out"
+      ]
+    },
+    "smic_recipe": {
+      "program_path": "K:\\NowWorksGit\\SC300HTI8S_TSMC\\sc300ht8s\\ctrl\\u\\gem.c",
+      "links": [
+        "Place",
+        "time_gatcha",
+        "ChanRead",
+        "fclose",
+        "fopen",
+        "fprintf",
+        "log_out",
+        "sprintf",
+        "fgets",
+        "getenv"
+      ]
+    },
+    "init_troute": {
+      "program_path": "K:\\NowWorksGit\\SC300HTI8S_TSMC\\sc300ht8s\\ctrl\\u\\route_const.c",
+      "links": []
+    },
+    "switch": {
+      "program_path": "K:\\NowWorksGit\\SC300HTI8S_TSMC\\sc300ht8s\\ctrl\\u\\syslink.c",
+      "links": [
+        "sim_body"
+      ]
+    },
+    "rck_shutdown": {
+      "program_path": "K:\\NowWorksGit\\SC300HTI8S_TSMC\\sc300ht8s\\ctrl\\u\\r_check.c",
+      "links": [
+        "preshot_check"
+      ]
+    },
+    "rck_exit": {
+      "program_path": "K:\\NowWorksGit\\SC300HTI8S_TSMC\\sc300ht8s\\ctrl\\u\\r_check.c",
+      "links": [
+        "init_check",
+        "module_check",
+        "rob_illegal_stop",
+        "sc1_check",
+        "caset_check",
+        "ChanBRead",
+        "sizeof",
+        "eqp_check",
+        "door_open_check",
+        "preshot_check",
+        "chem_b_check",
+        "o3w_check",
+        "exit_scheduling_ng",
+        "dhf_check",
+        "chem_a_check",
+        "door_lock_check"
+      ]
+    },
+    "exit_scheduling_ng": {
+      "program_path": "K:\\NowWorksGit\\SC300HTI8S_TSMC\\sc300ht8s\\ctrl\\u\\r_check.c",
+      "links": [
+        "module_check",
+        "GetSubClass",
+        "ChanBRead",
+        "sizeof",
+        "EqpENV",
+        "SpmENV"
+      ]
+    },
+    "rck_startup": {
+      "program_path": "K:\\NowWorksGit\\SC300HTI8S_TSMC\\sc300ht8s\\ctrl\\u\\r_check.c",
+      "links": [
+        "init_check",
+        "rob_illegal_stop",
+        "door_open_check",
+        "preshot_check",
+        "door_lock_check"
+      ]
+    },
+    "chem_empty_check": {
+      "program_path": "K:\\NowWorksGit\\SC300HTI8S_TSMC\\sc300ht8s\\ctrl\\u\\r_check.c",
+      "links": [
+        "axm_Chem_Supply_Check3"
+      ]
+    },
+    "init_check": {
+      "program_path": "K:\\NowWorksGit\\SC300HTI8S_TSMC\\sc300ht8s\\ctrl\\u\\r_check.c",
+      "links": [
+        "EqpENV"
+      ]
+    },
+    "eqp_check": {
+      "program_path": "K:\\NowWorksGit\\SC300HTI8S_TSMC\\sc300ht8s\\ctrl\\u\\r_check.c",
+      "links": [
+        "EqpENV"
+      ]
+    },
+    "preshot_check": {
+      "program_path": "K:\\NowWorksGit\\SC300HTI8S_TSMC\\sc300ht8s\\ctrl\\u\\r_check.c",
+      "links": [
+        "SpmENV"
+      ]
+    },
+    "rob_illegal_stop": {
+      "program_path": "K:\\NowWorksGit\\SC300HTI8S_TSMC\\sc300ht8s\\ctrl\\u\\r_check.c",
+      "links": []
+    },
+    "pause": {
+      "program_path": "K:\\NowWorksGit\\SC300HTI8S_TSMC\\sc300ht8s\\ctrl\\u\\syslink.c",
+      "links": [
+        "fprintf",
+        "WaitForSingleObject",
+        "exit",
+        "pause"
+      ]
+    },
+    "intercept": {
+      "program_path": "K:\\NowWorksGit\\SC300HTI8S_TSMC\\sc300ht8s\\ctrl\\u\\syslink.c",
+      "links": []
+    },
+    "sigmask": {
+      "program_path": "K:\\NowWorksGit\\SC300HTI8S_TSMC\\sc300ht8s\\ctrl\\u\\syslink.c",
+      "links": []
+    },
+    "alm_set": {
+      "program_path": "K:\\NowWorksGit\\SC300HTI8S_TSMC\\sc300ht8s\\ctrl\\u\\syslink.c",
+      "links": [
+        "SetWaitableTimer",
+        "fprintf",
+        "exit",
+        "CreateWaitableTimer"
+      ]
+    },
+    "alm_set2": {
+      "program_path": "K:\\NowWorksGit\\SC300HTI8S_TSMC\\sc300ht8s\\ctrl\\u\\syslink.c",
+      "links": [
+        "SetWaitableTimer",
+        "fprintf",
+        "exit",
+        "CreateWaitableTimer"
+      ]
+    },
+    "write_cycle": {
+      "program_path": "K:\\NowWorksGit\\SC300HTI8S_TSMC\\sc300ht8s\\ctrl\\u\\syslink.c",
+      "links": [
+        "set_tick",
+        "timeGetTime",
+        "EqpENV"
+      ]
+    },
+    "dodrv": {
+      "program_path": "K:\\NowWorksGit\\SC300HTI8S_TSMC\\sc300ht8s\\ctrl\\u\\syslink.c",
+      "links": []
+    },
+    "syshold": {
+      "program_path": "K:\\NowWorksGit\\SC300HTI8S_TSMC\\sc300ht8s\\ctrl\\u\\syslink.c",
+      "links": [
+        "DOG_OFF"
+      ]
+    },
+    "sysresume": {
+      "program_path": "K:\\NowWorksGit\\SC300HTI8S_TSMC\\sc300ht8s\\ctrl\\u\\syslink.c",
+      "links": [
+        "DOG_ON"
+      ]
+    },
+    "GetPrivilege": {
+      "program_path": "K:\\NowWorksGit\\SC300HTI8S_TSMC\\sc300ht8s\\ctrl\\u\\syslink.c",
+      "links": [
+        "GetLastError",
+        "exit",
+        "AdjustTokenPrivileges",
+        "OpenProcessToken",
+        "LookupPrivilegeValue",
+        "fprintf",
+        "CloseHandle",
+        "GetCurrentProcess"
+      ]
+    },
+    "modules_init": {
+      "program_path": "K:\\NowWorksGit\\SC300HTI8S_TSMC\\sc300ht8s\\ctrl\\u\\syslink.c",
+      "links": [
+        "int"
+      ]
+    }
+  },
+  "groups": {
+    "ProcessModule": {
+      "label": "設備管理",
+      "elements": [
+        "toggleMaintenanceMode",
+        "checkMaintenanceMode","smic_recipe","ChanRead"
+      ]
+    },
+    "ScheduleModule": {
+      "label": "スケジュール管理",
+      "elements": [
+        "editSchedule",
+        "updateAutoSchedule","updateAutoSchedule"
+      ]
+    }
+  }
+}

@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>D3.js ファイルごと枠付きノード表示</title>
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <style>
+    .node circle {
+      fill: #69b3a2;
+      stroke: #333;
+      stroke-width: 1.5px;
+    }
+    .link {
+      stroke: #999;
+      stroke-opacity: 0.6;
+      fill: none;
+      marker-end: url(#arrowhead);
+    }
+    .file-group rect {
+      fill: none;
+      stroke: #4682b4;
+      stroke-width: 1.5px;
+      rx: 8;
+      ry: 8;
+    }
+    .file-group.selected rect { /* ← 選択時のスタイルを追加 */
+      stroke: orange;
+    }
+    .file-label {
+      font-size: 14px;
+      fill: #333;
+      font-weight: bold;
+    }
+    text.node-label {
+      font-size: 10px;
+      fill: #222;
+      pointer-events: none;
+    }
+    text.node-label.selected { /* ← 選択時のスタイルを追加 */
+      fill: orange;
+    }
+  </style>
+</head>
+<body>
+<button id="loadButton">解析ファイルを読み込む</button>
+<button id="expandButton">ノードを広げる</button>
+<button id="shrinkButton">ノードを狭める</button>
+<select id="fileSelect">
+  <option value="">-- ファイルを選択 --</option>
+</select>
+<input type="file" id="fileInput" accept="application/json" style="display:none">
+<svg width="1200" height="800"></svg>
+
+<script>
+let svg = d3.select("svg");
+let simulation; // ← 関数外に移動
+let linkForce;  // ← リンク距離を動的に変更するために保持
+let chargeForce;
+let selectedFile = null;
+
+const width = +svg.attr("width");
+const height = +svg.attr("height");
+
+const zoom = d3.zoom().on("zoom", (event) => {
+  svg.select("g.main").attr("transform", event.transform);
+});
+svg.call(zoom);
+
+svg.append("g").attr("class", "main");
+const mainGroup = svg.select("g.main");
+
+function drawGraph(data) {
+  mainGroup.selectAll("*").remove();
+
+  mainGroup.append("defs").append("marker")
+    .attr("id", "arrowhead")
+    .attr("viewBox", "-0 -5 10 10")
+    .attr("refX", 25)
+    .attr("refY", 0)
+    .attr("orient", "auto")
+    .attr("markerWidth", 6)
+    .attr("markerHeight", 6)
+    .attr("xoverflow", "visible")
+    .append("svg:path")
+    .attr("d", "M 0,-5 L 10 ,0 L 0,5")
+    .attr("fill", "#999")
+    .style("stroke", "none");
+
+  let nodes = [];
+  let links = [];
+  const funcToNode = {};
+  let nodeId = 0;
+
+  const fileMap = d3.group(Object.entries(data), d => d[1].program_path);
+
+  fileMap.forEach((funcArray, file) => {
+    funcArray.forEach(([func, info]) => {
+      const node = { id: nodeId++, name: func, file: file };
+      funcToNode[func] = node;
+      nodes.push(node);
+    });
+  });
+
+  Object.entries(data).forEach(([func, info]) => {
+    const source = funcToNode[func];
+    info.links.forEach(called => {
+      const target = funcToNode[called];
+      if (target) {
+        links.push({ source, target });
+      }
+    });
+  });
+
+  const groups = d3.group(nodes, d => d.file);
+  const fileNames = [...groups.keys()];
+  const fileSpacing = width / (fileNames.length + 1);
+  const filePositionX = {};
+  fileNames.forEach((file, i) => {
+    filePositionX[file] = fileSpacing * (i + 1);
+  });
+
+  linkForce = d3.forceLink(links).id(d => d.id).distance(100); // ← ここでリンク距離を指定
+  chargeForce = d3.forceManyBody().strength(-300); // 初期反発力
+
+  simulation = d3.forceSimulation(nodes)
+    .force("link", linkForce)
+    .force("charge", chargeForce)
+    .force("center", d3.forceCenter(width / 2, height / 2))
+    .force("collision", d3.forceCollide(30))
+    .force("x", d3.forceX(d => filePositionX[d.file] || width / 2).strength(0.5))
+    .force("y", d3.forceY(height / 2).strength(0.2));
+
+
+    const fileGroups = mainGroup.selectAll(".file-group")
+    .data([...groups.entries()], d => d[0])
+    .enter()
+    .append("g")
+    .attr("class", "file-group")
+    .style("cursor", "pointer")
+    .on("click", (event, d) => {
+      // クリックされたファイル名
+      const clickedFile = d[0];
+  
+      if (selectedFile === clickedFile) {
+        // もう一度クリックで選択解除
+        selectedFile = null;
+      } else {
+        selectedFile = clickedFile;
+      }
+      updateSelection();
+    });
+  
+
+  fileGroups.append("rect")
+    .attr("x", 0)
+    .attr("y", 0)
+    .attr("width", 150)
+    .attr("height", 100)
+    .attr("rx", 10)
+    .attr("ry", 10)
+    .attr("fill", "none")
+    .attr("stroke", "#4682b4")
+    .attr("stroke-width", 1.5);
+
+  fileGroups.append("text")
+    .attr("class", "file-label")
+    .attr("x", 10)
+    .attr("y", 20)
+    .text(d => d[0]);
+
+  const link = mainGroup.append("g")
+    .attr("stroke", "#aaa")
+    .selectAll("path")
+    .data(links)
+    .enter()
+    .append("path")
+    .attr("class", "link");
+
+    const fileSelect = document.getElementById("fileSelect");
+    fileSelect.innerHTML = '<option value="">-- ファイルを選択 --</option>';
+    fileNames.forEach(file => {
+      const option = document.createElement("option");
+      option.value = file;
+      option.textContent = file;
+      fileSelect.appendChild(option);
+    });
+    fileSelect.onchange = () => {
+      selectedFile = fileSelect.value || null;
+      updateSelection();
+    };
+    
+// --- ノードグループの作成 ---
+const nodeGroups = fileGroups.selectAll(".node")
+  .data(d => d[1])
+  .enter()
+  .append("g")
+  .attr("class", "node")
+  .call(d3.drag()
+    .on("start", dragstarted)
+    .on("drag", dragged)
+    .on("end", dragended));
+
+nodeGroups.append("circle")
+  .attr("r", 3)
+  .attr("fill", "#69b3a2")
+  .attr("stroke", "#333")
+  .attr("stroke-width", 1.5);
+
+// ノードラベルを右側に表示
+nodeGroups.append("text")
+  .attr("class", "node-label")
+  .attr("dy", 3)
+  .attr("x", 8)               // 右側にずらす
+  .attr("text-anchor", "start") // 左揃え
+  .text(d => d.name);
+  
+    simulation.on("tick", () => {
+      link.attr("d", d => `M${d.source.x},${d.source.y} L${d.target.x},${d.target.y}`);
+      nodeGroups.attr("transform", d => `translate(${d.x},${d.y})`);
+    
+      fileGroups.each(function([file, nodes]) {
+        const xExtent = d3.extent(nodes, d => d.x);
+        const yExtent = d3.extent(nodes, d => d.y);
+        const padding = 20;
+    
+        d3.select(this).select("rect")
+          .attr("x", xExtent[0] - padding)
+          .attr("y", yExtent[0] - padding)
+          .attr("width", (xExtent[1] - xExtent[0]) + padding * 2)
+          .attr("height", (yExtent[1] - yExtent[0]) + padding * 2);
+    
+        d3.select(this).select("text.file-label")
+          .attr("x", xExtent[0] - padding + 10)
+          .attr("y", yExtent[0] - padding + 15);
+      });
+    
+      updateSelection();  // ここで選択色を毎フレーム更新
+    });
+    
+
+  function dragstarted(event, d) {
+    if (!event.active) simulation.alphaTarget(0.3).restart();
+    d.fx = d.x;
+    d.fy = d.y;
+  }
+  function dragged(event, d) {
+    d.fx = event.x;
+    d.fy = event.y;
+  
+    // ノードが属する file-group を更新
+    const nodesInSameGroup = groups.get(d.file);
+    const xExtent = d3.extent(nodesInSameGroup, d => d.fx ?? d.x);
+    const yExtent = d3.extent(nodesInSameGroup, d => d.fy ?? d.y);
+    const padding = 20;
+  
+    const group = fileGroups.filter(g => g[0] === d.file);
+    group.select("rect")
+      .attr("x", xExtent[0] - padding)
+      .attr("y", yExtent[0] - padding)
+      .attr("width", (xExtent[1] - xExtent[0]) + padding * 2)
+      .attr("height", (yExtent[1] - yExtent[0]) + padding * 2);
+  
+    group.select("text.file-label")
+      .attr("x", xExtent[0] - padding + 10)
+      .attr("y", yExtent[0] - padding + 15);
+  }
+  function dragended(event, d) {
+    if (!event.active) simulation.alphaTarget(0);
+    d.fx = null;
+    d.fy = null;
+  }
+
+  function updateSelection() {
+    // ファイルグループの選択状態を更新
+    fileGroups.classed("selected", d => selectedFile && d[0] === selectedFile);
+  
+    // ノードラベルの選択状態を更新
+    nodeGroups.selectAll("text.node-label")
+      .classed("selected", d => selectedFile && d.file === selectedFile);
+  }
+
+  
+}
+
+document.getElementById("loadButton").addEventListener("click", () => {
+  document.getElementById("fileInput").click();
+});
+
+document.getElementById("fileInput").addEventListener("change", (event) => {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const parsed = JSON.parse(e.target.result);
+      drawGraph(parsed);
+    } catch (err) {
+      alert("JSON の解析に失敗しました。");
+    }
+  };
+  reader.readAsText(file);
+});
+let currentDistance = 100;
+let currentChargeStrength = -300;
+
+document.getElementById("expandButton").addEventListener("click", () => {
+  currentDistance += 20;
+  currentChargeStrength -= 50; // より強い反発力（値は負なので減らす）
+
+  linkForce.distance(currentDistance);
+  chargeForce.strength(currentChargeStrength);
+
+  simulation.alpha(1).restart();
+});
+
+document.getElementById("shrinkButton").addEventListener("click", () => {
+  currentDistance = Math.max(20, currentDistance - 20);
+  linkForce.distance(currentDistance);
+
+  // 反発力は下げすぎないよう制限
+  currentChargeStrength = Math.max(-300, currentChargeStrength + 50);
+  chargeForce.strength(currentChargeStrength);
+
+  simulation.alpha(1).restart();
+});
+
+</script>
+</body>
+</html>
