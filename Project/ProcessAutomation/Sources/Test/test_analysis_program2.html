@@ -54,6 +54,12 @@
     <button onclick="expandNodes()">ノードを広げる</button>
     <button onclick="compressNodes()">ノードを詰める</button>
     <h4>グループ選択</h4>
+
+    <h4>リンククラスタ選択</h4>
+    <select id="linkedGroupSelect">
+      <option value="">選択してください</option>
+    </select>
+    <h4>ファイルグループ選択</h4>
     <select id="groupSelect">
       <option value="">選択してください</option>
     </select>
@@ -289,11 +295,68 @@
           renderGroups(globalGroups, globalNodes);  // ★選択グループだけ赤表示
 
         };
+
+        const linkedGroupSelect = document.getElementById("linkedGroupSelect");
+        linkedGroupSelect.innerHTML = '<option value="">選択してください</option>';
+      
+        const linkedClusters = getLinkedClusters(links);
+        linkedClusters.forEach((cluster, idx) => {
+          const opt = document.createElement("option");
+          opt.value = "linked:" + idx;
+          opt.textContent = `LinkedGroup - ${idx + 1}`;
+          linkedGroupSelect.appendChild(opt);
+        });
+      
+        linkedGroupSelect.onchange = () => {
+          const selected = linkedGroupSelect.value;
+          node.select("text").attr("fill", "black");
+          if (selected.startsWith("linked:")) {
+            const idx = parseInt(selected.split(":")[1]);
+            const cluster = linkedClusters[idx];
+            node.filter(n => cluster.includes(n.id))
+              .select("text")
+              .attr("fill", "blue");
+          }
+        };
+      
+        function getLinkedClusters(links) {
+          const graph = {};
+          links.forEach(link => {
+            if (!graph[link.source]) graph[link.source] = [];
+            if (!graph[link.target]) graph[link.target] = [];
+            graph[link.source].push(link.target);
+            graph[link.target].push(link.source);
+          });
+        
+          const visited = new Set();
+          const clusters = [];
+        
+          function dfs(node, cluster) {
+            visited.add(node);
+            cluster.push(node);
+            (graph[node] || []).forEach(neighbor => {
+              if (!visited.has(neighbor)) dfs(neighbor, cluster);
+            });
+          }
+        
+          Object.keys(graph).forEach(node => {
+            if (!visited.has(node)) {
+              const cluster = [];
+              dfs(node, cluster);
+              clusters.push(cluster);
+            }
+          });
+        
+          return clusters;
+        }
+        
+  
       } catch (err) {
         alert("グラフ描画中にエラーが発生しました: " + err.message);
         console.error(err);
       }
-    }
+    }  
+      
     function renderGroups(groups, nodes) {
       g.selectAll("rect.group-rect").remove();
       g.selectAll("text.group-label").remove();
@@ -331,7 +394,7 @@
           .text(group.label || groupId);
       });
     }
-    
+        
   </script>
 </body>
 </html>
