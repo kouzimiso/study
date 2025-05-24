@@ -304,52 +304,57 @@
           const opt = document.createElement("option");
           opt.value = "linked:" + idx;
           opt.textContent = `LinkedGroup - ${idx + 1}`;
+          opt.dataset.type = "linkedgroup";
           linkedGroupSelect.appendChild(opt);
         });
       
-        linkedGroupSelect.onchange = () => {
-          const selected = linkedGroupSelect.value;
-          node.select("text").attr("fill", "black");
-          if (selected.startsWith("linked:")) {
-            const idx = parseInt(selected.split(":")[1]);
-            const cluster = linkedClusters[idx];
-            node.filter(n => cluster.includes(n.id))
-              .select("text")
-              .attr("fill", "blue");
+
+        // グループ選択で表示を切り替え
+        linkedGroupSelect.addEventListener("change", (e) => {
+          const val = e.target.value;
+          if (!val) {
+            node.style("display", null);
+            link.style("display", null);
+            return;
           }
-        };
+
+          const type = e.target.selectedOptions[0].dataset.type;
+          let visibleIds = new Set();
+
+          if (type === "filegroup") {
+            visibleIds = new Set(groups[val].elements);
+          } else if (type === "linkedgroup") {
+            const clusterIdx = parseInt(val.split(":")[1]);
+            visibleIds = new Set(linkedClusters[clusterIdx]);
+          }
+
+          // 表示制御
+          node.style("display", d => visibleIds.has(d.id) ? null : "none");
+          link.style("display", d => (visibleIds.has(d.source.id) && visibleIds.has(d.target.id)) ? null : "none");
+        });
+
       
+        // クラスタ検出関数：Union-Find（連結成分）
         function getLinkedClusters(links) {
-          const graph = {};
-          links.forEach(link => {
-            if (!graph[link.source]) graph[link.source] = [];
-            if (!graph[link.target]) graph[link.target] = [];
-            graph[link.source].push(link.target);
-            graph[link.target].push(link.source);
+          const parent = {};
+          const find = x => parent[x] === x ? x : (parent[x] = find(parent[x]));
+          const union = (a, b) => {
+            const pa = find(a), pb = find(b);
+            if (pa !== pb) parent[pa] = pb;
+          };
+
+          globalNodes.forEach(n => { parent[n.id] = n.id; });
+          links.forEach(link => union(link.source.id, link.target.id));
+
+          const clusters = {};
+          globalNodes.forEach(n => {
+            const root = find(n.id);
+            if (!clusters[root]) clusters[root] = [];
+            clusters[root].push(n.id);
           });
-        
-          const visited = new Set();
-          const clusters = [];
-        
-          function dfs(node, cluster) {
-            visited.add(node);
-            cluster.push(node);
-            (graph[node] || []).forEach(neighbor => {
-              if (!visited.has(neighbor)) dfs(neighbor, cluster);
-            });
-          }
-        
-          Object.keys(graph).forEach(node => {
-            if (!visited.has(node)) {
-              const cluster = [];
-              dfs(node, cluster);
-              clusters.push(cluster);
-            }
-          });
-        
-          return clusters;
+
+          return Object.values(clusters).filter(arr => arr.length > 1); // 単独ノード除外
         }
-        
   
       } catch (err) {
         alert("グラフ描画中にエラーが発生しました: " + err.message);
@@ -357,34 +362,35 @@
       }
     }  
       
-    function renderGroups(groups, nodes) {
-      g.selectAll("rect.group-rect").remove();
+    function renderGroups(groups, nodes, filterNodeIds = null) {
+      g.selectAll(".group-rect").remove();
       g.selectAll("text.group-label").remove();
     
-      Object.entries(groups).forEach(([groupId, group]) => {
-        const ids = group.elements;
-        const groupNodes = nodes.filter(n => ids.includes(n.id));
-        if (groupNodes.length === 0) return;
+      Object.entries(groups).forEach(([key, group]) => {
+        const groupNodeData = nodes.filter(n => group.elements.includes(n.id));
+        if (filterNodeIds) {
+          // filterNodeIds に1つも含まれていない場合は描画しない
+          const intersection = groupNodeData.filter(n => filterNodeIds.has(n.id));
+          if (intersection.length === 0) return;
+        }
     
-        const xExtent = d3.extent(groupNodes, d => d.x);
-        const yExtent = d3.extent(groupNodes, d => d.y);
-        const x = xExtent[0] - 40;
-        const y = yExtent[0] - 40;
-        const width = xExtent[1] - xExtent[0] + 80;
-        const height = yExtent[1] - yExtent[0] + 80;
+        const xCoords = groupNodeData.map(n => n.x);
+        const yCoords = groupNodeData.map(n => n.y);
+        if (xCoords.length === 0 || yCoords.length === 0) return;
     
-        const color = groupId === selectedGroupId ? "red" : (group.color || "blue");
+        const padding = 20;
+        const minX = Math.min(...xCoords) - padding;
+        const minY = Math.min(...yCoords) - padding;
+        const width = Math.max(...xCoords) - minX + padding;
+        const height = Math.max(...yCoords) - minY + padding;
     
         g.append("rect")
           .attr("class", "group-rect")
-          .attr("x", x)
-          .attr("y", y)
+          .attr("x", minX)
+          .attr("y", minY)
           .attr("width", width)
           .attr("height", height)
-          .attr("fill", "none")
-          .attr("stroke", color)
-          .attr("stroke-width", 2);
-    
+          .attr("stroke", "blue");
         g.append("text")
           .attr("class", "group-label")
           .attr("x", x + 5)
