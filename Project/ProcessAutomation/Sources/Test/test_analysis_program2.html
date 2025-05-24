@@ -41,9 +41,23 @@
       pointer-events: none;
       font-size: 12px;
     }
+    /* リンクのデフォルトスタイル */
     .link {
       stroke: #999;
       stroke-opacity: 0.6;
+    }
+    /* ハイライトされたリンク用のクラス */
+    .link.highlight-source {
+        stroke: red !important;
+    }
+    .link.highlight-target {
+        stroke: blue !important;
+    }
+    .link.highlight-bidirectional {
+        stroke: purple !important; /* 新しく追加 */
+    }
+    .link.dimmed {
+        stroke-opacity: 0.2;
     }
   </style>
 </head>
@@ -53,7 +67,6 @@
     <input type="file" id="fileInput" accept=".json" /><br /><br />
     <button onclick="expandNodes()">ノードを広げる</button>
     <button onclick="compressNodes()">ノードを詰める</button>
-    <h4>グループ選択</h4>
 
     <h4>リンククラスタ選択</h4>
     <select id="linkedGroupSelect">
@@ -73,20 +86,27 @@
 
   <script>
     let simulation;
-    let currentStrength = -200;
+    let currentStrength = -100;
     let globalGroups = {};
     let globalNodes = [];
-    let selectedGroupId = null;
+    let currentLinks = [];
+    let selectedFileGroupId = null;
+    let selectedLinkedClusterId = null;
+    let linkedClusters = [];
+    let d3NodeSelection;
+    let d3LinkSelection;
+    let clickedNodeIdForHighlight = null;
 
     const svg = d3.select("svg");
     const width = window.innerWidth - 300;
     const height = window.innerHeight;
     const g = svg.append("g");
+
     // 矢印マーカー定義
     svg.append("defs").append("marker")
       .attr("id", "arrowhead")
       .attr("viewBox", "-0 -5 10 10")
-      .attr("refX", 20)  // ノードのサイズに合わせて調整
+      .attr("refX", 20)
       .attr("refY", 0)
       .attr("orient", "auto")
       .attr("markerWidth", 6)
@@ -95,6 +115,50 @@
       .append("svg:path")
       .attr("d", "M0,-5L10,0L0,5")
       .attr("fill", "#999")
+      .style("stroke", "none");
+
+    // ハイライト用のマーカーも定義
+    svg.append("defs").append("marker")
+      .attr("id", "arrowhead-red")
+      .attr("viewBox", "-0 -5 10 10")
+      .attr("refX", 20)
+      .attr("refY", 0)
+      .attr("orient", "auto")
+      .attr("markerWidth", 6)
+      .attr("markerHeight", 6)
+      .attr("xoverflow", "visible")
+      .append("svg:path")
+      .attr("d", "M0,-5L10,0L0,5")
+      .attr("fill", "red")
+      .style("stroke", "none");
+
+    svg.append("defs").append("marker")
+      .attr("id", "arrowhead-blue")
+      .attr("viewBox", "-0 -5 10 10")
+      .attr("refX", 20)
+      .attr("refY", 0)
+      .attr("orient", "auto")
+      .attr("markerWidth", 6)
+      .attr("markerHeight", 6)
+      .attr("xoverflow", "visible")
+      .append("svg:path")
+      .attr("d", "M0,-5L10,0L0,5")
+      .attr("fill", "blue")
+      .style("stroke", "none");
+    
+    // 紫色用のマーカーを追加
+    svg.append("defs").append("marker")
+      .attr("id", "arrowhead-purple")
+      .attr("viewBox", "-0 -5 10 10")
+      .attr("refX", 20)
+      .attr("refY", 0)
+      .attr("orient", "auto")
+      .attr("markerWidth", 6)
+      .attr("markerHeight", 6)
+      .attr("xoverflow", "visible")
+      .append("svg:path")
+      .attr("d", "M0,-5L10,0L0,5")
+      .attr("fill", "purple")
       .style("stroke", "none");
 
     function expandNodes() {
@@ -117,7 +181,7 @@
     }
 
     const zoom = d3.zoom()
-      .scaleExtent([0.5, 5])
+      .scaleExtent([0.1, 10])
       .on("zoom", (event) => {
         g.attr("transform", event.transform);
       });
@@ -154,7 +218,7 @@
           label: el.label || id
         }));
         const nodeIds = new Set(nodes.map(n => n.id));
-        const links = [];
+        let links = [];
         const missingNodes = [];
 
         nodes.forEach(node => {
@@ -185,8 +249,27 @@
           }
         });
 
-        nodes.push(...missingNodes); // 修正箇所
-        globalNodes = nodes;         // 修正箇所
+        // 相互リンクの検出
+        const linkMap = new Map();
+        links.forEach(link => {
+            const key = `${link.source}:${link.target}`;
+            linkMap.set(key, link);
+        });
+
+        links.forEach(link => {
+            const reverseKey = `${link.target}:${link.source}`;
+            if (linkMap.has(reverseKey)) {
+                link.isBidirectional = true;
+                linkMap.get(reverseKey).isBidirectional = true; // 逆方向のリンクもマーク
+            } else {
+                link.isBidirectional = false;
+            }
+        });
+
+
+        nodes.push(...missingNodes);
+        globalNodes = nodes;
+        currentLinks = links; // リンク情報を保存
 
         const groupedNodeIds = new Set();
         Object.values(groups).forEach(group => {
@@ -215,13 +298,14 @@
           .force("center", d3.forceCenter(width / 2, height / 2))
           .on("tick", ticked);
 
-        const link = g.selectAll(".link")
+        d3LinkSelection = g.selectAll(".link")
           .data(links)
           .enter().append("line")
           .attr("class", "link")
           .attr("stroke", d => d.color || "#999")
           .attr("marker-end", "url(#arrowhead)");
-        const node = g.selectAll(".node")
+
+        d3NodeSelection = g.selectAll(".node")
           .data(nodes)
           .enter().append("g")
           .attr("class", "node")
@@ -230,26 +314,49 @@
             .on("drag", dragged)
             .on("end", dragended));
 
-        node.append("circle").attr("r", 5);
-        node.append("text")
+        d3NodeSelection.append("circle").attr("r", 5);
+        d3NodeSelection.append("text")
           .attr("x", 12)
           .attr("dy", 4)
           .text(d => d.label);
 
-        node.on("click", (event, d) => {
+        d3NodeSelection.on("click", function(event, d) {
+          event.stopPropagation();
           document.getElementById("nodeInfo").textContent = JSON.stringify(d, null, 2);
+          
+          if (clickedNodeIdForHighlight === d.id) {
+              clickedNodeIdForHighlight = null;
+              resetLinkColors();
+          } else {
+              clickedNodeIdForHighlight = d.id;
+              highlightLinks(d.id);
+          }
+        });
+        
+        svg.on("click", (event) => {
+            if (event.target.tagName === "svg" || (event.target.tagName === "rect" && d3.select(event.target).classed("group-rect"))) {
+                if (clickedNodeIdForHighlight !== null) {
+                    clickedNodeIdForHighlight = null;
+                    resetLinkColors();
+                }
+            }
         });
 
         function ticked() {
-          link
+          d3LinkSelection
             .attr("x1", d => d.source.x)
             .attr("y1", d => d.source.y)
             .attr("x2", d => d.target.x)
             .attr("y2", d => d.target.y);
 
-          node.attr("transform", d => `translate(${d.x},${d.y})`);
+          d3NodeSelection.attr("transform", d => `translate(${d.x},${d.y})`);
 
-          renderGroups(globalGroups, globalNodes);
+          let visibleNodeIdsForGroups = new Set(globalNodes.map(n => n.id));
+          if (selectedLinkedClusterId) {
+              const clusterIdx = parseInt(selectedLinkedClusterId.split(":")[1]);
+              visibleNodeIdsForGroups = new Set(linkedClusters[clusterIdx]);
+          }
+          renderGroups(globalGroups, globalNodes, visibleNodeIdsForGroups);
         }
 
         function dragstarted(event, d) {
@@ -278,63 +385,72 @@
           groupSelect.appendChild(opt);
         });
 
-        groupSelect.onchange = () => {
-          selectedGroupId = groupSelect.value;
-          node.select("text").attr("fill", "black");
-          document.getElementById("groupInfo").textContent = selectedGroupId && groups[selectedGroupId]
-            ? JSON.stringify(groups[selectedGroupId], null, 2)
+        groupSelect.onchange = (e) => {
+          selectedFileGroupId = e.target.value;
+          document.getElementById("groupInfo").textContent = selectedFileGroupId && globalGroups[selectedFileGroupId]
+            ? JSON.stringify(globalGroups[selectedFileGroupId], null, 2)
             : "";
-        
-          if (selectedGroupId && groups[selectedGroupId]) {
-            const ids = groups[selectedGroupId].elements;
-            node.filter(n => ids.includes(n.id))
-              .select("text")
-              .attr("fill", "red");
+          
+          d3NodeSelection.select("text").attr("fill", "black");
+          if (selectedFileGroupId && globalGroups[selectedFileGroupId]) {
+            const groupNodeIds = new Set(globalGroups[selectedFileGroupId].elements);
+            d3NodeSelection.filter(d => groupNodeIds.has(d.id))
+                           .select("text")
+                           .attr("fill", "red");
           }
-        
-          renderGroups(globalGroups, globalNodes);  // ★選択グループだけ赤表示
-
+          
+          let visibleNodeIdsForGroups = new Set(globalNodes.map(n => n.id));
+          if (selectedLinkedClusterId) {
+              const clusterIdx = parseInt(selectedLinkedClusterId.split(":")[1]);
+              visibleNodeIdsForGroups = new Set(linkedClusters[clusterIdx]);
+          }
+          renderGroups(globalGroups, globalNodes, visibleNodeIdsForGroups);
         };
 
         const linkedGroupSelect = document.getElementById("linkedGroupSelect");
         linkedGroupSelect.innerHTML = '<option value="">選択してください</option>';
       
-        const linkedClusters = getLinkedClusters(links);
+        linkedClusters = getLinkedClusters(currentLinks);
         linkedClusters.forEach((cluster, idx) => {
           const opt = document.createElement("option");
           opt.value = "linked:" + idx;
-          opt.textContent = `LinkedGroup - ${idx + 1}`;
-          opt.dataset.type = "linkedgroup";
+          opt.textContent = `LinkedGroup-${idx + 1} (${cluster.length}ノード)`;
           linkedGroupSelect.appendChild(opt);
         });
       
-
-        // グループ選択で表示を切り替え
         linkedGroupSelect.addEventListener("change", (e) => {
-          const val = e.target.value;
-          if (!val) {
-            node.style("display", null);
-            link.style("display", null);
+          selectedLinkedClusterId = e.target.value;
+          
+          if (!selectedLinkedClusterId) {
+            d3NodeSelection.style("display", null);
+            d3LinkSelection.style("display", null);
+            document.getElementById("nodeInfo").textContent = "";
+            fitGraphToView(globalNodes);
+            renderGroups(globalGroups, globalNodes, new Set(globalNodes.map(n => n.id)));
+            clickedNodeIdForHighlight = null;
+            resetLinkColors();
             return;
           }
 
-          const type = e.target.selectedOptions[0].dataset.type;
-          let visibleIds = new Set();
+          const clusterIdx = parseInt(selectedLinkedClusterId.split(":")[1]);
+          const visibleIds = new Set(linkedClusters[clusterIdx]);
 
-          if (type === "filegroup") {
-            visibleIds = new Set(groups[val].elements);
-          } else if (type === "linkedgroup") {
-            const clusterIdx = parseInt(val.split(":")[1]);
-            visibleIds = new Set(linkedClusters[clusterIdx]);
-          }
+          d3NodeSelection.style("display", d => visibleIds.has(d.id) ? null : "none");
+          d3LinkSelection.style("display", d => (visibleIds.has(d.source.id) && visibleIds.has(d.target.id)) ? null : "none");
 
-          // 表示制御
-          node.style("display", d => visibleIds.has(d.id) ? null : "none");
-          link.style("display", d => (visibleIds.has(d.source.id) && visibleIds.has(d.target.id)) ? null : "none");
+          const filteredNodes = globalNodes.filter(n => visibleIds.has(n.id));
+          fitGraphToView(filteredNodes);
+          
+          renderGroups(globalGroups, globalNodes, visibleIds);
+          clickedNodeIdForHighlight = null;
+          resetLinkColors();
         });
 
+        simulation.on("end.initialFit", () => {
+            fitGraphToView(globalNodes);
+            simulation.on("end.initialFit", null);
+        });
       
-        // クラスタ検出関数：Union-Find（連結成分）
         function getLinkedClusters(links) {
           const parent = {};
           const find = x => parent[x] === x ? x : (parent[x] = find(parent[x]));
@@ -353,7 +469,7 @@
             clusters[root].push(n.id);
           });
 
-          return Object.values(clusters).filter(arr => arr.length > 1); // 単独ノード除外
+          return Object.values(clusters).filter(arr => arr.length > 1);
         }
   
       } catch (err) {
@@ -361,46 +477,145 @@
         console.error(err);
       }
     }  
-      
+    
     function renderGroups(groups, nodes, filterNodeIds = null) {
       g.selectAll(".group-rect").remove();
-      g.selectAll("text.group-label").remove();
+      g.selectAll(".group-label").remove();
     
       Object.entries(groups).forEach(([key, group]) => {
-        const groupNodeData = nodes.filter(n => group.elements.includes(n.id));
-        if (filterNodeIds) {
-          // filterNodeIds に1つも含まれていない場合は描画しない
-          const intersection = groupNodeData.filter(n => filterNodeIds.has(n.id));
-          if (intersection.length === 0) return;
-        }
-    
+        const groupNodeData = nodes.filter(n => group.elements.includes(n.id) && filterNodeIds.has(n.id));
+        
+        if (groupNodeData.length === 0) return;
+
         const xCoords = groupNodeData.map(n => n.x);
         const yCoords = groupNodeData.map(n => n.y);
-        if (xCoords.length === 0 || yCoords.length === 0) return;
-    
+        
+        if (xCoords.some(isNaN) || yCoords.some(isNaN)) return;
+
         const padding = 20;
         const minX = Math.min(...xCoords) - padding;
         const minY = Math.min(...yCoords) - padding;
-        const width = Math.max(...xCoords) - minX + padding;
-        const height = Math.max(...yCoords) - minY + padding;
+        const maxX = Math.max(...xCoords) + padding;
+        const maxY = Math.max(...yCoords) + padding;
+
+        const rectWidth = maxX - minX;
+        const rectHeight = maxY - minY;
     
         g.append("rect")
           .attr("class", "group-rect")
           .attr("x", minX)
           .attr("y", minY)
-          .attr("width", width)
-          .attr("height", height)
-          .attr("stroke", "blue");
+          .attr("width", rectWidth)
+          .attr("height", rectHeight)
+          .attr("stroke", key === selectedFileGroupId ? "red" : "blue");
         g.append("text")
           .attr("class", "group-label")
-          .attr("x", x + 5)
-          .attr("y", y + 15)
-          .attr("fill", color)
+          .attr("x", minX + 5)
+          .attr("y", minY + 15)
+          .attr("fill", key === selectedFileGroupId ? "red" : "black")
           .attr("font-size", "12px")
-          .text(group.label || groupId);
+          .text(group.label || key);
       });
     }
+
+    function fitGraphToView(nodesToFit) {
+        if (!nodesToFit || nodesToFit.length === 0) {
+            console.warn("ズーム対象ノードがありません。");
+            return;
+        }
+
+        if (simulation.alpha() > simulation.alphaMin()) {
+            simulation.on("end.fit", () => {
+                performFit(nodesToFit);
+                simulation.on("end.fit", null);
+            });
+            if (simulation.alpha() < 0.05) {
+                simulation.alpha(0.05).restart();
+            }
+        } else {
+            performFit(nodesToFit);
+        }
+    }
+
+    function performFit(nodesToFit) {
+        const validNodes = nodesToFit.filter(n => typeof n.x === 'number' && typeof n.y === 'number');
+        if (validNodes.length === 0) {
+            console.warn("有効なノード位置情報がないためフィットできません。");
+            return;
+        }
+
+        const xCoords = validNodes.map(n => n.x);
+        const yCoords = validNodes.map(n => n.y);
+
+        const minX = Math.min(...xCoords);
+        const maxX = Math.max(...xCoords);
+        const minY = Math.min(...yCoords);
+        const maxY = Math.max(...yCoords);
+
+        const graphWidth = maxX - minX;
+        const graphHeight = maxY - minY;
+
+        const padding = 50; 
+        const viewBoxWidth = graphWidth + padding * 2;
+        const viewBoxHeight = graphHeight + padding * 2;
+
+        const scaleX = width / viewBoxWidth;
+        const scaleY = height / viewBoxHeight;
+        const scale = Math.min(scaleX, scaleY, 1.5);
+
+        const centerX = (minX + maxX) / 2;
+        const centerY = (minY + maxY) / 2;
+
+        const translateX = (width / 2) - centerX * scale;
+        const translateY = (height / 2) - centerY * scale;
         
+        svg.transition()
+            .duration(750)
+            .call(zoom.transform, d3.zoomIdentity.translate(translateX, translateY).scale(scale));
+    }
+
+    function highlightLinks(clickedNodeId) {
+      d3LinkSelection
+        .attr("stroke", d => {
+            if (d.isBidirectional && (d.source.id === clickedNodeId || d.target.id === clickedNodeId)) {
+                return "purple";
+            } else if (d.source.id === clickedNodeId) {
+                return "red";
+            } else if (d.target.id === clickedNodeId) {
+                return "blue";
+            } else {
+                return d.color || "#999";
+            }
+        })
+        .attr("marker-end", d => {
+            if (d.isBidirectional && (d.source.id === clickedNodeId || d.target.id === clickedNodeId)) {
+                return "url(#arrowhead-purple)";
+            } else if (d.source.id === clickedNodeId) {
+                return "url(#arrowhead-red)";
+            } else if (d.target.id === clickedNodeId) {
+                return "url(#arrowhead-blue)";
+            } else {
+                return "url(#arrowhead)";
+            }
+        })
+        .classed("dimmed", d => {
+            // クリックされたノードと全く関係ないリンクを薄くする
+            return d.source.id !== clickedNodeId && d.target.id !== clickedNodeId;
+        })
+        .classed("highlight-source", d => d.source.id === clickedNodeId && !d.isBidirectional)
+        .classed("highlight-target", d => d.target.id === clickedNodeId && !d.isBidirectional)
+        .classed("highlight-bidirectional", d => d.isBidirectional && (d.source.id === clickedNodeId || d.target.id === clickedNodeId));
+    }
+
+    function resetLinkColors() {
+      d3LinkSelection
+        .attr("stroke", d => d.color || "#999")
+        .attr("marker-end", "url(#arrowhead)")
+        .classed("dimmed", false)
+        .classed("highlight-source", false)
+        .classed("highlight-target", false)
+        .classed("highlight-bidirectional", false); // 追加
+    }
   </script>
 </body>
 </html>
