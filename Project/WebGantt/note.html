@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>作業メモ</title>
+<style>
+  :root{ --bg:#11151c; --panel:#1a2029; --panel2:#222a36; --line:#2c3543; --fg:#e1e7f0; --muted:#9aa6b8; --accent:#2f6fb3; --err:#e0594c; --ok:#4db366; }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;height:100%;background:var(--bg);color:var(--fg);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Hiragino Kaku Gothic ProN","Yu Gothic",Meiryo,sans-serif;font-size:14px;}
+  #app{display:flex;flex-direction:column;height:100%;}
+  .topbar{display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--panel);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5;}
+  .topbar .title{flex:1;font:inherit;color:var(--fg);background:transparent;border:0;border-bottom:1px solid var(--line);padding:6px 2px;font-weight:700;min-width:0;}
+  button{font:inherit;color:var(--fg);background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:7px 10px;min-height:38px;cursor:pointer;}
+  button:active{filter:brightness(1.25);}
+  button.primary{background:var(--accent);border-color:var(--accent);}
+  button.danger{background:#7a2424;border-color:#7a2424;}
+  button.small{padding:5px 8px;min-height:32px;font-size:13px;}
+  .body{flex:1;overflow:auto;padding:10px;}
+  .block{border:1px solid var(--line);border-radius:10px;background:var(--panel);margin-bottom:10px;overflow:hidden;}
+  .block .bhd{display:flex;align-items:center;gap:4px;padding:4px 6px;background:var(--panel2);border-bottom:1px solid var(--line);}
+  .block .bhd .lbl{flex:1;color:var(--muted);font-size:12px;}
+  .block textarea{width:100%;border:0;background:transparent;color:var(--fg);font:inherit;padding:8px;min-height:70px;resize:vertical;}
+  .block img{display:block;max-width:100%;height:auto;}
+  .addbar{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0 16px;}
+  .addbar button{flex:1;min-width:130px;}
+  .aipanel{position:sticky;bottom:0;background:var(--panel);border-top:1px solid var(--line);padding:8px 10px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
+  .aipanel .sp{flex:1;color:var(--muted);font-size:12px;}
+  .badge{display:inline-block;min-width:42px;text-align:center;padding:3px 6px;border-radius:10px;background:var(--panel2);border:1px solid var(--line);font-size:12px;}
+  .toast{position:fixed;left:50%;bottom:70px;transform:translateX(-50%);background:#0c1014;border:1px solid var(--line);padding:10px 16px;border-radius:10px;z-index:99;box-shadow:0 4px 12px rgba(0,0,0,.5);}
+  .hint{color:var(--muted);font-size:12px;margin:2px 0 10px;}
+  .empty{color:var(--muted);text-align:center;padding:24px;}
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="topbar">
+    <button class="small" id="btnBack" title="閉じる">←</button>
+    <input id="title" class="title" placeholder="メモのタイトル">
+    <span id="saveState" class="small" style="color:var(--muted)"></span>
+  </div>
+  <div class="body" id="body">
+    <div class="hint" id="ctxHint"></div>
+    <div id="blocks"></div>
+    <div class="addbar">
+      <button id="addText">＋ テキスト</button>
+      <button id="addImage">＋ 画像（カメラ/選択）</button>
+    </div>
+    <div class="hint">画像はテキスト欄に貼り付け(ペースト)しても自動で画像ブロックになります。</div>
+    <input type="file" id="imgInput" accept="image/*" capture="environment" style="display:none" multiple>
+  </div>
+  <div class="aipanel">
+    <button id="copyText" class="primary">📋 テキストコピー</button>
+    <button id="copyImage">🖼️ 画像コピー</button>
+    <span class="badge" id="imgBadge">画像 0</span>
+    <span class="sp"></span>
+    <button class="small" id="exportBtn">⬇ JSON</button>
+  </div>
+</div>
+
+<script>
+(function(){
+"use strict";
+const $ = (id)=>document.getElementById(id);
+const params = new URLSearchParams(location.search);
+const NOTE_ID = params.get("id") || "default";
+const TITLE_PARAM = params.get("title") || "";
+const LS_KEY = "webgantt_note_v1::" + NOTE_ID;
+
+// ---- ホスト連携(任意): Gantのサーバー版(index.html)が iframe で開いた場合、
+//      localStorage ではなく親へ load/save を委譲する。?host=1 で有効。 ----
+const HOST_MODE = (window.parent && window.parent !== window) && params.get("host") === "1";
+let _hostSaveTimer = null, _hostLoaded = false;
+
+let data = { id: NOTE_ID, title: "", blocks: [], updated: "" };
+let imgCycle = 0;
+
+function nowStr(){ const d=new Date(); const p=n=>String(n).padStart(2,"0");
+  return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`; }
+
+function load(){
+  if(HOST_MODE) return; // 親からの postMessage を待つ
+  try{ const s=localStorage.getItem(LS_KEY); if(s) data=JSON.parse(s); }catch(e){}
+  if(!data.blocks) data.blocks=[];
+  if(TITLE_PARAM && !data.title) data.title=TITLE_PARAM;
+}
+let saveTimer=null;
+function save(){
+  data.updated = nowStr();
+  $("saveState").textContent = "保存中…";
+  if(HOST_MODE){
+    if(_hostSaveTimer) clearTimeout(_hostSaveTimer);
+    _hostSaveTimer=setTimeout(()=>{ try{ window.parent.postMessage({type:"webgantt-note:save", id:NOTE_ID, note:data}, location.origin); }catch(e){} $("saveState").textContent="保存済"; }, 300);
+    return;
+  }
+  if(saveTimer) clearTimeout(saveTimer);
+  saveTimer=setTimeout(()=>{
+    try{ localStorage.setItem(LS_KEY, JSON.stringify(data)); $("saveState").textContent="保存済"; }
+    catch(e){ $("saveState").textContent="保存失敗(容量?)"; }
+    setTimeout(()=>{ if($("saveState").textContent==="保存済") $("saveState").textContent=""; }, 1200);
+  }, 250);
+}
+
+function el(tag, attrs, kids){
+  const n=document.createElement(tag);
+  if(attrs) for(const k in attrs){
+    if(k==="class") n.className=attrs[k];
+    else if(k==="style") n.style.cssText=attrs[k];
+    else if(k.startsWith("on")) n.addEventListener(k.slice(2), attrs[k]);
+    else if(attrs[k]!=null) n.setAttribute(k, attrs[k]);
+  }
+  (Array.isArray(kids)?kids:[kids]).forEach(c=>{ if(c==null)return; n.appendChild(typeof c==="string"?document.createTextNode(c):c); });
+  return n;
+}
+function toast(m){ const t=el("div",{class:"toast"},m); document.body.appendChild(t); setTimeout(()=>t.remove(),1800); }
+
+function render(){
+  $("title").value = data.title||"";
+  $("ctxHint").textContent = NOTE_ID==="default" ? "" : ("メモID: "+NOTE_ID);
+  const box=$("blocks"); box.innerHTML="";
+  if(!data.blocks.length){ box.appendChild(el("div",{class:"empty"},"ブロックがありません。下のボタンで追加してください。")); }
+  data.blocks.forEach((b,i)=>{
+    const hd=el("div",{class:"bhd"},[
+      el("span",{class:"lbl"}, b.type==="image"?"画像":"テキスト"),
+      el("button",{class:"small",title:"上へ",onclick:()=>move(i,-1)},"↑"),
+      el("button",{class:"small",title:"下へ",onclick:()=>move(i,1)},"↓"),
+      el("button",{class:"small danger",title:"削除",onclick:()=>{ data.blocks.splice(i,1); save(); render(); }},"削"),
+    ]);
+    let content;
+    if(b.type==="image"){
+      content=el("img",{src:b.data, alt:"image"});
+    }else{
+      content=el("textarea",{placeholder:"テキスト…"});
+      content.value=b.text||"";
+      content.addEventListener("input",()=>{ b.text=content.value; save(); });
+      content.addEventListener("paste",(e)=>handlePaste(e, i));
+    }
+    box.appendChild(el("div",{class:"block"},[hd, content]));
+  });
+  updateImgBadge();
+}
+function move(i, d){ const j=i+d; if(j<0||j>=data.blocks.length) return; const t=data.blocks[i]; data.blocks[i]=data.blocks[j]; data.blocks[j]=t; save(); render(); }
+
+function addText(){ data.blocks.push({type:"text", text:""}); save(); render(); }
+function addImageFiles(files){
+  const arr=Array.from(files||[]);
+  let pending=arr.length; if(!pending) return;
+  arr.forEach(f=>{
+    if(!f.type.startsWith("image/")){ if(--pending===0){save();render();} return; }
+    const r=new FileReader();
+    r.onload=()=>{ data.blocks.push({type:"image", data:r.result}); if(--pending===0){ save(); render(); } };
+    r.onerror=()=>{ if(--pending===0){ save(); render(); } };
+    r.readAsDataURL(f);
+  });
+}
+function handlePaste(e, idx){
+  const items=(e.clipboardData||{}).items||[];
+  for(const it of items){
+    if(it.type && it.type.startsWith("image/")){
+      e.preventDefault();
+      const f=it.getAsFile(); const r=new FileReader();
+      r.onload=()=>{ // ペースト位置の直後に画像ブロックを挿入
+        const at=(typeof idx==="number")?idx+1:data.blocks.length;
+        data.blocks.splice(at,0,{type:"image", data:r.result}); save(); render();
+      };
+      r.readAsDataURL(f); return;
+    }
+  }
+}
+
+function allText(){
+  return data.blocks.filter(b=>b.type==="text" && (b.text||"").trim())
+    .map(b=>b.text.trim()).join("\n\n");
+}
+function images(){ return data.blocks.filter(b=>b.type==="image"); }
+function updateImgBadge(){
+  const n=images().length;
+  $("imgBadge").textContent = n? `画像 ${Math.min(imgCycle+1,n)}/${n}` : "画像 0";
+}
+async function copyText(){
+  const t=(data.title?("# "+data.title+"\n\n"):"")+allText();
+  try{ await navigator.clipboard.writeText(t); toast("テキストをコピーしました"); }
+  catch(e){ toast("コピー不可。手動で選択してください"); }
+}
+function dataURLtoBlob(durl){
+  const [head,b64]=durl.split(","); const mime=(head.match(/data:(.*?);/)||[])[1]||"image/png";
+  const bin=atob(b64); const u=new Uint8Array(bin.length);
+  for(let i=0;i<bin.length;i++) u[i]=bin.charCodeAt(i);
+  return new Blob([u],{type:mime});
+}
+function toPngBlob(dataURL){
+  return new Promise((resolve,reject)=>{
+    const img=new Image();
+    img.onload=()=>{
+      try{
+        const c=document.createElement("canvas");
+        c.width=img.naturalWidth||img.width; c.height=img.naturalHeight||img.height;
+        c.getContext("2d").drawImage(img,0,0);
+        c.toBlob(bl=>{ bl?resolve(bl):reject(new Error("toBlob失敗")); }, "image/png");
+      }catch(err){ reject(err); }
+    };
+    img.onerror=()=>reject(new Error("画像の読込に失敗"));
+    img.src=dataURL;
+  });
+}
+async function copyImage(){
+  const imgs=images(); if(!imgs.length){ toast("画像がありません"); return; }
+  const b=imgs[imgCycle % imgs.length];
+  try{
+    if(!navigator.clipboard || !window.ClipboardItem) throw new Error("Clipboard API 非対応");
+    // ClipboardItem の書き込みは image/png のみ広く対応。JPEG等もPNGへ変換する。
+    const pngBlob = await toPngBlob(b.data);
+    await navigator.clipboard.write([new window.ClipboardItem({"image/png": pngBlob})]);
+    toast(`画像 ${ (imgCycle%imgs.length)+1 }/${imgs.length} をコピー`);
+    imgCycle=(imgCycle+1)%imgs.length;
+  }catch(e){ toast("画像コピー不可: " + (e&&e.message||e)); }
+  updateImgBadge();
+}
+function exportJSON(){
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});
+  const a=document.createElement("a"); a.href=URL.createObjectURL(blob);
+  a.download=(data.title||NOTE_ID||"note")+".json"; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+}
+
+function bind(){
+  $("title").addEventListener("input",()=>{ data.title=$("title").value; save(); });
+  $("addText").onclick=addText;
+  $("addImage").onclick=()=>$("imgInput").click();
+  $("imgInput").onchange=(e)=>{ addImageFiles(e.target.files); e.target.value=""; };
+  $("copyText").onclick=copyText;
+  $("copyImage").onclick=copyImage;
+  $("exportBtn").onclick=exportJSON;
+  $("btnBack").onclick=()=>{ if(HOST_MODE){ try{ window.parent.postMessage({type:"webgantt-note:close", id:NOTE_ID}, location.origin); }catch(e){} } else if(window.history.length>1){ history.back(); } else { window.close(); } };
+  // どこに貼っても画像なら取り込む
+  document.addEventListener("paste",(e)=>{
+    const items=(e.clipboardData||{}).items||[];
+    for(const it of items){ if(it.type && it.type.startsWith("image/")){ handlePaste(e, data.blocks.length-1); return; } }
+  });
+  if(HOST_MODE){
+    window.addEventListener("message",(e)=>{
+      if(e.origin!==location.origin) return;
+      const d=e.data||{};
+      if(d.type==="webgantt-note:data" && d.id===NOTE_ID){ data=d.note||{id:NOTE_ID,title:"",blocks:[]}; if(!data.blocks)data.blocks=[]; _hostLoaded=true; render(); }
+    });
+    try{ window.parent.postMessage({type:"webgantt-note:ready", id:NOTE_ID}, location.origin); }catch(e){}
+  }
+}
+
+function init(){ load(); bind(); render(); }
+document.addEventListener("DOMContentLoaded", init);
+})();
+</script>
+</body>
+</html>

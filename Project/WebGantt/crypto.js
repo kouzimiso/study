@@ -82,5 +82,5 @@
     return out.join("-");
   }
 
-  return { encrypt, decrypt, deriveKey, generateRecoveryCode, DEFAULT_KDF, _b64encode: b64encode, _b64decode: b64decode };
+  return { encrypt, decrypt, deriveKey, generateRecoveryCode, DEFAULT_KDF, isSecure: function(){ return !!subtle; }, _b64encode: b64encode, _b64decode: b64decode };
 });

@@ -246,21 +246,42 @@
     defaultMin = defaultMin || 60;
     const todos = plan.todo || [];
     const out = [];
-    const cursor = { v: parentStart };
-    function walk(items, prefix, depth) {
+    // 期限のない(開始も終了も明示なし)Todoは、その階層の区間[segStart,segEnd]を
+    // 件数で等分して並べる（完了済みの実績時刻に引きずられて現在時刻付近から
+    // 表示される問題を回避）。明示的な start/end を持つTodoはその時刻を使う。
+    function walk(items, segStart, segEnd, prefix, depth) {
+      const bounded = (segStart != null && segEnd != null && (segEnd.getTime() - segStart.getTime()) > 0);
+      let autoCount = 0;
+      for (const t of items) {
+        if (t && typeof t === "object" && parseDt(t.start) == null && parseDt(t.end) == null) autoCount++;
+      }
+      const slice = (bounded && autoCount > 0) ? (segEnd.getTime() - segStart.getTime()) / autoCount : null;
+      let autoIdx = 0;
+      let cursor = segStart;
       items.forEach((t, idx) => {
         if (!t || typeof t !== "object") return;
         const path = prefix.concat([idx]);
         const s = parseDt(t.start);
         const e = parseDt(t.end, { endOfDay: true });
         const est = todoEstimateMin(t, 0);
-        const ps = (s != null) ? s : cursor.v;
-        let pe;
-        if (e != null) pe = e;
-        else if (ps != null && est > 0) pe = new Date(ps.getTime() + est * 60000);
-        else if (ps != null && parentEnd != null) pe = new Date(ps.getTime() + defaultMin * 60000);
-        else pe = null;
-        if (pe != null) cursor.v = pe;
+        let ps, pe;
+        if (s != null || e != null) {
+          ps = (s != null) ? s : cursor;
+          if (e != null) pe = e;
+          else if (ps != null && est > 0) pe = new Date(ps.getTime() + est * 60000);
+          else if (ps != null && segEnd != null) pe = new Date(ps.getTime() + defaultMin * 60000);
+          else pe = null;
+        } else if (slice != null) {
+          ps = new Date(segStart.getTime() + autoIdx * slice);
+          pe = new Date(segStart.getTime() + (autoIdx + 1) * slice);
+          autoIdx++;
+        } else {
+          ps = cursor;
+          if (ps != null && est > 0) pe = new Date(ps.getTime() + est * 60000);
+          else if (ps != null && segEnd != null) pe = new Date(ps.getTime() + defaultMin * 60000);
+          else pe = null;
+        }
+        if (pe != null) cursor = pe;
         const milestone = pe == null;
         const aStarts = [], aEnds = [];
         for (const ws of (t.work_sessions || [])) {
@@ -279,10 +300,10 @@
           actual_end: aEnds.length ? new Date(Math.max.apply(null, aEnds)) : null,
           estimate_min: est, actual_min: actualMinutes(t, now), milestone: milestone,
         });
-        if (t.children && t.children.length) walk(t.children, path, depth + 1);
+        if (t.children && t.children.length) walk(t.children, ps, pe, path, depth + 1);
       });
     }
-    walk(todos, [], 0);
+    walk(todos, parentStart, parentEnd, [], 0);
     return out;
   }
   function countTodosDeep(todos) {

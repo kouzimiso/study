@@ -107,12 +107,16 @@
 "use strict";
 const CFG = window.WEBGANTT_CONFIG || { mode:"local" };
 const C = window.GanttCrypto, P = window.GanttProviders;
+const CRYPTO_OK = !!(C && C.isSecure && C.isSecure()); // file:// 等の非セキュアでは false
+if (location.protocol === "file:" && !CRYPTO_OK) { CFG.mode = "local"; } // file://(暗号不可)はローカルで起動
 const $ = (id)=>document.getElementById(id);
 const show = (id)=>{ ["screen-login","screen-pass","screen-app"].forEach(s=>$(s).classList.toggle("hidden", s!==id)); };
 
 let backend = null;
 let passphrase = null;     // メモリ内のみ
 let bundle = null;         // 復号済みデータ（メモリ内のみ）
+let notes = {};            // 作業メモ本文 { note_id: {...} }（暗号バンドルに含めて同期）
+let noteFrame = null, notePendingTitle = "";
 let isNew = false;         // 初回（保存データ無し）か
 let frame = null;
 let saveTimer = null;
@@ -178,6 +182,21 @@ async function afterLogin(){
   }catch(e){
     show("screen-login"); fail("loginMsg","データ取得失敗: " + (e&&e.message||e)); return;
   }
+  if(!CRYPTO_OK){
+    if(CFG.mode === "local"){
+      // 暗号化が使えない環境(file:// 等)。ローカルは平文で続行する。
+      passphrase = null;
+      let payload = ciphertext ? decryptPlain(ciphertext) : emptyBundle();
+      notes = (payload && payload.notes) ? payload.notes : {};
+      if(payload && "notes" in payload) delete payload.notes;
+      bundle = payload;
+      openApp();
+      return;
+    }
+    show("screen-login");
+    fail("loginMsg","この環境では暗号化が使えません（file:// など）。HTTPS の URL か http://localhost で開いてください。");
+    return;
+  }
   isNew = !ciphertext;
   $("confirmWrap").classList.toggle("hidden", !isNew);
   $("passTitle").textContent = isNew ? "パスフレーズを新規作成" : "パスフレーズを入力";
@@ -199,10 +218,14 @@ async function doPass(){
       if(pp !== $("passConfirm").value) throw new Error("確認用パスフレーズが一致しません");
       passphrase = pp;
       bundle = CFG.sampleIfEmpty ? sampleBundle() : emptyBundle();
+      notes = {};
       await persist();                 // 初回保存（暗号化）
     } else {
       passphrase = pp;
-      bundle = await C.decrypt(ciphertext, passphrase);  // 誤りは例外
+      const full = await C.decrypt(ciphertext, passphrase);
+      notes = (full && full.notes) ? full.notes : {};
+      if (full && "notes" in full) delete full.notes;
+      bundle = full;  // 誤りは例外
     }
     openApp();
   }catch(e){
@@ -216,8 +239,22 @@ function emptyBundle(){ return { state:{files:[],targetIdx:0}, settings:{}, temp
 function sampleBundle(){ return { state:{files:[],targetIdx:0}, settings:{}, templates:{}, schedState:{} }; }
 
 /* ---------- 暗号化して保存 ---------- */
+function decryptPlain(ct){
+  try{
+    if(typeof ct==="string" && ct.indexOf("PLAIN:")===0) return JSON.parse(ct.slice(6));
+    const o=JSON.parse(ct);
+    if(o && o.state) return o;           // 旧・平文バンドル
+  }catch(_){}
+  return emptyBundle();
+}
 async function persist(){
-  const ct = await C.encrypt(bundle, passphrase, CFG.kdf || {});
+  const payload = Object.assign({}, bundle, { notes: notes });
+  let ct;
+  if(CRYPTO_OK && passphrase != null){
+    ct = await C.encrypt(payload, passphrase, CFG.kdf || {});
+  }else{
+    ct = "PLAIN:" + JSON.stringify(payload);   // 暗号不可ローカル(file://等)
+  }
   ciphertext = ct;
   await backend.save(ct);
 }
@@ -233,7 +270,7 @@ function scheduleSave(){
 /* ---------- アプリ(iframe)をマウントしブリッジ ---------- */
 function openApp(){
   const u = backend.currentUser && backend.currentUser();
-  $("whoami").textContent = u ? ("@"+u.name) : "";
+  $("whoami").textContent = (u ? ("@"+u.name) : "") + (CRYPTO_OK ? "" : "（暗号化なし/ローカル）");
   $("frameWrap").innerHTML = "";
   frame = document.createElement("iframe");
   frame.src = "gantt.html?host=1";
@@ -251,11 +288,51 @@ window.addEventListener("message", function(e){
   } else if(d.type === "webgantt:save"){
     bundle = d.bundle;
     scheduleSave();
+  } else if(d.type === "webgantt:open-note"){
+    openNoteOverlay(d.id, d.title || "");
+  } else if(d.type === "webgantt-note:ready"){
+    if(noteFrame && noteFrame.contentWindow){
+      const note = notes[d.id] || { id:d.id, title: notePendingTitle, blocks: [] };
+      try{ noteFrame.contentWindow.postMessage({type:"webgantt-note:data", id:d.id, note:note}, location.origin); }catch(_){}
+    }
+  } else if(d.type === "webgantt-note:save"){
+    notes[d.id] = d.note;
+    scheduleSave();
+    if(frame && frame.contentWindow){ try{ frame.contentWindow.postMessage({type:"webgantt:note-title", id:d.id, title:(d.note&&d.note.title)||""}, location.origin); }catch(_){} }
+  } else if(d.type === "webgantt-note:close"){
+    closeNoteOverlay();
   }
 });
 
+/* ---------- 作業メモ(note.html)をオーバーレイiframeで開く（gistモードで暗号同期） ---------- */
+function openNoteOverlay(id, title){
+  notePendingTitle = title || "";
+  closeNoteOverlay();
+  const ovl = document.createElement("div");
+  ovl.id = "noteOvl";
+  ovl.style.cssText = "position:fixed;inset:0;z-index:60;background:var(--bg);display:flex;flex-direction:column;";
+  const bar = document.createElement("div");
+  bar.style.cssText = "display:flex;align-items:center;gap:8px;padding:6px 10px;background:var(--panel);border-bottom:1px solid var(--line);";
+  const t = document.createElement("div"); t.textContent = "📝 作業メモ"; t.style.cssText="flex:1;font-weight:700;";
+  const x = document.createElement("button"); x.textContent="閉じる"; x.style.cssText="width:auto;margin:0;padding:6px 10px;min-height:34px;";
+  x.onclick = closeNoteOverlay;
+  bar.appendChild(t); bar.appendChild(x);
+  noteFrame = document.createElement("iframe");
+  noteFrame.style.cssText = "border:0;flex:1;width:100%;";
+  noteFrame.setAttribute("allow", "clipboard-write; clipboard-read");
+  noteFrame.src = "note.html?host=1&id=" + encodeURIComponent(id) + "&title=" + encodeURIComponent(title || "");
+  ovl.appendChild(bar); ovl.appendChild(noteFrame);
+  document.body.appendChild(ovl);
+}
+function closeNoteOverlay(){
+  const ovl = document.getElementById("noteOvl");
+  if(ovl) ovl.remove();
+  noteFrame = null;
+}
+
 function logout(){
-  passphrase = null; bundle = null; ciphertext = null;
+  passphrase = null; bundle = null; ciphertext = null; notes = {};
+  closeNoteOverlay();
   if(backend && backend.logout) backend.logout();
   if(frame){ frame.src = "about:blank"; frame = null; }
   $("frameWrap").innerHTML = "";
