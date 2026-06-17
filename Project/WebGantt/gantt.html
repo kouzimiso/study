@@ -177,24 +177,22 @@ let offset = 0;
 const HOST_MODE = (window.parent && window.parent !== window) &&
   new URLSearchParams(location.search).get("host") === "1";
 
-/* ============ 直接アクセス防御 ============
- * サーバー版(gist/selfserver)では、ログイン用 index.html の iframe 内(host=1)から
- * 開かれるのが正規ルート。単体で /gantt.html に直接アクセスされた場合はログイン画面へ
- * 誘導し、認証を経ていない直アクセスでの表示・端末ローカルデータの閲覧を防ぐ。
- * file://(ローカル単体) と local モードは従来どおり単体動作を許可する。 */
+/* ============ 直接アクセス防御（デフォルト拒否） ============
+ * 正規ルートはログイン用 index.html の iframe(host=1)。それ以外で http(s) 配信の
+ * gantt.html を直接開いた場合（config が gist/selfserver、または config 未読込で不明）は
+ * サンプル含むデータを一切描画せず index.html(ログイン) へ誘導する。
+ * 単体描画を許可するのは host モード / file:// / mode==="local" のみ。 */
 var DIRECT_BLOCKED = (function(){
-  try{
-    if(HOST_MODE) return false;                      // index.html 経由(正規)
-    if(location.protocol === "file:") return false;  // ローカル単体(file://)
-    var mode = (window.WEBGANTT_CONFIG && window.WEBGANTT_CONFIG.mode) || "";
-    if(mode === "gist" || mode === "selfserver"){
-      try{ document.documentElement.style.visibility = "hidden"; }catch(_){}
-      location.replace("index.html");                // 認証シェルへ誘導
-      return true;
-    }
-  }catch(e){}
-  return false;
+  if(HOST_MODE) return false;                      // index.html 経由(正規)
+  if(location.protocol === "file:") return false;  // ローカル単体(file://)
+  var cfg = window.WEBGANTT_CONFIG || {};
+  if(cfg.mode === "local") return false;           // 明示ローカルモードのみ単体許可
+  return true;                                     // それ以外は拒否
 })();
+if(DIRECT_BLOCKED){
+  try{ document.documentElement.style.visibility = "hidden"; }catch(_){}
+  try{ location.replace("index.html"); }catch(_){}
+}
 let _hostSaveTimer = null;
 function getBundle(){ return { state, settings, templates, schedState }; }
 function applyBundle(b){
@@ -1245,6 +1243,17 @@ function bootstrap(){
   render();
 }
 function init(){
+  if(DIRECT_BLOCKED){
+    try{
+      document.documentElement.style.visibility = "";
+      document.body.innerHTML =
+        '<div style="padding:24px;font-family:sans-serif;color:#e1e7f0;background:#11151c;min-height:100vh">'
+        + '<h2 style="margin:0 0 8px">ログインが必要です</h2>'
+        + '<p style="color:#9aa6b8">このページは直接表示できません。'
+        + '<a href="index.html" style="color:#7ab3e0">ログイン画面へ移動</a></p></div>';
+    }catch(_){}
+    return;
+  }
   if(!G){ document.body.innerHTML="<p style='padding:20px'>gantt_core.js が読み込めませんでした。同じフォルダに置いてください。</p>"; return; }
   loadAll();
   bind();
