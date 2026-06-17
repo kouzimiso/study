@@ -51,11 +51,13 @@
         <button id="tabRegister">新規登録</button>
       </div>
       <div id="fieldsGist" class="hidden">
-        <label class="fld">GitHub Fine-grained PAT（gist権限）</label>
-        <input id="gistToken" type="password" placeholder="github_pat_...">
+        <label class="fld">GitHub Personal Access Token（classic・gistスコープ）</label>
+        <input id="gistToken" type="password" placeholder="ghp_... (classic, gist scope)">
         <div class="hint">
-          GitHubアカウントでログインします。<a href="https://github.com/settings/personal-access-tokens" target="_blank" rel="noopener">設定 → Developer settings → Fine-grained tokens</a> で
-          <b>Account permissions → Gists: Read and write</b> を付けたトークンを作成して貼り付けてください。
+          <b>Classic</b> のトークンを使ってください（Fine-grained は Gist API で 403 になります）。
+          <a href="https://github.com/settings/tokens/new?scopes=gist&description=WebGantt" target="_blank" rel="noopener">このリンク</a>
+          を開くと <b>gist</b> スコープが選択済みで開きます。期限を選び「Generate token」→ <code>ghp_</code> で始まる文字列を貼り付け。
+          （手動の場合: Settings → Developer settings → Tokens (classic) → <b>gist</b> だけチェック）
         </div>
       </div>
       <div id="fieldsServer" class="hidden">
