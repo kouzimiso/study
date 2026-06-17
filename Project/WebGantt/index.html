@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>スケジュール（サーバー版・E2E暗号化）</title>
+<script src="config.js"></script>
+<script src="crypto.js"></script>
+<script src="providers.js"></script>
+<style>
+  :root{ --bg:#11151c; --panel:#1a2029; --panel2:#222a36; --line:#2c3543; --fg:#e1e7f0; --muted:#9aa6b8; --accent:#2f6fb3; --err:#e0594c; --ok:#4db366; }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;height:100%;background:var(--bg);color:var(--fg);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Hiragino Kaku Gothic ProN","Yu Gothic",Meiryo,sans-serif;font-size:14px;}
+  #app{display:flex;flex-direction:column;height:100%;}
+  .center{flex:1;display:flex;align-items:center;justify-content:center;padding:16px;}
+  .card{width:100%;max-width:420px;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px;}
+  .card h1{font-size:18px;margin:0 0 4px;}
+  .card .sub{color:var(--muted);font-size:13px;margin:0 0 16px;}
+  label.fld{display:block;color:var(--muted);font-size:12px;margin:10px 0 4px;}
+  input{width:100%;font:inherit;color:var(--fg);background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:10px;min-height:42px;}
+  button{font:inherit;color:var(--fg);background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:10px 12px;min-height:42px;cursor:pointer;width:100%;margin-top:12px;}
+  button.primary{background:var(--accent);border-color:var(--accent);}
+  button:active{filter:brightness(1.2);}
+  .msg{margin-top:10px;font-size:13px;min-height:18px;}
+  .msg.err{color:var(--err);} .msg.ok{color:var(--ok);}
+  .tabs{display:flex;gap:6px;margin-bottom:8px;}
+  .tabs button{margin:0;flex:1;}
+  .tabs button.on{background:var(--accent);border-color:var(--accent);}
+  .hint{color:var(--muted);font-size:12px;margin-top:10px;line-height:1.5;}
+  .hint a{color:#7ab3e0;}
+  .topbar{display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--panel);border-bottom:1px solid var(--line);}
+  .topbar .title{font-weight:700;margin-right:auto;}
+  .topbar .who{color:var(--muted);font-size:12px;}
+  .topbar button{width:auto;margin:0;padding:6px 10px;min-height:34px;font-size:13px;}
+  #saveState{color:var(--muted);font-size:12px;min-width:64px;text-align:right;}
+  #frameWrap{flex:1;position:relative;}
+  iframe{border:0;width:100%;height:100%;display:block;background:var(--bg);}
+  .hidden{display:none !important;}
+</style>
+</head>
+<body>
+<div id="app">
+  <!-- ログイン/登録 -->
+  <div id="screen-login" class="center hidden">
+    <div class="card">
+      <h1>スケジュール（暗号化）</h1>
+      <p class="sub" id="loginSub">ログインしてください</p>
+      <div id="ssTabs" class="tabs hidden">
+        <button id="tabLogin" class="on">ログイン</button>
+        <button id="tabRegister">新規登録</button>
+      </div>
+      <div id="fieldsGist" class="hidden">
+        <label class="fld">GitHub Fine-grained PAT（gist権限）</label>
+        <input id="gistToken" type="password" placeholder="github_pat_...">
+        <div class="hint">
+          GitHubアカウントでログインします。<a href="https://github.com/settings/personal-access-tokens" target="_blank" rel="noopener">設定 → Developer settings → Fine-grained tokens</a> で
+          <b>Account permissions → Gists: Read and write</b> を付けたトークンを作成して貼り付けてください。
+        </div>
+      </div>
+      <div id="fieldsServer" class="hidden">
+        <label class="fld">ユーザー名</label>
+        <input id="ssUser" type="text" autocomplete="username">
+        <label class="fld">パスワード（ログイン用）</label>
+        <input id="ssPass" type="password" autocomplete="current-password">
+      </div>
+      <button id="btnLogin" class="primary">ログイン</button>
+      <div id="loginMsg" class="msg"></div>
+    </div>
+  </div>
+
+  <!-- パスフレーズ（暗号鍵） -->
+  <div id="screen-pass" class="center hidden">
+    <div class="card">
+      <h1 id="passTitle">パスフレーズを入力</h1>
+      <p class="sub" id="passSub">スケジュールの暗号化に使う合言葉です。ログインパスワードとは別物です。</p>
+      <label class="fld">パスフレーズ</label>
+      <input id="passInput" type="password" autocomplete="off">
+      <div id="confirmWrap" class="hidden">
+        <label class="fld">パスフレーズ（確認）</label>
+        <input id="passConfirm" type="password" autocomplete="off">
+        <div class="hint" id="recoveryHint"></div>
+      </div>
+      <button id="btnPass" class="primary">開く</button>
+      <button id="btnPassLogout">別アカウントでログイン</button>
+      <div id="passMsg" class="msg"></div>
+      <div class="hint">⚠ パスフレーズを忘れると復号できません（サーバーにも鍵はありません）。控えを安全に保管してください。</div>
+    </div>
+  </div>
+
+  <!-- アプリ本体 -->
+  <div id="screen-app" class="hidden" style="flex:1;display:flex;flex-direction:column;">
+    <div class="topbar">
+      <span class="title">📊 スケジュール</span>
+      <span class="who" id="whoami"></span>
+      <span id="saveState"></span>
+      <button id="btnLogout">ログアウト</button>
+    </div>
+    <div id="frameWrap"></div>
+  </div>
+</div>
+
+<script>
+(function(){
+"use strict";
+const CFG = window.WEBGANTT_CONFIG || { mode:"local" };
+const C = window.GanttCrypto, P = window.GanttProviders;
+const $ = (id)=>document.getElementById(id);
+const show = (id)=>{ ["screen-login","screen-pass","screen-app"].forEach(s=>$(s).classList.toggle("hidden", s!==id)); };
+
+let backend = null;
+let passphrase = null;     // メモリ内のみ
+let bundle = null;         // 復号済みデータ（メモリ内のみ）
+let isNew = false;         // 初回（保存データ無し）か
+let frame = null;
+let saveTimer = null;
+
+function fail(elId, msg){ const e=$(elId); e.textContent=msg; e.className="msg err"; }
+function info(elId, msg){ const e=$(elId); e.textContent=msg; e.className="msg ok"; }
+
+/* ---------- 起動 ---------- */
+function start(){
+  if(!C || !P){ document.body.innerHTML="<p style='padding:20px'>必要なスクリプト(config/crypto/providers)が読み込めませんでした。</p>"; return; }
+  backend = P.create(CFG);
+  setupLoginScreen();
+  if(CFG.mode === "local"){
+    // ログイン不要 → そのままパスフレーズへ
+    backend.login().then(()=>afterLogin()).catch(e=>{ show("screen-login"); fail("loginMsg", String(e&&e.message||e)); });
+  } else {
+    show("screen-login");
+  }
+}
+
+/* ---------- ログイン画面 ---------- */
+let ssMode = "login"; // login | register
+function setupLoginScreen(){
+  if(CFG.mode === "gist"){
+    $("fieldsGist").classList.remove("hidden");
+    $("loginSub").textContent = "GitHubアカウント（PAT）でログイン／登録します";
+  } else if(CFG.mode === "selfserver"){
+    $("fieldsServer").classList.remove("hidden");
+    $("ssTabs").classList.remove("hidden");
+    $("tabLogin").onclick = ()=>setSsMode("login");
+    $("tabRegister").onclick = ()=>setSsMode("register");
+  }
+  $("btnLogin").onclick = doLogin;
+}
+function setSsMode(m){
+  ssMode = m;
+  $("tabLogin").classList.toggle("on", m==="login");
+  $("tabRegister").classList.toggle("on", m==="register");
+  $("btnLogin").textContent = m==="register" ? "登録してログイン" : "ログイン";
+}
+async function doLogin(){
+  $("btnLogin").disabled = true; fail("loginMsg","");
+  try{
+    if(CFG.mode === "gist"){
+      await backend.login({ token: $("gistToken").value });
+    } else if(CFG.mode === "selfserver"){
+      const creds = { username: $("ssUser").value.trim(), password: $("ssPass").value };
+      if(!creds.username || !creds.password) throw new Error("ユーザー名とパスワードを入力してください");
+      if(ssMode === "register") await backend.register(creds);
+      else await backend.login(creds);
+    }
+    await afterLogin();
+  }catch(e){
+    fail("loginMsg", "ログイン失敗: " + (e&&e.message||e));
+  }finally{ $("btnLogin").disabled = false; }
+}
+
+/* ---------- ログイン後：保存データ有無でパスフレーズ画面を切替 ---------- */
+let ciphertext = null;
+async function afterLogin(){
+  try{
+    ciphertext = await backend.load();
+  }catch(e){
+    show("screen-login"); fail("loginMsg","データ取得失敗: " + (e&&e.message||e)); return;
+  }
+  isNew = !ciphertext;
+  $("confirmWrap").classList.toggle("hidden", !isNew);
+  $("passTitle").textContent = isNew ? "パスフレーズを新規作成" : "パスフレーズを入力";
+  if(isNew){ $("recoveryHint").textContent = ""; }
+  $("passInput").value = ""; $("passConfirm") && ($("passConfirm").value="");
+  fail("passMsg","");
+  $("btnPass").onclick = doPass;
+  $("btnPassLogout").onclick = logout;
+  show("screen-pass");
+  $("passInput").focus && $("passInput").focus();
+}
+
+async function doPass(){
+  $("btnPass").disabled = true; fail("passMsg","");
+  try{
+    const pp = $("passInput").value;
+    if(!pp || pp.length < 4) throw new Error("4文字以上のパスフレーズを入力してください");
+    if(isNew){
+      if(pp !== $("passConfirm").value) throw new Error("確認用パスフレーズが一致しません");
+      passphrase = pp;
+      bundle = CFG.sampleIfEmpty ? sampleBundle() : emptyBundle();
+      await persist();                 // 初回保存（暗号化）
+    } else {
+      passphrase = pp;
+      bundle = await C.decrypt(ciphertext, passphrase);  // 誤りは例外
+    }
+    openApp();
+  }catch(e){
+    passphrase = null;
+    if(e && e.code === "BAD_PASSPHRASE") fail("passMsg","パスフレーズが違います");
+    else fail("passMsg", String(e&&e.message||e));
+  }finally{ $("btnPass").disabled = false; }
+}
+
+function emptyBundle(){ return { state:{files:[],targetIdx:0}, settings:{}, templates:{}, schedState:{} }; }
+function sampleBundle(){ return { state:{files:[],targetIdx:0}, settings:{}, templates:{}, schedState:{} }; }
+
+/* ---------- 暗号化して保存 ---------- */
+async function persist(){
+  const ct = await C.encrypt(bundle, passphrase, CFG.kdf || {});
+  ciphertext = ct;
+  await backend.save(ct);
+}
+function scheduleSave(){
+  if(saveTimer) clearTimeout(saveTimer);
+  $("saveState").textContent = "保存待ち…";
+  saveTimer = setTimeout(async ()=>{
+    try{ await persist(); $("saveState").textContent = "保存済み"; setTimeout(()=>{ if($("saveState").textContent==="保存済み") $("saveState").textContent=""; }, 1500); }
+    catch(e){ $("saveState").textContent = "保存失敗"; console.error(e); }
+  }, 300);
+}
+
+/* ---------- アプリ(iframe)をマウントしブリッジ ---------- */
+function openApp(){
+  const u = backend.currentUser && backend.currentUser();
+  $("whoami").textContent = u ? ("@"+u.name) : "";
+  $("frameWrap").innerHTML = "";
+  frame = document.createElement("iframe");
+  frame.src = "gantt.html?host=1";
+  $("frameWrap").appendChild(frame);
+  $("btnLogout").onclick = logout;
+  show("screen-app");
+}
+
+window.addEventListener("message", function(e){
+  if(e.origin !== location.origin) return;
+  const d = e.data || {};
+  if(d.type === "webgantt:ready"){
+    // 子に復号済みデータを渡す
+    try{ frame && frame.contentWindow && frame.contentWindow.postMessage({type:"webgantt:data", bundle:bundle}, location.origin); }catch(_){}
+  } else if(d.type === "webgantt:save"){
+    bundle = d.bundle;
+    scheduleSave();
+  }
+});
+
+function logout(){
+  passphrase = null; bundle = null; ciphertext = null;
+  if(backend && backend.logout) backend.logout();
+  if(frame){ frame.src = "about:blank"; frame = null; }
+  $("frameWrap").innerHTML = "";
+  $("gistToken") && ($("gistToken").value="");
+  $("ssPass") && ($("ssPass").value="");
+  $("passInput").value="";
+  if(CFG.mode === "local"){ backend.login().then(()=>afterLogin()); }
+  else show("screen-login");
+}
+
+document.addEventListener("DOMContentLoaded", start);
+})();
+</script>
+</body>
+</html>

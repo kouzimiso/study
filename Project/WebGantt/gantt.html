@@ -1,0 +1,1158 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>スケジュール / ガント管理（Web版）</title>
+<script src="gantt_core.js"></script>
+<style>
+  :root{
+    --bg:#11151c; --panel:#1a2029; --panel2:#222a36; --line:#2c3543;
+    --fg:#e1e7f0; --muted:#9aa6b8; --accent:#2f6fb3; --accent2:#1c4e80;
+    --ok:#e0e9f5; --warn:#e6c033; --err:#e0594c;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;height:100%;background:var(--bg);color:var(--fg);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue","Hiragino Kaku Gothic ProN","Yu Gothic",Meiryo,sans-serif;
+    font-size:14px;overscroll-behavior:none;}
+  #app{display:flex;flex-direction:column;height:100%;}
+  .topbar{display:flex;align-items:center;gap:6px;padding:8px;background:var(--panel);
+    border-bottom:1px solid var(--line);flex-wrap:wrap;}
+  .topbar .title{font-weight:700;margin-right:auto;font-size:15px;}
+  button{font:inherit;color:var(--fg);background:var(--panel2);border:1px solid var(--line);
+    border-radius:8px;padding:7px 10px;cursor:pointer;min-height:38px;}
+  button:active{filter:brightness(1.3);}
+  button.primary{background:var(--accent);border-color:var(--accent);}
+  button.danger{background:#7a2424;border-color:#7a2424;}
+  button.small{padding:5px 8px;min-height:32px;font-size:13px;}
+  select,input,textarea{font:inherit;color:var(--fg);background:var(--panel2);
+    border:1px solid var(--line);border-radius:8px;padding:7px 8px;min-height:38px;width:100%;}
+  textarea{min-height:60px;resize:vertical;}
+  label.fld{display:block;color:var(--muted);font-size:12px;margin:8px 0 3px;}
+  .controls{display:flex;align-items:center;gap:6px;padding:6px 8px;background:var(--panel);
+    border-bottom:1px solid var(--line);flex-wrap:wrap;}
+  .controls .rangelabel{color:var(--muted);font-size:13px;margin-left:4px;flex:1;min-width:120px;}
+  .banner{padding:6px 10px;color:var(--warn);background:#241f10;font-weight:700;font-size:13px;
+    border-bottom:1px solid var(--line);display:none;white-space:pre-wrap;}
+  .banner.err{color:var(--err);background:#2a1513;}
+  .gantt-wrap{flex:1;overflow:auto;position:relative;}
+  .gantt{min-width:max-content;}
+  .grow{flex:1;}
+  /* header */
+  .ghead{display:flex;position:sticky;top:0;z-index:6;background:var(--panel);border-bottom:1px solid var(--line);}
+  .lblcell{flex:0 0 var(--lblw,132px);width:var(--lblw,132px);min-width:var(--lblw,132px);
+    border-right:2px solid var(--line);padding:4px 6px;position:sticky;left:0;z-index:2;background:var(--panel);}
+  .timeline{position:relative;display:flex;}
+  .daycol{flex:0 0 var(--colw,44px);width:var(--colw,44px);text-align:center;font-size:11px;
+    color:var(--muted);border-left:1px solid var(--line);padding:2px 0;}
+  .daycol.today{background:#1d2b1f;color:#bfe6c4;}
+  .daycol.sat{color:#7ab3e0;} .daycol.sun{color:#e08a8a;}
+  /* rows */
+  .grow-row{display:flex;border-bottom:1px solid var(--line);min-height:34px;}
+  .grow-row.child{min-height:28px;background:#161b23;}
+  .grow-row .lblcell{display:flex;align-items:center;gap:4px;background:var(--panel2);}
+  .grow-row.child .lblcell{background:#161b23;}
+  .rowname{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:13px;}
+  .grow-row.child .rowname{font-size:12px;color:#b7c2d4;}
+  .rowname.over{color:var(--warn);}
+  .toggle{width:22px;min-width:22px;height:22px;min-height:22px;padding:0;line-height:1;
+    border-radius:6px;font-size:12px;}
+  .menubtn{width:26px;min-width:26px;height:26px;min-height:26px;padding:0;border-radius:6px;}
+  .track{position:relative;flex:1;}
+  .bar{position:absolute;top:5px;height:22px;border-radius:5px;overflow:hidden;cursor:pointer;
+    display:flex;align-items:center;box-shadow:0 1px 2px rgba(0,0,0,.4);min-width:6px;}
+  .grow-row.child .bar{top:4px;height:18px;}
+  .bar .fill{position:absolute;left:0;top:0;bottom:0;background:rgba(0,0,0,.28);}
+  .bar .blabel{position:relative;font-size:11px;padding:0 5px;white-space:nowrap;color:#0d0f12;
+    font-weight:600;text-shadow:0 1px 0 rgba(255,255,255,.25);}
+  .milestone{position:absolute;top:7px;width:16px;height:16px;transform:rotate(45deg);
+    cursor:pointer;box-shadow:0 1px 2px rgba(0,0,0,.5);}
+  .nowline{position:absolute;top:0;bottom:0;width:2px;background:#e05b5b;z-index:3;pointer-events:none;}
+  /* unscheduled */
+  .unsched-hd{display:flex;align-items:center;gap:6px;padding:6px 8px;background:var(--panel);
+    border-top:1px solid var(--line);font-weight:700;color:var(--muted);}
+  .unsched{max-height:180px;overflow:auto;background:var(--panel);border-top:1px solid var(--line);}
+  .unsched .urow{display:flex;align-items:center;gap:6px;padding:5px 8px;border-bottom:1px solid var(--line);}
+  .urow .uname{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .badge{font-weight:700;font-size:12px;}
+  /* modal */
+  .ovl{position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:center;
+    justify-content:center;z-index:50;padding:12px;}
+  .modal{background:var(--panel);border:1px solid var(--line);border-radius:14px;
+    width:100%;max-width:560px;max-height:90vh;display:flex;flex-direction:column;overflow:hidden;}
+  .modal .mhd{display:flex;align-items:center;gap:8px;padding:10px 12px;border-bottom:1px solid var(--line);}
+  .modal .mhd .mtitle{font-weight:700;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .modal .mbody{padding:12px;overflow:auto;}
+  .modal .mfoot{display:flex;gap:8px;padding:10px 12px;border-top:1px solid var(--line);}
+  .row{display:flex;gap:8px;align-items:center;}
+  .row > *{flex:1;}
+  .pill{display:inline-block;padding:2px 8px;border-radius:10px;font-size:12px;background:var(--panel2);}
+  .stack{display:flex;flex-direction:column;gap:6px;}
+  .actbtn{width:100%;text-align:left;margin-bottom:6px;}
+  .chips{display:flex;gap:6px;flex-wrap:wrap;}
+  .chip{padding:6px 10px;border-radius:18px;border:1px solid var(--line);background:var(--panel2);cursor:pointer;}
+  .chip.on{background:var(--accent);border-color:var(--accent);}
+  .todoitem{border:1px solid var(--line);border-radius:8px;padding:6px;margin-bottom:6px;background:var(--panel2);}
+  .todoitem .tline{display:flex;align-items:center;gap:6px;}
+  .todoitem .tname{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .muted{color:var(--muted);} .small{font-size:12px;}
+  pre.report{white-space:pre-wrap;font-size:12px;background:var(--panel2);padding:10px;border-radius:8px;
+    border:1px solid var(--line);max-height:50vh;overflow:auto;}
+  .hint{color:var(--muted);font-size:12px;margin:4px 0;}
+  .swatch{width:34px;min-width:34px;height:34px;border-radius:6px;border:1px solid var(--line);}
+  input[type=range]{padding:0;}
+  input[type=checkbox]{width:auto;min-height:auto;transform:scale(1.3);}
+  .nofile{padding:24px;text-align:center;color:var(--muted);}
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="topbar">
+    <div class="title">📊 ガント管理</div>
+    <select id="fileSel" class="small" style="width:auto;display:none" title="編集対象ファイル"></select>
+    <button class="small" id="btnLoad">📂 読込</button>
+    <button class="small" id="btnSave">💾 保存</button>
+    <button class="small" id="btnMenu">☰</button>
+    <input type="file" id="fileInput" accept=".json,.csv,.txt,.md" multiple style="display:none">
+  </div>
+  <div class="controls">
+    <button id="btnPrev">◀</button>
+    <select id="rangeSel" style="width:auto">
+      <option value="day">日</option><option value="week" selected>週</option><option value="month">月</option>
+    </select>
+    <button id="btnToday">今日</button>
+    <button id="btnNext">▶</button>
+    <span class="rangelabel" id="rangeLabel"></span>
+    <button class="small" id="btnShowTodos" title="Todoを子バー展開">Todo展開: 切</button>
+  </div>
+  <div class="banner" id="banner"></div>
+  <div class="gantt-wrap">
+    <div id="ganttRoot" class="gantt"></div>
+    <div class="nofile" id="emptyMsg" style="display:none">
+      PlanList JSON を「📂 読込」で開くか、☰メニュー →「新規Plan」で作成してください。<br><br>
+      サンプルを表示中です。データはこの端末（ブラウザ）に自動保存されます。
+    </div>
+  </div>
+  <div class="unsched-hd">
+    <span id="unschedLabel" class="grow">スケジュールなし (0件)</span>
+    <button class="small" id="unschedToggle">▼</button>
+  </div>
+  <div class="unsched" id="unschedList"></div>
+</div>
+
+<script>
+(function(){
+"use strict";
+const G = window.GanttCore;
+const $ = (id)=>document.getElementById(id);
+
+/* ============ ストレージ ============ */
+const LS_STATE="webgantt_state_v1", LS_SET="webgantt_settings_v1",
+      LS_TMPL="webgantt_templates_v1", LS_SCH="webgantt_schedstate_v1";
+
+const DEFAULT_COLORS = { // status -> rgb hex
+  "in_progress":"#F2CC33","running":"#F2CC33",   // 作業中
+  "todo":"#4DB366","planned":"#4DB366",          // 未着手
+  "paused":"#5C8C6E",                            // 停止中
+  "done":"#9AA0A6",                              // 完了
+  "blocked":"#E0594C","delayed":"#E0594C"        // 遅延/ブロック
+};
+
+let state = {
+  files: [],        // [{label, data}]
+  targetIdx: 0,
+};
+let settings = { range:"week", showTodos:false, colors:Object.assign({},DEFAULT_COLORS), collapsed:[], unschedOpen:true };
+let templates = {}; // {name: plan}
+let schedState = {}; // 完了バッファ（繰り返しoccurrence等）
+let offset = 0;
+
+/* ============ ホスト(サーバー版 index.html)埋め込みモード ============
+ * index.html が iframe で gantt.html?host=1 を読み込み、暗号化/復号は親側で行う。
+ * 子(このファイル)は平文 bundle を親と postMessage で授受し、localStorage には書かない。*/
+const HOST_MODE = (window.parent && window.parent !== window) &&
+  new URLSearchParams(location.search).get("host") === "1";
+let _hostSaveTimer = null;
+function getBundle(){ return { state, settings, templates, schedState }; }
+function applyBundle(b){
+  b = b || {};
+  if (b.state && typeof b.state === "object") state = b.state;
+  if (b.settings && typeof b.settings === "object")
+    settings = Object.assign({range:"week",showTodos:false,colors:Object.assign({},DEFAULT_COLORS),collapsed:[],unschedOpen:true}, b.settings);
+  if (b.templates && typeof b.templates === "object") templates = b.templates;
+  if (b.schedState && typeof b.schedState === "object") schedState = b.schedState;
+  if (!settings.colors) settings.colors = Object.assign({}, DEFAULT_COLORS);
+}
+
+function saveAll(){
+  if(HOST_MODE){
+    if(_hostSaveTimer) clearTimeout(_hostSaveTimer);
+    _hostSaveTimer = setTimeout(function(){
+      try{ window.parent.postMessage({type:"webgantt:save", bundle:getBundle()}, location.origin); }catch(e){}
+    }, 400);
+    return;
+  }
+  try{
+    localStorage.setItem(LS_STATE, JSON.stringify(state));
+    localStorage.setItem(LS_SET, JSON.stringify(settings));
+    localStorage.setItem(LS_TMPL, JSON.stringify(templates));
+    localStorage.setItem(LS_SCH, JSON.stringify(schedState));
+  }catch(e){ console.warn("localStorage保存失敗",e); }
+}
+function loadAll(){
+  if(HOST_MODE) return;
+  try{
+    const s=localStorage.getItem(LS_STATE); if(s) state=JSON.parse(s);
+    const st=localStorage.getItem(LS_SET); if(st) settings=Object.assign(settings,JSON.parse(st));
+    if(!settings.colors) settings.colors=Object.assign({},DEFAULT_COLORS);
+    const tm=localStorage.getItem(LS_TMPL); if(tm) templates=JSON.parse(tm);
+    const sc=localStorage.getItem(LS_SCH); if(sc) schedState=JSON.parse(sc);
+  }catch(e){ console.warn("localStorage読込失敗",e); }
+}
+
+/* ============ サンプルデータ ============ */
+function sampleData(){
+  const today = new Date();
+  const fmtD=(o)=>{const d=G.addDays(today,o);return `${d.getFullYear()}-${G.pad2(d.getMonth()+1)}-${G.pad2(d.getDate())}`;};
+  return {
+    "装置立上げ": {
+      "name":"装置立上げ","type":"todo","task_kind":"human","priority":"high","pin":true,
+      "text":"新装置のセットアップ作業","schedule":{"start":fmtD(-1)+" 09:00","end":fmtD(2)+" 18:00","completion":""},
+      "todo":[
+        {"name":"開梱・設置","type":"setup","complete":true,"start":fmtD(-1)+" 09:00","end":fmtD(-1)+" 11:00"},
+        {"name":"配線・電源","complete":false,"estimate_min":120,
+          "children":[{"name":"AC配線","complete":true},{"name":"信号線","complete":false}]},
+        {"name":"動作確認","type":"review","complete":false,"estimate_min":180}
+      ]
+    },
+    "日次バックアップ": {
+      "name":"日次バックアップ","type":"todo","priority":"normal",
+      "schedule":{"start":fmtD(0)+" 19:00","end":fmtD(0)+" 19:30","recurrence":{"daily":true}}
+    },
+    "週次レビュー": {
+      "name":"週次レビュー","type":"todo",
+      "schedule":{"recurrence":{"weekly":["Mon"],"time":{"start":"10:00","end":"11:00"}}}
+    },
+    "仕様書ドラフト": {
+      "name":"仕様書ドラフト","type":"todo","text":"予定未設定のタスク例",
+      "todo":[{"name":"目次作成","complete":false},{"name":"本文","complete":false}]
+    }
+  };
+}
+
+/* ============ datetime ヘルパ（input変換） ============ */
+function toLocalInput(s){ // "YYYY-MM-DD HH:MM" -> "YYYY-MM-DDTHH:MM"
+  const d=G.parseDt(s); if(!d) return "";
+  return `${d.getFullYear()}-${G.pad2(d.getMonth()+1)}-${G.pad2(d.getDate())}T${G.pad2(d.getHours())}:${G.pad2(d.getMinutes())}`;
+}
+function fromLocalInput(v){ if(!v) return ""; return G.formatDt(G.parseDt(v)); }
+function nowStr(){ return G.formatDt(new Date()); }
+
+/* ============ DOM ヘルパ ============ */
+function el(tag, attrs, children){
+  const n=document.createElement(tag);
+  if(attrs) for(const k in attrs){
+    if(k==="class") n.className=attrs[k];
+    else if(k==="style") n.style.cssText=attrs[k];
+    else if(k.startsWith("on")) n.addEventListener(k.slice(2), attrs[k]);
+    else if(k==="html") n.innerHTML=attrs[k];
+    else if(attrs[k]!=null) n.setAttribute(k, attrs[k]);
+  }
+  if(children!=null){
+    (Array.isArray(children)?children:[children]).forEach(c=>{
+      if(c==null) return;
+      n.appendChild(typeof c==="string"?document.createTextNode(c):c);
+    });
+  }
+  return n;
+}
+
+/* ============ モーダル ============ */
+function modal(title, bodyNode, footButtons){
+  const ovl=el("div",{class:"ovl"});
+  const m=el("div",{class:"modal"});
+  const close=()=>{ if(ovl.parentNode) ovl.parentNode.removeChild(ovl); };
+  const hd=el("div",{class:"mhd"},[
+    el("div",{class:"mtitle"},title),
+    el("button",{class:"small",onclick:close},"×")
+  ]);
+  const body=el("div",{class:"mbody"}, bodyNode);
+  m.appendChild(hd); m.appendChild(body);
+  if(footButtons && footButtons.length){
+    const foot=el("div",{class:"mfoot"});
+    footButtons.forEach(b=>foot.appendChild(b));
+    m.appendChild(foot);
+  }
+  ovl.appendChild(m);
+  ovl.addEventListener("click",e=>{ if(e.target===ovl) close(); });
+  document.body.appendChild(ovl);
+  return { close, modalEl:m };
+}
+function btn(text, cls, onclick){ return el("button",{class:cls||"",onclick},text); }
+function toast(msg){
+  const t=el("div",{style:"position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#0c1014;border:1px solid var(--line);padding:10px 16px;border-radius:10px;z-index:99;box-shadow:0 4px 12px rgba(0,0,0,.5)"},msg);
+  document.body.appendChild(t); setTimeout(()=>t.remove(),2200);
+}
+
+/* ============ データアクセス ============ */
+function activeFile(){ return state.files[state.targetIdx] || null; }
+function flatPlans(){
+  const plans=G.loadPlansFlat(state.files);
+  return plans;
+}
+function fileByLabel(label){ return state.files.find(f=>f.label===label); }
+function findPlan(name){
+  for(const p of flatPlans()) if(p.name===name) return p;
+  return null;
+}
+function afterChange(){ saveAll(); render(); }
+
+function savePlan(newPlan, label, oldName){
+  let f = label ? fileByLabel(label) : activeFile();
+  if(!f){ f=activeFile(); }
+  if(!f){ // 新規ファイル
+    f={label:"PlanList.json", data:{}}; state.files.push(f); state.targetIdx=state.files.length-1; refreshFileSel();
+  }
+  if(oldName && newPlan.name!==oldName) G.deletePlan(f.data, oldName);
+  G.upsertPlan(f.data, newPlan);
+  afterChange();
+}
+function deletePlanByName(plan){
+  const f = fileByLabel(plan._file) || activeFile();
+  if(f){ G.deletePlan(f.data, plan.name); afterChange(); }
+}
+function duplicatePlanByName(plan){
+  const f = fileByLabel(plan._file) || activeFile();
+  if(f){ G.duplicatePlan(f.data, plan.name); afterChange(); }
+}
+function markComplete(plan){
+  const sch=plan.schedule||{};
+  if(sch.recurrence){
+    const k=plan.name||"";
+    schedState[k]=schedState[k]||{occurrences:{},last_alert:{}};
+    schedState[k].occurrences=schedState[k].occurrences||{};
+    schedState[k].occurrences[G.dateStr(new Date())]={completion:nowStr()};
+  }else{
+    const f=fileByLabel(plan._file)||activeFile();
+    if(f){
+      const real=G.getPlan(f.data, plan.name)||G.stripInternal(plan);
+      real.schedule=real.schedule||{}; real.schedule.completion=nowStr();
+      G.upsertPlan(f.data, real);
+    }
+  }
+  afterChange();
+}
+
+/* ============ 色 ============ */
+function statusColor(status){ return (settings.colors&&settings.colors[status]) || DEFAULT_COLORS[status] || "#7f8a99"; }
+
+/* ============ レンダリング ============ */
+const COLW = {day:46, week:48, month:30};
+function render(){
+  // settings sync
+  $("rangeSel").value = settings.range;
+  $("btnShowTodos").textContent = "Todo展開: " + (settings.showTodos?"入":"切");
+  refreshFileSel();
+  const hasData = state.files.length>0 && flatPlans().length>0;
+  $("emptyMsg").style.display = hasData ? "none" : "block";
+
+  const now=new Date();
+  const m = G.buildModels(flatPlans(), now, {
+    state:schedState, rangeKey:settings.range, offset:offset, showTodos:settings.showTodos
+  });
+  const collapsed = new Set(settings.collapsed||[]);
+  const view = annotateCollapse(m, collapsed);
+  renderGantt(view, now);
+  renderUnscheduled();
+  renderBanner();
+  // range label
+  const w=view.window;
+  $("rangeLabel").textContent = `${labelRange(settings.range)}  ${w.start.getMonth()+1}/${w.start.getDate()}〜${w.end.getMonth()+1}/${w.end.getDate()}`;
+}
+function labelRange(r){ return r==="day"?"日":r==="month"?"月":"週"; }
+
+function annotateCollapse(models, collapsed){
+  const rows=models.rows.slice(), bars=models.bars.slice();
+  const hasChild=new Set();
+  rows.forEach(r=>{ if(r.child && r.plan_name) hasChild.add(r.plan_name); });
+  const newRows=[], indexMap={};
+  rows.forEach((r,oi)=>{
+    const pn=r.plan_name;
+    if(r.child && collapsed.has(pn)) return;
+    r=Object.assign({},r);
+    if(!r.child){ r.has_todos=hasChild.has(pn); r.collapsed=collapsed.has(pn); }
+    indexMap[oi]=newRows.length; newRows.push(r);
+  });
+  const newBars=[];
+  bars.forEach(b=>{
+    if(b.row in indexMap){ b=Object.assign({},b); b.row=indexMap[b.row]; newBars.push(b); }
+  });
+  return Object.assign({},models,{rows:newRows,bars:newBars});
+}
+
+function renderGantt(m, now){
+  const root=$("ganttRoot");
+  root.innerHTML="";
+  const w=m.window;
+  const winS=w.start.getTime(), winE=w.end.getTime()+60000; // inclusive end-of-minute
+  const span=Math.max(1, winE-winS);
+  const colw = COLW[m.range]||46;
+  document.documentElement.style.setProperty("--colw", colw+"px");
+
+  // 列（日 or 時間）
+  let cols=[]; // {label, cls, leftPx, widthPx}
+  let tlWidth;
+  if(m.range==="day"){
+    const hours=24; tlWidth=hours*colw;
+    for(let h=0;h<hours;h+=3){
+      cols.push({label:h+"時", left:(h/hours)*tlWidth, width:colw*3});
+    }
+    // bars positioned within day
+  }else{
+    let d=G.startOfDay(w.start); const end=G.startOfDay(w.end);
+    let i=0;
+    while(d<=end){
+      const dow=d.getDay();
+      cols.push({label:`${d.getMonth()+1}/${d.getDate()}`,sub:["日","月","火","水","木","金","土"][dow],
+        today:G.dateStr(d)===G.dateStr(now), sat:dow===6, sun:dow===0});
+      d=G.addDays(d,1); i++;
+    }
+    tlWidth=cols.length*colw;
+  }
+  document.documentElement.style.setProperty("--lblw", "132px");
+
+  // ヘッダ
+  const head=el("div",{class:"ghead"});
+  head.appendChild(el("div",{class:"lblcell small muted"},"タスク"));
+  const headTl=el("div",{class:"timeline",style:`width:${tlWidth}px`});
+  if(m.range==="day"){
+    for(let h=0;h<24;h++){
+      headTl.appendChild(el("div",{class:"daycol"+ (now.getHours()===h && G.dateStr(now)===G.dateStr(w.start)?" today":""),style:`flex:0 0 ${colw}px;width:${colw}px`}, (h%3===0?h+"時":"")));
+    }
+  }else{
+    cols.forEach(c=>{
+      headTl.appendChild(el("div",{class:"daycol"+(c.today?" today":"")+(c.sat?" sat":"")+(c.sun?" sun":"")},
+        [el("div",null,c.label), el("div",{style:"font-size:10px"},c.sub)]));
+    });
+  }
+  head.appendChild(headTl);
+  root.appendChild(head);
+
+  // 行
+  const barsByRow={};
+  m.bars.forEach(b=>{ (barsByRow[b.row]=barsByRow[b.row]||[]).push(b); });
+
+  m.rows.forEach((r,ri)=>{
+    const rowEl=el("div",{class:"grow-row"+(r.child?" child":"")});
+    // label cell
+    const lbl=el("div",{class:"lblcell"});
+    if(!r.child && r.has_todos){
+      lbl.appendChild(btn(r.collapsed?"＋":"−","toggle small",()=>toggleCollapse(r.plan_name)));
+    }else if(!r.child){
+      lbl.appendChild(el("span",{style:"width:22px;min-width:22px;display:inline-block"}));
+    }
+    lbl.appendChild(el("div",{class:"rowname"+(r.over?" over":"")},r.name));
+    if(!r.child){
+      lbl.appendChild(btn("…","menubtn small",()=>openPlanMenu(findPlan(r.plan_name))));
+    }
+    rowEl.appendChild(lbl);
+    // track
+    const track=el("div",{class:"track",style:`width:${tlWidth}px`});
+    (barsByRow[ri]||[]).forEach(b=>{
+      const bs=b.start?b.start.getTime():null, be=b.end?b.end.getTime():null;
+      if(b.milestone || !be){
+        if(bs!=null){
+          const left=clamp((bs-winS)/span)*tlWidth;
+          const ms=el("div",{class:"milestone",style:`left:${left-8}px;background:${statusColor(b.status)}`,
+            title:b.plan_name, onclick:()=>onBarTap(b)});
+          track.appendChild(ms);
+        }
+      }else{
+        let l=clamp((bs-winS)/span), rr=clamp((be-winS)/span);
+        if(rr<l) rr=l;
+        const leftPx=l*tlWidth, wPx=Math.max(6,(rr-l)*tlWidth);
+        const bar=el("div",{class:"bar",style:`left:${leftPx}px;width:${wPx}px;background:${statusColor(b.status)}`,
+          onclick:()=>onBarTap(b)});
+        const prog=b.progress||0;
+        if(prog>0 && prog<100) bar.appendChild(el("div",{class:"fill",style:`width:${prog}%`}));
+        const lab = b.child ? "" : (b.progress?`${b.progress}%`:"");
+        if(wPx>34 && lab) bar.appendChild(el("div",{class:"blabel"},lab));
+        track.appendChild(bar);
+      }
+    });
+    rowEl.appendChild(track);
+    root.appendChild(rowEl);
+  });
+
+  // now line
+  const nowT=now.getTime();
+  if(nowT>=winS && nowT<=winE){
+    const left=132 + clamp((nowT-winS)/span)*tlWidth;
+    const nl=el("div",{class:"nowline",style:`left:${left}px`});
+    root.appendChild(nl);
+  }
+  if(m.rows.length===0){
+    root.appendChild(el("div",{class:"nofile"},"表示する予定がありません。"));
+  }
+}
+function clamp(x){ return Math.max(0,Math.min(1,x)); }
+
+function toggleCollapse(name){
+  const s=new Set(settings.collapsed||[]);
+  if(s.has(name)) s.delete(name); else s.add(name);
+  settings.collapsed=Array.from(s); afterChange();
+}
+
+function renderUnscheduled(){
+  const box=$("unschedList");
+  box.innerHTML="";
+  const showTodos=settings.showTodos;
+  function shownInGantt(p){
+    return showTodos && (p.todo&&p.todo.length) && !((p.schedule||{}).recurrence);
+  }
+  const plans=flatPlans().filter(p=>isUnscheduled(p) && !shownInGantt(p));
+  $("unschedLabel").textContent=`スケジュールなし (${plans.length}件)`;
+  plans.forEach(plan=>{
+    const row=el("div",{class:"urow"});
+    const rl=G.riskLevel(plan);
+    if(rl==="error") row.appendChild(el("span",{class:"badge",style:"color:var(--err)"},"⚠"));
+    else if(rl==="warning") row.appendChild(el("span",{class:"badge",style:"color:var(--warn)"},"•"));
+    const prog=(plan.todo||[]).filter(t=>t.start&&!t.end&&!t.complete).length;
+    if(prog) row.appendChild(el("span",{class:"badge",style:"color:#7fe0a8;font-size:11px"},`☑${prog}`));
+    row.appendChild(el("div",{class:"uname"},plan.name));
+    row.appendChild(btn("…","menubtn small",()=>openPlanMenu(plan)));
+    box.appendChild(row);
+  });
+  box.style.display = settings.unschedOpen?"block":"none";
+  $("unschedToggle").textContent = settings.unschedOpen?"▼":"▶";
+}
+function isUnscheduled(plan){
+  const s=plan.schedule||{};
+  return !s.start && !s.end && !s.recurrence;
+}
+
+function renderBanner(){
+  const banner=$("banner");
+  const plans=flatPlans();
+  const errs=[],warns=[];
+  plans.forEach(p=>{
+    const s=p.schedule||{};
+    if(s.completion||p.complete) return;
+    G.checkRisks(p).forEach(w=>{
+      if(w.level==="error") errs.push(`《${p.name}》${w.message}`);
+      else if(w.level==="warning") warns.push(`《${p.name}》${w.message}`);
+    });
+  });
+  if(errs.length){ banner.textContent="⚠ "+errs.slice(0,3).join("   ⚠ "); banner.className="banner err"; banner.style.display="block"; }
+  else if(warns.length){ banner.textContent="⚠ "+warns.slice(0,3).join("   ⚠ "); banner.className="banner"; banner.style.display="block"; }
+  else { banner.style.display="none"; }
+}
+
+/* ============ 操作: バータップ ============ */
+function onBarTap(bar){
+  if(bar.child){ openTodoPopup(bar); return; }
+  openPlanMenu(findPlan(bar.plan_name));
+}
+
+/* ============ プラン操作メニュー ============ */
+function openPlanMenu(plan){
+  if(!plan){ toast("プランが見つかりません"); return; }
+  const body=el("div",{class:"stack"},[
+    btn("編集（スケジュール/設定/Todo）","actbtn",()=>{ mh.close(); openPlanEditor(plan); }),
+    btn("完了にする","actbtn",()=>{ mh.close(); markComplete(plan); toast("完了にしました"); }),
+    btn("テンプレートに保存","actbtn",()=>{ mh.close(); openTemplateSave(plan); }),
+    btn("複製","actbtn",()=>{ mh.close(); duplicatePlanByName(plan); toast("複製しました"); }),
+    btn("今すぐ実行（無効）","actbtn",()=>{ toast("この版では外部プログラム起動は無効です"); }),
+    btn("削除","actbtn danger",()=>{ mh.close(); confirmDelete(plan); }),
+  ]);
+  var mh=modal(plan.name||"プラン", body, []);
+}
+function confirmDelete(plan){
+  const body=el("div",null,[el("p",null,`「${plan.name}」を削除しますか？`)]);
+  const mh=modal("削除の確認", body, [
+    btn("キャンセル","",()=>mh.close()),
+    btn("削除する","danger",()=>{ mh.close(); deletePlanByName(plan); toast("削除しました"); }),
+  ]);
+}
+
+/* ============ Todo 作業記録ポップアップ ============ */
+function openTodoPopup(bar){
+  const plan=findPlan(bar.plan_name);
+  if(!plan){ return; }
+  const res=resolveTodo(plan, bar);
+  if(!res){ toast("Todoが見つかりません"); return; }
+  const {parentList, idx, todo}=res;
+  const now=new Date();
+  const status=G.todoStatus(todo);
+  const summary=G.sessionSummary(todo, now);
+
+  const memo=el("textarea",{}, todo.text||"");
+  const prog=el("input",{type:"range",min:0,max:100,step:5,value:G.todoProgress(todo)});
+  const progLbl=el("span",{class:"muted"},`進捗率: ${G.todoProgress(todo)}%`);
+  prog.addEventListener("input",()=>progLbl.textContent=`進捗率: ${prog.value}%`);
+
+  function apply(fn){
+    const memoTxt=memo.value;
+    let nt = fn ? fn(todo, new Date(), memoTxt) : Object.assign({},todo);
+    if(memoTxt) nt.text=memoTxt;
+    nt.progress = nt.complete ? 100 : parseInt(prog.value,10);
+    parentList[idx]=nt;
+    // 書き戻し
+    const f=fileByLabel(plan._file)||activeFile();
+    if(f){ const real=G.getPlan(f.data,plan.name); if(real){ /* plan obj already mutated via parentList ref? no */ } }
+    persistPlanTree(plan);
+    mh.close(); toast("保存しました");
+  }
+  const body=el("div",{class:"stack"},[
+    summary?el("div",{class:"small muted"},summary):null,
+    el("label",{class:"fld"},"作業メモ"), memo,
+    el("div",{class:"row"},[progLbl, prog]),
+    el("div",{class:"hint"},`現在の状態: ${jpStatus(status)}`),
+    el("div",{class:"chips"},[
+      btn("未作業","chip",()=>apply(G.resetSession)),
+      btn("作業中","chip",()=>apply(G.startSession)),
+      btn("停止中","chip",()=>apply(G.pauseSession)),
+      btn("完了","chip",()=>apply(G.completeSession)),
+    ]),
+    btn("作業期間を編集（手動）","actbtn",()=>{ mh.close(); openSessionEditor(plan, parentList, idx, todo); }),
+  ]);
+  var mh=modal(`${todo.name||""}（${jpStatus(status)}）`, body, [
+    btn("進捗・メモを保存（状態維持）","primary",()=>apply(null)),
+  ]);
+}
+function jpStatus(s){ return {todo:"未作業",in_progress:"作業中",paused:"停止中",done:"完了",blocked:"ブロック"}[s]||s; }
+
+/* bar(path/todo_index)から plan.todo 配列内の実体を解決。書き戻し用に親配列参照を返す */
+function resolveTodo(plan, bar){
+  // plan は flat（コピー）。実体ファイル側の plan を取得して操作する。
+  const f=fileByLabel(plan._file)||activeFile();
+  const real = f ? G.getPlan(f.data, plan.name) : null;
+  const target = real || plan;
+  const todos=target.todo||[];
+  const path=bar.path;
+  if(Array.isArray(path)&&path.length){
+    let parent=todos;
+    for(let d=0;d<path.length;d++){
+      const i=path[d];
+      if(!(i>=0&&i<parent.length)) return null;
+      const node=parent[i];
+      if(d===path.length-1) return {plan:target, parentList:parent, idx:i, todo:node};
+      parent=node.children||[];
+    }
+    return null;
+  }
+  const ti=bar.todo_index;
+  if(typeof ti==="number"&&ti>=0&&ti<todos.length) return {plan:target, parentList:todos, idx:ti, todo:todos[ti]};
+  return null;
+}
+/* 実体 plan（resolveで取得したtarget）をファイルへ保存 */
+function persistPlanTree(planFlat){
+  const f=fileByLabel(planFlat._file)||activeFile();
+  if(!f) return;
+  const real=G.getPlan(f.data, planFlat.name);
+  if(real){ G.upsertPlan(f.data, real); }
+  afterChange();
+}
+
+/* 作業期間の手動編集 */
+function openSessionEditor(plan, parentList, idx, todo){
+  const sessions = (todo.work_sessions||[]).map(s=>Object.assign({},s));
+  if(!sessions.length && (todo.start||todo.end)) sessions.push({start:todo.start||"",end:todo.end||"",note:""});
+  const rowsBox=el("div",{class:"stack"});
+  const rowInputs=[];
+  function addRow(s){
+    s=s||{};
+    const fs=el("input",{type:"datetime-local",value:toLocalInput(s.start)});
+    const fe=el("input",{type:"datetime-local",value:toLocalInput(s.end)});
+    const fn=el("input",{type:"text",placeholder:"メモ",value:s.note||""});
+    const wrap=el("div",{class:"todoitem"},[
+      el("label",{class:"fld"},"開始"), fs,
+      el("label",{class:"fld"},"終了（空=作業中）"), fe,
+      el("label",{class:"fld"},"メモ"), fn,
+      btn("この期間を削除","small danger",()=>{ wrap.remove(); const i=rowInputs.indexOf(rec); if(i>=0)rowInputs.splice(i,1); }),
+    ]);
+    const rec={fs,fe,fn}; rowInputs.push(rec);
+    rowsBox.appendChild(wrap);
+  }
+  sessions.forEach(addRow);
+  const body=el("div",{class:"stack"},[
+    el("div",{class:"hint"},"作業中ボタンの押し忘れに備え、開始/終了を手入力できます。"),
+    rowsBox,
+    btn("＋ 期間を追加","small",()=>addRow()),
+  ]);
+  const mh=modal("作業期間の手動編集", body, [
+    btn("キャンセル","",()=>mh.close()),
+    btn("保存","primary",()=>{
+      const ns=[];
+      rowInputs.forEach(r=>{
+        const st=fromLocalInput(r.fs.value), en=fromLocalInput(r.fe.value), nt=r.fn.value.trim();
+        if(!st&&!en&&!nt) return;
+        const rec={start:st,end:en}; if(nt) rec.note=nt; ns.push(rec);
+      });
+      if(ns.length) todo.work_sessions=ns; else delete todo.work_sessions;
+      parentList[idx]=todo;
+      persistPlanTree(plan);
+      mh.close(); toast("作業期間を保存しました");
+    }),
+  ]);
+}
+
+/* ============ プランエディタ ============ */
+function openPlanEditor(planFlat){
+  const f=fileByLabel(planFlat._file)||activeFile();
+  const oldName=planFlat.name;
+  const plan = f ? (G.getPlan(f.data, oldName)||G.deepCopy(G.stripInternal(planFlat))) : G.deepCopy(G.stripInternal(planFlat));
+  const work=G.deepCopy(plan);
+  buildPlanEditor(work, oldName, planFlat._file);
+}
+function openNewPlan(){
+  const work=G.newPlanTemplate("新しいPlan","todo");
+  buildPlanEditor(work, null, activeFile()?activeFile().label:null);
+}
+function buildPlanEditor(work, oldName, label){
+  const sch=work.schedule=work.schedule||{};
+  const iName=el("input",{type:"text",value:work.name||""});
+  const iType=el("select",{},["todo","ExecuteProgram","other"].map(t=>el("option",{value:t,selected:(work.type===t)?"selected":null},t)));
+  if(work.type && ["todo","ExecuteProgram","other"].indexOf(work.type)<0){
+    iType.appendChild(el("option",{value:work.type,selected:"selected"},work.type));
+  }
+  const iStart=el("input",{type:"datetime-local",value:toLocalInput(sch.start)});
+  const iEnd=el("input",{type:"datetime-local",value:toLocalInput(sch.end)});
+  const iComp=el("input",{type:"datetime-local",value:toLocalInput(sch.completion)});
+  const iPrio=el("select",{},["high","normal","low"].map(p=>el("option",{value:p,selected:(G.meta(work,"priority","normal")===p)?"selected":null},p)));
+  const iOrder=el("input",{type:"number",value:(G.meta(work,"order")!=null?G.meta(work,"order"):"")});
+  const iPin=el("input",{type:"checkbox"}); iPin.checked=!!G.meta(work,"pin");
+  const iTags=el("input",{type:"text",value:(G.meta(work,"tags",[])||[]).join(", ")});
+  const iEst=el("input",{type:"number",value:(G.meta(work,"estimate_min")!=null?G.meta(work,"estimate_min"):"")});
+  const iText=el("textarea",{}, work.text||"");
+
+  // recurrence builder
+  const rec=sch.recurrence||null;
+  let recType="none";
+  if(rec){ recType = rec.weekly?"weekly":rec.daily!=null?"daily":rec.monthly!=null?"monthly":rec.cron?"cron":"none"; }
+  const iRecType=el("select",{},[["none","なし"],["daily","毎日/N日毎"],["weekly","毎週"],["monthly","毎月"],["cron","cron"]].map(o=>el("option",{value:o[0],selected:recType===o[0]?"selected":null},o[1])));
+  const recDetail=el("div",{class:"stack"});
+  const iDaily=el("input",{type:"number",value:(rec&&typeof rec.daily==="number")?rec.daily:1});
+  const wkDays=["Mon","Tue","Wed","Thu","Fri","Sat","Sun"]; const wkJp=["月","火","水","木","金","土","日"];
+  const wkSel=new Set(rec&&rec.weekly?rec.weekly:[]);
+  const wkChips=el("div",{class:"chips"}, wkDays.map((d,i)=>{
+    const c=btn(wkJp[i],"chip"+(wkSel.has(d)?" on":""),()=>{ if(wkSel.has(d))wkSel.delete(d); else wkSel.add(d); c.className="chip"+(wkSel.has(d)?" on":""); });
+    return c;
+  }));
+  const iMonthly=el("input",{type:"text",placeholder:"例: 1,15 または last",value:rec&&rec.monthly!=null?(Array.isArray(rec.monthly)?rec.monthly.join(","):rec.monthly):""});
+  const iCron=el("input",{type:"text",placeholder:"min hour dom mon dow",value:rec&&rec.cron?rec.cron:""});
+  const iRecTimeS=el("input",{type:"time",value:rec&&rec.time?(rec.time.start||""):""});
+  const iRecTimeE=el("input",{type:"time",value:rec&&rec.time?(rec.time.end||""):""});
+  const iUntil=el("input",{type:"date",value:rec&&rec.until?G.dateStr(G.parseDt(rec.until)):""});
+  function renderRecDetail(){
+    recDetail.innerHTML="";
+    const t=iRecType.value;
+    if(t==="daily"){ recDetail.appendChild(el("label",{class:"fld"},"間隔（N日毎, 1=毎日）")); recDetail.appendChild(iDaily); }
+    else if(t==="weekly"){ recDetail.appendChild(el("label",{class:"fld"},"曜日")); recDetail.appendChild(wkChips); }
+    else if(t==="monthly"){ recDetail.appendChild(el("label",{class:"fld"},"日（カンマ区切り / last）")); recDetail.appendChild(iMonthly); }
+    else if(t==="cron"){ recDetail.appendChild(el("label",{class:"fld"},"cron式")); recDetail.appendChild(iCron); }
+    if(t!=="none"&&t!=="cron"){
+      recDetail.appendChild(el("div",{class:"row"},[
+        el("div",null,[el("label",{class:"fld"},"開始時刻"),iRecTimeS]),
+        el("div",null,[el("label",{class:"fld"},"終了時刻"),iRecTimeE]),
+      ]));
+      recDetail.appendChild(el("label",{class:"fld"},"終了日(until, 任意)")); recDetail.appendChild(iUntil);
+    }
+  }
+  iRecType.addEventListener("change",renderRecDetail); renderRecDetail();
+
+  // Todo editor
+  const todoBox=el("div",{class:"stack"});
+  work.todo=work.todo||[];
+  function renderTodos(){
+    todoBox.innerHTML="";
+    if(!work.todo.length) todoBox.appendChild(el("div",{class:"hint"},"Todoはありません。"));
+    renderTodoList(work.todo, todoBox, 0, work.todo);
+  }
+  function renderTodoList(list, container, depth, rootList){
+    list.forEach((t,i)=>{
+      const item=el("div",{class:"todoitem",style:`margin-left:${depth*12}px`});
+      const mark = t.complete?"■":(t.start&&!t.end?"☑":"□");
+      item.appendChild(el("div",{class:"tline"},[
+        el("span",null,mark),
+        el("div",{class:"tname"}, (t.name||"(無名)")+(t.type?`  [${t.type}]`:"")),
+        btn("編集","small",()=>editTodo(list,i,rootList)),
+        btn("＋子","small",()=>addTodo(t.children=t.children||[],rootList)),
+        btn("削","small danger",()=>{ list.splice(i,1); renderTodos(); }),
+      ]));
+      container.appendChild(item);
+      if(t.children&&t.children.length) renderTodoList(t.children, container, depth+1, rootList);
+    });
+  }
+  function addTodo(list,rootList){ editTodoDialog({}, (nt)=>{ list.push(nt); renderTodos(); }); }
+  function editTodo(list,i,rootList){ editTodoDialog(list[i], (nt)=>{ nt.children=list[i].children; list[i]=nt; renderTodos(); }); }
+  renderTodos();
+
+  const body=el("div",{class:"stack"},[
+    el("label",{class:"fld"},"名前"), iName,
+    el("label",{class:"fld"},"種別 (type)"), iType,
+    el("div",{class:"row"},[
+      el("div",null,[el("label",{class:"fld"},"開始"),iStart]),
+      el("div",null,[el("label",{class:"fld"},"終了"),iEnd]),
+    ]),
+    el("label",{class:"fld"},"完了日時 (completion, 空=未完了)"), iComp,
+    el("div",{class:"row"},[
+      el("div",null,[el("label",{class:"fld"},"優先度"),iPrio]),
+      el("div",null,[el("label",{class:"fld"},"並び順"),iOrder]),
+    ]),
+    el("div",{class:"row"},[
+      el("div",{style:"flex:0 0 auto;display:flex;align-items:center;gap:6px"},[iPin, el("span",{class:"muted small"},"ピン留め")]),
+      el("div",null,[el("label",{class:"fld",style:"margin-top:0"},"見積(分)"),iEst]),
+    ]),
+    el("label",{class:"fld"},"タグ（カンマ区切り）"), iTags,
+    el("label",{class:"fld"},"作業内容 (text)"), iText,
+    el("label",{class:"fld"},"繰り返し"), iRecType, recDetail,
+    el("label",{class:"fld"},"Todo（作業ステップ）"), todoBox,
+    btn("＋ Todo 追加","small",()=>addTodo(work.todo, work.todo)),
+  ]);
+  const mh=modal(oldName?`Plan編集: ${oldName}`:"新規Plan", body, [
+    btn("キャンセル","",()=>mh.close()),
+    btn("保存","primary",()=>{
+      const name=iName.value.trim();
+      if(!name){ toast("名前を入力してください"); return; }
+      work.name=name;
+      work.type=iType.value;
+      work.schedule=work.schedule||{};
+      work.schedule.start=fromLocalInput(iStart.value);
+      work.schedule.end=fromLocalInput(iEnd.value);
+      work.schedule.completion=fromLocalInput(iComp.value);
+      // recurrence
+      const rt=iRecType.value;
+      if(rt==="none"){ delete work.schedule.recurrence; }
+      else{
+        const r={};
+        if(rt==="daily"){ const n=parseInt(iDaily.value,10)||1; r.daily=(n===1)?true:n; }
+        else if(rt==="weekly"){ r.weekly=wkDays.filter(d=>wkSel.has(d)); }
+        else if(rt==="monthly"){ const v=iMonthly.value.trim(); r.monthly = v.indexOf(",")>=0?v.split(",").map(s=>s.trim()).filter(Boolean):(v==="last"?"last":(isNaN(+v)?v:+v)); }
+        else if(rt==="cron"){ r.cron=iCron.value.trim(); }
+        if(rt!=="cron"){ const ts=iRecTimeS.value,te=iRecTimeE.value; if(ts||te){ r.time={}; if(ts)r.time.start=ts; if(te)r.time.end=te; } if(iUntil.value) r.until=iUntil.value; }
+        work.schedule.recurrence=r;
+      }
+      // meta（トップレベルへ）
+      work.priority=iPrio.value;
+      if(iOrder.value!=="") work.order=parseInt(iOrder.value,10); else delete work.order;
+      if(iPin.checked) work.pin=true; else delete work.pin;
+      const tags=iTags.value.split(",").map(s=>s.trim()).filter(Boolean);
+      if(tags.length) work.tags=tags; else delete work.tags;
+      if(iEst.value!=="") work.estimate_min=parseInt(iEst.value,10); else delete work.estimate_min;
+      work.text=iText.value;
+      savePlan(work, label, oldName);
+      mh.close(); toast("保存しました");
+    }),
+  ]);
+}
+
+/* Todo編集ダイアログ */
+function editTodoDialog(todo, onOk){
+  const iName=el("input",{type:"text",value:todo.name||""});
+  const iText=el("textarea",{}, todo.text||"");
+  const types=["","normal","trouble_shoot","review","setup","other"];
+  const iType=el("select",{}, types.map(t=>el("option",{value:t,selected:(todo.type||"")===t?"selected":null}, t||"(なし)")));
+  const iStart=el("input",{type:"datetime-local",value:toLocalInput(todo.start)});
+  const iEnd=el("input",{type:"datetime-local",value:toLocalInput(todo.end)});
+  const iComp=el("input",{type:"checkbox"}); iComp.checked=!!todo.complete;
+  const iProg=el("input",{type:"number",min:0,max:100,value:(todo.progress!=null?todo.progress:"")});
+  const body=el("div",{class:"stack"},[
+    el("label",{class:"fld"},"名前"), iName,
+    el("label",{class:"fld"},"内容 (text)"), iText,
+    el("label",{class:"fld"},"種別 (type)"), iType,
+    el("div",{class:"row"},[
+      el("div",null,[el("label",{class:"fld"},"開始"),iStart]),
+      el("div",null,[el("label",{class:"fld"},"終了"),iEnd]),
+    ]),
+    el("div",{class:"row"},[
+      el("div",{style:"flex:0 0 auto;display:flex;align-items:center;gap:6px"},[iComp,el("span",{class:"muted small"},"完了")]),
+      el("div",null,[el("label",{class:"fld",style:"margin-top:0"},"進捗(%)"),iProg]),
+    ]),
+  ]);
+  const mh=modal(todo.name?"Todo 編集":"Todo 追加", body, [
+    btn("キャンセル","",()=>mh.close()),
+    btn("OK","primary",()=>{
+      const name=iName.value.trim(); if(!name){ toast("名前を入力"); return; }
+      const nt={name:name, text:iText.value, complete:iComp.checked};
+      if(iType.value) nt.type=iType.value;
+      const st=fromLocalInput(iStart.value), en=fromLocalInput(iEnd.value);
+      if(st) nt.start=st; if(en) nt.end=en;
+      if(iProg.value!=="") nt.progress=parseInt(iProg.value,10);
+      mh.close(); onOk(nt);
+    }),
+  ]);
+}
+
+/* ============ テンプレート ============ */
+function openTemplateSave(plan){
+  const iName=el("input",{type:"text",value:plan.name||""});
+  const body=el("div",{class:"stack"},[
+    el("div",{class:"hint"},"このPlanをテンプレートとして保存します。start/end/完了状態は除去されます。"),
+    el("label",{class:"fld"},"テンプレート名"), iName,
+  ]);
+  const mh=modal("テンプレートに保存", body, [
+    btn("キャンセル","",()=>mh.close()),
+    btn("保存","primary",()=>{
+      const p=G.deepCopy(G.stripInternal(plan)); p.name=iName.value.trim()||plan.name;
+      G.saveAsTemplate(templates, p); saveAll();
+      mh.close(); toast("テンプレートに保存しました");
+    }),
+  ]);
+}
+function openTemplateLoad(){
+  const names=G.listNames(templates);
+  if(!names.length){ toast("テンプレートがありません"); return; }
+  const iSel=el("select",{}, names.map(n=>el("option",{value:n},n)));
+  const today=new Date();
+  const iName=el("input",{type:"text",value:`${today.getFullYear()}${G.pad2(today.getMonth()+1)}${G.pad2(today.getDate())}の作業`});
+  const preview=el("div",{class:"stack"});
+  function renderPrev(){
+    preview.innerHTML="";
+    const t=G.getPlan(templates, iSel.value);
+    (t&&t.todo||[]).forEach(td=>preview.appendChild(el("div",{class:"small muted"},"○ "+(td.name||""))));
+  }
+  iSel.addEventListener("change",renderPrev); renderPrev();
+  const body=el("div",{class:"stack"},[
+    el("label",{class:"fld"},"テンプレート"), iSel,
+    el("label",{class:"fld"},"新しいPlan名"), iName,
+    el("label",{class:"fld"},"Todoプレビュー"), preview,
+  ]);
+  const mh=modal("テンプレートから作成", body, [
+    btn("キャンセル","",()=>mh.close()),
+    btn("作成","primary",()=>{
+      const t=G.getPlan(templates, iSel.value);
+      const np=G.createFromTemplate(t, iName.value.trim()||iSel.value);
+      if(np){ savePlan(np, activeFile()?activeFile().label:null, null); }
+      mh.close(); toast("作成しました");
+    }),
+  ]);
+}
+
+/* ============ インポート ============ */
+function openImport(){
+  if(!state.files.length){ toast("先にPlanListを読み込んでください"); return; }
+  // ソース: 読み込み済みファイル or 新規ファイル選択
+  const srcSel=el("select",{}, state.files.map((f,i)=>el("option",{value:i},f.label)));
+  const tgtSel=el("select",{}, state.files.map((f,i)=>el("option",{value:i,selected:i===state.targetIdx?"selected":null},f.label)));
+  const listBox=el("div",{class:"stack"});
+  const checks=[];
+  function reload(){
+    listBox.innerHTML=""; checks.length=0;
+    const src=state.files[+srcSel.value], tgt=state.files[+tgtSel.value];
+    if(!src||!tgt) return;
+    const existing={}; G.loadPlansFlat([{label:tgt.label,data:tgt.data}]).forEach(p=>existing[p.name]=true);
+    const plans=G.loadPlansFlat([{label:src.label,data:src.data}]);
+    if(src===tgt){ listBox.appendChild(el("div",{class:"hint"},"※ ソースとターゲットが同じです。")); }
+    plans.forEach(p=>{
+      const dup=!!existing[p.name];
+      const cb=el("input",{type:"checkbox"}); cb.checked=!dup;
+      const row=el("div",{class:"tline",style:"padding:4px 0"},[
+        cb, el("div",{class:"tname",style:dup?"color:var(--warn)":""}, p.name+(dup?" [重複]":"")),
+      ]);
+      listBox.appendChild(row); checks.push({cb,plan:p,dup});
+    });
+    if(!plans.length) listBox.appendChild(el("div",{class:"hint"},"プランがありません。"));
+  }
+  srcSel.addEventListener("change",reload); tgtSel.addEventListener("change",reload); reload();
+  const body=el("div",{class:"stack"},[
+    el("div",{class:"row"},[
+      el("div",null,[el("label",{class:"fld"},"取り込み元"),srcSel]),
+      el("div",null,[el("label",{class:"fld"},"取り込み先"),tgtSel]),
+    ]),
+    el("div",{class:"row"},[
+      btn("全選択","small",()=>checks.forEach(c=>c.cb.checked=true)),
+      btn("全解除","small",()=>checks.forEach(c=>c.cb.checked=false)),
+      btn("別ファイルを開く","small",()=>$("fileInput").click()),
+    ]),
+    el("div",{class:"hint"},"[重複]=取り込み先に同名Planが存在（既定でOFF。チェックすると上書き）"),
+    listBox,
+  ]);
+  const mh=modal("PlanList からインポート", body, [
+    btn("キャンセル","",()=>mh.close()),
+    btn("インポート","primary",()=>{
+      const tgt=state.files[+tgtSel.value];
+      let n=0;
+      checks.forEach(c=>{ if(c.cb.checked){ G.upsertPlan(tgt.data, G.stripInternal(c.plan)); n++; } });
+      mh.close(); afterChange(); toast(`${n}件をインポートしました`);
+    }),
+  ]);
+}
+
+/* ============ 作業報告書 ============ */
+function openReport(){
+  const today=new Date(); const weekAgo=G.addDays(today,-7);
+  const iFrom=el("input",{type:"date",value:G.dateStr(weekAgo)});
+  const iTo=el("input",{type:"date",value:G.dateStr(today)});
+  const out=el("pre",{class:"report"},"期間を指定して「生成」を押してください。");
+  function gen(){
+    try{ out.textContent=G.generateReport(flatPlans(), iFrom.value, iTo.value+" 23:59"); }
+    catch(e){ out.textContent="生成エラー: "+e; }
+  }
+  const body=el("div",{class:"stack"},[
+    el("div",{class:"row"},[
+      el("div",null,[el("label",{class:"fld"},"開始"),iFrom]),
+      el("div",null,[el("label",{class:"fld"},"終了"),iTo]),
+      el("div",{style:"flex:0 0 auto"},[el("label",{class:"fld"},"​"),btn("生成","primary small",gen)]),
+    ]),
+    out,
+  ]);
+  const mh=modal("作業報告書生成", body, [
+    btn("コピー","",()=>{ navigator.clipboard&&navigator.clipboard.writeText(out.textContent); toast("コピーしました"); }),
+    btn("閉じる","",()=>mh.close()),
+  ]);
+  gen();
+}
+
+/* ============ 色設定 ============ */
+function openColorSettings(){
+  const cats=[["作業中",["in_progress","running"]],["未着手",["todo","planned"]],["停止中",["paused"]],["完了",["done"]],["遅延/ブロック",["delayed","blocked"]]];
+  const inputs=[];
+  const body=el("div",{class:"stack"});
+  cats.forEach(([label,keys])=>{
+    const cur=settings.colors[keys[0]]||DEFAULT_COLORS[keys[0]];
+    const ci=el("input",{type:"color",value:cur,style:"width:60px;min-width:60px;padding:2px;height:38px"});
+    body.appendChild(el("div",{class:"row"},[
+      el("div",{style:"flex:1"},label), ci,
+    ]));
+    inputs.push({keys,ci});
+  });
+  const mh=modal("バー色の設定", body, [
+    btn("既定に戻す","",()=>{ settings.colors=Object.assign({},DEFAULT_COLORS); saveAll(); mh.close(); render(); }),
+    btn("保存","primary",()=>{
+      inputs.forEach(({keys,ci})=>keys.forEach(k=>settings.colors[k]=ci.value));
+      saveAll(); mh.close(); render(); toast("保存しました");
+    }),
+  ]);
+}
+
+/* ============ メニュー ============ */
+function openMenu(){
+  const body=el("div",{class:"stack"},[
+    btn("＋ 新規Plan","actbtn",()=>{ mh.close(); openNewPlan(); }),
+    btn("テンプレートから作成","actbtn",()=>{ mh.close(); openTemplateLoad(); }),
+    btn("インポート","actbtn",()=>{ mh.close(); openImport(); }),
+    btn("作業報告書","actbtn",()=>{ mh.close(); openReport(); }),
+    btn("バー色の設定","actbtn",()=>{ mh.close(); openColorSettings(); }),
+    btn("全データをJSONで保存","actbtn",()=>{ mh.close(); downloadActive(); }),
+    btn("この端末のデータを消去","actbtn danger",()=>{ mh.close(); clearLocal(); }),
+  ]);
+  var mh=modal("メニュー", body, []);
+}
+function clearLocal(){
+  const mh=modal("データ消去の確認", el("p",null,"この端末（ブラウザ）に保存したPlan・設定・テンプレートを全消去します。よろしいですか？（ファイルに保存済みなら再読込できます）"),[
+    btn("キャンセル","",()=>mh.close()),
+    btn("消去する","danger",()=>{ localStorage.removeItem(LS_STATE);localStorage.removeItem(LS_SET);localStorage.removeItem(LS_TMPL);localStorage.removeItem(LS_SCH);
+      state={files:[],targetIdx:0}; settings={range:"week",showTodos:false,colors:Object.assign({},DEFAULT_COLORS),collapsed:[],unschedOpen:true}; templates={}; schedState={}; offset=0;
+      bootstrap(); mh.close(); toast("消去しました"); }),
+  ]);
+}
+
+/* ============ ファイル読込/保存 ============ */
+function handleFiles(fileList){
+  const files=Array.from(fileList);
+  let pending=files.length;
+  files.forEach(file=>{
+    const reader=new FileReader();
+    reader.onload=()=>{
+      try{
+        let data;
+        if(file.name.toLowerCase().endsWith(".csv")) data=csvToPlanList(reader.result);
+        else data=JSON.parse(reader.result);
+        if(typeof data!=="object"||data==null) throw new Error("オブジェクトではありません");
+        const existing=state.files.findIndex(f=>f.label===file.name);
+        if(existing>=0) state.files[existing].data=data;
+        else state.files.push({label:file.name, data});
+        state.targetIdx=state.files.findIndex(f=>f.label===file.name);
+      }catch(e){ toast(`${file.name} 読込失敗: ${e.message}`); }
+      if(--pending===0){ afterChange(); toast("読み込みました"); }
+    };
+    reader.onerror=()=>{ if(--pending===0) afterChange(); };
+    reader.readAsText(file);
+  });
+}
+function csvToPlanList(text){
+  const lines=text.split(/\r?\n/).filter(l=>l.trim());
+  if(!lines.length) return {};
+  const headers=lines[0].split(",").map(s=>s.trim());
+  const nameIdx=Math.max(0,headers.indexOf("name"));
+  const obj={};
+  for(let i=1;i<lines.length;i++){
+    const cols=lines[i].split(",");
+    const name=(cols[nameIdx]||cols[0]||"").trim();
+    if(!name) continue;
+    const notes=headers.map((h,j)=>j!==nameIdx&&cols[j]?`${h}: ${cols[j].trim()}`:"").filter(Boolean).join("\n");
+    obj[name]={name,type:"todo",task_kind:"human",schedule:{completion:""},settings:notes?{notes}:{}};
+  }
+  return obj;
+}
+function downloadActive(){
+  const f=activeFile();
+  if(!f){ toast("保存するデータがありません"); return; }
+  const blob=new Blob([JSON.stringify(f.data,null,2)],{type:"application/json"});
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(blob); a.download=f.label||"PlanList.json";
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+  toast("ダウンロードしました");
+}
+
+/* ============ ファイルセレクタ ============ */
+function refreshFileSel(){
+  const sel=$("fileSel");
+  if(state.files.length<=1){ sel.style.display="none"; }
+  else{
+    sel.style.display="";
+    sel.innerHTML="";
+    state.files.forEach((f,i)=>sel.appendChild(el("option",{value:i,selected:i===state.targetIdx?"selected":null},f.label)));
+  }
+}
+
+/* ============ イベント ============ */
+function bind(){
+  $("btnLoad").onclick=()=>$("fileInput").click();
+  $("fileInput").onchange=(e)=>{ handleFiles(e.target.files); e.target.value=""; };
+  $("btnSave").onclick=downloadActive;
+  $("btnMenu").onclick=openMenu;
+  $("btnPrev").onclick=()=>{ offset--; render(); };
+  $("btnNext").onclick=()=>{ offset++; render(); };
+  $("btnToday").onclick=()=>{ offset=0; render(); };
+  $("rangeSel").onchange=(e)=>{ settings.range=e.target.value; offset=0; afterChange(); };
+  $("btnShowTodos").onclick=()=>{ settings.showTodos=!settings.showTodos; afterChange(); };
+  $("unschedToggle").onclick=()=>{ settings.unschedOpen=!settings.unschedOpen; afterChange(); };
+  $("fileSel").onchange=(e)=>{ state.targetIdx=+e.target.value; afterChange(); };
+}
+
+/* ============ 起動 ============ */
+function bootstrap(){
+  if(!state.files.length){
+    state.files=[{label:"sample.json", data:sampleData()}];
+    state.targetIdx=0;
+  }
+  render();
+}
+function init(){
+  if(!G){ document.body.innerHTML="<p style='padding:20px'>gantt_core.js が読み込めませんでした。同じフォルダに置いてください。</p>"; return; }
+  loadAll();
+  bind();
+  if(HOST_MODE){
+    // 親(index.html)からの復号済みデータを待って描画する
+    window.addEventListener("message", function(e){
+      if(e.origin !== location.origin) return;
+      const d = e.data || {};
+      if(d.type === "webgantt:data"){
+        applyBundle(d.bundle);
+        if(!state || !state.files) state = {files:[], targetIdx:0};
+        render();
+      }
+    });
+    try{ window.parent.postMessage({type:"webgantt:ready"}, location.origin); }catch(e){}
+  } else {
+    bootstrap();
+  }
+}
+document.addEventListener("DOMContentLoaded", init);
+})();
+</script>
+</body>
+</html>
