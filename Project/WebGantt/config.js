@@ -12,6 +12,9 @@
  */
 window.WEBGANTT_CONFIG = {
   mode: "gist",                         // "gist" | "selfserver" | "local"
+  // ※ ai_remote_server（自前サーバー）配信時は server.py が /config.js を
+  //   selfserver 設定で上書き配信するため、この committed ファイルは GitHub 運用の
+  //   既定（gist）のままでよい。手動で書き換える必要はない。
   gist: {
     // 任意。Device Flow を将来使う場合の GitHub OAuth App client_id。
     // PAT 方式では未使用。

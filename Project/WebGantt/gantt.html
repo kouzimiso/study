@@ -155,18 +155,20 @@ const LS_STATE="webgantt_state_v1", LS_SET="webgantt_settings_v1",
       LS_TMPL="webgantt_templates_v1", LS_SCH="webgantt_schedstate_v1";
 
 const DEFAULT_COLORS = { // status -> rgb hex
-  "in_progress":"#F2CC33","running":"#F2CC33",   // 作業中
-  "todo":"#4DB366","planned":"#4DB366",          // 未着手
-  "paused":"#5C8C6E",                            // 停止中
-  "done":"#9AA0A6",                              // 完了
-  "blocked":"#E0594C","delayed":"#E0594C"        // 遅延/ブロック
+  "on_schedule":"#4DB366",                       // 順調 On Schedule: 緑
+  "at_risk":"#F2CC33",                           // 遅れ気味 At Risk: 黄
+  "delayed":"#E0594C",                           // 遅延 Delayed: 赤（end 超過で未完）
+  "done":"#9AA0A6",                              // 完了 Done: 灰
+  // 子 Todo バー等の互換用
+  "in_progress":"#F2CC33","running":"#F2CC33","todo":"#4DB366","planned":"#4DB366",
+  "paused":"#5C8C6E","blocked":"#E0594C"
 };
 
 let state = {
   files: [],        // [{label, data}]
   targetIdx: 0,
 };
-let settings = { range:"week", showTodos:false, colors:Object.assign({},DEFAULT_COLORS), collapsed:[], unschedOpen:true, lblWidth:160 };
+let settings = { range:"week", showTodos:true, colors:Object.assign({},DEFAULT_COLORS), collapsed:[], unschedOpen:true, lblWidth:160 };
 let templates = {}; // {name: plan}
 let schedState = {}; // 完了バッファ（繰り返しoccurrence等）
 let offset = 0;
@@ -199,7 +201,7 @@ function applyBundle(b){
   b = b || {};
   if (b.state && typeof b.state === "object") state = b.state;
   if (b.settings && typeof b.settings === "object")
-    settings = Object.assign({range:"week",showTodos:false,colors:Object.assign({},DEFAULT_COLORS),collapsed:[],unschedOpen:true,lblWidth:160}, b.settings);
+    settings = Object.assign({range:"week",showTodos:true,colors:Object.assign({},DEFAULT_COLORS),collapsed:[],unschedOpen:true,lblWidth:160}, b.settings);
   if (b.templates && typeof b.templates === "object") templates = b.templates;
   if (b.schedState && typeof b.schedState === "object") schedState = b.schedState;
   if (!settings.colors) settings.colors = Object.assign({}, DEFAULT_COLORS);
@@ -559,6 +561,22 @@ function renderUnscheduled(){
   }
   const plans=flatPlans().filter(p=>isUnscheduled(p) && !shownInGantt(p));
   $("unschedLabel").textContent=`スケジュールなし (${plans.length}件)`;
+  // スケジュール未設定 Plan はガントに棒が出ないため、その todo は一覧で展開して見せる
+  // （展開は「Todo展開」トグル＝showTodos に従う。子階層 children も再帰表示）。
+  function _todoMark(t){ const d=!!t.complete, ip=t.start&&!t.end&&!d, bl=!!t.blocked;
+    return d?"●":(bl?"×":(ip?"◐":"○")); }
+  function _todoColor(t){ const d=!!t.complete, ip=t.start&&!t.end&&!d, bl=!!t.blocked;
+    return d?"#8a93a3":(bl?"var(--err)":(ip?"#7fe0a8":"var(--fg)")); }
+  function _addTodoRows(todos, depth){
+    (todos||[]).forEach(t=>{
+      const c=_todoColor(t);
+      const tr=el("div",{class:"urow",style:`padding-left:${10+depth*16}px`});
+      tr.appendChild(el("span",{style:`color:${c};font-size:12px`},_todoMark(t)));
+      tr.appendChild(el("div",{class:"uname",style:`color:${c}`},t.name||""));
+      box.appendChild(tr);
+      if(t.children&&t.children.length) _addTodoRows(t.children, depth+1);
+    });
+  }
   plans.forEach(plan=>{
     const row=el("div",{class:"urow"});
     const rl=G.riskLevel(plan);
@@ -569,6 +587,7 @@ function renderUnscheduled(){
     row.appendChild(el("div",{class:"uname"},plan.name));
     row.appendChild(btn("…","menubtn small",()=>openPlanMenu(plan)));
     box.appendChild(row);
+    if(showTodos && plan.todo && plan.todo.length) _addTodoRows(plan.todo, 1);
   });
   box.style.display = settings.unschedOpen?"block":"none";
   $("unschedToggle").textContent = settings.unschedOpen?"▼":"▶";
@@ -1117,7 +1136,7 @@ function openReport(){
 
 /* ============ 色設定 ============ */
 function openColorSettings(){
-  const cats=[["作業中",["in_progress","running"]],["未着手",["todo","planned"]],["停止中",["paused"]],["完了",["done"]],["遅延/ブロック",["delayed","blocked"]]];
+  const cats=[["順調 On Schedule",["on_schedule"]],["遅れ気味 At Risk",["at_risk"]],["遅延 Delayed",["delayed"]],["完了 Done",["done"]]];
   const inputs=[];
   const body=el("div",{class:"stack"});
   cats.forEach(([label,keys])=>{
@@ -1154,7 +1173,7 @@ function clearLocal(){
   const mh=modal("データ消去の確認", el("p",null,"この端末（ブラウザ）に保存したPlan・設定・テンプレートを全消去します。よろしいですか？（ファイルに保存済みなら再読込できます）"),[
     btn("キャンセル","",()=>mh.close()),
     btn("消去する","danger",()=>{ localStorage.removeItem(LS_STATE);localStorage.removeItem(LS_SET);localStorage.removeItem(LS_TMPL);localStorage.removeItem(LS_SCH);
-      state={files:[],targetIdx:0}; settings={range:"week",showTodos:false,colors:Object.assign({},DEFAULT_COLORS),collapsed:[],unschedOpen:true}; templates={}; schedState={}; offset=0;
+      state={files:[],targetIdx:0}; settings={range:"week",showTodos:true,colors:Object.assign({},DEFAULT_COLORS),collapsed:[],unschedOpen:true}; templates={}; schedState={}; offset=0;
       bootstrap(); mh.close(); toast("消去しました"); }),
   ]);
 }

@@ -390,8 +390,13 @@
   }
   function progressOf(plan, done) {
     if (done) return 100;
-    const p = meta(plan, "progress");
+    // 手動値: schedule.progress 優先 → 無ければ管理メタ progress
+    const sch = schedule(plan);
+    let p = (typeof sch.progress === "number") ? sch.progress : meta(plan, "progress");
     if (typeof p === "number") return Math.max(0, Math.min(100, Math.trunc(p)));
+    // 自動: 子タスク(todo, children 含む)の完了率
+    const todos = plan.todo || [];
+    if (todos.length) { const c = countTodosDeep(todos); if (c[1]) return Math.round(100 * c[0] / c[1]); }
     const cl = meta(plan, "checklist");
     if (Array.isArray(cl) && cl.length) { const d = cl.filter(x => x && typeof x === "object" && x.done).length; return Math.round(100 * d / cl.length); }
     return 0;
@@ -408,12 +413,16 @@
       else milestone = true;
     }
     const name = plan.name || "";
+    const prog = progressOf(plan, done);
+    // スケジュール健全性（実進捗% と 経過時間% の単純比較）
     let status;
     if (done) status = "done";
-    else if (delayed) status = "delayed";
-    else if ((runningNames || new Set()).has(name)) status = "running";
-    else if (sdt != null && now < sdt) status = "planned";
-    else status = "in_progress";
+    else if (edt != null && now > edt) status = "delayed";           // end 超過で未完
+    else if (sdt != null && edt != null && edt > sdt) {
+      let elapsed = (now - sdt) / (edt - sdt) * 100;
+      elapsed = Math.max(0, Math.min(100, elapsed));
+      status = (prog >= elapsed) ? "on_schedule" : "at_risk";
+    } else status = "on_schedule";                                    // 開始前・日付不足は順調扱い
     const rec = (state || {})[name] || {};
     let actualStart, actualEnd;
     if (recurring) { const orec = (rec.occurrences || {})[sdt ? dateStr(sdt) : ""] || {}; actualStart = orec.actual_start; actualEnd = orec.completion; }
@@ -422,7 +431,7 @@
       start: sdt, end: edt,
       actual_start: actualStart ? parseDt(actualStart) : null,
       actual_end: actualEnd ? parseDt(actualEnd) : null,
-      status: status, progress: progressOf(plan, done), milestone: milestone,
+      status: status, progress: prog, milestone: milestone,
     };
   }
   function buildModels(plans, now, opts) {
@@ -479,7 +488,11 @@
           over: over, level: 0, child: false,
         });
         if (wantTodos) {
-          const pStart = psd || winS, pEnd = ped || winE;
+          // スケジュール未設定のPlanは、表示中ウィンドウ(offset)を基準にすると
+          // 期限なしTodoの等分位置が毎週そのウィンドウに追従して「週を変えても
+          // バーが変わらない」ように見える。基準は常に現在期間(offset 0)に固定する。
+          const fbWin = ganttWindow(now, rangeKey, 0);
+          const pStart = psd || fbWin[0], pEnd = ped || fbWin[1];
           for (const ct of layoutTodos(plan, pStart, pEnd, now)) {
             if (ct.start == null) continue;
             const crow = rows.length;

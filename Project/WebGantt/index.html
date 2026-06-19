@@ -96,6 +96,9 @@
       <span class="title">📊 スケジュール</span>
       <span class="who" id="whoami"></span>
       <span id="saveState"></span>
+      <button id="btnExportAll" title="スケジュール＋作業メモをまとめてダウンロード">⬇ 書出</button>
+      <button id="btnImportAll" title="まとめて読込（ファイルから復元）">⬆ 取込</button>
+      <input id="importAllFile" type="file" accept="application/json,.json" style="display:none">
       <button id="btnLogout">ログアウト</button>
     </div>
     <div id="frameWrap"></div>
@@ -263,8 +266,54 @@ function scheduleSave(){
   $("saveState").textContent = "保存待ち…";
   saveTimer = setTimeout(async ()=>{
     try{ await persist(); $("saveState").textContent = "保存済み"; setTimeout(()=>{ if($("saveState").textContent==="保存済み") $("saveState").textContent=""; }, 1500); }
-    catch(e){ $("saveState").textContent = "保存失敗"; console.error(e); }
+    catch(e){ $("saveState").textContent = "保存失敗: " + (e&&e.message||e); console.error(e); }
   }, 300);
+}
+
+/* ---------- まとめて書出/取込（スケジュール＋作業メモを1ファイルに） ---------- */
+function exportAll(){
+  const b = bundle || emptyBundle();
+  const payload = {
+    _webgantt: "bundle-v1",
+    exported_at: new Date().toISOString(),
+    state: b.state || {files:[],targetIdx:0},
+    settings: b.settings || {},
+    templates: b.templates || {},
+    schedState: b.schedState || {},
+    notes: notes || {}
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], {type:"application/json"});
+  const a = document.createElement("a");
+  const ts = new Date().toISOString().slice(0,10).replace(/-/g,"");
+  a.href = URL.createObjectURL(blob);
+  a.download = "webgantt_backup_" + ts + ".json";
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(a.href), 1000);
+}
+function importAllFromFile(ev){
+  const f = ev.target.files && ev.target.files[0];
+  ev.target.value = "";
+  if(!f) return;
+  const r = new FileReader();
+  r.onload = function(){
+    try{
+      const o = JSON.parse(r.result);
+      bundle = {
+        state: o.state || {files:[],targetIdx:0},
+        settings: o.settings || {},
+        templates: o.templates || {},
+        schedState: o.schedState || {}
+      };
+      notes = o.notes || {};
+      // 子(iframe)へ反映して再描画
+      if(frame && frame.contentWindow){
+        try{ frame.contentWindow.postMessage({type:"webgantt:data", bundle:bundle}, location.origin); }catch(_){}
+      }
+      scheduleSave();   // 取り込んだ内容をバックエンドにも保存
+      alert("読込みました（スケジュール＋作業メモ）。");
+    }catch(err){ alert("読込み失敗: " + (err&&err.message||err)); }
+  };
+  r.readAsText(f);
 }
 
 /* ---------- アプリ(iframe)をマウントしブリッジ ---------- */
@@ -276,6 +325,9 @@ function openApp(){
   frame.src = "gantt.html?host=1";
   $("frameWrap").appendChild(frame);
   $("btnLogout").onclick = logout;
+  $("btnExportAll").onclick = exportAll;
+  $("btnImportAll").onclick = function(){ $("importAllFile").click(); };
+  $("importAllFile").onchange = importAllFromFile;
   show("screen-app");
 }
 
