@@ -7,6 +7,7 @@
 <script src="config.js"></script>
 <script src="crypto.js"></script>
 <script src="providers.js"></script>
+<script src="zip.js"></script>
 <style>
   :root{ --bg:#11151c; --panel:#1a2029; --panel2:#222a36; --line:#2c3543; --fg:#e1e7f0; --muted:#9aa6b8; --accent:#2f6fb3; --err:#e0594c; --ok:#4db366; }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
@@ -96,9 +97,10 @@
       <span class="title">📊 スケジュール</span>
       <span class="who" id="whoami"></span>
       <span id="saveState"></span>
-      <button id="btnExportAll" title="スケジュール＋作業メモをまとめてダウンロード">⬇ 書出</button>
-      <button id="btnImportAll" title="まとめて読込（ファイルから復元）">⬆ 取込</button>
-      <input id="importAllFile" type="file" accept="application/json,.json" style="display:none">
+      <button id="btnExportAll" title="スケジュール＋作業メモ＋画像をZIPでダウンロード">⬇ 書出</button>
+      <button id="btnImportAll" title="ZIP/JSONから復元">⬆ 取込</button>
+      <button id="btnExportWork" title="未完了Todoの作業メモ＋画像をZIPで書出（ai_server連携用）">⬇ 未完メモ</button>
+      <input id="importAllFile" type="file" accept=".zip,application/zip,application/json,.json" style="display:none">
       <button id="btnLogout">ログアウト</button>
     </div>
     <div id="frameWrap"></div>
@@ -270,50 +272,137 @@ function scheduleSave(){
   }, 300);
 }
 
-/* ---------- まとめて書出/取込（スケジュール＋作業メモを1ファイルに） ---------- */
+/* ---------- 画像変換ヘルパ（dataURL <-> bytes） ---------- */
+function dataURLtoBytes(durl){
+  const m = /^data:([^;,]*)?(;base64)?,([\s\S]*)$/.exec(durl||"");
+  if(!m) return null;
+  const mime = m[1] || "application/octet-stream", isB64 = !!m[2], body = m[3];
+  let bytes;
+  if(isB64){ const bin=atob(body); bytes=new Uint8Array(bin.length); for(let i=0;i<bin.length;i++) bytes[i]=bin.charCodeAt(i); }
+  else { bytes = new TextEncoder().encode(decodeURIComponent(body)); }
+  return { mime, bytes };
+}
+function bytesToDataURL(bytes, mime){
+  let s=""; const CH=0x8000;
+  for(let i=0;i<bytes.length;i+=CH){ s+=String.fromCharCode.apply(null, bytes.subarray(i,i+CH)); }
+  return "data:"+(mime||"image/png")+";base64,"+btoa(s);
+}
+function extFromMime(m){ m=(m||"").toLowerCase();
+  if(m.indexOf("png")>=0)return"png"; if(m.indexOf("jpeg")>=0||m.indexOf("jpg")>=0)return"jpg";
+  if(m.indexOf("gif")>=0)return"gif"; if(m.indexOf("webp")>=0)return"webp"; return "bin"; }
+function mimeFromName(n){ n=(n||"").toLowerCase();
+  if(n.endsWith(".png"))return"image/png"; if(n.endsWith(".jpg")||n.endsWith(".jpeg"))return"image/jpeg";
+  if(n.endsWith(".gif"))return"image/gif"; if(n.endsWith(".webp"))return"image/webp"; return "application/octet-stream"; }
+function te(s){ return new TextEncoder().encode(s); }
+function triggerDownload(blob, name){
+  const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=name;
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href), 2000);
+}
+function tsName(){ return new Date().toISOString().slice(0,16).replace(/[-:T]/g,"").slice(0,13); }
+
+/* ---------- まとめて書出（ZIP：bundle.json ＋ images/ ＋ README） ---------- */
 function exportAll(){
+  if(!window.GZ){ alert("zip.js が読み込まれていません"); return; }
+  const files=[]; let imgIdx=0;
+  const notesCopy = JSON.parse(JSON.stringify(notes||{}));
+  Object.keys(notesCopy).forEach(id=>{
+    (notesCopy[id].blocks||[]).forEach(b=>{
+      if(b && b.type==="image" && typeof b.data==="string" && b.data.indexOf("data:")===0){
+        const d=dataURLtoBytes(b.data);
+        if(d){ imgIdx++; const fn="images/img_"+imgIdx+"."+extFromMime(d.mime);
+          files.push({name:fn, data:d.bytes}); b.ref=fn; b.mime=d.mime; delete b.data; }
+      }
+    });
+  });
   const b = bundle || emptyBundle();
-  const payload = {
-    _webgantt: "bundle-v1",
-    exported_at: new Date().toISOString(),
-    state: b.state || {files:[],targetIdx:0},
-    settings: b.settings || {},
-    templates: b.templates || {},
-    schedState: b.schedState || {},
-    notes: notes || {}
-  };
-  const blob = new Blob([JSON.stringify(payload, null, 2)], {type:"application/json"});
-  const a = document.createElement("a");
-  const ts = new Date().toISOString().slice(0,10).replace(/-/g,"");
-  a.href = URL.createObjectURL(blob);
-  a.download = "webgantt_backup_" + ts + ".json";
-  document.body.appendChild(a); a.click(); a.remove();
-  setTimeout(()=>URL.revokeObjectURL(a.href), 1000);
+  const payload = { _webgantt:"bundle-zip-v1", exported_at:new Date().toISOString(),
+    state:b.state||{files:[],targetIdx:0}, settings:b.settings||{}, templates:b.templates||{},
+    schedState:b.schedState||{}, notes:notesCopy };
+  files.unshift({name:"bundle.json", data:te(JSON.stringify(payload,null,2))});
+  files.push({name:"README.txt", data:te("WebGantt backup (zip).\nbundle.json = schedule + notes (images referenced as images/...).\nimages/ = attached images.\nImport this .zip from the WebGantt toolbar (⬆ 取込).\n")});
+  triggerDownload(GZ.zip(files), "webgantt_backup_"+tsName()+".zip");
+}
+
+/* ---------- 取込（ZIP / 旧JSON 両対応） ---------- */
+function applyImported(o, n){
+  bundle = { state:o.state||{files:[],targetIdx:0}, settings:o.settings||{}, templates:o.templates||{}, schedState:o.schedState||{} };
+  notes = n||{};
+  if(frame && frame.contentWindow){ try{ frame.contentWindow.postMessage({type:"webgantt:data", bundle:bundle}, location.origin); }catch(_){} }
+  scheduleSave();
+  alert("読込みました（スケジュール＋作業メモ＋画像）。");
+}
+function importFromZip(arrbuf){
+  const map={}; GZ.unzip(arrbuf).forEach(e=>{ map[e.name]=e.data; });
+  if(!map["bundle.json"]) throw new Error("bundle.json がZIPに見つかりません");
+  const o=JSON.parse(new TextDecoder().decode(map["bundle.json"]));
+  const n=o.notes||{};
+  Object.keys(n).forEach(id=>{
+    (n[id].blocks||[]).forEach(b=>{
+      if(b && b.type==="image" && b.ref && map[b.ref]){
+        b.data=bytesToDataURL(map[b.ref], b.mime||mimeFromName(b.ref)); delete b.ref; delete b.mime;
+      }
+    });
+  });
+  applyImported(o, n);
 }
 function importAllFromFile(ev){
   const f = ev.target.files && ev.target.files[0];
   ev.target.value = "";
   if(!f) return;
+  const isZip = /\.zip$/i.test(f.name);
   const r = new FileReader();
   r.onload = function(){
-    try{
-      const o = JSON.parse(r.result);
-      bundle = {
-        state: o.state || {files:[],targetIdx:0},
-        settings: o.settings || {},
-        templates: o.templates || {},
-        schedState: o.schedState || {}
-      };
-      notes = o.notes || {};
-      // 子(iframe)へ反映して再描画
-      if(frame && frame.contentWindow){
-        try{ frame.contentWindow.postMessage({type:"webgantt:data", bundle:bundle}, location.origin); }catch(_){}
-      }
-      scheduleSave();   // 取り込んだ内容をバックエンドにも保存
-      alert("読込みました（スケジュール＋作業メモ）。");
-    }catch(err){ alert("読込み失敗: " + (err&&err.message||err)); }
+    try{ if(isZip) importFromZip(r.result); else applyImported(JSON.parse(r.result), (JSON.parse(r.result).notes)||{}); }
+    catch(err){ alert("読込み失敗: " + (err&&err.message||err)); }
   };
-  r.readAsText(f);
+  if(isZip) r.readAsArrayBuffer(f); else r.readAsText(f);
+}
+
+/* ---------- 未完了Todoの作業メモ＋画像を ZIP 書出（ai_server 連携用） ---------- */
+function _eachTodo(arr, cb){ (arr||[]).forEach(t=>{ cb(t); if(t.children&&t.children.length) _eachTodo(t.children, cb); }); }
+function exportWorklog(){
+  if(!window.GZ){ alert("zip.js が読み込まれていません"); return; }
+  const files=[]; let imgIdx=0; const entries=[];
+  const b = bundle || emptyBundle();
+  ((b.state&&b.state.files)||[]).forEach(fileObj=>{
+    const label=fileObj.label||"", data=fileObj.data||{};
+    Object.keys(data).forEach(k=>{
+      if(k.charAt(0)==="_") return;
+      const plans=Array.isArray(data[k])?data[k]:[data[k]];
+      plans.forEach(plan=>{
+        if(!plan||typeof plan!=="object") return;
+        const planName=plan.name||k;
+        _eachTodo(plan.todo, t=>{
+          if(t.complete) return;                  // 未完了のみ
+          const refs=t.notes||[]; if(!refs.length) return;
+          const memos=[];
+          refs.forEach(ref=>{
+            const note=notes[ref.id]; if(!note) return;
+            const text=[], imgs=[];
+            (note.blocks||[]).forEach(bl=>{
+              if(bl.type==="text" && bl.data) text.push(bl.data);
+              else if(bl.type==="image" && typeof bl.data==="string" && bl.data.indexOf("data:")===0){
+                const d=dataURLtoBytes(bl.data);
+                if(d){ imgIdx++; const fn="images/img_"+imgIdx+"."+extFromMime(d.mime); files.push({name:fn,data:d.bytes}); imgs.push(fn); }
+              }
+            });
+            memos.push({title:ref.title||note.title||"", text:text.join("\n"), images:imgs});
+          });
+          if(memos.length) entries.push({file:label, plan:planName, todo:t.name||"", status:"incomplete", memos:memos});
+        });
+      });
+    });
+  });
+  if(!entries.length){ alert("未完了Todoの作業メモ（画像含む）が見つかりませんでした。"); return; }
+  const md=["# 未完了Todo 作業メモ","","書出: "+new Date().toLocaleString(),""];
+  entries.forEach(e=>{
+    md.push("## ["+e.file+"] "+e.plan+" / "+e.todo);
+    e.memos.forEach(m=>{ if(m.title) md.push("### "+m.title); if(m.text) md.push("", m.text);
+      m.images.forEach(im=>md.push("", "!["+im+"]("+im+")")); md.push(""); });
+  });
+  files.unshift({name:"manifest.json", data:te(JSON.stringify({_webgantt:"worklog-v1", exported_at:new Date().toISOString(), entries:entries}, null, 2))});
+  files.push({name:"report.md", data:te(md.join("\n"))});
+  triggerDownload(GZ.zip(files), "worklog_"+tsName()+".zip");
 }
 
 /* ---------- アプリ(iframe)をマウントしブリッジ ---------- */
@@ -327,6 +416,7 @@ function openApp(){
   $("btnLogout").onclick = logout;
   $("btnExportAll").onclick = exportAll;
   $("btnImportAll").onclick = function(){ $("importAllFile").click(); };
+  $("btnExportWork") && ($("btnExportWork").onclick = exportWorklog);
   $("importAllFile").onchange = importAllFromFile;
   show("screen-app");
 }

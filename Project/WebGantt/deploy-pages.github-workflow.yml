@@ -1,0 +1,48 @@
+# ──────────────────────────────────────────────────────────────────────────
+# GitHub Pages 配布用ワークフロー（テンプレート）
+#
+# 置き場所: 公開用リポジトリ（study）の  .github/workflows/deploy-pages.yml  にコピー。
+# 役割    : リポジトリ内の WebGantt クライアント（index.html / gantt.html / *.js）を
+#           GitHub Pages に公開する。スマホは公開URLから「スケジュール(gist モード)」を
+#           ローカルサーバ無しで利用できる（Webページからの DL／アクセスが必要な場合の手段）。
+#
+# 注意    : AI エージェント（/agent）は WebSocket でローカルサーバへ接続する必要があるため、
+#           静的 Pages では動きません。Pages 配布の対象は「スケジュール/ガントの閲覧・編集」
+#           （gist 同期）です。AI エージェントは ai_remote_server（Tailscale）経由で使います。
+#
+# 設定    : リポジトリ Settings > Pages > Build and deployment > Source を
+#           「GitHub Actions」に変更してから push してください。
+# ──────────────────────────────────────────────────────────────────────────
+name: Deploy WebGantt to Pages
+
+on:
+  push:
+    branches: [ main ]      # 公開ブランチに合わせて変更（master 等）
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          # index.html があるフォルダを指定:
+          #   - リポジトリ直下に置いているなら '.'
+          #   - サブフォルダなら 'WebGantt' など
+          path: '.'
+      - id: deployment
+        uses: actions/deploy-pages@v4
