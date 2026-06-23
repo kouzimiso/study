@@ -94,7 +94,7 @@
   <!-- アプリ本体 -->
   <div id="screen-app" class="hidden" style="flex:1;display:flex;flex-direction:column;">
     <div class="topbar">
-      <span class="title">📊 スケジュール</span>
+      <span class="title">📊 スケジュール <span id="appver" style="font-size:10px;color:var(--muted);font-weight:normal"></span></span>
       <span class="who" id="whoami"></span>
       <span id="saveState"></span>
       <button id="btnExportAll" title="スケジュール＋作業メモ＋画像をZIPでダウンロード">⬇ 書出</button>
@@ -116,6 +116,8 @@ const C = window.GanttCrypto, P = window.GanttProviders;
 const CRYPTO_OK = !!(C && C.isSecure && C.isSecure()); // file:// 等の非セキュアでは false
 if (location.protocol === "file:" && !CRYPTO_OK) { CFG.mode = "local"; } // file://(暗号不可)はローカルで起動
 const $ = (id)=>document.getElementById(id);
+// バージョン（キャッシュ無効化＆鮮度確認用）。gantt.html / gantt_core.js もこの値で読み込む。
+const WGVER = "2026-06-23a";
 // iframe間 postMessage の宛先 origin。file:// は origin が不透明(null)で照合が壊れるため "*" を使う。
 const MORG = (location.protocol === "file:") ? "*" : location.origin;
 const okOrigin = (e)=> (location.protocol === "file:" || e.origin === "null" || e.origin === "" || e.origin === location.origin);
@@ -534,9 +536,10 @@ function notesHtmlDoc(body){
 function openApp(){
   const u = backend.currentUser && backend.currentUser();
   $("whoami").textContent = (u ? ("@"+u.name) : "") + (CRYPTO_OK ? "" : "（暗号化なし/ローカル）");
+  $("appver") && ($("appver").textContent = "v" + WGVER);
   $("frameWrap").innerHTML = "";
   frame = document.createElement("iframe");
-  frame.src = "gantt.html?host=1";
+  frame.src = "gantt.html?host=1&v=" + WGVER;
   $("frameWrap").appendChild(frame);
   $("btnLogout").onclick = logout;
   $("btnExportAll").onclick = exportAll;
