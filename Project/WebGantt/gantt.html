@@ -66,6 +66,13 @@
   .bar .fill{position:absolute;left:0;top:0;bottom:0;background:rgba(0,0,0,.28);}
   .bar .blabel{position:relative;font-size:11px;padding:0 5px;white-space:nowrap;color:#0d0f12;
     font-weight:600;text-shadow:0 1px 0 rgba(255,255,255,.25);}
+  /* 期限切れ延長バー（end〜現在を遅延色のストライプで表示。実作業の遅れは Todo で記録）*/
+  .delaybar{position:absolute;top:7px;height:18px;border-radius:0 5px 5px 0;cursor:pointer;
+    z-index:2;opacity:.85;display:flex;align-items:center;justify-content:flex-end;
+    background:repeating-linear-gradient(45deg,var(--dc,#e0594c),var(--dc,#e0594c) 6px,
+      rgba(0,0,0,.18) 6px,rgba(0,0,0,.18) 12px);}
+  .delaybar .dlabel{font-size:10px;color:#fff;font-weight:700;padding:0 4px;
+    text-shadow:0 1px 1px rgba(0,0,0,.5);}
   .milestone{position:absolute;top:7px;width:16px;height:16px;transform:rotate(45deg);
     cursor:pointer;box-shadow:0 1px 2px rgba(0,0,0,.5);}
   .nowline{position:absolute;top:0;bottom:0;width:2px;background:#e05b5b;z-index:3;pointer-events:none;}
@@ -178,6 +185,9 @@ let offset = 0;
  * 子(このファイル)は平文 bundle を親と postMessage で授受し、localStorage には書かない。*/
 const HOST_MODE = (window.parent && window.parent !== window) &&
   new URLSearchParams(location.search).get("host") === "1";
+// iframe間 postMessage の宛先 origin（file:// は不透明なので "*"）。
+const MORG = (location.protocol === "file:") ? "*" : location.origin;
+const okOrigin = (e)=> (location.protocol === "file:" || e.origin === "null" || e.origin === "" || e.origin === location.origin);
 
 /* ============ 直接アクセス防御（デフォルト拒否） ============
  * 正規ルートはログイン用 index.html の iframe(host=1)。それ以外で http(s) 配信の
@@ -211,7 +221,7 @@ function saveAll(){
   if(HOST_MODE){
     if(_hostSaveTimer) clearTimeout(_hostSaveTimer);
     _hostSaveTimer = setTimeout(function(){
-      try{ window.parent.postMessage({type:"webgantt:save", bundle:getBundle()}, location.origin); }catch(e){}
+      try{ window.parent.postMessage({type:"webgantt:save", bundle:getBundle()}, MORG); }catch(e){}
     }, 400);
     return;
   }
@@ -527,6 +537,18 @@ function renderGantt(m, now){
         const lab = b.child ? "" : (b.progress?`${b.progress}%`:"");
         if(wPx>34 && lab) bar.appendChild(el("div",{class:"blabel"},lab));
         track.appendChild(bar);
+        // 期限切れ延長: 遅延かつ未完了の Plan は end〜現在を遅延色のストライプで延長表示。
+        // 予定区間（淡色のバー）とは見た目を変え、「予定を超過して継続中」を示す。
+        const de = b.delay_end ? b.delay_end.getTime() : null;
+        if(de!=null && de>be){
+          const dr=clamp((de-winS)/span);
+          const dLeft=Math.min(rr,1)*tlWidth, dW=Math.max(4,(dr-Math.min(rr,1))*tlWidth);
+          const dcol=statusColor("delayed");
+          const dext=el("div",{class:"delaybar",style:`left:${dLeft}px;width:${dW}px;--dc:${dcol}`,
+            title:`${b.plan_name}（期限超過・継続中）`, onclick:()=>onBarTap(b)});
+          if(dW>20) dext.appendChild(el("div",{class:"dlabel"},"遅"));
+          track.appendChild(dext);
+        }
       }
     });
     rowEl.appendChild(track);
@@ -557,7 +579,11 @@ function renderUnscheduled(){
   box.innerHTML="";
   const showTodos=settings.showTodos;
   function shownInGantt(p){
-    return showTodos && (p.todo&&p.todo.length) && !((p.schedule||{}).recurrence);
+    // Python版に合わせ、期間(start/end)が設定されている Plan のみガント表示済みとみなす。
+    // 未スケジュール Plan は Todo の有無に関わらず「スケジュールなし」一覧に出す。
+    const sch=p.schedule||{};
+    const hasPeriod=!!(sch.start||sch.end);
+    return showTodos && (p.todo&&p.todo.length) && hasPeriod;
   }
   const plans=flatPlans().filter(p=>isUnscheduled(p) && !shownInGantt(p));
   $("unschedLabel").textContent=`スケジュールなし (${plans.length}件)`;
@@ -623,14 +649,20 @@ function onBarTap(bar){
 /* ============ プラン操作メニュー ============ */
 function openPlanMenu(plan){
   if(!plan){ toast("プランが見つかりません"); return; }
-  const body=el("div",{class:"stack"},[
+  const acts=[
     btn("編集（スケジュール/設定/Todo）","actbtn",()=>{ mh.close(); openPlanEditor(plan); }),
     btn("完了にする","actbtn",()=>{ mh.close(); markComplete(plan); toast("完了にしました"); }),
     btn("テンプレートに保存","actbtn",()=>{ mh.close(); openTemplateSave(plan); }),
     btn("複製","actbtn",()=>{ mh.close(); duplicatePlanByName(plan); toast("複製しました"); }),
-    btn("今すぐ実行（無効）","actbtn",()=>{ toast("この版では外部プログラム起動は無効です"); }),
-    btn("削除","actbtn danger",()=>{ mh.close(); confirmDelete(plan); }),
-  ]);
+  ];
+  // PC実行はホスト(/pcgantt)経由でのみ可能。安全版WebGantt単体では出さない。
+  if(HOST_MODE){
+    acts.push(btn("今すぐ実行","actbtn",()=>{ mh.close();
+      try{ window.parent.postMessage({type:"webgantt:run-plan", plan:plan.name, file:plan._file||plan._plan_list||""}, MORG); }catch(e){}
+    }));
+  }
+  acts.push(btn("削除","actbtn danger",()=>{ mh.close(); confirmDelete(plan); }));
+  const body=el("div",{class:"stack"}, acts);
   var mh=modal(plan.name||"プラン", body, []);
 }
 function confirmDelete(plan){
@@ -736,7 +768,7 @@ function ensureTodoNotes(todo){
 function openNoteRef(plan, parentList, idx, todo, ref){
   const title=(plan.name||"")+" / "+(todo.name||"")+(ref.title?(" / "+ref.title):"");
   if(HOST_MODE){
-    try{ window.parent.postMessage({type:"webgantt:open-note", id:ref.id, title:title}, location.origin); return; }catch(e){}
+    try{ window.parent.postMessage({type:"webgantt:open-note", id:ref.id, title:title}, MORG); return; }catch(e){}
   }
   const url="note.html?id="+encodeURIComponent(ref.id)+"&title="+encodeURIComponent(title);
   try{ window.open(url, "_blank"); }catch(e){ location.href=url; }
@@ -854,6 +886,7 @@ function buildPlanEditor(work, oldName, label){
   const iPin=el("input",{type:"checkbox"}); iPin.checked=!!G.meta(work,"pin");
   const iTags=el("input",{type:"text",value:(G.meta(work,"tags",[])||[]).join(", ")});
   const iEst=el("input",{type:"number",value:(G.meta(work,"estimate_min")!=null?G.meta(work,"estimate_min"):"")});
+  const iSchedProg=el("input",{type:"number",min:0,max:100,placeholder:"空=子タスクから自動",value:(typeof sch.progress==="number"?sch.progress:"")});
   const iText=el("textarea",{}, work.text||"");
 
   // recurrence builder
@@ -926,6 +959,7 @@ function buildPlanEditor(work, oldName, label){
       el("div",null,[el("label",{class:"fld"},"終了"),iEnd]),
     ]),
     el("label",{class:"fld"},"完了日時 (completion, 空=未完了)"), iComp,
+    el("label",{class:"fld"},"全体進捗率(%, 空=子タスクから自動計算)"), iSchedProg,
     el("div",{class:"row"},[
       el("div",null,[el("label",{class:"fld"},"優先度"),iPrio]),
       el("div",null,[el("label",{class:"fld"},"並び順"),iOrder]),
@@ -970,6 +1004,12 @@ function buildPlanEditor(work, oldName, label){
       const tags=iTags.value.split(",").map(s=>s.trim()).filter(Boolean);
       if(tags.length) work.tags=tags; else delete work.tags;
       if(iEst.value!=="") work.estimate_min=parseInt(iEst.value,10); else delete work.estimate_min;
+      // 全体進捗率（手動）: 値があれば schedule.progress に保存（手動設定優先）。
+      // 空なら削除し、子タスクからの自動計算に委ねる。
+      if(iSchedProg.value!==""){
+        let sp=parseInt(iSchedProg.value,10); if(isNaN(sp))sp=0; sp=Math.max(0,Math.min(100,sp));
+        work.schedule.progress=sp;
+      } else { delete work.schedule.progress; }
       work.text=iText.value;
       savePlan(work, label, oldName);
       mh.close(); toast("保存しました");
@@ -1279,7 +1319,7 @@ function init(){
   if(HOST_MODE){
     // 親(index.html)からの復号済みデータを待って描画する
     window.addEventListener("message", function(e){
-      if(e.origin !== location.origin) return;
+      if(!okOrigin(e)) return;
       const d = e.data || {};
       if(d.type === "webgantt:data"){
         applyBundle(d.bundle);
@@ -1289,7 +1329,7 @@ function init(){
         if(d.id){ _noteTitles[d.id] = d.title || ""; if(_memoRefresh){ try{ _memoRefresh(); }catch(_){} } }
       }
     });
-    try{ window.parent.postMessage({type:"webgantt:ready"}, location.origin); }catch(e){}
+    try{ window.parent.postMessage({type:"webgantt:ready"}, MORG); }catch(e){}
   } else {
     bootstrap();
   }

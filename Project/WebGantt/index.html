@@ -100,6 +100,7 @@
       <button id="btnExportAll" title="スケジュール＋作業メモ＋画像をZIPでダウンロード">⬇ 書出</button>
       <button id="btnImportAll" title="ZIP/JSONから復元">⬆ 取込</button>
       <button id="btnExportWork" title="未完了Todoの作業メモ＋画像をZIPで書出（ai_server連携用）">⬇ 未完メモ</button>
+      <button id="btnNotesHtml" title="作業メモ(note.html)付きTodoを、画像・テキストのコピーボタン付きHTMLで書出">⬇ メモHTML</button>
       <input id="importAllFile" type="file" accept=".zip,application/zip,application/json,.json" style="display:none">
       <button id="btnLogout">ログアウト</button>
     </div>
@@ -115,6 +116,9 @@ const C = window.GanttCrypto, P = window.GanttProviders;
 const CRYPTO_OK = !!(C && C.isSecure && C.isSecure()); // file:// 等の非セキュアでは false
 if (location.protocol === "file:" && !CRYPTO_OK) { CFG.mode = "local"; } // file://(暗号不可)はローカルで起動
 const $ = (id)=>document.getElementById(id);
+// iframe間 postMessage の宛先 origin。file:// は origin が不透明(null)で照合が壊れるため "*" を使う。
+const MORG = (location.protocol === "file:") ? "*" : location.origin;
+const okOrigin = (e)=> (location.protocol === "file:" || e.origin === "null" || e.origin === "" || e.origin === location.origin);
 const show = (id)=>{ ["screen-login","screen-pass","screen-app"].forEach(s=>$(s).classList.toggle("hidden", s!==id)); };
 
 let backend = null;
@@ -299,6 +303,58 @@ function triggerDownload(blob, name){
   document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href), 2000);
 }
 function tsName(){ return new Date().toISOString().slice(0,16).replace(/[-:T]/g,"").slice(0,13); }
+function _escH(s){ return (""+s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+
+/* note.html の作業メモが付いた Todo だけを、テキスト/画像のコピーボタン付き自己完結HTMLに。
+   incompleteOnly=true で未完了Todoのみ。画像は data URL で埋め込み（単体で開ける）。 */
+function noteReportHTML(incompleteOnly){
+  const b = bundle || emptyBundle();
+  const sections=[];
+  ((b.state&&b.state.files)||[]).forEach(fo=>{
+    const label=fo.label||"", data=fo.data||{};
+    Object.keys(data).forEach(k=>{
+      if(k.charAt(0)==="_") return;
+      const plans=Array.isArray(data[k])?data[k]:[data[k]];
+      plans.forEach(plan=>{
+        if(!plan||typeof plan!=="object") return;
+        const pn=plan.name||k;
+        _eachTodo(plan.todo, t=>{
+          if(incompleteOnly && t.complete) return;
+          const ns=(t.notes||[]).map(ref=>notes[ref.id]).filter(n=>n && (n.blocks||[]).length);
+          if(!ns.length) return;   // note.html メモが無いTodoは除外
+          let h='<section><h2>['+_escH(label)+'] '+_escH(pn)+' / '+_escH(t.name||"")+(t.complete?' <span class="done">完了</span>':'')+'</h2>';
+          ns.forEach(note=>{
+            if(note.title) h+='<h3>'+_escH(note.title)+'</h3>';
+            (note.blocks||[]).forEach(bl=>{
+              if(bl.type==="text" && (bl.text||bl.data)){
+                h+='<div class="block"><pre>'+_escH(bl.text||bl.data)+'</pre><button class="cp" data-copy="text">📋 テキストをコピー</button></div>';
+              } else if(bl.type==="image" && typeof bl.data==="string" && bl.data.indexOf("data:")===0){
+                h+='<div class="block"><img src="'+bl.data+'" alt="image"><button class="cp" data-copy="image">🖼️ 画像をコピー</button></div>';
+              }
+            });
+          });
+          sections.push(h+'</section>');
+        });
+      });
+    });
+  });
+  if(!sections.length) sections.push('<p class="muted">note.html の作業メモが付いた'+(incompleteOnly?'未完了':'')+'Todoはありません。</p>');
+  const style='body{font-family:system-ui,sans-serif;max-width:860px;margin:20px auto;padding:0 14px;line-height:1.7;color:#222}'
+    +'h1{font-size:20px}h2{border-top:2px solid #ddd;padding-top:12px;margin-top:24px;font-size:17px}h3{margin:12px 0 4px}'
+    +'.block{margin:8px 0}pre{white-space:pre-wrap;background:#f6f6f6;padding:10px;border-radius:6px;font-family:inherit;margin:0 0 4px}'
+    +'img{max-width:100%;border:1px solid #ccc;border-radius:6px;display:block;margin:0 0 4px}'
+    +'button.cp{font-size:13px;padding:5px 10px;border:1px solid #bbb;border-radius:6px;background:#fafafa;cursor:pointer}'
+    +'.muted{color:#777;font-size:13px}.done{color:#888;font-size:12px;border:1px solid #ccc;border-radius:4px;padding:0 5px}'
+    +'.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#222;color:#fff;padding:8px 14px;border-radius:8px;opacity:0;transition:opacity .2s}';
+  const scr="function tt(m){var t=document.getElementById('toast');t.textContent=m;t.style.opacity=1;setTimeout(function(){t.style.opacity=0;},1500);}"
+    +"function ct(p){navigator.clipboard.writeText(p.innerText).then(function(){tt('テキストをコピーしました');}).catch(function(){tt('コピー不可');});}"
+    +"function ci(img){fetch(img.src).then(function(r){return r.blob();}).then(function(b){return createImageBitmap(b);}).then(function(bm){var c=document.createElement('canvas');c.width=bm.width;c.height=bm.height;c.getContext('2d').drawImage(bm,0,0);c.toBlob(function(png){navigator.clipboard.write([new ClipboardItem({'image/png':png})]).then(function(){tt('画像をコピーしました');}).catch(function(){tt('画像コピー不可');});},'image/png');}).catch(function(){tt('画像コピー不可');});}"
+    +"document.addEventListener('click',function(e){var b=e.target.closest('button.cp');if(!b)return;var blk=b.closest('.block');var p=blk.querySelector('pre');var im=blk.querySelector('img');if(b.getAttribute('data-copy')==='text'&&p)ct(p);else if(im)ci(im);});";
+  return '<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>作業メモ</title><style>'+style+'</style></head><body>'
+    +'<h1>作業メモ（note.html 付きTodo）</h1><p class="muted">書出: '+_escH(new Date().toLocaleString())+'</p>'
+    +sections.join("\n")+'<div id="toast" class="toast"></div>'
+    +'<scr'+'ipt>'+scr+'<\/scr'+'ipt></body></html>';
+}
 
 /* ---------- まとめて書出（ZIP：bundle.json ＋ images/ ＋ README） ---------- */
 function exportAll(){
@@ -319,7 +375,8 @@ function exportAll(){
     state:b.state||{files:[],targetIdx:0}, settings:b.settings||{}, templates:b.templates||{},
     schedState:b.schedState||{}, notes:notesCopy };
   files.unshift({name:"bundle.json", data:te(JSON.stringify(payload,null,2))});
-  files.push({name:"README.txt", data:te("WebGantt backup (zip).\nbundle.json = schedule + notes (images referenced as images/...).\nimages/ = attached images.\nImport this .zip from the WebGantt toolbar (⬆ 取込).\n")});
+  files.push({name:"README.txt", data:te("WebGantt backup (zip).\nbundle.json = schedule + notes (images referenced as images/...).\nimages/ = attached images.\nreport.html = note.html メモ付きTodo一覧（テキスト/画像コピーボタン付き）。\nImport this .zip from the WebGantt toolbar (⬆ 取込).\n")});
+  files.push({name:"report.html", data:te(noteReportHTML(false))});  // note.html付きTodoのみ・コピーボタン
   triggerDownload(GZ.zip(files), "webgantt_backup_"+tsName()+".zip");
 }
 
@@ -327,7 +384,7 @@ function exportAll(){
 function applyImported(o, n){
   bundle = { state:o.state||{files:[],targetIdx:0}, settings:o.settings||{}, templates:o.templates||{}, schedState:o.schedState||{} };
   notes = n||{};
-  if(frame && frame.contentWindow){ try{ frame.contentWindow.postMessage({type:"webgantt:data", bundle:bundle}, location.origin); }catch(_){} }
+  if(frame && frame.contentWindow){ try{ frame.contentWindow.postMessage({type:"webgantt:data", bundle:bundle}, MORG); }catch(_){} }
   scheduleSave();
   alert("読込みました（スケジュール＋作業メモ＋画像）。");
 }
@@ -374,35 +431,103 @@ function exportWorklog(){
         const planName=plan.name||k;
         _eachTodo(plan.todo, t=>{
           if(t.complete) return;                  // 未完了のみ
-          const refs=t.notes||[]; if(!refs.length) return;
           const memos=[];
-          refs.forEach(ref=>{
+          (t.notes||[]).forEach(ref=>{
             const note=notes[ref.id]; if(!note) return;
-            const text=[], imgs=[];
+            const text=[], imgs=[], imgsData=[];
             (note.blocks||[]).forEach(bl=>{
-              if(bl.type==="text" && bl.data) text.push(bl.data);
+              if(bl.type==="text" && (bl.text||bl.data)) text.push(bl.text||bl.data);
               else if(bl.type==="image" && typeof bl.data==="string" && bl.data.indexOf("data:")===0){
                 const d=dataURLtoBytes(bl.data);
-                if(d){ imgIdx++; const fn="images/img_"+imgIdx+"."+extFromMime(d.mime); files.push({name:fn,data:d.bytes}); imgs.push(fn); }
+                if(d){ imgIdx++; const fn="images/img_"+imgIdx+"."+extFromMime(d.mime); files.push({name:fn,data:d.bytes}); imgs.push(fn); imgsData.push(bl.data); }
               }
             });
-            memos.push({title:ref.title||note.title||"", text:text.join("\n"), images:imgs});
+            memos.push({title:ref.title||note.title||"", text:text.join("\n"), images:imgs, imagesData:imgsData});
           });
-          if(memos.length) entries.push({file:label, plan:planName, todo:t.name||"", status:"incomplete", memos:memos});
+          const workText=(t.text||"").trim();
+          const sessionNotes=(t.work_sessions||[]).map(s=>((s&&s.note)||"").trim()).filter(Boolean);
+          if(!memos.length && !workText && !sessionNotes.length) return;   // 文章も画像も無ければ除外
+          entries.push({file:label, plan:planName, todo:t.name||"", status:"incomplete",
+            work_text:workText, session_notes:sessionNotes, memos:memos});
         });
       });
     });
   });
   if(!entries.length){ alert("未完了Todoの作業メモ（画像含む）が見つかりませんでした。"); return; }
+  // 人間用 report.md（画像はファイル参照）
   const md=["# 未完了Todo 作業メモ","","書出: "+new Date().toLocaleString(),""];
   entries.forEach(e=>{
     md.push("## ["+e.file+"] "+e.plan+" / "+e.todo);
+    if(e.work_text) md.push("", "**作業内容:** "+e.work_text);
+    if(e.session_notes && e.session_notes.length){ md.push("", "**セッションメモ:**"); e.session_notes.forEach(n=>md.push("- "+n)); }
     e.memos.forEach(m=>{ if(m.title) md.push("### "+m.title); if(m.text) md.push("", m.text);
       m.images.forEach(im=>md.push("", "!["+im+"]("+im+")")); md.push(""); });
+    md.push("");
   });
-  files.unshift({name:"manifest.json", data:te(JSON.stringify({_webgantt:"worklog-v1", exported_at:new Date().toISOString(), entries:entries}, null, 2))});
+  // manifest.json は機械用（base64画像は載せない＝imagesData を除外）
+  const manifestEntries=entries.map(e=>({file:e.file, plan:e.plan, todo:e.todo, status:e.status,
+    work_text:e.work_text, session_notes:e.session_notes,
+    memos:e.memos.map(m=>({title:m.title, text:m.text, images:m.images}))}));
+  files.unshift({name:"manifest.json", data:te(JSON.stringify({_webgantt:"worklog-v1", exported_at:new Date().toISOString(), entries:manifestEntries}, null, 2))});
   files.push({name:"report.md", data:te(md.join("\n"))});
+  files.push({name:"report.html", data:te(noteReportHTML(true))});  // note.html付きTodoのみ・コピーボタン
   triggerDownload(GZ.zip(files), "worklog_"+tsName()+".zip");
+}
+
+/* ---------- note.html付きTodoだけを「画像・テキストのコピーボタン付きHTML」で書出 ---------- */
+function escHtml(s){ return (""+s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+function exportNotesHtml(){
+  const b = bundle || emptyBundle();
+  const sections=[]; let count=0;
+  ((b.state&&b.state.files)||[]).forEach(fileObj=>{
+    const label=fileObj.label||"", data=fileObj.data||{};
+    Object.keys(data).forEach(k=>{
+      if(k.charAt(0)==="_") return;
+      const plans=Array.isArray(data[k])?data[k]:[data[k]];
+      plans.forEach(plan=>{
+        if(!plan||typeof plan!=="object") return;
+        const planName=plan.name||k;
+        _eachTodo(plan.todo, t=>{
+          const refs=t.notes||[]; if(!refs.length) return;       // note.html付きTodoのみ
+          const parts=[];
+          refs.forEach(ref=>{
+            const note=notes[ref.id]; if(!note) return;
+            const inner=[];
+            (note.blocks||[]).forEach(bl=>{
+              if(bl.type==="text" && (bl.text||bl.data)){
+                inner.push('<div class="memo"><pre>'+escHtml(bl.text||bl.data)+'</pre><button class="cp" onclick="ct(this)">📋 テキストをコピー</button></div>');
+              } else if(bl.type==="image" && typeof bl.data==="string" && bl.data.indexOf("data:")===0){
+                inner.push('<div class="memo"><img src="'+bl.data+'" alt="image"><button class="cp" onclick="ci(this)">🖼️ 画像をコピー</button></div>');
+              }
+            });
+            if(inner.length){ const title=ref.title||note.title||""; parts.push((title?'<h4>'+escHtml(title)+'</h4>':'')+inner.join("\n")); }
+          });
+          if(parts.length){ count++;
+            sections.push('<section><h2>['+escHtml(label)+'] '+escHtml(planName)+' / '+escHtml(t.name||"")+(t.complete?' <span class="done">完了</span>':'')+'</h2>'+parts.join("\n")+'</section>');
+          }
+        });
+      });
+    });
+  });
+  if(!count){ alert("作業メモ(note.html)が付いたTodoが見つかりませんでした。"); return; }
+  triggerDownload(new Blob([notesHtmlDoc(sections.join("\n"))], {type:"text/html"}), "notes_"+tsName()+".html");
+}
+function notesHtmlDoc(body){
+  return '<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>作業メモ</title>'
+   +'<style>body{font-family:system-ui,sans-serif;max-width:860px;margin:18px auto;padding:0 14px;line-height:1.7;color:#1c1c1c}'
+   +'h1{font-size:20px}section{border:1px solid #ddd;border-radius:10px;padding:10px 14px;margin:16px 0}'
+   +'h2{font-size:16px;border-bottom:1px solid #eee;padding-bottom:6px}h4{margin:12px 0 4px;color:#555}'
+   +'.memo{margin:8px 0;padding:8px;background:#fafafa;border:1px solid #eee;border-radius:8px}'
+   +'.memo pre{white-space:pre-wrap;font-family:inherit;margin:0 0 6px}.memo img{max-width:100%;display:block;border:1px solid #ccc;border-radius:6px;margin-bottom:6px}'
+   +'.cp{font-size:13px;padding:5px 10px;border:1px solid #bbb;border-radius:6px;background:#fff;cursor:pointer}'
+   +'.done{font-size:12px;color:#fff;background:#888;border-radius:6px;padding:1px 6px}'
+   +'.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#222;color:#fff;padding:8px 14px;border-radius:8px;opacity:0;transition:.2s;z-index:9}.toast.on{opacity:1}</style></head><body>'
+   +'<h1>作業メモ（note.html 付き Todo）</h1>'+body+'<div class="toast" id="t"></div>'
+   +'<script>'
+   +'function flash(m){var t=document.getElementById("t");t.textContent=m;t.className="toast on";setTimeout(function(){t.className="toast";},1200);}'
+   +'function ct(b){var p=b.parentNode.querySelector("pre");var s=p?p.innerText:"";if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(s).then(function(){flash("テキストをコピーしました");}).catch(function(){flash("コピー不可");});}else{flash("コピー不可");}}'
+   +'function ci(b){var img=b.parentNode.querySelector("img");if(!img)return;var c=document.createElement("canvas");c.width=img.naturalWidth||img.width;c.height=img.naturalHeight||img.height;try{c.getContext("2d").drawImage(img,0,0);}catch(e){flash("コピー不可");return;}c.toBlob(function(bl){if(!bl||!navigator.clipboard||!window.ClipboardItem){flash("画像コピー非対応");return;}navigator.clipboard.write([new window.ClipboardItem({"image/png":bl})]).then(function(){flash("画像をコピーしました");}).catch(function(){flash("コピー不可");});},"image/png");}'
+   +'<\/script></body></html>';
 }
 
 /* ---------- アプリ(iframe)をマウントしブリッジ ---------- */
@@ -417,16 +542,17 @@ function openApp(){
   $("btnExportAll").onclick = exportAll;
   $("btnImportAll").onclick = function(){ $("importAllFile").click(); };
   $("btnExportWork") && ($("btnExportWork").onclick = exportWorklog);
+  $("btnNotesHtml") && ($("btnNotesHtml").onclick = exportNotesHtml);
   $("importAllFile").onchange = importAllFromFile;
   show("screen-app");
 }
 
 window.addEventListener("message", function(e){
-  if(e.origin !== location.origin) return;
+  if(!okOrigin(e)) return;
   const d = e.data || {};
   if(d.type === "webgantt:ready"){
     // 子に復号済みデータを渡す
-    try{ frame && frame.contentWindow && frame.contentWindow.postMessage({type:"webgantt:data", bundle:bundle}, location.origin); }catch(_){}
+    try{ frame && frame.contentWindow && frame.contentWindow.postMessage({type:"webgantt:data", bundle:bundle}, MORG); }catch(_){}
   } else if(d.type === "webgantt:save"){
     bundle = d.bundle;
     scheduleSave();
@@ -435,12 +561,12 @@ window.addEventListener("message", function(e){
   } else if(d.type === "webgantt-note:ready"){
     if(noteFrame && noteFrame.contentWindow){
       const note = notes[d.id] || { id:d.id, title: notePendingTitle, blocks: [] };
-      try{ noteFrame.contentWindow.postMessage({type:"webgantt-note:data", id:d.id, note:note}, location.origin); }catch(_){}
+      try{ noteFrame.contentWindow.postMessage({type:"webgantt-note:data", id:d.id, note:note}, MORG); }catch(_){}
     }
   } else if(d.type === "webgantt-note:save"){
     notes[d.id] = d.note;
     scheduleSave();
-    if(frame && frame.contentWindow){ try{ frame.contentWindow.postMessage({type:"webgantt:note-title", id:d.id, title:(d.note&&d.note.title)||""}, location.origin); }catch(_){} }
+    if(frame && frame.contentWindow){ try{ frame.contentWindow.postMessage({type:"webgantt:note-title", id:d.id, title:(d.note&&d.note.title)||""}, MORG); }catch(_){} }
   } else if(d.type === "webgantt-note:close"){
     closeNoteOverlay();
   }

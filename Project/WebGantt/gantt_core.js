@@ -295,7 +295,7 @@
           todo_index: path[0], path: path, depth: depth,
           name: t.name || `todo${idx + 1}`, assignee: t.assignee || "",
           status: todoStatus(t), memo: t.text || "", progress: todoProgress(t),
-          start: ps, end: pe,
+          start: ps, end: pe, has_own_schedule: (s != null || e != null),
           actual_start: aStarts.length ? new Date(Math.min.apply(null, aStarts)) : null,
           actual_end: aEnds.length ? new Date(Math.max.apply(null, aEnds)) : null,
           estimate_min: est, actual_min: actualMinutes(t, now), milestone: milestone,
@@ -414,9 +414,14 @@
     }
     const name = plan.name || "";
     const prog = progressOf(plan, done);
+    // 進捗率 100%（子タスク全完了 or 手動 100）は「実質完了」として完了扱い。
+    // ステータスは子の進捗率から判定する方針に沿い、明示的な完了記録
+    // （schedule.completion）が無くても 100% なら done として元のスケジュール区間で
+    // 描く（遅延延長しない）。正式な完了記録・通知には影響しない（描画判定のみ）。
+    const effDone = done || prog >= 100;
     // スケジュール健全性（実進捗% と 経過時間% の単純比較）
     let status;
-    if (done) status = "done";
+    if (effDone) status = "done";
     else if (edt != null && now > edt) status = "delayed";           // end 超過で未完
     else if (sdt != null && edt != null && edt > sdt) {
       let elapsed = (now - sdt) / (edt - sdt) * 100;
@@ -427,10 +432,24 @@
     let actualStart, actualEnd;
     if (recurring) { const orec = (rec.occurrences || {})[sdt ? dateStr(sdt) : ""] || {}; actualStart = orec.actual_start; actualEnd = orec.completion; }
     else { actualStart = rec.actual_start || schedule(plan).actual_start; actualEnd = rec.completion || schedule(plan).completion; }
+    // ── 期限切れ延長（delayed かつ未完了）─────────────────────────────────
+    // end(期限)が過去かつ未完了のとき、バーを現在時刻まで延ばして表示する。
+    // 実際の作業遅れはスケジュール(Plan)ではなく Todo 側で記録する考え方のため、
+    // 「完了」した Plan はここでは延長しない（下の actual_end クランプ参照）。
+    let delayEnd = null;
+    if (status === "delayed" && !effDone && edt != null && now > edt) delayEnd = now;
+    let actualEndDt = actualEnd ? parseDt(actualEnd) : null;
+    // completion が "done" 等の非日付 truthy 文字列の場合 parse が null になる。
+    // 完了済み（進捗100%含む）なら計画終了(edt)で代用し、実績バーが現在まで伸びないようにする。
+    if (effDone && actualEndDt == null) actualEndDt = edt;
+    // 完了した Plan は「元々のスケジュール区間」を描く。実績完了が予定終了より
+    // 後（遅れて完了）でもバーを now まで延ばさない（実作業の遅れは子 Todo で記録）。
+    else if (effDone && actualEndDt != null && edt != null && actualEndDt > edt) actualEndDt = edt;
     return {
       start: sdt, end: edt,
+      delay_end: delayEnd,
       actual_start: actualStart ? parseDt(actualStart) : null,
-      actual_end: actualEnd ? parseDt(actualEnd) : null,
+      actual_end: actualEndDt,
       status: status, progress: prog, milestone: milestone,
     };
   }
@@ -461,7 +480,13 @@
       else {
         psd = parseDt(sch.start); ped = parseDt(sch.end, { endOfDay: true });
         const spanS = psd || ped, spanE = ped || psd;
-        if (spanS != null && spanE != null && spanE >= winS && spanS <= winE) occs = [[psd ? startOfDay(psd) : startOfDay(spanE), psd, ped]];
+        if (spanS != null && spanE != null) {
+          // 通常: 窓と重なる場合
+          const inWindow = spanE >= winS && spanS <= winE;
+          // 期限切れ延長: 期限が窓より前でも、未完了で now が窓内なら遅延バーを出す
+          const overdueIntoWindow = spanE < winS && now >= winS && !isCompleted(plan, null, state);
+          if (inWindow || overdueIntoWindow) occs = [[psd ? startOfDay(psd) : startOfDay(spanE), psd, ped]];
+        }
       }
       for (const o of occs) {
         const bar = makeBar(plan, o[0], o[1], o[2], now, state, runningNames);
@@ -470,7 +495,9 @@
       }
       const todos = plan.todo || [];
       const hasSchedule = !!(recurring || psd != null || ped != null);
-      const wantTodos = !recurring && todos.length && (showTodos || !hasSchedule);
+      // Python版に合わせ、スケジュール設定済みのPlanのみ Todo を展開（未設定は
+      // 「スケジュールなし」セクションへ。gantt.html の renderUnscheduled が表示）。
+      const wantTodos = !recurring && todos.length && showTodos && hasSchedule;
       if (hasBar || wantTodos) {
         const c = countTodosDeep(todos);
         let rowName = plan.name || "";
@@ -488,13 +515,42 @@
           over: over, level: 0, child: false,
         });
         if (wantTodos) {
-          // スケジュール未設定のPlanは、表示中ウィンドウ(offset)を基準にすると
-          // 期限なしTodoの等分位置が毎週そのウィンドウに追従して「週を変えても
-          // バーが変わらない」ように見える。基準は常に現在期間(offset 0)に固定する。
-          const fbWin = ganttWindow(now, rangeKey, 0);
-          const pStart = psd || fbWin[0], pEnd = ped || fbWin[1];
-          for (const ct of layoutTodos(plan, pStart, pEnd, now)) {
-            if (ct.start == null) continue;
+          // 基準は表示中ウィンドウ（Python版 build_models 準拠：win_s/win_e）。
+          const pStart = psd || winS, pEnd = ped || winE;
+          const planOverdue = (ped != null && now > ped && !isCompleted(plan, null, state));
+          const allCt = layoutTodos(plan, pStart, pEnd, now);
+          // 未完了・無期限Todoは now〜Plan終了 を件数で等分したスロットに配置。
+          const planEndForSlots = (ped != null && ped > now) ? ped : null;
+          let nNsi = 0;
+          for (const ct of allCt) { if (!ct.has_own_schedule && ct.status !== "done") nNsi++; }
+          let slotMs = null;
+          if (nNsi > 0 && planEndForSlots != null) slotMs = (planEndForSlots.getTime() - now.getTime()) / nNsi;
+          let nsiSlotIdx = 0;
+          for (const ct of allCt) {
+            const noSchedule = !ct.has_own_schedule;
+            let tStatus = ct.status, delayEnd = null, isMilestone = ct.milestone, tStart, tEnd;
+            if (noSchedule) {
+              if (tStatus === "done") {
+                // 完了済みの無期限Todoは Plan 開始にマイルストーン（窓外は非表示）。
+                if (psd == null || !(winS <= psd && psd <= winE)) continue;
+                tStart = psd; tEnd = null; isMilestone = true;
+              } else if (slotMs != null) {
+                tStart = new Date(now.getTime() + slotMs * nsiSlotIdx);
+                tEnd = new Date(now.getTime() + slotMs * (nsiSlotIdx + 1));
+                nsiSlotIdx++; isMilestone = false;
+              } else {
+                // 未完了 & Plan終了が過去/無し → 遅延扱い。
+                tStart = ct.start || now; tEnd = ct.end;
+                if (planOverdue) { delayEnd = now; tStatus = "delayed"; }
+              }
+            } else {
+              if (ct.start == null) continue;
+              tStart = ct.start; tEnd = ct.end;
+              if (tStatus !== "done") {
+                if (ct.end != null && now > ct.end) { delayEnd = now; tStatus = "delayed"; }       // (a) Todo自身が期限切れ
+                else if (ct.end == null && planOverdue) { delayEnd = now; tStatus = "delayed"; }    // (b) 親Plan期限切れ&Todo無期限
+              }
+            }
             const crow = rows.length;
             const depth = ct.depth || 0;
             let cname = "   ".repeat(depth + 1) + "└ " + ct.name;
@@ -507,12 +563,13 @@
               level: depth + 1, child: true,
             });
             let prog = ct.progress;
-            if (prog == null) prog = ct.status === "done" ? 100 : 0;
+            if (prog == null) prog = tStatus === "done" ? 100 : 0;
             bars.push({
               row: crow, child: true, plan_name: plan.name || "",
               todo_index: ct.todo_index, path: ct.path, depth: depth,
-              start: ct.start, end: ct.end, actual_start: ct.actual_start,
-              actual_end: ct.actual_end, status: ct.status, progress: prog, milestone: ct.milestone,
+              start: tStart, end: tEnd, delay_end: delayEnd,
+              actual_start: ct.actual_start, actual_end: ct.actual_end,
+              status: tStatus, progress: prog, milestone: isMilestone, no_schedule: noSchedule,
             });
           }
         }

@@ -63,6 +63,8 @@
 (function(){
 "use strict";
 const $ = (id)=>document.getElementById(id);
+const MORG = (location.protocol === "file:") ? "*" : location.origin;
+const okOrigin = (e)=> (location.protocol === "file:" || e.origin === "null" || e.origin === "" || e.origin === location.origin);
 const params = new URLSearchParams(location.search);
 const NOTE_ID = params.get("id") || "default";
 const TITLE_PARAM = params.get("title") || "";
@@ -91,7 +93,7 @@ function save(){
   $("saveState").textContent = "保存中…";
   if(HOST_MODE){
     if(_hostSaveTimer) clearTimeout(_hostSaveTimer);
-    _hostSaveTimer=setTimeout(()=>{ try{ window.parent.postMessage({type:"webgantt-note:save", id:NOTE_ID, note:data}, location.origin); }catch(e){} $("saveState").textContent="保存済"; }, 300);
+    _hostSaveTimer=setTimeout(()=>{ try{ window.parent.postMessage({type:"webgantt-note:save", id:NOTE_ID, note:data}, MORG); }catch(e){} $("saveState").textContent="保存済"; }, 300);
     return;
   }
   if(saveTimer) clearTimeout(saveTimer);
@@ -232,7 +234,7 @@ function bind(){
   $("copyText").onclick=copyText;
   $("copyImage").onclick=copyImage;
   $("exportBtn").onclick=exportJSON;
-  $("btnBack").onclick=()=>{ if(HOST_MODE){ try{ window.parent.postMessage({type:"webgantt-note:close", id:NOTE_ID}, location.origin); }catch(e){} } else if(window.history.length>1){ history.back(); } else { window.close(); } };
+  $("btnBack").onclick=()=>{ if(HOST_MODE){ try{ window.parent.postMessage({type:"webgantt-note:close", id:NOTE_ID}, MORG); }catch(e){} } else if(window.history.length>1){ history.back(); } else { window.close(); } };
   // どこに貼っても画像なら取り込む
   document.addEventListener("paste",(e)=>{
     const items=(e.clipboardData||{}).items||[];
@@ -240,11 +242,11 @@ function bind(){
   });
   if(HOST_MODE){
     window.addEventListener("message",(e)=>{
-      if(e.origin!==location.origin) return;
+      if(!okOrigin(e)) return;
       const d=e.data||{};
       if(d.type==="webgantt-note:data" && d.id===NOTE_ID){ data=d.note||{id:NOTE_ID,title:"",blocks:[]}; if(!data.blocks)data.blocks=[]; _hostLoaded=true; render(); }
     });
-    try{ window.parent.postMessage({type:"webgantt-note:ready", id:NOTE_ID}, location.origin); }catch(e){}
+    try{ window.parent.postMessage({type:"webgantt-note:ready", id:NOTE_ID}, MORG); }catch(e){}
   }
 }
 
