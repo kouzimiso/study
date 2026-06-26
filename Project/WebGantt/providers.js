@@ -44,7 +44,10 @@
         "Authorization": "Bearer " + token,
         "X-GitHub-Api-Version": "2022-11-28",
       }, opts.headers || {});
-      const res = await fetchFn(API + path, Object.assign({}, opts, { headers }));
+      // cache:"no-store" 必須: GitHub認証APIは Cache-Control: private, max-age=60 を返すため、
+      // 付けないとブラウザが最大60秒間 gist 内容をキャッシュし、保存直後の再読込で
+      // 古い暗号データを返す（＝スケジュール変更が反映されない）原因になる。
+      const res = await fetchFn(API + path, Object.assign({ cache: "no-store" }, opts, { headers }));
       if (!res.ok) {
         const txt = await res.text().catch(() => "");
         const e = new Error("GitHub API " + res.status + ": " + txt);
@@ -80,7 +83,7 @@
         const f = g.files && g.files[GIST_FILE];
         if (!f) return null;
         if (f.truncated && f.raw_url) {
-          const r = await fetchFn(f.raw_url); return await r.text();
+          const r = await fetchFn(f.raw_url, { cache: "no-store" }); return await r.text();
         }
         return f.content || null;
       },
@@ -108,7 +111,7 @@
       opts = opts || {};
       const headers = Object.assign({ "Content-Type": "application/json" }, opts.headers || {});
       if (token) headers["Authorization"] = "Bearer " + token;
-      const res = await fetchFn(base + path, Object.assign({}, opts, { headers }));
+      const res = await fetchFn(base + path, Object.assign({ cache: "no-store" }, opts, { headers }));
       if (res.status === 404) return { _notfound: true };
       if (!res.ok) { const t = await res.text().catch(() => ""); const e = new Error("API " + res.status + ": " + t); e.status = res.status; throw e; }
       const ct = res.headers && res.headers.get && res.headers.get("content-type") || "";
