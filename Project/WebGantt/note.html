@@ -103,6 +103,16 @@ function save(){
     setTimeout(()=>{ if($("saveState").textContent==="保存済") $("saveState").textContent=""; }, 1200);
   }, 250);
 }
+// 保留中の保存を即時確定（離脱・非表示・リロード時の取りこぼし防止）。
+function flushSave(){
+  if(HOST_MODE){
+    if(_hostSaveTimer){ clearTimeout(_hostSaveTimer); _hostSaveTimer=null; }
+    try{ window.parent.postMessage({type:"webgantt-note:save", id:NOTE_ID, note:data}, MORG); }catch(e){}
+    return;
+  }
+  if(saveTimer){ clearTimeout(saveTimer); saveTimer=null; }
+  try{ localStorage.setItem(LS_KEY, JSON.stringify(data)); }catch(e){}
+}
 
 function el(tag, attrs, kids){
   const n=document.createElement(tag);
@@ -250,7 +260,11 @@ function bind(){
   }
 }
 
-function init(){ load(); bind(); render(); }
+function init(){
+  load(); bind(); render();
+  document.addEventListener("visibilitychange", function(){ if(document.visibilityState==="hidden") flushSave(); });
+  window.addEventListener("pagehide", flushSave);
+}
 document.addEventListener("DOMContentLoaded", init);
 })();
 </script>
