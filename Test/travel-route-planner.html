@@ -138,6 +138,28 @@ input::placeholder{color:var(--muted);}
     <div class="filter-chip on" data-type="sight" style="border-color:#A78BFA;background:#A78BFA33;color:#A78BFA" onclick="toggleFilter(this)">🏛️ 観光名所</div>
   </div>
 
+  <div id="filter-label" style="display:flex;justify-content:space-between;align-items:center">
+    <span>追加カテゴリ（OSMで検索 / Yahoo IDで店データを上乗せ）</span>
+    <span id="yolp-state" style="font-size:10px">Yahoo追加: OFF（OSMのみ）</span>
+  </div>
+  <div id="yolp-row" style="display:flex;gap:5px;margin-bottom:7px;flex-wrap:wrap;">
+    <div class="filter-chip" data-cat="ki"      onclick="toggleCat(this)">🎤 カラオケ居酒屋</div>
+    <div class="filter-chip" data-cat="karaoke" onclick="toggleCat(this)">🎙️ カラオケ</div>
+    <div class="filter-chip" data-cat="sento"   onclick="toggleCat(this)">♨️ 銭湯・温泉</div>
+    <div class="filter-chip" data-cat="cafe"    onclick="toggleCat(this)">☕ カフェ</div>
+    <div class="filter-chip" data-cat="izakaya" onclick="toggleCat(this)">🍶 居酒屋</div>
+  </div>
+  <details id="yolp-key" style="margin-bottom:7px">
+    <summary style="font-size:10.5px;color:var(--muted);cursor:pointer">🔑 Yahoo App ID（任意・入れると店データを上乗せ）</summary>
+    <div style="display:flex;gap:5px;margin-top:5px">
+      <input class="loc-input" id="yolp-id" placeholder="YOLP Client ID（アプリケーションID）"/>
+      <button class="icon-btn" onclick="saveYolpId()">保存</button>
+    </div>
+    <div style="font-size:9.5px;color:var(--muted);margin-top:4px;line-height:1.5">
+      <b>無くても上記カテゴリはOSMで検索できます。</b><a href="https://developer.yahoo.co.jp/start/" target="_blank" rel="noopener" style="color:var(--accent)">developer.yahoo.co.jp</a> で無料App IDを取得して入れると、Yahoo!の店データも追加で検索します（クレカ不要・1日5万件・端末内のみ保存）。
+    </div>
+  </details>
+
   <button id="go-btn" onclick="planRoute()">🗺️ ルートとスポットを探す</button>
   <div id="error-banner"></div>
 </div>
@@ -240,7 +262,19 @@ const SPOT_TYPES = {
   custom_pin: {
     label:'カスタム', icon:'📌', color:'#FBBF24', bg:'#FBBF2433',
   },
+  // 追加カテゴリ：OSM(Overpass)で検索でき、App IDがあればYOLPも上乗せ。
+  ki:      { label:'カラオケ居酒屋', icon:'🎤', color:'#F472B6', bg:'#F472B633', yolp:'カラオケ 居酒屋',
+             overpass:`node["amenity"~"pub|bar|restaurant"]["karaoke"="yes"]["name"]`, extra:`node["cuisine"="izakaya"]["karaoke"="yes"]["name"]` },
+  karaoke: { label:'カラオケ',       icon:'🎙️', color:'#FB7185', bg:'#FB718533', yolp:'カラオケ',
+             overpass:`node["amenity"="karaoke_box"]["name"]` },
+  sento:   { label:'銭湯・温泉',     icon:'♨️', color:'#FB923C', bg:'#FB923C33', yolp:'スーパー銭湯',
+             overpass:`node["amenity"="public_bath"]["name"]`, extra:`node["leisure"="sauna"]["name"]` },
+  cafe:    { label:'カフェ',         icon:'☕', color:'#34D399', bg:'#34D39933', yolp:'カフェ',
+             overpass:`node["amenity"="cafe"]["name"]` },
+  izakaya: { label:'居酒屋',         icon:'🍶', color:'#A78BFA', bg:'#A78BFA33', yolp:'居酒屋',
+             overpass:`node["amenity"~"pub|bar"]["name"]`, extra:`node["cuisine"="izakaya"]["name"]` },
 };
+const YOLP_TYPES=['ki','karaoke','sento','cafe','izakaya'];
 
 // ─── STATE ────────────────────────────────────────────────
 let map, routeLayers=[], spotMarkers=[], fromMarker, toMarker, wpMarkers=[];
@@ -249,7 +283,51 @@ let fromCoord=null, toCoord=null;
 let currentSpots=[], waypoints=[], addedIds=new Set();
 let activeFilters=new Set(['power','wifi','food','photo','sight']);
 let activeTypeFilter='all';
+let activeCats=new Set();   // 追加カテゴリ（カラオケ居酒屋/カラオケ/銭湯/カフェ/居酒屋）
 const aiHistory=[];
+
+// ─── 追加カテゴリ & YOLP(Yahoo!ローカルサーチ・JSONP・任意App ID) ───
+function getYolpId(){return (localStorage.getItem('rc_yolpid')||'').trim();}
+function refreshYolpState(){
+  const id=getYolpId(); const inp=document.getElementById('yolp-id'); if(inp)inp.value=id;
+  const st=document.getElementById('yolp-state');
+  if(st){st.textContent=id?'Yahoo追加: ON ✓':'Yahoo追加: OFF（OSMのみ）';st.style.color=id?'#34D399':'var(--muted)';}
+}
+function saveYolpId(){
+  const v=document.getElementById('yolp-id').value.trim();
+  localStorage.setItem('rc_yolpid',v); refreshYolpState();
+  showNotif(v?'🔑 Yahoo App ID 保存。検索にYahooの店も上乗せされます':'App ID を消去（OSMのみで動作）');
+}
+// 追加カテゴリのON/OFF。App IDは不要（OSMで検索。IDがあればYahooも上乗せ）
+function toggleCat(el){
+  const t=el.dataset.cat, def=SPOT_TYPES[t];
+  if(activeCats.has(t)){activeCats.delete(t);el.classList.remove('on');el.style.background='';el.style.borderColor=def.color+'55';el.style.color=def.color+'99';}
+  else{activeCats.add(t);el.classList.add('on');el.style.background=def.bg;el.style.borderColor=def.color;el.style.color=def.color;}
+}
+function jsonp(url){return new Promise((resolve,reject)=>{
+  const name='ycb_'+Math.random().toString(36).slice(2);
+  const s=document.createElement('script');let done=false;
+  const t=setTimeout(()=>fin(true),12000);
+  function fin(err,data){if(done)return;done=true;clearTimeout(t);try{delete window[name];}catch(e){window[name]=undefined;}if(s.parentNode)s.parentNode.removeChild(s);err?reject(new Error('jsonp failed')):resolve(data);}
+  window[name]=d=>fin(false,d);
+  s.onerror=()=>fin(true);
+  s.src=url+(url.indexOf('?')<0?'?':'&')+'output=json&callback='+name;
+  document.body.appendChild(s);
+});}
+async function yolpAround(lat,lng,distKm,query){
+  const id=getYolpId(); if(!id)return[];
+  const url=`https://map.yahooapis.jp/search/local/V1/localSearch?appid=${encodeURIComponent(id)}&query=${encodeURIComponent(query)}&lat=${lat}&lon=${lng}&dist=${distKm}&results=50&sort=geo&detail=full`;
+  try{const d=await jsonp(url);return (d&&d.Feature)||(d&&d.YDF&&d.YDF.Feature)||[];}catch(e){return[];}
+}
+// 経路をmaxPts点に間引く（[lng,lat]→{lat,lng}）
+function sampleRoute(coords,maxPts){
+  if(!coords.length)return[];
+  if(coords.length<=maxPts)return coords.map(c=>({lat:c[1],lng:c[0]}));
+  const step=Math.max(1,Math.floor(coords.length/maxPts)); const pts=[];
+  for(let i=0;i<coords.length;i+=step)pts.push({lat:coords[i][1],lng:coords[i][0]});
+  const last=coords[coords.length-1]; pts.push({lat:last[1],lng:last[0]});
+  return pts;
+}
 
 // ─── MAP INIT ─────────────────────────────────────────────
 map=L.map('map').setView([35.45,139.63],12);
@@ -343,23 +421,33 @@ async function fetchRoute(from,to,mode){
 }
 
 // ─── OVERPASS ─────────────────────────────────────────────
+// 複数のOverpassミラーを順に試す（混雑/タイムアウト対策）
+const OVERPASS_EPS=[
+  'https://overpass-api.de/api/interpreter',
+  'https://overpass.kumi.systems/api/interpreter',
+  'https://overpass.openstreetmap.ru/api/interpreter',
+  'https://maps.mail.ru/osm/tools/overpass/api/interpreter'
+];
 async function fetchOverpass(bbox,types){
   const[minLat,minLng,maxLat,maxLng]=bbox;
   const lines=[];
   types.forEach(t=>{
-    const def=SPOT_TYPES[t];
+    const def=SPOT_TYPES[t]; if(!def||!def.overpass)return;
     lines.push(`${def.overpass}(${minLat},${minLng},${maxLat},${maxLng});`);
     if(def.extra)lines.push(`${def.extra}(${minLat},${minLng},${maxLat},${maxLng});`);
   });
-  const q=`[out:json][timeout:25];(\n${lines.join('\n')}\n);out body 100;`;
-  try{
-    const r=await fetch('https://overpass-api.de/api/interpreter',{method:'POST',body:q,signal:AbortSignal.timeout(20000)});
-    if(!r.ok)throw new Error('HTTP '+r.status);
-    const d=await r.json();
-    return{elements:d.elements||[],ok:true};
-  }catch(e){
-    return{elements:[],ok:false,err:e.message};
+  if(!lines.length)return{elements:[],ok:true};
+  const q=`[out:json][timeout:30];(\n${lines.join('\n')}\n);out body 120;`;
+  let lastErr='';
+  for(const ep of OVERPASS_EPS){
+    try{
+      const r=await fetch(ep,{method:'POST',body:q,signal:AbortSignal.timeout(22000)});
+      if(!r.ok){lastErr='HTTP '+r.status;continue;}
+      const d=await r.json();
+      return{elements:d.elements||[],ok:true};
+    }catch(e){lastErr=(e&&e.name==='TimeoutError')?'timeout':((e&&e.message)||'error');}
   }
+  return{elements:[],ok:false,err:lastErr};
 }
 
 // ─── GEOMETRY ─────────────────────────────────────────────
@@ -395,7 +483,7 @@ function classifySpot(el,requestedTypes){
 // ─── MAIN ─────────────────────────────────────────────────
 async function planRoute(){
   showError('');
-  if(activeFilters.size===0){showError('スポットの種類を1つ以上選択してください');return;}
+  if(activeFilters.size===0 && activeCats.size===0){showError('スポットの種類（通常チップ または 追加カテゴリ）を1つ以上選択してください');return;}
   const fromVal=document.getElementById('from-input').value.trim();
   const toVal=document.getElementById('to-input').value.trim();
   if(!toVal){showError('目的地を入力してください');return;}
@@ -440,9 +528,9 @@ async function planRoute(){
     const lats=routeCoords.map(c=>c[1]),lngs=routeCoords.map(c=>c[0]);
     const bbox=[Math.min(...lats)-0.004,Math.min(...lngs)-0.004,Math.max(...lats)+0.004,Math.max(...lngs)+0.004];
     const types=[...activeFilters];
-    const {elements,ok,err}=await fetchOverpass(bbox,types);
+    const {elements,ok,err}=types.length?await fetchOverpass(bbox,types):{elements:[],ok:true};
 
-    if(!ok)showError((document.getElementById('error-banner').innerHTML||'')+(document.getElementById('error-banner').innerHTML?'<br>':'')+'⚠️ スポット検索に失敗しました（Overpass API）。HTTPSサーバーで開いてください。');
+    if(!ok)showError((document.getElementById('error-banner').innerHTML||'')+(document.getElementById('error-banner').innerHTML?'<br>':'')+'⚠️ OSMスポット検索が混雑/失敗しました（Overpass）。少し待って再検索するか、範囲が広い場合は徒歩/短い区間でお試しを。'+(getYolpId()?'（Yahoo追加分は表示されます）':'（Yahoo App IDを入れると別経路の検索も使えます）'));
 
     // Filter + dedup
     const seen=new Set();
@@ -475,6 +563,58 @@ async function planRoute(){
       </div>`);
       spotMarkers.push(mk);
     });
+
+    // ─── 追加カテゴリ：OSMで検索（Yahoo不要）。App IDがあればYahoo!を上乗せ ───
+    if(activeCats.size){
+      const hasY=!!getYolpId();
+      setStatus(`🛣️ ${distKm}km · ${timeStr} — 追加カテゴリを検索中…`);
+      // 共通の追加ヘルパー（dedup・経路距離フィルタ・マーカー生成）
+      const pushCat=(cat,name,lat,lng,o)=>{
+        o=o||{};
+        if(!name||!lat||!lng)return;
+        if(distToRoute(lat,lng,routeCoords)>(o.src==='YOLP'?450:300))return;
+        const key=`${name}|${Math.round(lat*1000)}|${Math.round(lng*1000)}`;
+        if(seen.has(key))return; seen.add(key);
+        const def=SPOT_TYPES[cat];
+        const pct=routePct(lat,lng,routeCoords);
+        const distM=fromCoord?Math.round(haversine(fromCoord.lat,fromCoord.lng,lat,lng)):0;
+        const id=currentSpots.length;
+        currentSpots.push({id,name,stype:cat,def,hours:o.hours||null,wifi:!!o.wifi,power:!!o.power,lat,lng,pct,distM,
+          addr:o.addr||'',tel:o.tel||'',web:o.web||'',genre:o.genre||'',src:o.src||'OSM'});
+        const mIcon=L.divIcon({className:'',html:`<div style="background:${def.color};border:2px solid #fff;border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-size:13px;box-shadow:0 2px 8px rgba(0,0,0,.5)">${def.icon}</div>`,iconSize:[28,28],iconAnchor:[14,14]});
+        const mk=L.marker([lat,lng],{icon:mIcon}).addTo(map);
+        mk.bindPopup(`<div style="min-width:140px"><b style="color:#E2E8F5;font-size:12.5px">${name}</b><br><span style="color:${def.color};font-size:10.5px">${def.icon} ${def.label}${o.genre?' · '+o.genre:''}${o.src==='YOLP'?' · YOLP':''}</span>${o.addr?`<br><span style="color:#64748B;font-size:10px">${o.addr}</span>`:''}<br><button onclick="addSpot(${id})" style="margin-top:5px;width:100%;background:#3B82F6;border:none;border-radius:6px;color:#fff;padding:5px;font-size:11px;cursor:pointer;font-weight:700">+ 経路に追加</button></div>`);
+        spotMarkers.push(mk);
+      };
+      // (a) OSM：各カテゴリをOverpassで検索（Yahoo不要・ベース動作）
+      for(const cat of activeCats){
+        let res={elements:[]}; try{ res=await fetchOverpass(bbox,[cat]); }catch(e){}
+        (res.elements||[]).forEach(el=>{
+          if(!el.lat||!el.lon||!el.tags?.name)return;
+          pushCat(cat,el.tags.name,el.lat,el.lon,{hours:el.tags.opening_hours,
+            wifi:!!(el.tags.internet_access||el.tags.wifi),
+            power:!!(el.tags['socket:type_f']||el.tags.power_supply),src:'OSM'});
+        });
+      }
+      // (b) YOLP：App IDがある時だけ「追加」で上乗せ
+      if(hasY){
+        const samplePts=sampleRoute(routeCoords,5);
+        for(const cat of activeCats){
+          const q=SPOT_TYPES[cat].yolp; if(!q)continue;
+          for(const pt of samplePts){
+            let feats=[]; try{ feats=await yolpAround(pt.lat,pt.lng,2,q); }catch(e){}
+            feats.forEach(ft=>{
+              const p=ft.Property||{}; const nm=ft.Name; if(!nm)return;
+              const co=(((ft.Geometry||{}).Coordinates)||'').split(',');
+              const lng=parseFloat(co[0]), lat=parseFloat(co[1]);
+              const g=p.Genre; const gname=Array.isArray(g)?((g[0]||{}).Name||''):((g&&g.Name)||'');
+              const det=p.Detail||{};
+              pushCat(cat,nm,lat,lng,{addr:(p.Address||'').trim(),tel:(p.Tel1||'').trim(),web:(det.PcUrl1||'').trim(),genre:gname,src:'YOLP'});
+            });
+          }
+        }
+      }
+    }
 
     currentSpots.sort((a,b)=>a.pct-b.pct);
     renderSpots();
@@ -513,9 +653,10 @@ function renderSpots(){
       <div class="spot-icon-wrap" style="background:${def.bg}">${def.icon}</div>
       <div class="spot-info">
         <div class="spot-name">${spot.name}</div>
-        <div class="spot-meta">${spot.hours||'営業時間不明'}</div>
+        <div class="spot-meta">${spot.src==='YOLP'?(spot.genre||spot.addr||'YOLP'):(spot.hours||'営業時間不明')}</div>
         <div class="spot-tags">
           <span class="tag" style="background:${def.bg};color:${def.color};border:1px solid ${def.color}44">${def.label}</span>
+          ${spot.src==='YOLP'?`<span class="tag" style="background:#FBBF2422;color:#FBBF24;border:1px solid #FBBF2444">YOLP</span>`:''}
           ${spot.power?`<span class="tag" style="background:#34D39922;color:#34D399;border:1px solid #34D39944">⚡電源</span>`:''}
           ${spot.wifi?`<span class="tag" style="background:#3B82F622;color:#3B82F6;border:1px solid #3B82F644">📶WiFi</span>`:''}
         </div>
@@ -725,7 +866,8 @@ function renderCustomList(){
   }).join('');
 }
 
-
+// ─── ADD SEARCH SPOT TO ROUTE ─────────────────────────────
+function addSpot(id){
   if(addedIds.has(id))return;
   const spot=currentSpots.find(s=>s.id===id);if(!spot)return;
   addedIds.add(id);
@@ -814,6 +956,7 @@ function switchTab(name){
 }
 document.getElementById('tab-map').style.display='flex';
 ['tab-spots','tab-route','tab-ai'].forEach(id=>document.getElementById(id).style.display='none');
+refreshYolpState();
 
 // ─── AI ───────────────────────────────────────────────────
 function addAIMsg(role,text){
