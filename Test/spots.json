@@ -5,5 +5,8 @@
   { "id": "seed_rei",      "name": "カラオケ居酒屋 れい（磯子・根岸）",                 "addr": "神奈川県横浜市磯子区",          "stype": "ki", "lat": null, "lng": null },
   { "id": "seed_blanche",  "name": "カラオケスナック ブランシュ（関内・名物ママの手料理）", "addr": "神奈川県横浜市中区南仲通",      "stype": "ki", "lat": null, "lng": null },
   { "id": "seed_noge",     "name": "野毛カラオケ居酒屋（桜木町・野毛）",                "addr": "神奈川県横浜市中区野毛町",       "stype": "ki", "lat": null, "lng": null },
-  { "id": "seed_kazu",     "name": "カラオケ居酒屋 KAZU（蒲田・無料カラオケ）",         "addr": "東京都大田区西蒲田7-27-10",     "stype": "ki", "lat": null, "lng": null }
+  { "id": "seed_kazu",     "name": "カラオケ居酒屋 KAZU（蒲田・無料カラオケ）",         "addr": "東京都大田区西蒲田7-27-10",     "stype": "ki", "lat": null, "lng": null },
+  { "id": "seed_hanamaru", "name": "カラオケ酒場 はなまる（杉田・深夜営業/カウンター）", "addr": "神奈川県横浜市磯子区杉田2-1-22", "stype": "ki", "lat": null, "lng": null },
+  { "id": "seed_aoharu",   "name": "カラオケ&BAR アオハル（杉田駅東口・昼カラあり）",  "addr": "神奈川県横浜市磯子区杉田1-21-8", "stype": "ki", "lat": null, "lng": null },
+  { "id": "seed_isonko",   "name": "カラオケスナック 磯ん子（屏風浦・森）",             "addr": "神奈川県横浜市磯子区森1-15-12",  "stype": "ki", "lat": null, "lng": null }
 ]
