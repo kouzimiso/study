@@ -416,11 +416,26 @@ async function geocode(q){
   ];
   for(const url of attempts){
     try{
-      const r=await fetch(url,{headers:{'User-Agent':'RouteCharge/3.0 (travel-planner)'}});
+      const r=await fetch(url,{headers:{'Accept':'application/json'}});
       if(!r.ok)continue;
       const d=await r.json();
       if(d.length){return{lat:parseFloat(d[0].lat),lng:parseFloat(d[0].lon),name:d[0].display_name.split(',')[0]};}
     }catch(e){console.warn('geocode attempt failed',e);}
+  }
+  return null;
+}
+// 住所を段階的に粗くして再試行（番地まで含む住所がNominatimで解決できない場合の救済）
+async function geocodeBest(addr,name){
+  const tries=[];
+  if(addr){
+    const a=addr.trim(); tries.push(a);
+    const a2=a.replace(/[0-9０-９][0-9０-９\-－ー]*\s*$/,'').trim(); if(a2&&!tries.includes(a2))tries.push(a2);   // 末尾の番地を除去
+    const a3=a.replace(/[0-9０-９][0-9０-９\-－ー]*.*$/,'').trim(); if(a3&&!tries.includes(a3))tries.push(a3);     // 丁目以降を除去（市区町村まで）
+  }
+  if(name){ const n=name.replace(/（.*?）/g,'').replace(/\/.*$/,'').trim(); if(n&&!tries.includes(n))tries.push(n); }
+  for(const q of tries){
+    const c=await geocode(q); if(c)return c;
+    await new Promise(r=>setTimeout(r,400));
   }
   return null;
 }
@@ -821,7 +836,7 @@ async function loadSharedSpots(){
   // 座標があれば配置、無ければ住所→座標を順次取得（Nominatimレート制限に配慮し1.2秒間隔）
   for(const s of customSpots){
     if(s.lat&&s.lng){ placeCustomMarker(s); continue; }
-    const c=await geocode(s.addr||s.name);
+    const c=await geocodeBest(s.addr,s.name);
     if(c){ s.lat=c.lat; s.lng=c.lng; placeCustomMarker(s); saveCustom(); renderCustomList(); }
     await new Promise(r=>setTimeout(r,1200));
   }
@@ -912,10 +927,10 @@ async function addCustomSpotToRoute(id){
   if(addedIds.has(id)){showNotif('すでに経路に追加されています','#FBBF24');return;}
   const spot=customSpots.find(s=>s.id===id);if(!spot)return;
 
-  // 座標が未取得（シード等）ならその場でジオコーディング
+  // 座標が未取得（シード等）ならその場でジオコーディング（段階フォールバック付き）
   if(!spot.lat||!spot.lng){
     showNotif('📡 位置を取得中…','#3B82F6');
-    const c=await geocode(spot.addr||spot.name);
+    const c=await geocodeBest(spot.addr,spot.name);
     if(!c){showNotif('位置を取得できませんでした。住所を編集してください','#F87171');return;}
     spot.lat=c.lat;spot.lng=c.lng;placeCustomMarker(spot);saveCustom();
   }
