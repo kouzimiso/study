@@ -149,6 +149,9 @@ input::placeholder{color:var(--muted);}
     <div class="filter-chip" data-cat="cafe"    onclick="toggleCat(this)">☕ カフェ</div>
     <div class="filter-chip" data-cat="izakaya" onclick="toggleCat(this)">🍶 居酒屋</div>
   </div>
+  <label style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text);margin-bottom:7px;cursor:pointer;font-weight:600">
+    <input type="checkbox" id="karaoke-must" onchange="karaokeMust=this.checked" style="width:auto"> 🎤 カラオケ必須（カラオケのある店だけに絞る）
+  </label>
   <details id="yolp-key" style="margin-bottom:7px">
     <summary style="font-size:10.5px;color:var(--muted);cursor:pointer">🔑 Yahoo App ID（任意・入れると店データを上乗せ）</summary>
     <div style="display:flex;gap:5px;margin-top:5px">
@@ -183,8 +186,11 @@ input::placeholder{color:var(--muted);}
     <!-- Custom spot registration -->
     <div id="custom-spot-panel" style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:9px 11px;margin-bottom:2px;flex-shrink:0;">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-        <span style="font-size:11.5px;font-weight:700;">📌 カスタムスポット <span id="custom-count" style="color:var(--muted);font-weight:400;font-size:10.5px">（0/3件）</span></span>
-        <button id="custom-toggle-btn" onclick="toggleCustomForm()" style="background:var(--accent);border:none;border-radius:6px;color:#fff;font-size:10.5px;font-weight:700;padding:3px 10px;cursor:pointer;font-family:inherit;">＋ 追加</button>
+        <span style="font-size:11.5px;font-weight:700;">📌 登録スポット（手入力・タイプ別） <span id="custom-count" style="color:var(--muted);font-weight:400;font-size:10.5px">（0件）</span></span>
+        <span style="display:flex;gap:5px">
+          <button onclick="exportSpotsJson()" title="spots.jsonを書き出してリポジトリにコミット＝Pagesで共有・恒久化" style="background:var(--card);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:10.5px;font-weight:700;padding:3px 8px;cursor:pointer;font-family:inherit;">📤 spots.json</button>
+          <button id="custom-toggle-btn" onclick="toggleCustomForm()" style="background:var(--accent);border:none;border-radius:6px;color:#fff;font-size:10.5px;font-weight:700;padding:3px 10px;cursor:pointer;font-family:inherit;">＋ 追加</button>
+        </span>
       </div>
       <!-- Form (hidden by default) -->
       <div id="custom-form" style="display:none;flex-direction:column;gap:5px;">
@@ -192,12 +198,17 @@ input::placeholder{color:var(--muted);}
         <input id="custom-addr" placeholder="住所・場所名（例：鎌倉市小町1-1）" style="background:var(--bg);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:12px;padding:6px 9px;outline:none;font-family:inherit;width:100%;"/>
         <div style="display:flex;gap:5px;align-items:center;">
           <select id="custom-type" style="flex:1;background:var(--bg);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:12px;padding:6px 9px;outline:none;font-family:inherit;">
-            <option value="custom_pin">📌 その他</option>
+            <option value="ki">🎤 カラオケ居酒屋</option>
+            <option value="karaoke">🎙️ カラオケ</option>
+            <option value="izakaya">🍶 居酒屋</option>
+            <option value="cafe">☕ カフェ</option>
+            <option value="sento">♨️ 銭湯・温泉</option>
             <option value="power">⚡ 電源</option>
             <option value="wifi">📶 WiFi</option>
             <option value="food">🍽️ 飲食店</option>
             <option value="photo">📸 フォトスポット</option>
             <option value="sight">🏛️ 観光名所</option>
+            <option value="custom_pin">📌 その他</option>
           </select>
           <button onclick="registerCustomSpot()" style="background:var(--green);border:none;border-radius:7px;color:#fff;font-size:12px;font-weight:700;padding:6px 14px;cursor:pointer;font-family:inherit;white-space:nowrap;">登録</button>
           <button onclick="toggleCustomForm()" style="background:var(--card);border:1px solid var(--border);border-radius:7px;color:var(--muted);font-size:12px;padding:6px 10px;cursor:pointer;font-family:inherit;">✕</button>
@@ -263,10 +274,20 @@ const SPOT_TYPES = {
     label:'カスタム', icon:'📌', color:'#FBBF24', bg:'#FBBF2433',
   },
   // 追加カテゴリ：OSM(Overpass)で検索でき、App IDがあればYOLPも上乗せ。
+  // osm[] = 複数セレクタ。カラオケ系は「karaoke=yesタグ」に加え「店名に“カラオケ”を含む居酒屋/バー/食堂」も拾う（タグ未整備の店を救済）。
   ki:      { label:'カラオケ居酒屋', icon:'🎤', color:'#F472B6', bg:'#F472B633', yolp:'カラオケ 居酒屋',
-             overpass:`node["amenity"~"pub|bar|restaurant"]["karaoke"="yes"]["name"]`, extra:`node["cuisine"="izakaya"]["karaoke"="yes"]["name"]` },
+             osm:[
+               `node["amenity"~"pub|bar|restaurant"]["karaoke"="yes"]["name"]`,
+               `node["cuisine"="izakaya"]["karaoke"="yes"]["name"]`,
+               `node["amenity"~"pub|bar|restaurant"]["name"~"カラオケ"]`,
+               `node["name"~"カラオケ"]["cuisine"="izakaya"]`
+             ] },
   karaoke: { label:'カラオケ',       icon:'🎙️', color:'#FB7185', bg:'#FB718533', yolp:'カラオケ',
-             overpass:`node["amenity"="karaoke_box"]["name"]` },
+             osm:[
+               `node["amenity"="karaoke_box"]["name"]`,
+               `node["leisure"="karaoke"]["name"]`,
+               `node["amenity"~"pub|bar"]["name"~"カラオケ"]`
+             ] },
   sento:   { label:'銭湯・温泉',     icon:'♨️', color:'#FB923C', bg:'#FB923C33', yolp:'スーパー銭湯',
              overpass:`node["amenity"="public_bath"]["name"]`, extra:`node["leisure"="sauna"]["name"]` },
   cafe:    { label:'カフェ',         icon:'☕', color:'#34D399', bg:'#34D39933', yolp:'カフェ',
@@ -304,6 +325,13 @@ function toggleCat(el){
   if(activeCats.has(t)){activeCats.delete(t);el.classList.remove('on');el.style.background='';el.style.borderColor=def.color+'55';el.style.color=def.color+'99';}
   else{activeCats.add(t);el.classList.add('on');el.style.background=def.bg;el.style.borderColor=def.color;el.style.color=def.color;}
 }
+// カラオケがある証拠か？（OSM karaoke=yes / 名前・ジャンルに「カラオケ」）
+function hasKaraoke(name,genre,tags){
+  if(tags && tags.karaoke==='yes')return true;
+  const s=((name||'')+' '+(genre||''));
+  return /カラオケ|からおけ|karaoke|歌え/i.test(s);
+}
+let karaokeMust=false;
 function jsonp(url){return new Promise((resolve,reject)=>{
   const name='ycb_'+Math.random().toString(36).slice(2);
   const s=document.createElement('script');let done=false;
@@ -432,9 +460,9 @@ async function fetchOverpass(bbox,types){
   const[minLat,minLng,maxLat,maxLng]=bbox;
   const lines=[];
   types.forEach(t=>{
-    const def=SPOT_TYPES[t]; if(!def||!def.overpass)return;
-    lines.push(`${def.overpass}(${minLat},${minLng},${maxLat},${maxLng});`);
-    if(def.extra)lines.push(`${def.extra}(${minLat},${minLng},${maxLat},${maxLng});`);
+    const def=SPOT_TYPES[t]; if(!def)return;
+    const sels=def.osm||[def.overpass,def.extra].filter(Boolean);
+    sels.forEach(sel=>{ if(sel)lines.push(`${sel}(${minLat},${minLng},${maxLat},${maxLng});`); });
   });
   if(!lines.length)return{elements:[],ok:true};
   const q=`[out:json][timeout:30];(\n${lines.join('\n')}\n);out body 120;`;
@@ -537,6 +565,7 @@ async function planRoute(){
     elements.forEach((el,idx)=>{
       if(!el.lat||!el.lon||!el.tags?.name)return;
       if(distToRoute(el.lat,el.lon,routeCoords)>250)return;
+      if(karaokeMust && !hasKaraoke(el.tags.name,'',el.tags))return;   // 🎤カラオケ必須
       const key=`${el.tags.name}|${Math.round(el.lat*1000)}|${Math.round(el.lon*1000)}`;
       if(seen.has(key))return;seen.add(key);
 
@@ -601,15 +630,19 @@ async function planRoute(){
         const samplePts=sampleRoute(routeCoords,5);
         for(const cat of activeCats){
           const q=SPOT_TYPES[cat].yolp; if(!q)continue;
+          const needK=(cat==='ki'||cat==='karaoke');   // カラオケ必須カテゴリ
           for(const pt of samplePts){
             let feats=[]; try{ feats=await yolpAround(pt.lat,pt.lng,2,q); }catch(e){}
             feats.forEach(ft=>{
               const p=ft.Property||{}; const nm=ft.Name; if(!nm)return;
               const co=(((ft.Geometry||{}).Coordinates)||'').split(',');
               const lng=parseFloat(co[0]), lat=parseFloat(co[1]);
-              const g=p.Genre; const gname=Array.isArray(g)?((g[0]||{}).Name||''):((g&&g.Name)||'');
+              const gArr=Array.isArray(p.Genre)?p.Genre:(p.Genre?[p.Genre]:[]);
+              const gnames=gArr.map(x=>(x&&x.Name)||'').join(' ').trim();
+              // カラオケ必須：店名/ジャンルに「カラオケ」が無ければ除外（YOLPのゆるい一致を弾く）
+              if(needK && (nm+' '+gnames).indexOf('カラオケ')<0)return;
               const det=p.Detail||{};
-              pushCat(cat,nm,lat,lng,{addr:(p.Address||'').trim(),tel:(p.Tel1||'').trim(),web:(det.PcUrl1||'').trim(),genre:gname,src:'YOLP'});
+              pushCat(cat,nm,lat,lng,{addr:(p.Address||'').trim(),tel:(p.Tel1||'').trim(),web:(det.PcUrl1||'').trim(),genre:gnames||((gArr[0]||{}).Name||''),src:'YOLP'});
             });
           }
         }
@@ -737,9 +770,71 @@ async function updateRouteWithWaypoints(){
   });
 }
 
-// ─── CUSTOM SPOTS ─────────────────────────────────────────
-let customSpots=[]; // max 3
+// ─── 登録スポット（手入力・タイプ別・永続化） ───────────────
+const CUSTOM_MAX=200;
+let customSpots=[]; // {id,name,addr,stype,def,lat,lng,...}（localStorageに永続化）
 let customMarkers=[]; // map markers for custom spots
+
+function saveCustom(){
+  try{ localStorage.setItem('rc_custom', JSON.stringify(
+    customSpots.map(s=>({id:s.id,name:s.name,addr:s.addr||'',stype:s.stype,lat:s.lat,lng:s.lng}))
+  )); }catch(e){}
+}
+function loadCustom(){
+  try{
+    const a=JSON.parse(localStorage.getItem('rc_custom')||'[]');
+    customSpots=a.map(s=>({id:s.id,name:s.name,addr:s.addr||'',stype:s.stype,
+      def:SPOT_TYPES[s.stype]||SPOT_TYPES.custom_pin,
+      lat:(s.lat==null?null:s.lat),lng:(s.lng==null?null:s.lng),
+      hours:null,wifi:false,power:false,pct:0,distM:0,isCustom:true}));
+  }catch(e){customSpots=[];}
+}
+function placeCustomMarker(spot){
+  if(!spot.lat||!spot.lng)return;
+  if(customMarkers.find(m=>m.id===spot.id))return;
+  const def=spot.def||SPOT_TYPES[spot.stype]||SPOT_TYPES.custom_pin;
+  const mIcon=L.divIcon({className:'',html:`<div style="background:${def.color};border:2.5px solid #fff;border-radius:50%;width:30px;height:30px;display:flex;align-items:center;justify-content:center;font-size:14px;box-shadow:0 2px 8px rgba(0,0,0,.5)">${def.icon}</div>`,iconSize:[30,30],iconAnchor:[15,15]});
+  const mk=L.marker([spot.lat,spot.lng],{icon:mIcon}).addTo(map);
+  mk.bindPopup(`<div style="min-width:130px"><b style="color:#E2E8F5;font-size:12.5px">${spot.name}</b><br><span style="color:${def.color};font-size:10.5px">${def.icon} ${def.label} · 登録</span><br><button onclick="addCustomSpotToRoute('${spot.id}')" style="margin-top:5px;width:100%;background:#3B82F6;border:none;border-radius:6px;color:#fff;padding:5px;font-size:11px;cursor:pointer;font-weight:700">+ 経路に追加</button></div>`);
+  customMarkers.push({id:spot.id,marker:mk});
+}
+
+// 共有スポットを spots.json（リポジトリにコミット＝GitHub Pagesで全員に反映）から読み込む。
+// localStorageは「この端末の個人追加・編集」。spots.jsonは「共有・恒久の記録」。
+async function loadSharedSpots(){
+  let shared=[];
+  try{ const r=await fetch('./spots.json',{cache:'no-store'}); if(r.ok)shared=await r.json(); }catch(e){}
+  if(!Array.isArray(shared)||!shared.length){ customSpots.forEach(s=>placeCustomMarker(s)); return; }
+  const removed=(()=>{try{return JSON.parse(localStorage.getItem('rc_removed')||'[]');}catch(e){return[];}})();
+  const have=new Set(customSpots.map(s=>s.id));
+  let added=0;
+  shared.forEach(s=>{
+    const id=s.id||('shared_'+(s.name||'').replace(/\s/g,'').slice(0,10));
+    if(have.has(id)||removed.includes(id))return;   // 既存(個人で編集済) / 削除済 はスキップ
+    customSpots.push({id,name:s.name,addr:s.addr||'',stype:s.stype||'ki',
+      def:SPOT_TYPES[s.stype]||SPOT_TYPES.custom_pin,
+      lat:(s.lat==null?null:s.lat),lng:(s.lng==null?null:s.lng),
+      hours:null,wifi:false,power:false,pct:0,distM:0,isCustom:true,shared:true});
+    have.add(id); added++;
+  });
+  saveCustom(); renderCustomList();
+  // 座標があれば配置、無ければ住所→座標を順次取得（Nominatimレート制限に配慮し1.2秒間隔）
+  for(const s of customSpots){
+    if(s.lat&&s.lng){ placeCustomMarker(s); continue; }
+    const c=await geocode(s.addr||s.name);
+    if(c){ s.lat=c.lat; s.lng=c.lng; placeCustomMarker(s); saveCustom(); renderCustomList(); }
+    await new Promise(r=>setTimeout(r,1200));
+  }
+  if(added)showNotif('🎤 共有スポット(spots.json) '+added+'件を読み込みました');
+}
+// 現在の登録リストを spots.json として書き出し（リポジトリに置けばPagesで共有・恒久化）
+function exportSpotsJson(){
+  const data=JSON.stringify(customSpots.map(s=>({id:s.id,name:s.name,addr:s.addr||'',stype:s.stype,lat:s.lat,lng:s.lng})),null,2);
+  const b=new Blob([data],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='spots.json';a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href),500);
+  showNotif('📤 spots.json を書き出しました（リポジトリに置いて公開）');
+}
 
 function toggleCustomForm(){
   const form=document.getElementById('custom-form');
@@ -752,8 +847,8 @@ function toggleCustomForm(){
 }
 
 async function registerCustomSpot(){
-  if(customSpots.length>=3){
-    document.getElementById('custom-form-status').textContent='⚠️ カスタムスポットは3件までです';
+  if(customSpots.length>=CUSTOM_MAX){
+    document.getElementById('custom-form-status').textContent='⚠️ 登録上限（'+CUSTOM_MAX+'件）です';
     return;
   }
   const name=document.getElementById('custom-name').value.trim();
@@ -772,20 +867,12 @@ async function registerCustomSpot(){
 
   const def=SPOT_TYPES[stype]||SPOT_TYPES.custom_pin;
   const id=`custom_${Date.now()}`;
-  const spot={id, name, stype, def, lat:coord.lat, lng:coord.lng, hours:null, wifi:false, power:false, pct:0, distM:0, isCustom:true};
-
-  // Place marker on map
-  const mIcon=L.divIcon({className:'',html:`<div style="background:${def.color};border:2.5px solid #fff;border-radius:50%;width:30px;height:30px;display:flex;align-items:center;justify-content:center;font-size:14px;box-shadow:0 2px 8px rgba(0,0,0,.5)">${def.icon}</div>`,iconSize:[30,30],iconAnchor:[15,15]});
-  const mk=L.marker([coord.lat,coord.lng],{icon:mIcon}).addTo(map);
-  mk.bindPopup(`<div style="min-width:130px">
-    <b style="color:#E2E8F5;font-size:12.5px">${name}</b><br>
-    <span style="color:${def.color};font-size:10.5px">${def.icon} ${def.label} · カスタム</span>
-    <br><button onclick="addCustomSpotToRoute('${id}')" style="margin-top:5px;width:100%;background:#3B82F6;border:none;border-radius:6px;color:#fff;padding:5px;font-size:11px;cursor:pointer;font-weight:700">+ 経路に追加</button>
-  </div>`);
-  customMarkers.push({id,marker:mk});
-  map.setView([coord.lat,coord.lng],14);
+  const spot={id, name, addr, stype, def, lat:coord.lat, lng:coord.lng, hours:null, wifi:false, power:false, pct:0, distM:0, isCustom:true};
 
   customSpots.push(spot);
+  placeCustomMarker(spot);
+  map.setView([coord.lat,coord.lng],14);
+  saveCustom();
   renderCustomList();
 
   // Reset form
@@ -799,6 +886,8 @@ async function registerCustomSpot(){
 function deleteCustomSpot(id){
   const spot=customSpots.find(s=>s.id===id);if(!spot)return;
   customSpots=customSpots.filter(s=>s.id!==id);
+  // 共有(spots.json)由来も含め再表示されないよう削除IDを記録
+  try{const rm=JSON.parse(localStorage.getItem('rc_removed')||'[]');if(!rm.includes(id)){rm.push(id);localStorage.setItem('rc_removed',JSON.stringify(rm));}}catch(e){}
 
   // Remove from map
   const cm=customMarkers.find(m=>m.id===id);
@@ -814,13 +903,22 @@ function deleteCustomSpot(id){
     document.getElementById('wp-count').textContent=waypoints.length?` (${waypoints.length})`:'';
     updateRouteWithWaypoints();
   }
+  saveCustom();
   renderCustomList();
   showNotif(`${spot.name} を削除しました`,'#F87171');
 }
 
-function addCustomSpotToRoute(id){
+async function addCustomSpotToRoute(id){
   if(addedIds.has(id)){showNotif('すでに経路に追加されています','#FBBF24');return;}
   const spot=customSpots.find(s=>s.id===id);if(!spot)return;
+
+  // 座標が未取得（シード等）ならその場でジオコーディング
+  if(!spot.lat||!spot.lng){
+    showNotif('📡 位置を取得中…','#3B82F6');
+    const c=await geocode(spot.addr||spot.name);
+    if(!c){showNotif('位置を取得できませんでした。住所を編集してください','#F87171');return;}
+    spot.lat=c.lat;spot.lng=c.lng;placeCustomMarker(spot);saveCustom();
+  }
 
   // Compute pct along current route if available
   if(routeCoords.length>1){
@@ -845,20 +943,23 @@ function addCustomSpotToRoute(id){
 }
 
 function renderCustomList(){
-  document.getElementById('custom-count').textContent=`（${customSpots.length}/3件）`;
+  document.getElementById('custom-count').textContent=`（${customSpots.length}件）`;
   const btn=document.getElementById('custom-toggle-btn');
-  btn.style.opacity=customSpots.length>=3?'.4':'1';
-  btn.style.cursor=customSpots.length>=3?'not-allowed':'pointer';
+  const full=customSpots.length>=CUSTOM_MAX;
+  btn.style.opacity=full?'.4':'1';
+  btn.style.cursor=full?'not-allowed':'pointer';
 
   const list=document.getElementById('custom-list');
   if(!customSpots.length){list.innerHTML='';return;}
   list.innerHTML=customSpots.map(s=>{
     const isAdded=addedIds.has(s.id);
+    const noGeo=(!s.lat||!s.lng);
+    const sub=noGeo?'📍位置未取得（+経路へで取得）':s.def.label;
     return `<div style="display:flex;align-items:center;gap:7px;padding:5px 0;border-top:1px solid var(--border);margin-top:5px;">
       <span style="font-size:16px">${s.def.icon}</span>
       <div style="flex:1;min-width:0;">
         <div style="font-size:12px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${s.name}</div>
-        <div style="font-size:10px;color:var(--muted)">${s.def.label}</div>
+        <div style="font-size:10px;color:${noGeo?'#FBBF24':'var(--muted)'}">${s.def.label} · ${noGeo?'📍取得待ち':(s.addr||'登録済み')}</div>
       </div>
       <button onclick="addCustomSpotToRoute('${s.id}')" ${isAdded?'disabled':''} style="background:${isAdded?'#34D39922':'var(--accent)'};border:${isAdded?'1px solid #34D39944':'none'};border-radius:6px;color:${isAdded?'#34D399':'#fff'};font-size:10px;font-weight:700;padding:3px 8px;cursor:${isAdded?'default':'pointer'};font-family:inherit;white-space:nowrap;">${isAdded?'✓ 追加済':'+ 経路へ'}</button>
       <button onclick="deleteCustomSpot('${s.id}')" style="background:none;border:none;color:var(--muted);font-size:14px;cursor:pointer;padding:2px 4px;line-height:1;" title="削除">✕</button>
@@ -957,6 +1058,11 @@ function switchTab(name){
 document.getElementById('tab-map').style.display='flex';
 ['tab-spots','tab-route','tab-ai'].forEach(id=>document.getElementById(id).style.display='none');
 refreshYolpState();
+// 登録スポットを復元 → 地図に配置 → 初回はシード投入（住所→座標を順次取得）
+loadCustom();
+customSpots.forEach(s=>placeCustomMarker(s));
+renderCustomList();
+loadSharedSpots();
 
 // ─── AI ───────────────────────────────────────────────────
 function addAIMsg(role,text){

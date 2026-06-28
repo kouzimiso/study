@@ -1,0 +1,9 @@
+[
+  { "id": "seed_imonko",   "name": "居酒屋 いもんこ／2号店 ころかーじゃ（大船）",      "addr": "神奈川県鎌倉市大船1-22-19",     "stype": "ki", "lat": null, "lng": null },
+  { "id": "seed_maitan",   "name": "スナックまいた～ん（大船・歌える酒場/定食あり）",   "addr": "神奈川県鎌倉市大船1-20-5",      "stype": "ki", "lat": null, "lng": null },
+  { "id": "seed_otomisan", "name": "小料理居酒屋 おとみさん（戸塚・店内カラオケ）",       "addr": "神奈川県横浜市戸塚区戸塚町",     "stype": "ki", "lat": null, "lng": null },
+  { "id": "seed_rei",      "name": "カラオケ居酒屋 れい（磯子・根岸）",                 "addr": "神奈川県横浜市磯子区",          "stype": "ki", "lat": null, "lng": null },
+  { "id": "seed_blanche",  "name": "カラオケスナック ブランシュ（関内・名物ママの手料理）", "addr": "神奈川県横浜市中区南仲通",      "stype": "ki", "lat": null, "lng": null },
+  { "id": "seed_noge",     "name": "野毛カラオケ居酒屋（桜木町・野毛）",                "addr": "神奈川県横浜市中区野毛町",       "stype": "ki", "lat": null, "lng": null },
+  { "id": "seed_kazu",     "name": "カラオケ居酒屋 KAZU（蒲田・無料カラオケ）",         "addr": "東京都大田区西蒲田7-27-10",     "stype": "ki", "lat": null, "lng": null }
+]
