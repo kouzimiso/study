@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <title>スケジュール / ガント管理（Web版）</title>
-<script src="gantt_core.js?v=2026-06-26b"></script>
-<script src="config.js?v=2026-06-26b"></script>
+<script src="gantt_core.js?v=2026-06-29a"></script>
+<script src="config.js"></script>
 <style>
   :root{
     --bg:#11151c; --panel:#1a2029; --panel2:#222a36; --line:#2c3543;
@@ -217,21 +217,12 @@ function applyBundle(b){
   if (!settings.colors) settings.colors = Object.assign({}, DEFAULT_COLORS);
 }
 
-function postBundle(){
-  try{ window.parent.postMessage({type:"webgantt:save", bundle:getBundle()}, MORG); }catch(e){}
-}
-// 保留中の保存を即時確定（離脱・非表示・リロード時の取りこぼし防止）。
-function flushSave(){
-  if(!HOST_MODE) return;
-  if(_hostSaveTimer){ clearTimeout(_hostSaveTimer); _hostSaveTimer=null; }
-  postBundle();
-}
 function saveAll(){
   if(HOST_MODE){
     if(_hostSaveTimer) clearTimeout(_hostSaveTimer);
-    // 子→親へは短いデバウンスで素早く書き出す（親側で再度デバウンスして永続化）。
-    // 編集直後にタブを閉じても親が最新を保持できるよう待ち時間を短縮。
-    _hostSaveTimer = setTimeout(function(){ _hostSaveTimer=null; postBundle(); }, 150);
+    _hostSaveTimer = setTimeout(function(){
+      try{ window.parent.postMessage({type:"webgantt:save", bundle:getBundle()}, MORG); }catch(e){}
+    }, 400);
     return;
   }
   try{
@@ -1325,9 +1316,6 @@ function init(){
   if(!G){ document.body.innerHTML="<p style='padding:20px'>gantt_core.js が読み込めませんでした。同じフォルダに置いてください。</p>"; return; }
   loadAll();
   bind();
-  // 離脱・バックグラウンド化・リロード時に保留中の保存を確定（取りこぼし防止）。
-  document.addEventListener("visibilitychange", function(){ if(document.visibilityState==="hidden") flushSave(); });
-  window.addEventListener("pagehide", flushSave);
   if(HOST_MODE){
     // 親(index.html)からの復号済みデータを待って描画する
     window.addEventListener("message", function(e){

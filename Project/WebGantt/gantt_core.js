@@ -264,8 +264,25 @@
         const s = parseDt(t.start);
         const e = parseDt(t.end, { endOfDay: true });
         const est = todoEstimateMin(t, 0);
+        // 実績（work_sessions）の集計を先に行う。記録された作業期間があれば、それを
+        // バー位置に採用する（「完了」押下時刻=t.end に引きずられず、「作業期間の手動編集」
+        // での後日修正もそのままバーへ反映される）。
+        const aStarts = [], aEnds = [];
+        let openSession = false;
+        for (const ws of (t.work_sessions || [])) {
+          if (!ws || typeof ws !== "object") continue;
+          const a = parseDt(ws.start), b = parseDt(ws.end);
+          if (a) aStarts.push(a);
+          if (b) aEnds.push(b); else if (a) openSession = true;
+        }
+        const hasSessions = aStarts.length > 0;
+        const sesStart = hasSessions ? new Date(Math.min.apply(null, aStarts)) : null;
+        let sesEnd = aEnds.length ? new Date(Math.max.apply(null, aEnds)) : null;
+        if (openSession && now) sesEnd = (sesEnd != null && sesEnd > now) ? sesEnd : now;  // 作業中は now まで
         let ps, pe;
-        if (s != null || e != null) {
+        if (hasSessions) {
+          ps = sesStart; pe = sesEnd;          // 作業期間（実績）でバーを描く
+        } else if (s != null || e != null) {
           ps = (s != null) ? s : cursor;
           if (e != null) pe = e;
           else if (ps != null && est > 0) pe = new Date(ps.getTime() + est * 60000);
@@ -283,19 +300,14 @@
         }
         if (pe != null) cursor = pe;
         const milestone = pe == null;
-        const aStarts = [], aEnds = [];
-        for (const ws of (t.work_sessions || [])) {
-          if (!ws || typeof ws !== "object") continue;
-          const a = parseDt(ws.start), b = parseDt(ws.end);
-          if (a) aStarts.push(a); if (b) aEnds.push(b);
-        }
+        // actual_*（実績バー）は従来通り work_sessions 優先、無ければ start/end でフォールバック。
         if (!aStarts.length && s != null) aStarts.push(s);
         if (!aEnds.length && e != null) aEnds.push(e);
         out.push({
           todo_index: path[0], path: path, depth: depth,
           name: t.name || `todo${idx + 1}`, assignee: t.assignee || "",
           status: todoStatus(t), memo: t.text || "", progress: todoProgress(t),
-          start: ps, end: pe, has_own_schedule: (s != null || e != null),
+          start: ps, end: pe, has_own_schedule: (hasSessions || s != null || e != null),
           actual_start: aStarts.length ? new Date(Math.min.apply(null, aStarts)) : null,
           actual_end: aEnds.length ? new Date(Math.max.apply(null, aEnds)) : null,
           estimate_min: est, actual_min: actualMinutes(t, now), milestone: milestone,
@@ -754,7 +766,9 @@
     let totalSecs = 0, completedCount = 0, ongoingCount = 0;
     for (const plan of active) {
       const sch = plan.schedule || {};
-      const isDone = !!plan.complete || !!sch.completion;
+      // ガントの実質完了(eff_done)と揃える: 明示完了に加え、進捗100%（子Todo全完了/
+      // 手動100）も完了として報告する。完了Planが「継続中」と書かれる不具合の修正。
+      const isDone = !!plan.complete || !!sch.completion || progressOf(plan, false) >= 100;
       const marker = isDone ? "■" : "□";
       const suffix = isDone ? "　→ 完了" : "（継続中）";
       if (isDone) completedCount++; else ongoingCount++;
@@ -762,7 +776,8 @@
       const planText = (plan.text || "").trim();
       if (planText) planText.split(/\r?\n/).forEach(tl => { if (tl.trim()) lines.push(`    ${tl.trim()}`); });
       for (const todo of (plan.todo || [])) {
-        const tDone = !!todo.complete;
+        // complete フラグだけでなく status:"done" / 進捗100% も完了とみなす。
+        const tDone = todoStatus(todo) === "done" || todoProgress(todo) >= 100;
         const tMarker = tDone ? "  ●" : "  ○";
         let tSuffix = tDone ? " → 完了" : "";
         if (!tDone && todo.start && !todo.end) tSuffix = "（作業中）";

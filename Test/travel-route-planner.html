@@ -149,9 +149,6 @@ input::placeholder{color:var(--muted);}
     <div class="filter-chip" data-cat="cafe"    onclick="toggleCat(this)">☕ カフェ</div>
     <div class="filter-chip" data-cat="izakaya" onclick="toggleCat(this)">🍶 居酒屋</div>
   </div>
-  <label style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text);margin-bottom:7px;cursor:pointer;font-weight:600">
-    <input type="checkbox" id="karaoke-must" onchange="karaokeMust=this.checked" style="width:auto"> 🎤 カラオケ必須（カラオケのある店だけに絞る）
-  </label>
   <details id="yolp-key" style="margin-bottom:7px">
     <summary style="font-size:10.5px;color:var(--muted);cursor:pointer">🔑 Yahoo App ID（任意・入れると店データを上乗せ）</summary>
     <div style="display:flex;gap:5px;margin-top:5px">
@@ -162,6 +159,18 @@ input::placeholder{color:var(--muted);}
       <b>無くても上記カテゴリはOSMで検索できます。</b><a href="https://developer.yahoo.co.jp/start/" target="_blank" rel="noopener" style="color:var(--accent)">developer.yahoo.co.jp</a> で無料App IDを取得して入れると、Yahoo!の店データも追加で検索します（クレカ不要・1日5万件・端末内のみ保存）。
     </div>
   </details>
+
+  <div id="filter-label">🕒 営業チェック（出発時刻→各経由地の到着時刻で開店判定）</div>
+  <div style="display:flex;gap:5px;margin-bottom:7px;align-items:center;flex-wrap:wrap;">
+    <select id="depart-day" onchange="refreshOpenBadges()" style="background:var(--card);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:11px;padding:5px 7px;font-family:inherit;">
+      <option value="now">今日</option>
+      <option value="0">日</option><option value="1">月</option><option value="2">火</option><option value="3">水</option><option value="4">木</option><option value="5">金</option><option value="6">土</option>
+    </select>
+    <span style="font-size:11px;color:var(--muted)">出発</span>
+    <input type="time" id="depart-time" onchange="refreshOpenBadges()" style="background:var(--card);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:12px;padding:4px 7px;font-family:inherit;">
+    <button class="icon-btn" onclick="setDepartNow()" style="font-size:11px;">今</button>
+    <span id="opencheck-note" style="font-size:10px;color:var(--muted)"></span>
+  </div>
 
   <button id="go-btn" onclick="planRoute()">🗺️ ルートとスポットを探す</button>
   <div id="error-banner"></div>
@@ -196,6 +205,10 @@ input::placeholder{color:var(--muted);}
       <div id="custom-form" style="display:none;flex-direction:column;gap:5px;">
         <input id="custom-name" placeholder="スポット名（例：祖母の家）" style="background:var(--bg);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:12px;padding:6px 9px;outline:none;font-family:inherit;width:100%;"/>
         <input id="custom-addr" placeholder="住所・場所名（例：鎌倉市小町1-1）" style="background:var(--bg);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:12px;padding:6px 9px;outline:none;font-family:inherit;width:100%;"/>
+        <div style="display:flex;gap:5px;">
+          <input id="custom-hours" placeholder="営業時間（例：18:00-翌3:00）" style="flex:2;background:var(--bg);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:12px;padding:6px 9px;outline:none;font-family:inherit;"/>
+          <input id="custom-closed" placeholder="定休日（例：日,水 / 不定休）" style="flex:1;background:var(--bg);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:12px;padding:6px 9px;outline:none;font-family:inherit;"/>
+        </div>
         <div style="display:flex;gap:5px;align-items:center;">
           <select id="custom-type" style="flex:1;background:var(--bg);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:12px;padding:6px 9px;outline:none;font-family:inherit;">
             <option value="ki">🎤 カラオケ居酒屋</option>
@@ -327,11 +340,10 @@ function toggleCat(el){
 }
 // カラオケがある証拠か？（OSM karaoke=yes / 名前・ジャンルに「カラオケ」）
 function hasKaraoke(name,genre,tags){
-  if(tags && tags.karaoke==='yes')return true;
+  if(tags && (tags.karaoke==='yes'||tags.amenity==='karaoke_box'||tags.leisure==='karaoke'))return true;
   const s=((name||'')+' '+(genre||''));
   return /カラオケ|からおけ|karaoke|歌え/i.test(s);
 }
-let karaokeMust=false;
 function jsonp(url){return new Promise((resolve,reject)=>{
   const name='ycb_'+Math.random().toString(36).slice(2);
   const s=document.createElement('script');let done=false;
@@ -438,6 +450,69 @@ async function geocodeBest(addr,name){
     await new Promise(r=>setTimeout(r,400));
   }
   return null;
+}
+
+// ─── 営業時間チェック ──────────────────────────────────────
+const DOW=['日','月','火','水','木','金','土'];
+function _norm(s){return (s||'').replace(/[０-９]/g,c=>String.fromCharCode(c.charCodeAt(0)-0xFEE0)).replace(/：/g,':').replace(/[〜～~－ー−]/g,'-');}
+// "17:00-23:00,18:00-翌3:00" → [[start,end(min)], ...]（深夜跨ぎ・翌・24時超に対応）
+function parseRanges(hours){
+  let s=_norm(hours).replace(/翌\s*(\d{1,2}):?(\d{2})?/g,(m,h,mm)=>((+h)+24)+':'+(mm||'00'));
+  const out=[]; const re=/(\d{1,2}):(\d{2})\s*-\s*(\d{1,2}):(\d{2})/g; let m;
+  while((m=re.exec(s))){ let a=(+m[1])*60+(+m[2]), b=(+m[3])*60+(+m[4]); if(b<=a)b+=1440; out.push([a,b]); }
+  return out;
+}
+function parseClosed(closed){
+  const s=closed||''; if(/年中無休|無休|なし|無し/.test(s))return{set:new Set(),irregular:false};
+  const set=new Set(); DOW.forEach((d,i)=>{ if(s.includes(d)) set.add(i); });
+  return {set, irregular:/不定休/.test(s)};
+}
+function _within(m,a,b){return (m>=a&&m<b)||(m+1440>=a&&m+1440<b);}
+// dayIdx:0-6, minutes:0-1439 → {s:'open'|'outside'|'closed'|'maybe'|'unknown', t:表示}
+function openStatus(spot,dayIdx,minutes){
+  if(!spot||(!spot.hours&&!spot.closed))return{s:'unknown',t:'時間不明'};
+  const cl=parseClosed(spot.closed);
+  if(cl.set.has(dayIdx))return{s:'closed',t:'定休日'};
+  const ranges=parseRanges(spot.hours);
+  if(!ranges.length)return{s:'unknown',t:'時間不明'};
+  const open=ranges.some(([a,b])=>_within(minutes,a,b));
+  if(open)return cl.irregular?{s:'maybe',t:'営業中?(不定休)'}:{s:'open',t:'営業中'};
+  return{s:'outside',t:'時間外'};
+}
+function openBadge(st){
+  const map={open:['#34D399','◯営業中'],maybe:['#FBBF24','△'+st.t],outside:['#F87171','×時間外'],closed:['#F87171','×定休'],unknown:['#64748B','?']};
+  const c=(map[st.s]||map.unknown);
+  return `<span style="font-size:9.5px;font-weight:700;color:${c[0]};border:1px solid ${c[0]}55;border-radius:4px;padding:0 5px;white-space:nowrap">${st.s==='maybe'?st.t:c[1]}</span>`;
+}
+// 出発の曜日/時刻（分）。曜日'now'は当日。
+function getDepart(){
+  const dEl=document.getElementById('depart-day'), tEl=document.getElementById('depart-time');
+  const now=new Date();
+  let day = (!dEl||dEl.value==='now')? now.getDay() : (+dEl.value);
+  let mins;
+  if(tEl&&tEl.value){ const p=tEl.value.split(':'); mins=(+p[0])*60+(+p[1]); }
+  else mins=now.getHours()*60+now.getMinutes();
+  return {day,mins};
+}
+function setDepartNow(){
+  const now=new Date();
+  const t=document.getElementById('depart-time'); t.value=String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
+  document.getElementById('depart-day').value='now';
+  refreshOpenBadges();
+}
+// 到着時刻=出発+移動分。曜日繰り上げも考慮 → {day,mins}
+function arrivalOf(addMin){
+  const d=getDepart(); let total=d.mins+(addMin||0);
+  const dayAdd=Math.floor(total/1440); const mins=((total%1440)+1440)%1440;
+  return {day:(d.day+dayAdd)%7, mins};
+}
+// バッジ再描画（時刻変更時）
+function refreshOpenBadges(){
+  if(typeof renderCustomList==='function')renderCustomList();
+  if(typeof renderSpots==='function'&&currentSpots&&currentSpots.length)renderSpots();
+  if(typeof renderWaypoints==='function')renderWaypoints();
+  const d=getDepart();
+  const n=document.getElementById('opencheck-note'); if(n)n.textContent='基準: '+DOW[d.day]+' '+String(Math.floor(d.mins/60)).padStart(2,'0')+':'+String(d.mins%60).padStart(2,'0');
 }
 
 // ─── MARKERS ──────────────────────────────────────────────
@@ -580,7 +655,6 @@ async function planRoute(){
     elements.forEach((el,idx)=>{
       if(!el.lat||!el.lon||!el.tags?.name)return;
       if(distToRoute(el.lat,el.lon,routeCoords)>250)return;
-      if(karaokeMust && !hasKaraoke(el.tags.name,'',el.tags))return;   // 🎤カラオケ必須
       const key=`${el.tags.name}|${Math.round(el.lat*1000)}|${Math.round(el.lon*1000)}`;
       if(seen.has(key))return;seen.add(key);
 
@@ -632,9 +706,11 @@ async function planRoute(){
       };
       // (a) OSM：各カテゴリをOverpassで検索（Yahoo不要・ベース動作）
       for(const cat of activeCats){
+        const needK=(cat==='ki'||cat==='karaoke');   // カラオケ系は常にカラオケを確認（必須）
         let res={elements:[]}; try{ res=await fetchOverpass(bbox,[cat]); }catch(e){}
         (res.elements||[]).forEach(el=>{
           if(!el.lat||!el.lon||!el.tags?.name)return;
+          if(needK && !hasKaraoke(el.tags.name,'',el.tags))return;   // 🎤カラオケ確認（カラオケ居酒屋/カラオケのみ）
           pushCat(cat,el.tags.name,el.lat,el.lon,{hours:el.tags.opening_hours,
             wifi:!!(el.tags.internet_access||el.tags.wifi),
             power:!!(el.tags['socket:type_f']||el.tags.power_supply),src:'OSM'});
@@ -695,12 +771,14 @@ function renderSpots(){
   filtered.forEach(spot=>{
     const isAdded=addedIds.has(spot.id);
     const def=spot.def;
+    const _dep=getDepart();
+    const _badge=(spot.hours||spot.closed)?openBadge(openStatus(spot,_dep.day,_dep.mins)):'';
     const div=document.createElement('div');
     div.className='spot-card'+(isAdded?' added':'');
     div.innerHTML=`
       <div class="spot-icon-wrap" style="background:${def.bg}">${def.icon}</div>
       <div class="spot-info">
-        <div class="spot-name">${spot.name}</div>
+        <div class="spot-name">${spot.name} ${_badge}</div>
         <div class="spot-meta">${spot.src==='YOLP'?(spot.genre||spot.addr||'YOLP'):(spot.hours||'営業時間不明')}</div>
         <div class="spot-tags">
           <span class="tag" style="background:${def.bg};color:${def.color};border:1px solid ${def.color}44">${def.label}</span>
@@ -757,6 +835,8 @@ async function updateRouteWithWaypoints(){
     if(!seg.real)allReal=false;
     totalDist+=seg.dist;
     if(seg.dur)totalDur+=seg.dur;
+    // stops[i+1] への到着までの累積秒。waypoints[i] に到着時間を記録
+    if(i<waypoints.length)waypoints[i]._arriveSec=totalDur;
     allCoords.push(...seg.coords);
 
     const color=i===0||i===stops.length-2?'#3B82F6':'#34D399';
@@ -795,7 +875,7 @@ let customMarkers=[]; // map markers for custom spots
 
 function saveCustom(){
   try{ localStorage.setItem('rc_custom', JSON.stringify(
-    customSpots.map(s=>({id:s.id,name:s.name,addr:s.addr||'',stype:s.stype,lat:s.lat,lng:s.lng}))
+    customSpots.map(s=>({id:s.id,name:s.name,addr:s.addr||'',stype:s.stype,lat:s.lat,lng:s.lng,hours:s.hours||'',closed:s.closed||''}))
   )); }catch(e){}
 }
 function loadCustom(){
@@ -804,7 +884,7 @@ function loadCustom(){
     customSpots=a.map(s=>({id:s.id,name:s.name,addr:s.addr||'',stype:s.stype,
       def:SPOT_TYPES[s.stype]||SPOT_TYPES.custom_pin,
       lat:(s.lat==null?null:s.lat),lng:(s.lng==null?null:s.lng),
-      hours:null,wifi:false,power:false,pct:0,distM:0,isCustom:true}));
+      hours:s.hours||null,closed:s.closed||'',wifi:false,power:false,pct:0,distM:0,isCustom:true}));
   }catch(e){customSpots=[];}
 }
 function placeCustomMarker(spot){
@@ -832,7 +912,7 @@ async function loadSharedSpots(){
     customSpots.push({id,name:s.name,addr:s.addr||'',stype:s.stype||'ki',
       def:SPOT_TYPES[s.stype]||SPOT_TYPES.custom_pin,
       lat:(s.lat==null?null:s.lat),lng:(s.lng==null?null:s.lng),
-      hours:null,wifi:false,power:false,pct:0,distM:0,isCustom:true,shared:true});
+      hours:s.hours||null,closed:s.closed||'',wifi:false,power:false,pct:0,distM:0,isCustom:true,shared:true});
     have.add(id); added++;
   });
   saveCustom(); renderCustomList();
@@ -847,7 +927,7 @@ async function loadSharedSpots(){
 }
 // 現在の登録リストを spots.json として書き出し（リポジトリに置けばPagesで共有・恒久化）
 function exportSpotsJson(){
-  const data=JSON.stringify(customSpots.map(s=>({id:s.id,name:s.name,addr:s.addr||'',stype:s.stype,lat:s.lat,lng:s.lng})),null,2);
+  const data=JSON.stringify(customSpots.map(s=>({id:s.id,name:s.name,addr:s.addr||'',stype:s.stype,lat:s.lat,lng:s.lng,hours:s.hours||'',closed:s.closed||''})),null,2);
   const b=new Blob([data],{type:'application/json'});
   const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='spots.json';a.click();
   setTimeout(()=>URL.revokeObjectURL(a.href),500);
@@ -872,6 +952,8 @@ async function registerCustomSpot(){
   const name=document.getElementById('custom-name').value.trim();
   const addr=document.getElementById('custom-addr').value.trim();
   const stype=document.getElementById('custom-type').value;
+  const hours=(document.getElementById('custom-hours').value||'').trim();
+  const closed=(document.getElementById('custom-closed').value||'').trim();
   if(!name){document.getElementById('custom-form-status').textContent='⚠️ スポット名を入力してください';return;}
   if(!addr){document.getElementById('custom-form-status').textContent='⚠️ 住所・場所名を入力してください';return;}
 
@@ -885,7 +967,7 @@ async function registerCustomSpot(){
 
   const def=SPOT_TYPES[stype]||SPOT_TYPES.custom_pin;
   const id=`custom_${Date.now()}`;
-  const spot={id, name, addr, stype, def, lat:coord.lat, lng:coord.lng, hours:null, wifi:false, power:false, pct:0, distM:0, isCustom:true};
+  const spot={id, name, addr, stype, def, lat:coord.lat, lng:coord.lng, hours:hours||null, closed:closed||'', wifi:false, power:false, pct:0, distM:0, isCustom:true};
 
   customSpots.push(spot);
   placeCustomMarker(spot);
@@ -896,6 +978,8 @@ async function registerCustomSpot(){
   // Reset form
   document.getElementById('custom-name').value='';
   document.getElementById('custom-addr').value='';
+  document.getElementById('custom-hours').value='';
+  document.getElementById('custom-closed').value='';
   document.getElementById('custom-form-status').textContent='';
   document.getElementById('custom-form').style.display='none';
   showNotif(`📌 ${name} を登録しました`);
@@ -969,15 +1053,18 @@ function renderCustomList(){
 
   const list=document.getElementById('custom-list');
   if(!customSpots.length){list.innerHTML='';return;}
+  const dep=getDepart();
   list.innerHTML=customSpots.map(s=>{
     const isAdded=addedIds.has(s.id);
     const noGeo=(!s.lat||!s.lng);
-    const sub=noGeo?'📍位置未取得（+経路へで取得）':s.def.label;
+    const badge=(s.hours||s.closed)?openBadge(openStatus(s,dep.day,dep.mins)):'';
+    const hrLine=(s.hours||s.closed)?`<div style="font-size:9.5px;color:var(--muted)">🕒 ${s.hours||'時間?'}${s.closed?' / 休:'+s.closed:''}</div>`:'';
     return `<div style="display:flex;align-items:center;gap:7px;padding:5px 0;border-top:1px solid var(--border);margin-top:5px;">
       <span style="font-size:16px">${s.def.icon}</span>
       <div style="flex:1;min-width:0;">
-        <div style="font-size:12px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${s.name}</div>
+        <div style="font-size:12px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${s.name} ${badge}</div>
         <div style="font-size:10px;color:${noGeo?'#FBBF24':'var(--muted)'}">${s.def.label} · ${noGeo?'📍取得待ち':(s.addr||'登録済み')}</div>
+        ${hrLine}
       </div>
       <button onclick="addCustomSpotToRoute('${s.id}')" ${isAdded?'disabled':''} style="background:${isAdded?'#34D39922':'var(--accent)'};border:${isAdded?'1px solid #34D39944':'none'};border-radius:6px;color:${isAdded?'#34D399':'#fff'};font-size:10px;font-weight:700;padding:3px 8px;cursor:${isAdded?'default':'pointer'};font-family:inherit;white-space:nowrap;">${isAdded?'✓ 追加済':'+ 経路へ'}</button>
       <button onclick="deleteCustomSpot('${s.id}')" style="background:none;border:none;color:var(--muted);font-size:14px;cursor:pointer;padding:2px 4px;line-height:1;" title="削除">✕</button>
@@ -1014,13 +1101,15 @@ function addSpot(id){
 }
 
 function removeWaypoint(id){
-  const spot=waypoints.find(w=>w.id===id);if(!spot)return;
-  waypoints=waypoints.filter(w=>w.id!==id);
-  addedIds.delete(id);
+  // idは数値(検索スポット)・文字列(手入力/シード)が混在するためString比較
+  const spot=waypoints.find(w=>String(w.id)===String(id));if(!spot)return;
+  const rid=spot.id;
+  waypoints=waypoints.filter(w=>w.id!==rid);
+  addedIds.delete(rid);
 
   // Remove numbered marker from map
-  const wm=wpMarkers.find(m=>m.id===id);
-  if(wm){map.removeLayer(wm.marker);wpMarkers=wpMarkers.filter(m=>m.id!==id);}
+  const wm=wpMarkers.find(m=>m.id===rid);
+  if(wm){map.removeLayer(wm.marker);wpMarkers=wpMarkers.filter(m=>m.id!==rid);}
 
   renderSpots();
   renderWaypoints();
@@ -1045,14 +1134,25 @@ function renderWaypoints(){
   list.innerHTML+=`<div class="wp-card"><div class="wp-icon">🔵</div><div class="wp-info"><div class="wp-name">${fromVal}</div><div class="wp-type">出発地</div></div></div>`;
 
   waypoints.forEach((wp,i)=>{
+    // 到着時刻＝出発＋累積移動時間。営業判定はその到着時刻で行う。
+    let arrLine='';
+    if(wp._arriveSec!=null){
+      const ar=arrivalOf(wp._arriveSec/60);
+      const hhmm=String(Math.floor(ar.mins/60)).padStart(2,'0')+':'+String(ar.mins%60).padStart(2,'0');
+      const badge=(wp.hours||wp.closed)?openBadge(openStatus(wp,ar.day,ar.mins)):'';
+      arrLine=`<div style="font-size:10px;color:var(--accent)">🕒 到着 ${DOW[ar.day]} ${hhmm} ${badge}</div>`;
+    } else if(wp.hours||wp.closed){
+      const dep=getDepart(); arrLine=`<div style="font-size:10px;color:var(--muted)">${openBadge(openStatus(wp,dep.day,dep.mins))}（基準時刻）</div>`;
+    }
+    const hrSub=wp.hours?(' · 🕒'+wp.hours+(wp.closed?' 休:'+wp.closed:'')):'';
     list.innerHTML+=`<div style="display:flex;align-items:center;gap:6px;padding:0 4px">
       <div style="width:1px;height:18px;background:var(--border);margin-left:13px;flex-shrink:0"></div>
       <div style="font-size:10px;color:var(--muted)">ルート${wp.pct}%地点</div>
     </div>
     <div class="wp-card">
       <div class="wp-icon">${wp.def.icon}</div>
-      <div class="wp-info"><div class="wp-name">${i+1}. ${wp.name}</div><div class="wp-type">${wp.def.label}${wp.hours?' · '+wp.hours:''}</div></div>
-      <button class="wp-remove" onclick="removeWaypoint(${wp.id})" title="削除">✕</button>
+      <div class="wp-info"><div class="wp-name">${i+1}. ${wp.name}</div><div class="wp-type">${wp.def.label}${hrSub}</div>${arrLine}</div>
+      <button class="wp-remove" onclick="removeWaypoint('${wp.id}')" title="削除">✕</button>
     </div>`;
   });
 
