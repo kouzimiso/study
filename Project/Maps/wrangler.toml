@@ -1,0 +1,19 @@
+name = "rakuten-vacancy-worker"
+main = "src/index.js"
+compatibility_date = "2026-01-01"
+
+# D1データベース（`wrangler d1 create rakuten-vacancy-db` 実行後、
+# 出力される database_id をここに貼り付けてください）
+[[d1_databases]]
+binding = "DB"
+database_name = "rakuten-vacancy-db"
+database_id = "REPLACE_WITH_YOUR_D1_DATABASE_ID"
+
+# 毎日 JST 5:00（UTC 20:00）に定期実行
+[triggers]
+crons = ["0 20 * * *"]
+
+# 楽天APIのキーはWorkerの環境変数（シークレット）として登録する
+# wrangler secret put RAKUTEN_APP_ID
+# wrangler secret put RAKUTEN_ACCESS_KEY
+# wrangler secret put RAKUTEN_AFFILIATE_ID   (任意)

@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+<title>宿・空きマップ｜広域ホテル空室ヒートマップ</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-deep:#0E1517;
+    --panel:#16211F;
+    --panel-border:#283835;
+    --text-primary:#EAF3EE;
+    --text-muted:#8CA39B;
+    --accent-open:#45B08C;
+    --accent-open-dim:#2C6E58;
+    --accent-crowded:#C1503A;
+    --accent-crowded-dim:#7A3527;
+    --accent-poi:#D8A34E;
+    --radius-panel:14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;height:100%;background:var(--bg-deep);color:var(--text-primary);
+    font-family:'Zen Kaku Gothic New', system-ui, sans-serif;}
+  #map{position:absolute; inset:0;}
+
+  .brand{
+    position:absolute; top:16px; left:16px; z-index:1000;
+    display:flex; align-items:baseline; gap:10px;
+    pointer-events:none;
+  }
+  .brand .mark{
+    font-family:'JetBrains Mono', monospace; font-weight:600; font-size:11px;
+    letter-spacing:.14em; color:var(--accent-open); text-transform:uppercase;
+    border:1px solid var(--accent-open-dim); border-radius:999px; padding:4px 10px;
+    background:rgba(20,32,29,.7); backdrop-filter:blur(6px);
+  }
+  .brand h1{font-size:15px; font-weight:700; margin:0; letter-spacing:.02em; text-shadow:0 1px 8px rgba(0,0,0,.6);}
+
+  .panel{
+    position:absolute; z-index:1000; background:rgba(22,33,31,.86);
+    border:1px solid var(--panel-border); border-radius:var(--radius-panel);
+    backdrop-filter:blur(10px); box-shadow:0 12px 30px rgba(0,0,0,.35);
+  }
+
+  .controls{ top:64px; left:16px; padding:14px 16px; width:250px; }
+  .controls .row{ display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:10px; }
+  .controls .row:last-child{ margin-bottom:0; }
+  .controls label{ font-size:12px; color:var(--text-muted); letter-spacing:.03em; }
+
+  .date-stepper{ display:flex; align-items:center; gap:6px; }
+  .date-stepper button{
+    width:26px; height:26px; border-radius:8px; border:1px solid var(--panel-border);
+    background:transparent; color:var(--text-primary); cursor:pointer; font-size:14px; line-height:1;
+  }
+  .date-stepper button:hover{ border-color:var(--accent-open); color:var(--accent-open); }
+  .date-stepper input[type=date]{
+    background:#0F1917; border:1px solid var(--panel-border); border-radius:8px;
+    color:var(--text-primary); font-family:'JetBrains Mono', monospace; font-size:12px;
+    padding:5px 6px; width:132px;
+  }
+
+  .toggle{
+    position:relative; width:38px; height:22px; border-radius:999px;
+    background:#28403A; border:1px solid var(--panel-border); cursor:pointer; flex:none;
+  }
+  .toggle.on{ background:var(--accent-open-dim); border-color:var(--accent-open); }
+  .toggle::after{
+    content:''; position:absolute; top:2px; left:2px; width:16px; height:16px; border-radius:50%;
+    background:var(--text-primary); transition:transform .15s ease;
+  }
+  .toggle.on::after{ transform:translateX(16px); background:var(--accent-open); }
+
+  .refresh-btn{
+    width:100%; margin-top:2px; padding:8px 10px; border-radius:9px; border:1px solid var(--accent-open-dim);
+    background:transparent; color:var(--accent-open); font-family:inherit; font-size:12px; font-weight:700;
+    cursor:pointer; letter-spacing:.02em;
+  }
+  .refresh-btn:hover{ background:rgba(69,176,140,.12); }
+  .refresh-btn:disabled{ opacity:.4; cursor:default; }
+
+  .banner{
+    top:16px; right:16px; max-width:280px; padding:12px 14px; font-size:12.5px; line-height:1.5;
+    border-color:var(--accent-crowded-dim); display:none;
+  }
+  .banner.show{ display:block; }
+  .banner .title{ color:var(--accent-crowded); font-weight:700; margin-bottom:6px; }
+  .banner .btns{ display:flex; gap:8px; margin-top:10px; }
+  .banner button{
+    font-family:inherit; font-size:11.5px; font-weight:700; border-radius:8px; padding:6px 10px; cursor:pointer;
+  }
+  .banner .yes{ background:var(--accent-crowded); border:none; color:#1A0E0A; }
+  .banner .no{ background:transparent; border:1px solid var(--panel-border); color:var(--text-muted); }
+
+  .legend{ bottom:20px; left:16px; padding:12px 14px; width:210px; }
+  .legend .title{ font-size:11px; color:var(--text-muted); letter-spacing:.04em; margin-bottom:8px; }
+  .legend .bar{ height:8px; border-radius:999px; background:linear-gradient(90deg, var(--accent-crowded), #6E6A3E, var(--accent-open)); }
+  .legend .labels{ display:flex; justify-content:space-between; font-size:10.5px; color:var(--text-muted); margin-top:6px; font-family:'JetBrains Mono', monospace; }
+  .legend .poi-key{ display:flex; align-items:center; gap:6px; margin-top:10px; font-size:11px; color:var(--text-muted); }
+  .legend .poi-dot{ width:8px; height:8px; border-radius:50%; background:var(--accent-poi); box-shadow:0 0 6px var(--accent-poi); }
+
+  .status-tag{
+    position:absolute; bottom:20px; right:16px; z-index:1000; font-family:'JetBrains Mono', monospace;
+    font-size:10.5px; color:var(--text-muted); background:rgba(22,33,31,.8); border:1px solid var(--panel-border);
+    border-radius:999px; padding:5px 12px;
+  }
+
+  .hotel-circle{ filter:drop-shadow(0 0 6px currentColor); mix-blend-mode:screen; }
+  .poi-dot-marker{ filter:drop-shadow(0 0 4px var(--accent-poi)); }
+
+  .leaflet-popup-content-wrapper{ background:#16211F; color:var(--text-primary); border-radius:10px; }
+  .leaflet-popup-tip{ background:#16211F; }
+  .popup-title{ font-weight:700; font-size:13px; margin-bottom:2px; }
+  .popup-sub{ font-size:11px; color:var(--text-muted); font-family:'JetBrains Mono', monospace; }
+</style>
+</head>
+<body>
+
+<div id="map"></div>
+
+<div class="brand">
+  <span class="mark">demo</span>
+  <h1>宿・空きマップ</h1>
+</div>
+
+<div class="panel controls">
+  <div class="row">
+    <label>宿泊日</label>
+    <div class="date-stepper">
+      <button id="prevDay">‹</button>
+      <input type="date" id="dateInput" />
+      <button id="nextDay">›</button>
+    </div>
+  </div>
+  <div class="row">
+    <label>観光地を表示</label>
+    <div class="toggle" id="poiToggle"></div>
+  </div>
+  <button class="refresh-btn" id="refreshBtn" style="display:none;">この日の空室を更新</button>
+</div>
+
+<div class="panel banner" id="confirmBanner">
+  <div class="title">更新の確認</div>
+  <div id="confirmText">この日の検索結果はまだ本日更新されていません。更新しますか？</div>
+  <div class="btns">
+    <button class="yes" id="confirmYes">更新する</button>
+    <button class="no" id="confirmNo">今のデータのまま見る</button>
+  </div>
+</div>
+
+<div class="panel legend">
+  <div class="title">エリアの空き状況（ホテル担当範囲ごと）</div>
+  <div class="bar"></div>
+  <div class="labels"><span>空き少（混雑）</span><span>空き多（穴場）</span></div>
+  <div class="poi-key"><span class="poi-dot"></span>観光地（クリックで詳細）</div>
+</div>
+
+<div class="status-tag" id="statusTag">読み込み中…</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+if (typeof L === 'undefined') {
+  document.getElementById('map').innerHTML =
+    '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#8CA39B;font-family:sans-serif;padding:24px;text-align:center;">' +
+    '地図ライブラリ(Leaflet)の読み込みに失敗しました。<br>ネットワーク環境やCDNへのアクセス制限をご確認ください。</div>';
+  throw new Error('Leaflet failed to load');
+}
+</script>
+<script>
+// ============================================================
+// 設定：Cloudflare Workerをデプロイしたら、ここにURLを入れてください。
+// 空のままなら、デモ用のダミーデータで動作します。
+// ============================================================
+const CONFIG = {
+  API_BASE: "", // 例: "https://rakuten-vacancy-worker.your-subdomain.workers.dev"
+};
+const DEMO_MODE = !CONFIG.API_BASE;
+
+// ---------- 地図初期化 ----------
+const map = L.map('map', { zoomControl: false, attributionControl: true })
+  .setView([38.2, 140.5], 6);
+
+window.addEventListener('error', (e) => {
+  const tag = document.getElementById('statusTag');
+  if (tag) tag.textContent = `エラー: ${e.message || '不明なエラーが発生しました'}`;
+  console.error(e);
+});
+
+L.control.zoom({ position: 'bottomright' }).addTo(map);
+L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+  attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+  maxZoom: 19,
+}).addTo(map);
+
+const vacancyLayer = L.layerGroup().addTo(map);
+const poiLayer = L.layerGroup();
+
+// ---------- 日付コントロール ----------
+const dateInput = document.getElementById('dateInput');
+const todayStr = () => new Date().toISOString().slice(0, 10);
+dateInput.value = todayStr();
+
+function shiftDate(days) {
+  const d = new Date(dateInput.value + 'T00:00:00Z');
+  d.setUTCDate(d.getUTCDate() + days);
+  dateInput.value = d.toISOString().slice(0, 10);
+  onDateChange();
+}
+document.getElementById('prevDay').onclick = () => shiftDate(-1);
+document.getElementById('nextDay').onclick = () => shiftDate(1);
+dateInput.onchange = onDateChange;
+
+// ---------- POIトグル ----------
+const poiToggle = document.getElementById('poiToggle');
+let poiOn = false;
+poiToggle.onclick = () => {
+  poiOn = !poiOn;
+  poiToggle.classList.toggle('on', poiOn);
+  if (poiOn) { map.addLayer(poiLayer); loadPois(); }
+  else { map.removeLayer(poiLayer); }
+};
+map.on('moveend', () => { if (poiOn) loadPois(); });
+
+// ---------- 空室ヒートマップ ----------
+function colorForCount(count, max) {
+  const t = max > 0 ? Math.min(1, count / max) : 0;
+  // 少ない(赤系) -> 多い(緑系) の簡易補間
+  const from = [193, 80, 58];   // --accent-crowded
+  const to   = [69, 176, 140];  // --accent-open
+  const rgb = from.map((c, i) => Math.round(c + (to[i] - c) * t));
+  return `rgb(${rgb[0]},${rgb[1]},${rgb[2]})`;
+}
+
+async function loadHeatmap(date) {
+  vacancyLayer.clearLayers();
+  const statusTag = document.getElementById('statusTag');
+  statusTag.textContent = `${date} のデータを取得中…`;
+
+  const features = DEMO_MODE ? demoFeatures(date) : await fetchJson(`/api/heatmap?date=${date}`).then(d => d.features);
+
+  const max = Math.max(1, ...features.map(f => f.properties.hotelCount));
+  for (const f of features) {
+    const [lng, lat] = f.geometry.coordinates;
+    const { hotelCount, radiusKm, name } = f.properties;
+    const circle = L.circle([lat, lng], {
+      radius: radiusKm * 1000,
+      color: 'transparent',
+      weight: 0,
+      fillColor: colorForCount(hotelCount, max),
+      fillOpacity: 0.32,
+      className: 'hotel-circle',
+    }).addTo(vacancyLayer);
+    circle.bindPopup(
+      `<div class="popup-title">${name || 'エリア'}</div>` +
+      `<div class="popup-sub">空室あり施設数: ${hotelCount} / 担当範囲: ${radiusKm.toFixed(1)}km</div>`
+    );
+  }
+  statusTag.textContent = `${date} ／ ${features.length}エリア表示中${DEMO_MODE ? '（デモデータ）' : ''}`;
+}
+
+// ---------- 更新確認バナー ----------
+const banner = document.getElementById('confirmBanner');
+const refreshBtn = document.getElementById('refreshBtn');
+
+async function checkStatusAndMaybeConfirm(date) {
+  if (DEMO_MODE) { banner.classList.remove('show'); refreshBtn.style.display = 'none'; return; }
+  const status = await fetchJson(`/api/status?date=${date}`);
+  refreshBtn.style.display = status.needsConfirmBeforeRefresh ? 'block' : 'none';
+  if (status.exists && status.needsConfirmBeforeRefresh) {
+    document.getElementById('confirmText').textContent =
+      `${date} の検索結果があります（前回取得: ${status.fetchedAt ?? '不明'}）。本日分に更新しますか？`;
+    banner.classList.add('show');
+  } else {
+    banner.classList.remove('show');
+  }
+}
+
+async function triggerRefresh(date) {
+  if (DEMO_MODE) return;
+  refreshBtn.disabled = true;
+  await fetch(`${CONFIG.API_BASE}/api/refresh?date=${date}`, { method: 'POST' });
+  banner.classList.remove('show');
+  setTimeout(() => loadHeatmap(date), 3000); // バックグラウンド処理が少し進んでから再取得
+  refreshBtn.disabled = false;
+}
+document.getElementById('confirmYes').onclick = () => triggerRefresh(dateInput.value);
+document.getElementById('confirmNo').onclick = () => banner.classList.remove('show');
+refreshBtn.onclick = () => triggerRefresh(dateInput.value);
+
+function onDateChange() {
+  const date = dateInput.value;
+  loadHeatmap(date);
+  checkStatusAndMaybeConfirm(date);
+}
+
+// ---------- 観光地POI（Overpass API） ----------
+async function loadPois() {
+  if (map.getZoom() < 9) { poiLayer.clearLayers(); return; }
+  const b = map.getBounds();
+  const bbox = `${b.getSouth()},${b.getWest()},${b.getNorth()},${b.getEast()}`;
+  const query = `[out:json][timeout:20];node["tourism"~"attraction|museum|viewpoint|gallery|artwork"](${bbox});out body 150;`;
+  try {
+    const res = await fetch('https://overpass-api.de/api/interpreter', {
+      method: 'POST', body: query,
+    });
+    const data = await res.json();
+    poiLayer.clearLayers();
+    for (const el of data.elements || []) {
+      const name = el.tags?.name || '観光地';
+      L.circleMarker([el.lat, el.lon], {
+        radius: 4, className: 'poi-dot-marker',
+        color: 'transparent', fillColor: '#D8A34E', fillOpacity: 0.95,
+      }).bindPopup(`<div class="popup-title">${name}</div><div class="popup-sub">観光地</div>`)
+        .addTo(poiLayer);
+    }
+  } catch (e) {
+    console.error('POI取得失敗', e);
+  }
+}
+
+// ---------- 共通ヘルパー ----------
+async function fetchJson(path) {
+  const res = await fetch(`${CONFIG.API_BASE}${path}`);
+  if (!res.ok) throw new Error(`API error ${res.status}`);
+  return res.json();
+}
+
+// デモ用ダミーデータ（関東・北海道あたりに適当な点をばらまく）
+function demoFeatures(date) {
+  const seedBase = date.split('-').reduce((a, c) => a + Number(c), 0);
+  const spots = [
+    [35.68, 139.77, '東京駅周辺'], [35.44, 139.64, '横浜'], [36.56, 138.19, '軽井沢'],
+    [35.30, 139.48, '箱根'], [36.70, 137.21, '金沢'], [35.16, 136.91, '名古屋'],
+    [43.06, 141.35, '札幌'], [42.99, 144.38, '釧路'], [41.77, 140.73, '函館'],
+    [43.77, 142.37, '旭川'], [35.65, 140.10, '成田周辺'], [34.98, 138.38, '熱海'],
+  ];
+  return spots.map(([lat, lng, name], i) => {
+    const pseudo = Math.abs(Math.sin(seedBase + i * 13.7)) ;
+    return {
+      geometry: { coordinates: [lng, lat] },
+      properties: {
+        name, hotelCount: Math.round(pseudo * 40),
+        radiusKm: 0.5 + Math.abs(Math.cos(seedBase + i)) * 2.5,
+      },
+    };
+  });
+}
+
+// ---------- 初期化 ----------
+onDateChange();
+</script>
+</body>
+</html>
