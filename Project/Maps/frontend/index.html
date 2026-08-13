@@ -182,7 +182,7 @@
     <label>観光地を表示</label>
     <div class="toggle" id="poiToggle"></div>
   </div>
-  <div class="hint-text"><b>「この範囲を検索」</b>を押すと、今地図に表示されている範囲をランダムにサンプリング検索します（広い範囲を隅々まで検索するより、統計的に空き状況をつかむのが目的）。押すたびに検索率が上がります。検索結果はみんなで共有され、蓄積されていきます。</div>
+  <div class="hint-text"><b>「この範囲を検索」</b>を押すと、今地図に表示されている範囲を街・集落の周辺を優先しつつランダムにサンプリング検索します（広い範囲を隅々まで検索するより、統計的に空き状況をつかむのが目的）。新規に見つからなくなるかレート制限に達するまで自動で連続検索します。検索結果はみんなで共有され、蓄積されていきます。</div>
   <button class="settings-btn search-btn" id="searchBtn">この範囲を検索</button>
   <button class="settings-btn" id="settingsBtn">APIキー設定</button>
 </div>
@@ -338,6 +338,8 @@ function pct(x) {
   return x == null ? '?' : `${(x * 100).toFixed(1)}%`;
 }
 
+const SEARCH_ROUND_CAP = 30; // 自動連続検索の安全上限（1回25セル前後 × 30回 ≒ 数百セル）
+
 async function searchVisibleArea() {
   if (searching) return;
   searching = true;
@@ -346,18 +348,38 @@ async function searchVisibleArea() {
   const date = dateInput.value;
   const statusTag = document.getElementById('statusTag');
   const b = map.getBounds();
-  statusTag.textContent = `${date} ／ 表示範囲をサンプリング検索中…`;
+  const area = { south: b.getSouth(), west: b.getWest(), north: b.getNorth(), east: b.getEast() };
+  let round = 0;
+  let totalFetched = 0;
   try {
-    const data = await fetchJson(
-      `/api/search-area?date=${date}&south=${b.getSouth()}&west=${b.getWest()}&north=${b.getNorth()}&east=${b.getEast()}`
-    );
-    await loadHeatmap(date);
-    const searched = data.searchedCells ?? 0;
-    statusTag.textContent =
-      `${date} ／ 検索率${pct(data.searchRate)}（${searched}地点）・空き率${pct(data.vacancyRate)}` +
-      `（今回新規${data.stats?.fetchedCells ?? 0}地点）` +
-      (data.partial ? '（レート制限のため中断。少し待って再度押してください）' : '') +
-      ' ｜ もう一度押すと検索率が上がります ／ 円クリック=ホテル一覧';
+    for (;;) {
+      round += 1;
+      statusTag.textContent = `${date} ／ 表示範囲を連続サンプリング検索中…（${round}回目・累計新規${totalFetched}地点）`;
+      const data = await fetchJson(
+        `/api/search-area?date=${date}&south=${area.south}&west=${area.west}&north=${area.north}&east=${area.east}`
+      );
+      await loadHeatmap(date);
+      const fetchedThisRound = data.stats?.fetchedCells ?? 0;
+      totalFetched += fetchedThisRound;
+      const searched = data.searchedCells ?? 0;
+      const baseStatus =
+        `${date} ／ 検索率${pct(data.searchRate)}（${searched}地点）・空き率${pct(data.vacancyRate)}` +
+        `（今回${round}回・累計新規${totalFetched}地点）`;
+
+      if (data.partial) {
+        statusTag.textContent = `${baseStatus}（レート制限のため中断。少し待って再度押してください） ｜ 円クリック=ホテル一覧`;
+        break;
+      }
+      if (fetchedThisRound === 0) {
+        statusTag.textContent = `${baseStatus}（これ以上新規に見つからないため終了。この範囲はほぼ検索済みです） ｜ 円クリック=ホテル一覧`;
+        break;
+      }
+      if (round >= SEARCH_ROUND_CAP) {
+        statusTag.textContent = `${baseStatus}（上限回数に達したため一旦終了。もう一度押すと続きから検索します） ｜ 円クリック=ホテル一覧`;
+        break;
+      }
+      statusTag.textContent = `${baseStatus} ｜ 連続検索を続行中…`;
+    }
   } catch (e) {
     statusTag.textContent = `検索に失敗: ${e.message}`;
   } finally {

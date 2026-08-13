@@ -8,7 +8,8 @@ import {
   serverCredentials,
   hasCredentials,
 } from "./rakuten.js";
-import { cellsWithinCircle, snapToCell, estimateCellCount, encodeCell } from "./grid.js";
+import { cellsWithinCircle, snapToCell, jitterPoint, estimateCellCount, encodeCell } from "./grid.js";
+import { fetchPlaceSeeds } from "./overpass.js";
 
 // ---- 設定値 ----
 const REQUEST_INTERVAL_MS = 200; // 楽天APIへの連続リクエスト間隔
@@ -16,6 +17,8 @@ const MAX_SEARCH_RADIUS_KM = 12; // 1回の検索で許可する最大半径
 const MAX_CELLS_PER_SEARCH = 40; // 1回の検索で分解するセルの上限（API呼び出し回数の目安）
 const AREA_SAMPLE_FETCH_BUDGET = 25; // 範囲検索1回（ボタン1押下）で新規に楽天APIを呼ぶ最大回数
 const AREA_SAMPLE_MAX_ATTEMPTS = 200; // 乱数サンプリングの試行上限（重複・検索済みセルのスキップ分の余裕）
+const SEED_BIAS_RATIO = 0.8; // 街・集落の座標が取れた場合に、その周辺を優先する割合（残りは完全ランダムで取りこぼしを防ぐ）
+const SEED_SPREAD_KM = 10; // 街・集落の中心からどの程度散らしてサンプリングするか
 
 // フロントエンド（Cloudflare Pages等）からのクロスオリジン呼び出しを許可する
 const CORS_HEADERS = {
@@ -145,6 +148,9 @@ async function handleSearch(url, request, env) {
 // 指定した矩形範囲（地図の表示範囲）を統計的にサンプリング検索する（範囲検索）。
 // ・広大な範囲を全部検索するのは非現実的（呼び出し回数・時間ともに）なうえ、密集した
 //   都市部を隅々まで検索しても情報としての価値は低いので、範囲内をランダムにサンプリングする
+// ・完全に一様ランダムだと海上・山中などホテルが存在しえない場所にも均等に検索してしまい
+//   呼び出し回数を無駄にするため、Overpassで取得した街・集落の座標周辺を優先的に
+//   サンプリングする（取得できない場合は従来通り完全ランダムにフォールバック）
 // ・1回のボタン押下＝新規セルを最大 AREA_SAMPLE_FETCH_BUDGET 件だけ楽天APIで検索
 // ・「検索率」（範囲内でどれだけ検索できたか）と「空き率」（検索済みのうち空きが
 //   見つかった割合）を返す。検索率が低ければ空き率はまだ参考程度、という判断ができる
@@ -175,6 +181,8 @@ async function handleSearchArea(url, request, env) {
     return json({ error: "no_rakuten_key", message: "楽天APIキーが未設定です（設定画面から入力してください）" }, 400);
   }
 
+  const seeds = await fetchPlaceSeeds(south, west, north, east);
+
   const today = todayJST();
   const seen = new Set();
   const features = [];
@@ -184,8 +192,14 @@ async function handleSearchArea(url, request, env) {
 
   while (fetchedCells < AREA_SAMPLE_FETCH_BUDGET && attempts < AREA_SAMPLE_MAX_ATTEMPTS) {
     attempts += 1;
-    const lat = south + Math.random() * (north - south);
-    const lng = west + Math.random() * (east - west);
+    let lat, lng;
+    if (seeds.length > 0 && Math.random() < SEED_BIAS_RATIO) {
+      const seed = seeds[(Math.random() * seeds.length) | 0];
+      ({ lat, lng } = jitterPoint(seed.lat, seed.lng, SEED_SPREAD_KM));
+    } else {
+      lat = south + Math.random() * (north - south);
+      lng = west + Math.random() * (east - west);
+    }
     const cell = snapToCell(lat, lng);
     const [clat, clng] = encodeCell(cell.lat, cell.lng);
     const key = `${clat},${clng}`;

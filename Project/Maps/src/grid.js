@@ -79,6 +79,16 @@ export function snapToCell(lat, lng) {
 }
 
 /**
+ * 指定地点から半径 spreadKm 内のランダムな地点を返す（街・集落の周辺をサンプリングする
+ * ために使う）。数km〜十数km程度の広がりであれば、度換算の簡易近似で十分。
+ */
+export function jitterPoint(lat, lng, spreadKm) {
+  const dLat = (spreadKm / 111) * (Math.random() * 2 - 1);
+  const dLng = (spreadKm / (111 * Math.max(0.1, Math.cos((lat * Math.PI) / 180)))) * (Math.random() * 2 - 1);
+  return { lat: lat + dLat, lng: lng + dLng };
+}
+
+/**
  * 指定した矩形範囲に含まれるグローバル格子のセル数のおおまかな見積もり
  * （実際にセルを列挙せずに算出。範囲内の検索カバー率＝検索率の分母に使う）。
  */
