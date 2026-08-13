@@ -1,44 +1,29 @@
--- ホテル一覧（楽天トラベル施設検索APIで収集した静的情報）
-CREATE TABLE IF NOT EXISTS hotels (
-  hotel_no INTEGER PRIMARY KEY,
-  name TEXT,
-  lat REAL NOT NULL,
-  lng REAL NOT NULL,
-  region TEXT,
-  synced_at TEXT NOT NULL
+-- ユーザーが検索した「日付 × 地点(グリッドセル)」の空室結果キャッシュ。
+-- 誰かが検索した結果がそのまま共有データベースにたまり、別の人が同じ日付・場所を
+-- 見たときに再利用される（「数人で好きな場所・日付を検索して結果をためる」モデル）。
+--
+-- セル中心は全国共通のグローバル格子（src/grid.js）で量子化するため、
+-- 近い場所を検索した人は同じセルを共有できる。
+-- 鮮度：同じセルを「今日」誰かが検索済みなら再利用し、日付が変われば再検索する。
+CREATE TABLE IF NOT EXISTS vacancy_cells (
+  date TEXT NOT NULL,            -- 宿泊日 YYYY-MM-DD
+  lat INTEGER NOT NULL,          -- セル中心 (度 × 1e6、グローバル格子で量子化)
+  lng INTEGER NOT NULL,
+  radius_km REAL NOT NULL,       -- このセルに使った検索半径(楽天API上限3.0km以下)
+  hotel_count INTEGER NOT NULL,  -- 空室のある施設数
+  fetched_at TEXT NOT NULL,      -- 最後に検索した日時(ISO8601)
+  PRIMARY KEY (date, lat, lng)
 );
-CREATE INDEX IF NOT EXISTS idx_hotels_latlng ON hotels(lat, lng);
+CREATE INDEX IF NOT EXISTS idx_cells_date ON vacancy_cells(date);
 
--- ホテルごとの「担当範囲」（＝空室検索をかける半径）。
--- 最近傍ホテルとの距離をもとに計算し、密集地では狭く、疎な地域では広く（最大3.0km）なる。
--- 一度計算したら使い回し、周辺ホテル構成が変わったときだけ dirty=1 を立てて再計算対象にする。
-CREATE TABLE IF NOT EXISTS hotel_territory (
-  hotel_no INTEGER PRIMARY KEY REFERENCES hotels(hotel_no),
-  radius_km REAL NOT NULL,
-  nearest_neighbor_hotel_no INTEGER,
-  nearest_neighbor_km REAL,
-  neighbor_set TEXT,        -- 半径内にある近隣ホテルNoのソート済みカンマ区切り（変化検知用のスナップショット）
-  computed_at TEXT NOT NULL,
-  checked_at TEXT,          -- 最後に「周辺ホテル構成が変わっていないか」を確認した日時
-  dirty INTEGER NOT NULL DEFAULT 0  -- 1: 周辺構成が変化した可能性があり、再計算(オフラインスクリプト)が必要
-);
-CREATE INDEX IF NOT EXISTS idx_territory_dirty ON hotel_territory(dirty);
-
--- 日付×ホテル単位の空室スナップショット（ホテルの担当範囲＝そのホテル周辺の空室施設数）
-CREATE TABLE IF NOT EXISTS vacancy_snapshots (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  hotel_no INTEGER NOT NULL REFERENCES hotels(hotel_no),
-  stay_date TEXT NOT NULL,
-  hotel_count INTEGER NOT NULL,
-  fetched_at TEXT NOT NULL,
-  UNIQUE(hotel_no, stay_date)
-);
-CREATE INDEX IF NOT EXISTS idx_snapshots_date ON vacancy_snapshots(stay_date);
-
--- Cronバッチ処理の進捗管理。job_type ごとに1行（'vacancy': 日々の空室巡回 / 'neighbor_check': 周辺構成の変化確認）
-CREATE TABLE IF NOT EXISTS job_state (
-  job_type TEXT PRIMARY KEY,
-  stay_date TEXT,     -- job_type='vacancy' のときのみ使用
-  cursor INTEGER NOT NULL DEFAULT 0,
-  updated_at TEXT
+-- 空室ホテル一覧のキャッシュ（ヒートマップのセルをクリックしたときに表示する詳細）。
+-- 楽天空室検索APIのレスポンス（ホテル名・料金・アフィリエイトURL）をJSONで保存し、
+-- 同じ日付・セルは当日中は再利用する。
+CREATE TABLE IF NOT EXISTS hotel_details (
+  date TEXT NOT NULL,            -- 宿泊日 YYYY-MM-DD
+  lat INTEGER NOT NULL,          -- セル中心 (度 × 1e6)
+  lng INTEGER NOT NULL,
+  payload TEXT NOT NULL,         -- ホテル一覧のJSON配列
+  fetched_at TEXT NOT NULL,      -- 最後に取得した日時(JST基準ISO)
+  PRIMARY KEY (date, lat, lng)
 );

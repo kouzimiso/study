@@ -92,3 +92,15 @@ libffi-3.4.2.tar.gz
 .buildozer/*
 bin/*.apk
 kivy_env/*
+
+# Project/Maps (Cloudflare Worker + Node)
+Project/Maps/node_modules/
+Project/Maps/.wrangler/
+Project/Maps/.dev.vars
+
+# Project/ProcessAutomation（PyInstallerのビルド出力）
+Project/ProcessAutomation/*.exe
+Project/ProcessAutomation/Sources/build/
+
+# ビルドログ
+config_android_build.log

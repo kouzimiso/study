@@ -7,13 +7,11 @@ compatibility_date = "2026-01-01"
 [[d1_databases]]
 binding = "DB"
 database_name = "rakuten-vacancy-db"
-database_id = "REPLACE_WITH_YOUR_D1_DATABASE_ID"
-
-# 毎日 JST 5:00（UTC 20:00）に定期実行
-[triggers]
-crons = ["0 20 * * *"]
+database_id = "1973165f-3d57-4e8f-bf43-60713912807e"
 
 # 楽天APIのキーはWorkerの環境変数（シークレット）として登録する
 # wrangler secret put RAKUTEN_APP_ID
 # wrangler secret put RAKUTEN_ACCESS_KEY
 # wrangler secret put RAKUTEN_AFFILIATE_ID   (任意)
+# ユーザー各自が自分のキーをフロントの設定画面で登録している場合は、
+# サーバー側のキーが無くても検索できる（キーはリクエストヘッダで渡される）

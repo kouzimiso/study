@@ -1,34 +1,46 @@
 # rakuten-vacancy-worker
 
-盆休みなど広範囲のホテル空室状況を、**ホテルの分布密度に応じた可変エリア**でヒートマップ表示するためのバックエンド（Cloudflare Workers + D1）。
+好きな日付・好きな場所のホテル空室状況を検索し、その結果を**みんなで共有・蓄積**していくホテル空室マップのバックエンド（Cloudflare Workers + D1）。
 
-## 設計の考え方
-固定グリッドではなく、**ホテルそのものを中心にした「担当範囲（検索半径）」**を使う。
-- ホテル密集地（都市部）→ 隣のホテルとの距離が近い → 担当範囲は狭く（重複を避ける）
-- ホテル疎な地域（郊外・地方）→ 隣のホテルとの距離が遠い → 担当範囲は楽天APIの上限である3.0kmまで広げる
+## 考え方
 
-担当範囲の計算（全ホテルの最近傍距離計算）はそれなりに重い処理なので、Cloudflare Workers上ではなく**ローカルのNode.jsスクリプトで一度だけ計算**し、結果をD1に流し込む。日々のWorkerは「計算済みの担当範囲を使って空室検索するだけ」の軽い仕事に専念する。
+日本は広いため、数人が「全国を定期的に巡回する」方式は現実的ではありません。
+そこで、**検索はユーザー主導で、その場その場で楽天APIを叩く**方式にしました。
 
-担当範囲は基本的に使い回し、**「周辺のホテル構成が前回と変わっていないか」だけを低頻度（週1回想定）でチェック**し、変化があったホテルだけ `dirty=1` を立てる。dirtyになったホテルは、運営側が `compute-territories.mjs` を再実行して担当範囲を計算し直す（現状は自動化しておらず、`/api/admin/dirty-hotels` で対象を確認する運用）。
+- ユーザーが地図上で**好きな日付・表示範囲**を選び、「この範囲を検索」を押して検索
+- 検索された地点の空室結果はD1に保存され、**別の人が同じ場所を見ると再利用**される
+- 利用者が増えるほど地図に情報が「たまっていく」＝自然にカバー範囲が広がる
+
+同じ地点は全国共通のグリッドセルに量子化されるため、誰が検索しても同じセルを共有できます。
+1つのセルを「今日」誰かが検索済みなら、APIを呼ばずにその結果を再利用します（無駄なAPI呼び出しをしない）。
+
+範囲検索は表示範囲内の全セルを列挙・網羅するのではなく、統計的にランダムサンプリングします。
+密集した都市部のホテルを隅々まで検索しても情報としての価値は低く、ゴールデンウィークなどの
+混雑期に「複数の観光地にまたがる広いエリアのどこかに空いている穴場がないか」を探すという
+目的には、広い範囲を薄く検索して「検索率○%・空き率○%」という統計値を見る方が実用的なためです。
 
 ## 全体の流れ
+
 ```
-[① scripts/sync-hotels.mjs]  （初回・地域拡大時のみ、ローカルで実行）
-   楽天施設検索APIで対象地域の全ホテル座標を収集 → hotels.sql / hotels.json
+[① 「この範囲を検索」を押す] → /api/search-area?date=&south=&west=&north=&east=
+    今表示している地図の範囲内をランダムにサンプリングし、未検索のセルだけ
+    楽天空室検索APIを呼んで vacancy_cells に保存する（1回の押下で最大25セル程度）
+    └ 密集した都市部を隅々まで検索しても情報価値は低いため、広い範囲でも
+      全セルを列挙・網羅せず統計的にサンプリングする（ズームアウトしても軽量に動作）
+    └ レスポンスには「検索率」（範囲内でどれだけ検索できたか）と
+      「空き率」（検索済みのうち空きが見つかった割合）を含める。
+      検索率が低いうちは空き率も参考程度、という判断ができる
+    └ ボタンを繰り返し押すたびに新しいセルがサンプリングされ、検索率が上がっていく
 
-[② scripts/compute-territories.mjs]  （①の後、ローカルで実行）
-   hotels.json を読み、ホテルごとの担当範囲(半径)を計算 → territories.sql
+[② 地図表示] → /api/heatmap?date=
+    指定日に検索されたセルすべてをヒートマップ表示
 
-[③ wrangler d1 execute --file=hotels.sql / territories.sql]
-   D1に投入
-
-[④ Cloudflare Worker（日々自動実行）]
-   ・平日: 各ホテルの担当範囲で空室検索 → vacancy_snapshots に保存（1日1回、日付ごとに巡回）
-   ・日曜: 周辺ホテル構成が変わっていないかの軽量チェック → 変化があれば dirty=1
-
-[⑤ フロントエンド]
-   /api/heatmap?date=YYYY-MM-DD を呼んで地図に表示
+[③ 円（セル）をクリック] → /api/hotels?date=&lat=&lng=&radiusKm=
+    その場所の空室ホテル一覧（名前・料金・アフィリエイトURL）を表示
+    └ 同じ日付・セルは当日中 hotel_details キャッシュを再利用
 ```
+
+（点＋半径を指定して1地点だけ検索する `/api/search` も残っているが、フロントエンドは使用していない）
 
 ## セットアップ手順
 
@@ -37,22 +49,7 @@
 2. 同じ画面（[Your Apps](https://webservice.rakuten.co.jp/app/list)）で `アクセスキー` も取得（現行APIでは `applicationId` に加えて `accessKey` が必須）
 3. 予約導線をアフィリエイト経由にする場合は、あわせて楽天アフィリエイトIDも取得
 
-### 2. ホテル一覧の収集とD1への投入（初回のみ）
-```bash
-npm install # 依存なし。Node.js 18以上でOK（組み込みfetch使用）
-
-export RAKUTEN_APP_ID=xxxxxxxx
-export RAKUTEN_ACCESS_KEY=yyyyyyyy
-
-# ① 対象地域（現状は関東・北海道。src/grid.js の REGIONS で調整可）の全ホテルを収集
-node scripts/sync-hotels.mjs > hotels.sql
-# 同時に hotels.json も出力される（②の入力に使う）
-
-# ② ホテルごとの担当範囲(半径)を計算
-node scripts/compute-territories.mjs hotels.json > territories.sql
-```
-
-### 3. Cloudflareの準備
+### 2. Cloudflareの準備
 ```bash
 npm install -g wrangler
 wrangler login
@@ -61,37 +58,57 @@ wrangler d1 create rakuten-vacancy-db
 # 出力された database_id を wrangler.toml の database_id に貼り付ける
 
 wrangler d1 execute rakuten-vacancy-db --remote --file=./schema.sql
-wrangler d1 execute rakuten-vacancy-db --remote --file=./hotels.sql
-wrangler d1 execute rakuten-vacancy-db --remote --file=./territories.sql
+# または npm run db:schema
 
+# 任意：サーバー側に共通キーを持たせる場合（全ユーザーのフォールバック用）
 wrangler secret put RAKUTEN_APP_ID
 wrangler secret put RAKUTEN_ACCESS_KEY
 wrangler secret put RAKUTEN_AFFILIATE_ID   # 任意
 ```
 
-### 4. デプロイ
+サーバー側のキーは**必須ではありません**。各ユーザーがフロントの設定画面で自分のキーを登録して使う構成でも動きます。
+
+### 3. デプロイ
 ```bash
 wrangler deploy
 ```
-以降はCronが自動的に「日々の空室巡回」と「日曜の周辺構成チェック」を回します。
+
+### 4. ローカル開発
+```bash
+npm run db:schema:local   # ローカルD1にschema.sqlを適用
+npm run dev               # http://localhost:8787 で起動
+```
+`wrangler dev` はフロント（Pages側）からではなく直接叩くこともできます。検索のキーはブラウザの設定画面で入力するか、ヘッダで渡します。
 
 ## API
 
 | エンドポイント | 説明 |
 |---|---|
-| `GET /api/heatmap?date=YYYY-MM-DD` | 指定日のヒートマップ用GeoJSON（ホテルごとの担当範囲＋空室件数） |
-| `GET /api/status?date=YYYY-MM-DD` | その日のデータ有無・最終取得日時・「更新確認が必要か」 |
-| `POST /api/refresh?date=YYYY-MM-DD` | 手動更新をトリガー（同日中に取得済みなら何もしない） |
-| `GET /api/admin/dirty-hotels` | 周辺構成が変化し、担当範囲の再計算が必要なホテル一覧 |
+| `GET /api/search-area?date=YYYY-MM-DD&south=..&west=..&north=..&east=..` | 表示範囲（矩形）内をランダムにサンプリングして空室を検索する（1回の呼び出しで新規セル最大25件程度）。レスポンスに `totalCellsEstimate`（範囲内のセル数の目安）/ `searchedCells`・`vacantCells`（当日累計）/ `searchRate`・`vacancyRate`（検索率・空き率）と、レート制限時の `partial` フラグを含む |
+| `GET /api/search?date=YYYY-MM-DD&lat=..&lng=..&radiusKm=..` | （フロントエンドは未使用）指定日・1地点の空室を検索する（radiusKm省略時3km、上限12km） |
+| `GET /api/hotels?date=YYYY-MM-DD&lat=..&lng=..&radiusKm=..` | 指定セルの空室ホテル一覧（名前・料金・アフィリエイトURL）を返す。同じ日付・セルは当日中キャッシュ（hotel_details）を再利用。radiusKmは0.1〜3.0km |
+| `GET /api/heatmap?date=YYYY-MM-DD` | 指定日に検索済み（蓄積された）セルすべてをGeoJSONで返す |
+| `GET /api/status?date=YYYY-MM-DD` | 指定日の蓄積セル数・最終取得日時 |
+| `GET /api/config` | サーバー側キーの設定有無（フロントの案内表示用） |
+| `POST /api/settings` | キーの有効性テストのみ。Body: `{appId, accessKey, affiliateId?}`。サーバーには保存しない |
 
-フロント側のイメージ：
-1. 日付選択時に `/api/status` を呼ぶ
-2. `needsConfirmBeforeRefresh: true` なら「◯/◯の検索結果を更新しますか？」ダイアログを表示
-3. ユーザーがOKしたら `/api/refresh` を呼ぶ
-4. `/api/heatmap` を呼んで地図に反映
+- 楽天APIを呼ぶ際は、リクエストヘッダ `x-rakuten-app-id` / `x-rakuten-access-key` / `x-rakuten-affiliate-id` で渡されたキーを優先し、なければサーバー側envキーにフォールバックします
+- CORS対応済み（`Access-Control-Allow-Origin: *`、OPTIONSプリフライトあり）
+
+## フロントエンド
+
+`frontend/index.html` の `CONFIG.API_BASE` にWorkerのURLを入れてください（フロントとWorkerを同一オリジンで配信する場合は空のままで相対パス呼び出しになります）。デモ用のダミーデータ表示は廃止しており、常に実際のWorker/APIにアクセスします。
+
+操作方法：
+1. 宿泊日を選択
+2. 「APIキー設定」で自分の楽天APIキーを登録（ブラウザにのみ保存され、検索のAPI呼び出しに使われる）
+3. 地図を好きな範囲・ズームレベルに動かす（ゴールデンウィークの混雑期などに、複数の観光地にまたがる広いエリアをまとめて見たい場合はズームアウトしてOK）
+4. **「この範囲を検索」を押す** → 表示範囲内をランダムにサンプリングして空室を検索し、ステータス欄に「検索率」「空き率」を表示
+5. 検索率を上げたい・もっと詳しく知りたい場合はもう一度押す（毎回新しい地点がサンプリングされる）
 
 ## 既知の制約・今後詰めるべき点
-- **`compute-territories.mjs` の再実行は現状手動**：`/api/admin/dirty-hotels` を定期的に確認し、対象が増えてきたら `sync-hotels.mjs` → `compute-territories.mjs` を再実行してD1に反映する運用が必要。将来的には自動化（GitHub Actionsの定期実行など）も検討候補。
-- **全国展開時のスケール**：ホテル数が増えるほど日々の空室巡回リクエスト数も増える。`BATCH_SIZE_PER_RUN` やCron頻度、対象日数（`TARGET_DATE_RANGE_DAYS`）で無料枠内に収まるよう調整が必要。
-- **コントリビューター方式（将来検討）**：他の人が自分の楽天APIキーを登録して特定地域の巡回に参加できるようにする案。個人情報を増やさないため、アカウント登録ではなく「自分のAPIキー入力」を本人確認代わりにする方向で検討中（詳細は仕様書参照）。
-- **観光地POIの重ね合わせ**：このリポジトリはバックエンド（空室データ収集）のみ。フロントエンドでOverpass APIから観光地POIを取得し、Leafletで重ねて表示する部分は別途実装する。
+
+- **統計的サンプリングであること**：表示範囲を全セル網羅するのではなく、範囲内をランダムに一部だけ検索します（密集した都市部を隅々まで検索しても情報価値が低いため）。「検索率」が低いうちは「空き率」もまだ参考値です。何度か押して検索率を上げるほど信頼できる数字になります
+- **楽天APIのレート制限**：1セル＝1リクエスト。1回の押下で新規セル最大25件程度。制限（429）に達したら少し待って再試行してください
+- **鮮度**：同じセルを当日中に再検索してもキャッシュを再利用します。翌日以降に再検索すると最新化されます
+- **データ蓄積の公平性**：自分のキーで検索した結果は全員に共有されます（無料枠を分け合うイメージ）

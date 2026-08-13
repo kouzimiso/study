@@ -1,0 +1,19 @@
+{
+  "name": "rakuten-vacancy-worker",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "ユーザーが任意の日時・場所のホテル空室を検索し、結果が共有DBに蓄積されていくバックエンド（Cloudflare Workers + D1）",
+  "scripts": {
+    "db:schema": "wrangler d1 execute rakuten-vacancy-db --remote --file=./schema.sql",
+    "db:schema:local": "wrangler d1 execute rakuten-vacancy-db --local --file=./schema.sql",
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "devDependencies": {
+    "wrangler": "^4.122.0"
+  }
+}
