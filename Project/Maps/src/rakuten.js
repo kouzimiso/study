@@ -39,8 +39,8 @@ export function hasCredentials(creds) {
  * ヘッダが1つも無い場合は null（envフォールバックさせる）。ヘッダの片方だけの場合は
  * 足りない方をenvキーで補う（混在利用を許容）。
  * referer はフロントが自分自身のURL（location.href）を送ってくる。楽天API側が
- * 「アプリ登録」画面で設定したApplication URLとの照合にRefererヘッダーを要求するため
- * （Workerからのサーバー間fetchはブラウザと違って自動でRefererを付けない）。
+ * 「アプリ登録」画面で設定したApplication URLとの照合にReferer/Originヘッダーを要求するため
+ * （Workerからのサーバー間fetchはブラウザと違って自動で付かない。refererHeaders()参照）。
  * @returns {{appId:string, accessKey:string, affiliateId:string, referer:string}|null}
  */
 export function credentialsFromRequest(request, env) {
@@ -198,10 +198,19 @@ export async function validateCredentials(creds) {
   }
 }
 
-// 楽天API側の「アプリ登録」で設定したApplication URLとの照合用にRefererヘッダーを付ける。
-// Workerからのサーバー間fetchはブラウザと違い自動でRefererを付けないため明示的に指定する。
+// 楽天API側の「アプリ登録」で設定したApplication URLとの照合用にReferer/Originヘッダーを付ける。
+// Workerからのサーバー間fetchはブラウザと違い自動で付かないため明示的に指定する。
+// 実機検証済み: Refererだけでは REQUEST_CONTEXT_BODY_HTTP_REFERRER_MISSING (403) になり、
+// Originを併せて送ることで解消する（2026年2月頃の楽天ウェブサービスAPI移行で必須化されたとみられる）。
 function refererHeaders(creds) {
-  return creds?.referer ? { Referer: creds.referer } : {};
+  if (!creds?.referer) return {};
+  const headers = { Referer: creds.referer };
+  try {
+    headers.Origin = new URL(creds.referer).origin;
+  } catch {
+    // referer が不正なURL形式なら Origin は付けない（Refererのみで送る）
+  }
+  return headers;
 }
 
 function addDays(dateStr, days) {

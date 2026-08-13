@@ -96,6 +96,8 @@ scripts\dev.bat
   → `workers.dev` サブドメイン未登録、またはDNS/TLS反映待ち（数分かかることがある）。`setup.bat` が自動で登録画面を開くので、名前を決めて保存後、数分待って再アクセス
 - **`.ps1`/`wrangler.toml`/`frontend/index.html` を PowerShell の `Get-Content`/`Set-Content` で書き換えると日本語が文字化けする**
   → BOM無しUTF-8ファイルをWindows PowerShell 5.1がシステムのANSIコードページとして誤読するため。このリポジトリのスクリプトは `.NET` の `File.ReadAllText`/`WriteAllText` にBOM無しUTF-8を明示して回避済み。今後同様のファイル書き換えを追加する場合も同じ方法を使うこと
+- **有効なキーのはずなのに `REQUEST_CONTEXT_BODY_HTTP_REFERRER_MISSING`（403）で「キーをテスト」/検索が失敗する**
+  → 2026年2月頃の楽天ウェブサービスAPI移行で、`Referer` ヘッダーだけでなく **`Origin` ヘッダーも必須**になった（エラー名に反して、Refererだけ付けても解消しない）。楽天へ直接curlで実機検証し、`Referer`のみ→失敗、`Referer`+`Origin`→成功、を確認済み。`src/rakuten.js` の `refererHeaders()` で両方を自動付与するよう対応済み（Originは`referer`の値からオリジン部分を自動抽出）
 
 ## なぜCloudflareが必要なのか
 
