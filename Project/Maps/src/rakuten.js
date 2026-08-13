@@ -165,6 +165,48 @@ export async function fetchVacantHotels(cell, checkinDate, creds) {
 }
 
 /**
+ * 指定した地点周辺の実在ホテル一覧（名前・座標）を取得する（空室の有無を問わない、施設検索API）。
+ * ・「①発見フェーズ」で実在するホテルの場所を集めるのに使う（件数は data.length で分かる）
+ * ・満室のホテルも名前だけは表示したい（円クリックの一覧表示）ときにも使う
+ * @param {{lat:number, lng:number, radiusKm:number}} cell
+ * @param {{appId:string, accessKey:string, affiliateId?:string}} creds
+ * @returns {Promise<{hotelNo:number, name:string, lat:number, lng:number}[]>}
+ */
+export async function fetchHotelFacilities(cell, creds) {
+  const params = new URLSearchParams({
+    applicationId: creds.appId,
+    accessKey: creds.accessKey,
+    format: "json",
+    formatVersion: "2",
+    datumType: "1",
+    latitude: String(cell.lat),
+    longitude: String(cell.lng),
+    searchRadius: String(cell.radiusKm),
+    hits: "30",
+    responseType: "small",
+    elements: "hotelNo,hotelName,latitude,longitude",
+  });
+  if (creds.affiliateId) {
+    params.set("affiliateId", creds.affiliateId);
+  }
+
+  const res = await fetch(`${SIMPLE_HOTEL_ENDPOINT}?${params.toString()}`, { headers: refererHeaders(creds) });
+  if (res.status === 404) return [];
+  if (res.status === 429) throw new RakutenRateLimitError("rakuten API rate limited (429)");
+  if (!res.ok) {
+    const body = await res.text().catch(() => "");
+    throw new Error(`rakuten API error ${res.status}: ${body}`);
+  }
+  const data = await res.json();
+  return (data?.hotels ?? [])
+    .map((h) => {
+      const b = h.hotelBasicInfo ?? {};
+      return { hotelNo: b.hotelNo, name: b.hotelName, lat: b.latitude, lng: b.longitude };
+    })
+    .filter((h) => h.hotelNo != null && Number.isFinite(h.lat) && Number.isFinite(h.lng));
+}
+
+/**
  * 指定したクレデンシャルが楽天APIで使えるか検証する（設定画面のキーテストに使用）。
  * 東京駅周辺の小さな範囲で施設検索を1回だけ呼び、エラーなしでレスポンスが返ればOK。
  * @returns {Promise<{ok:boolean, count?:number, status?:number, message?:string}>}

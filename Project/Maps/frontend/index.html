@@ -182,7 +182,7 @@
     <label>観光地を表示</label>
     <div class="toggle" id="poiToggle"></div>
   </div>
-  <div class="hint-text"><b>「この範囲を検索」</b>を押すと、今地図に表示されている範囲を街・集落の周辺を優先しつつランダムにサンプリング検索します（広い範囲を隅々まで検索するより、統計的に空き状況をつかむのが目的）。新規に見つからなくなるかレート制限に達するまで自動で連続検索します。検索結果はみんなで共有され、蓄積されていきます。</div>
+  <div class="hint-text"><b>「この範囲を検索」</b>を押すと、①まず実在するホテルの場所を発見し、②発見済みホテルの場所だけを狙って空室を確認します（架空の座標を当てずっぽうで検索しないので、海や山中への無駄打ちがありません）。新規に見つからなくなるかレート制限に達するまで自動で連続検索します。検索結果とホテルの場所はみんなで共有され、蓄積されていきます。</div>
   <button class="settings-btn search-btn" id="searchBtn">この範囲を検索</button>
   <button class="settings-btn" id="settingsBtn">APIキー設定</button>
 </div>
@@ -350,27 +350,30 @@ async function searchVisibleArea() {
   const b = map.getBounds();
   const area = { south: b.getSouth(), west: b.getWest(), north: b.getNorth(), east: b.getEast() };
   let round = 0;
-  let totalFetched = 0;
+  let totalDiscovered = 0;
+  let totalChecked = 0;
   try {
     for (;;) {
       round += 1;
-      statusTag.textContent = `${date} ／ 表示範囲を連続サンプリング検索中…（${round}回目・累計新規${totalFetched}地点）`;
+      statusTag.textContent = `${date} ／ 表示範囲を連続検索中…（${round}回目）`;
       const data = await fetchJson(
         `/api/search-area?date=${date}&south=${area.south}&west=${area.west}&north=${area.north}&east=${area.east}`
       );
       await loadHeatmap(date);
-      const fetchedThisRound = data.stats?.fetchedCells ?? 0;
-      totalFetched += fetchedThisRound;
-      const searched = data.searchedCells ?? 0;
+      const discoveredThisRound = data.stats?.hotelsDiscovered ?? 0;
+      const checkedThisRound = data.stats?.vacancyChecked ?? 0;
+      totalDiscovered += discoveredThisRound;
+      totalChecked += checkedThisRound;
+      const knownHotels = data.knownHotels ?? 0;
       const baseStatus =
-        `${date} ／ 検索率${pct(data.searchRate)}（${searched}地点）・空き率${pct(data.vacancyRate)}` +
-        `（今回${round}回・累計新規${totalFetched}地点）`;
+        `${date} ／ 既知ホテル${knownHotels}件中 検索率${pct(data.searchRate)}・空き率${pct(data.vacancyRate)}` +
+        `（今回${round}回・新規発見${totalDiscovered}件・確認${totalChecked}件）`;
 
       if (data.partial) {
         statusTag.textContent = `${baseStatus}（レート制限のため中断。少し待って再度押してください） ｜ 円クリック=ホテル一覧`;
         break;
       }
-      if (fetchedThisRound === 0) {
+      if (discoveredThisRound === 0 && checkedThisRound === 0) {
         statusTag.textContent = `${baseStatus}（これ以上新規に見つからないため終了。この範囲はほぼ検索済みです） ｜ 円クリック=ホテル一覧`;
         break;
       }
@@ -398,17 +401,31 @@ function esc(s) {
   }[c]));
 }
 
-function hotelPopupContent(hotels) {
-  if (!hotels.length) {
-    return '<div class="popup-sub">このエリアに空室ありのホテルは見つかりませんでした</div>';
+function hotelPopupContent(hotels, fullHotels) {
+  if (!hotels.length && !fullHotels.length) {
+    return '<div class="popup-sub">このエリアにはホテル情報がありませんでした</div>';
   }
-  const rows = hotels.map(h => `
-    <div class="hotel-row">
-      <div class="hotel-row-name">${esc(h.name)}</div>
-      <div class="hotel-row-price">${h.price ? '¥' + Number(h.price).toLocaleString() + '〜/泊' : '料金は公式サイトで'}</div>
-      ${h.url ? `<a class="hotel-row-link" href="${esc(h.url)}" target="_blank" rel="noopener">楽天トラベルで見る ↗</a>` : ''}
-    </div>`).join('');
-  return `<div class="popup-title">空室ありホテル ${hotels.length}件</div>${rows}`;
+  let html = '';
+  if (hotels.length) {
+    const rows = hotels.map(h => `
+      <div class="hotel-row">
+        <div class="hotel-row-name">${esc(h.name)}</div>
+        <div class="hotel-row-price">${h.price ? '¥' + Number(h.price).toLocaleString() + '〜/泊' : '料金は公式サイトで'}</div>
+        ${h.url ? `<a class="hotel-row-link" href="${esc(h.url)}" target="_blank" rel="noopener">楽天トラベルで見る ↗</a>` : ''}
+      </div>`).join('');
+    html += `<div class="popup-title">空室ありホテル ${hotels.length}件</div>${rows}`;
+  } else {
+    html += '<div class="popup-sub">空室ありのホテルはありませんでした</div>';
+  }
+  if (fullHotels.length) {
+    const rows = fullHotels.map(h => `
+      <div class="hotel-row">
+        <div class="hotel-row-name">${esc(h.name)}</div>
+        <div class="hotel-row-price">満室</div>
+      </div>`).join('');
+    html += `<div class="popup-title" style="margin-top:10px;">満室ホテル ${fullHotels.length}件</div>${rows}`;
+  }
+  return html;
 }
 
 async function showHotels(lat, lng, radiusKm) {
@@ -419,7 +436,7 @@ async function showHotels(lat, lng, radiusKm) {
     .openOn(map);
   try {
     const data = await fetchJson(`/api/hotels?date=${date}&lat=${lat}&lng=${lng}&radiusKm=${radiusKm}`);
-    popup.setContent(hotelPopupContent(data.hotels || []));
+    popup.setContent(hotelPopupContent(data.hotels || [], data.fullHotels || []));
   } catch (e) {
     popup.setContent(`<div class="popup-sub">取得に失敗: ${esc(e.message)}</div>`);
   }

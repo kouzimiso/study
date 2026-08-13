@@ -1,6 +1,7 @@
 import {
   fetchVacantHotelCount,
   fetchVacantHotels,
+  fetchHotelFacilities,
   RakutenRateLimitError,
   sleep,
   validateCredentials,
@@ -8,17 +9,22 @@ import {
   serverCredentials,
   hasCredentials,
 } from "./rakuten.js";
-import { cellsWithinCircle, snapToCell, jitterPoint, estimateCellCount, encodeCell } from "./grid.js";
+import { cellsWithinCircle, snapToCell, jitterPoint, encodeCell, CELL_RADIUS_KM } from "./grid.js";
 import { fetchPlaceSeeds } from "./overpass.js";
 
 // ---- 設定値 ----
 const REQUEST_INTERVAL_MS = 200; // 楽天APIへの連続リクエスト間隔
 const MAX_SEARCH_RADIUS_KM = 12; // 1回の検索で許可する最大半径
 const MAX_CELLS_PER_SEARCH = 40; // 1回の検索で分解するセルの上限（API呼び出し回数の目安）
-const AREA_SAMPLE_FETCH_BUDGET = 25; // 範囲検索1回（ボタン1押下）で新規に楽天APIを呼ぶ最大回数
-const AREA_SAMPLE_MAX_ATTEMPTS = 200; // 乱数サンプリングの試行上限（重複・検索済みセルのスキップ分の余裕）
+// 範囲検索は「①発見フェーズ（実在ホテルを見つける）」→「②空室確認フェーズ（発見済みホテルの
+// 場所だけ空室を調べる）」の2段構成。①を優先すると何も表示されない回が増えるため、
+// まず②に予算を回し、余った分を①に使う（新しいエリアでは自然と①中心になる）。
+const AREA_SAMPLE_FETCH_BUDGET = 25; // 範囲検索1回（ボタン1押下）で使う楽天APIの呼び出し回数の合計上限
+const AREA_DISCOVERY_MIN_BUDGET = 6; // ①発見フェーズに最低限確保する呼び出し回数（②だけに予算を使い切らせない）
+const AREA_SAMPLE_MAX_ATTEMPTS = 200; // ①発見フェーズの乱数サンプリング試行上限
 const SEED_BIAS_RATIO = 0.8; // 街・集落の座標が取れた場合に、その周辺を優先する割合（残りは完全ランダムで取りこぼしを防ぐ）
 const SEED_SPREAD_KM = 10; // 街・集落の中心からどの程度散らしてサンプリングするか
+const HOTELS_PER_AREA_QUERY_LIMIT = 1000; // 範囲検索1回でDBから読む既知ホテル数の上限（CPU保護）
 
 // フロントエンド（Cloudflare Pages等）からのクロスオリジン呼び出しを許可する
 const CORS_HEADERS = {
@@ -145,16 +151,17 @@ async function handleSearch(url, request, env) {
   });
 }
 
-// 指定した矩形範囲（地図の表示範囲）を統計的にサンプリング検索する（範囲検索）。
-// ・広大な範囲を全部検索するのは非現実的（呼び出し回数・時間ともに）なうえ、密集した
-//   都市部を隅々まで検索しても情報としての価値は低いので、範囲内をランダムにサンプリングする
-// ・完全に一様ランダムだと海上・山中などホテルが存在しえない場所にも均等に検索してしまい
-//   呼び出し回数を無駄にするため、Overpassで取得した街・集落の座標周辺を優先的に
-//   サンプリングする（取得できない場合は従来通り完全ランダムにフォールバック）
-// ・1回のボタン押下＝新規セルを最大 AREA_SAMPLE_FETCH_BUDGET 件だけ楽天APIで検索
-// ・「検索率」（範囲内でどれだけ検索できたか）と「空き率」（検索済みのうち空きが
-//   見つかった割合）を返す。検索率が低ければ空き率はまだ参考程度、という判断ができる
-// ・ボタンを繰り返し押すたびに新しいセルがサンプリングされ、検索率が上がっていく
+// 指定した矩形範囲（地図の表示範囲）を2段構成で検索する（範囲検索）。
+// ①発見フェーズ：実在するホテルの場所を施設検索(SimpleHotelSearch)で発見し、
+//   hotels テーブルに恒久的に蓄積する（日付に依存しないので一度発見すれば永久に使える）。
+//   街や海のどこに何があるか分からないので、Overpassの街・集落座標に寄せつつランダムに
+//   セルを選び、まだ調べていないセルだけを施設検索する。
+// ②空室確認フェーズ：①で実在が分かっているホテルの場所「だけ」を狙って空室検索する。
+//   ランダムな座標を当てずっぽうで検索しないので、海や山中への無駄打ちが原理的に無い。
+// 1回のボタン押下の呼び出し回数予算は②を優先し、余りを①に回す
+// （知らない場所では自然と①中心になり、既知の場所では②中心になる）。
+// 「検索率」は実在が分かっているホテルのうち今日空室確認できた割合、「空き率」は
+// 確認済みのうち空きが見つかった割合。検索率が低ければ空き率はまだ参考程度、という判断ができる。
 async function handleSearchArea(url, request, env) {
   const rawDate = url.searchParams.get("date");
   const south = Number(url.searchParams.get("south"));
@@ -181,70 +188,96 @@ async function handleSearchArea(url, request, env) {
     return json({ error: "no_rakuten_key", message: "楽天APIキーが未設定です（設定画面から入力してください）" }, 400);
   }
 
-  const seeds = await fetchPlaceSeeds(south, west, north, east);
-
   const today = todayJST();
-  const seen = new Set();
   const features = [];
-  let fetchedCells = 0;
-  let attempts = 0;
+  let vacancyChecked = 0;
+  let hotelsDiscovered = 0;
   let rateLimited = false;
+  let budget = AREA_SAMPLE_FETCH_BUDGET;
 
-  while (fetchedCells < AREA_SAMPLE_FETCH_BUDGET && attempts < AREA_SAMPLE_MAX_ATTEMPTS) {
-    attempts += 1;
-    let lat, lng;
-    if (seeds.length > 0 && Math.random() < SEED_BIAS_RATIO) {
-      const seed = seeds[(Math.random() * seeds.length) | 0];
-      ({ lat, lng } = jitterPoint(seed.lat, seed.lng, SEED_SPREAD_KM));
-    } else {
-      lat = south + Math.random() * (north - south);
-      lng = west + Math.random() * (east - west);
-    }
-    const cell = snapToCell(lat, lng);
-    const [clat, clng] = encodeCell(cell.lat, cell.lng);
-    const key = `${clat},${clng}`;
-    if (seen.has(key)) continue;
-    seen.add(key);
-
-    const cached = await getCachedCell(env, date, clat, clng);
-    if (cached && cached.fetched_at.slice(0, 10) === today) continue; // 今日検索済み：他の地点を試す
-
-    try {
-      const count = await fetchVacantHotelCount(
-        { lat: cell.lat, lng: cell.lng, radiusKm: cell.radiusKm },
-        date,
-        creds
-      );
-      await upsertCell(env, date, clat, clng, cell.radiusKm, count);
-      fetchedCells += 1;
-      features.push({
-        type: "Feature",
-        geometry: { type: "Point", coordinates: [cell.lng, cell.lat] },
-        properties: { radiusKm: cell.radiusKm, hotelCount: count, cached: false },
-      });
-      await sleep(REQUEST_INTERVAL_MS);
-    } catch (err) {
-      if (err instanceof RakutenRateLimitError) {
-        rateLimited = true; // 制限に達したらここまで。もう一度押せば別の地点から続けられる
-        break;
+  // ---- ②空室確認フェーズ：発見済みホテルの場所だけを狙う ----
+  const vacancyBudget = budget - AREA_DISCOVERY_MIN_BUDGET;
+  if (vacancyBudget > 0) {
+    const candidateCells = await getUncheckedHotelCells(env, date, today, south, west, north, east);
+    shuffle(candidateCells);
+    for (const c of candidateCells) {
+      if (vacancyChecked >= vacancyBudget) break;
+      try {
+        const count = await fetchVacantHotelCount({ lat: c.lat, lng: c.lng, radiusKm: c.radiusKm }, date, creds);
+        await upsertCell(env, date, c.clat, c.clng, c.radiusKm, count);
+        vacancyChecked += 1;
+        budget -= 1;
+        features.push({
+          type: "Feature",
+          geometry: { type: "Point", coordinates: [c.lng, c.lat] },
+          properties: { radiusKm: c.radiusKm, hotelCount: count, cached: false },
+        });
+        await sleep(REQUEST_INTERVAL_MS);
+      } catch (err) {
+        if (err instanceof RakutenRateLimitError) {
+          rateLimited = true;
+          break;
+        }
+        console.error(`vacancy check (${c.clat},${c.clng}) failed:`, err);
       }
-      console.error(`cell (${clat},${clng}) search failed:`, err);
     }
   }
 
-  const totalCellsEstimate = estimateCellCount(south, west, north, east);
-  const areaStats = await getAreaStats(env, date, south, west, north, east);
-  const searchRate = totalCellsEstimate > 0 ? Math.min(1, areaStats.searchedCells / totalCellsEstimate) : 0;
-  const vacancyRate = areaStats.searchedCells > 0 ? areaStats.vacantCells / areaStats.searchedCells : null;
+  // ---- ①発見フェーズ：残り予算で新しい場所のホテルを発見する ----
+  if (!rateLimited && budget > 0) {
+    const seeds = await fetchPlaceSeeds(south, west, north, east);
+    const seen = new Set();
+    let attempts = 0;
+
+    while (budget > 0 && attempts < AREA_SAMPLE_MAX_ATTEMPTS) {
+      attempts += 1;
+      let lat, lng;
+      if (seeds.length > 0 && Math.random() < SEED_BIAS_RATIO) {
+        const seed = seeds[(Math.random() * seeds.length) | 0];
+        ({ lat, lng } = jitterPoint(seed.lat, seed.lng, SEED_SPREAD_KM));
+      } else {
+        lat = south + Math.random() * (north - south);
+        lng = west + Math.random() * (east - west);
+      }
+      const cell = snapToCell(lat, lng);
+      const [clat, clng] = encodeCell(cell.lat, cell.lng);
+      const key = `${clat},${clng}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+
+      const facility = await getCellFacility(env, clat, clng);
+      if (facility) continue; // 発見済みセル（ホテル0件も含む）：スキップ
+
+      try {
+        const found = await fetchHotelFacilities({ lat: cell.lat, lng: cell.lng, radiusKm: cell.radiusKm }, creds);
+        await upsertCellFacility(env, clat, clng, found.length);
+        for (const h of found) {
+          await upsertHotel(env, h);
+        }
+        hotelsDiscovered += found.length;
+        budget -= 1;
+        await sleep(REQUEST_INTERVAL_MS);
+      } catch (err) {
+        if (err instanceof RakutenRateLimitError) {
+          rateLimited = true;
+          break;
+        }
+        console.error(`facility discovery (${clat},${clng}) failed:`, err);
+      }
+    }
+  }
+
+  const areaStats = await getHotelAreaStats(env, date, today, south, west, north, east);
+  const searchRate = areaStats.knownHotels > 0 ? Math.min(1, areaStats.checkedHotels / areaStats.knownHotels) : 0;
+  const vacancyRate = areaStats.checkedCells > 0 ? areaStats.vacantCells / areaStats.checkedCells : null;
 
   return json({
     type: "FeatureCollection",
     date,
     features,
-    stats: { fetchedCells, attempts },
-    totalCellsEstimate,
-    searchedCells: areaStats.searchedCells,
-    vacantCells: areaStats.vacantCells,
+    stats: { vacancyChecked, hotelsDiscovered },
+    knownHotels: areaStats.knownHotels,
+    checkedHotels: areaStats.checkedHotels,
     searchRate,
     vacancyRate,
     partial: rateLimited,
@@ -254,9 +287,10 @@ async function handleSearchArea(url, request, env) {
   });
 }
 
-// 指定セル（ヒートマップの円をクリック）の空室ホテル一覧を返す。
+// 指定セル（ヒートマップの円をクリック）のホテル一覧を返す。
+// ・空室ありホテル（名前・料金・アフィリエイトURL）に加え、満室ホテルも名前だけ返す
+//   （「空室が無かった」だけでは何も伝わらないため、満室ホテルの存在は分かるようにする）
 // ・同じ日付・セルの詳細は当日中キャッシュ（hotel_details）を再利用
-// ・未取得なら空室検索APIをhits=20で呼び、ホテル名・料金・アフィリエイトURLを返す
 async function handleHotels(url, request, env) {
   const rawDate = url.searchParams.get("date");
   const lat = Number(url.searchParams.get("lat"));
@@ -284,12 +318,20 @@ async function handleHotels(url, request, env) {
   const today = todayJST();
   const cached = await getHotelCache(env, date, clat, clng);
   if (cached && cached.fetched_at.slice(0, 10) === today) {
-    return json({ date, lat: clat / 1e6, lng: clng / 1e6, radiusKm, cached: true, hotels: JSON.parse(cached.payload) });
+    const payload = JSON.parse(cached.payload);
+    return json({ date, lat: clat / 1e6, lng: clng / 1e6, radiusKm, cached: true, ...payload });
   }
 
-  const hotels = await fetchVacantHotels({ lat, lng, radiusKm }, date, creds);
-  await upsertHotelCache(env, date, clat, clng, hotels);
-  return json({ date, lat: clat / 1e6, lng: clng / 1e6, radiusKm, cached: false, hotels });
+  const [vacantHotels, facilities] = await Promise.all([
+    fetchVacantHotels({ lat, lng, radiusKm }, date, creds),
+    fetchHotelFacilities({ lat, lng, radiusKm }, creds),
+  ]);
+  const vacantNos = new Set(vacantHotels.map((h) => h.hotelNo));
+  const fullHotels = facilities.filter((f) => !vacantNos.has(f.hotelNo));
+
+  const payload = { hotels: vacantHotels, fullHotels };
+  await upsertHotelCache(env, date, clat, clng, payload);
+  return json({ date, lat: clat / 1e6, lng: clng / 1e6, radiusKm, cached: false, ...payload });
 }
 
 // 指定日に検索済み（蓄積された）セルすべてを返す
@@ -385,17 +427,122 @@ async function upsertCell(env, date, lat, lng, radiusKm, count) {
     .run();
 }
 
-// 矩形範囲内で「今日」検索済みのセル数と、そのうち空きが見つかったセル数を集計する
-// （検索率・空き率の算出に使う。日付をまたいだ古いデータは含めない）
-async function getAreaStats(env, date, south, west, north, east) {
-  const row = await env.DB.prepare(
-    `SELECT COUNT(*) AS searched, SUM(CASE WHEN hotel_count > 0 THEN 1 ELSE 0 END) AS vacant
+// 矩形範囲内で、①発見済みホテルのうち今日空室確認できた割合（検索率）と、
+// ②確認済みセルのうち空きが見つかった割合（空き率）を算出するための集計。
+async function getHotelAreaStats(env, date, today, south, west, north, east) {
+  const latMin = Math.round(south * 1e6);
+  const latMax = Math.round(north * 1e6);
+  const lngMin = Math.round(west * 1e6);
+  const lngMax = Math.round(east * 1e6);
+
+  const totalRow = await env.DB.prepare(
+    `SELECT COUNT(*) AS total FROM hotels WHERE lat BETWEEN ? AND ? AND lng BETWEEN ? AND ?`
+  )
+    .bind(latMin, latMax, lngMin, lngMax)
+    .first();
+
+  const checkedRow = await env.DB.prepare(
+    `SELECT COUNT(*) AS checked
+       FROM hotels h
+       WHERE h.lat BETWEEN ? AND ? AND h.lng BETWEEN ? AND ?
+         AND EXISTS (
+           SELECT 1 FROM vacancy_cells vc
+           WHERE vc.date = ? AND vc.lat = h.cell_lat AND vc.lng = h.cell_lng
+             AND substr(vc.fetched_at, 1, 10) = ?
+         )`
+  )
+    .bind(latMin, latMax, lngMin, lngMax, date, today)
+    .first();
+
+  const cellRow = await env.DB.prepare(
+    `SELECT COUNT(*) AS checked_cells, SUM(CASE WHEN hotel_count > 0 THEN 1 ELSE 0 END) AS vacant_cells
        FROM vacancy_cells
        WHERE date = ? AND lat BETWEEN ? AND ? AND lng BETWEEN ? AND ?`
   )
-    .bind(date, Math.round(south * 1e6), Math.round(north * 1e6), Math.round(west * 1e6), Math.round(east * 1e6))
+    .bind(date, latMin, latMax, lngMin, lngMax)
     .first();
-  return { searchedCells: row?.searched || 0, vacantCells: row?.vacant || 0 };
+
+  return {
+    knownHotels: totalRow?.total || 0,
+    checkedHotels: checkedRow?.checked || 0,
+    checkedCells: cellRow?.checked_cells || 0,
+    vacantCells: cellRow?.vacant_cells || 0,
+  };
+}
+
+// 矩形範囲内で、発見済みホテルがあるのに「今日」まだ空室確認していないセルを返す
+// （②空室確認フェーズの対象。ランダムな座標ではなく実在ホテルの場所だけを狙うために使う）。
+async function getUncheckedHotelCells(env, date, today, south, west, north, east) {
+  const latMin = Math.round(south * 1e6);
+  const latMax = Math.round(north * 1e6);
+  const lngMin = Math.round(west * 1e6);
+  const lngMax = Math.round(east * 1e6);
+
+  const rows = await env.DB.prepare(
+    `SELECT DISTINCT h.cell_lat AS clat, h.cell_lng AS clng
+       FROM hotels h
+       WHERE h.lat BETWEEN ? AND ? AND h.lng BETWEEN ? AND ?
+         AND NOT EXISTS (
+           SELECT 1 FROM vacancy_cells vc
+           WHERE vc.date = ? AND vc.lat = h.cell_lat AND vc.lng = h.cell_lng
+             AND substr(vc.fetched_at, 1, 10) = ?
+         )
+       LIMIT ?`
+  )
+    .bind(latMin, latMax, lngMin, lngMax, date, today, HOTELS_PER_AREA_QUERY_LIMIT)
+    .all();
+
+  return (rows.results || []).map((r) => ({
+    clat: r.clat,
+    clng: r.clng,
+    lat: r.clat / 1e6,
+    lng: r.clng / 1e6,
+    radiusKm: CELL_RADIUS_KM,
+  }));
+}
+
+// Fisher-Yatesシャッフル（配列を破壊的に並び替える）。②の対象セルを地図全域に
+// まんべんなく散らして選ぶために使う（DB取得順に偏らせないため）。
+function shuffle(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+}
+
+async function getCellFacility(env, lat, lng) {
+  return env.DB.prepare(`SELECT total_hotel_count FROM cell_facilities WHERE lat = ? AND lng = ?`)
+    .bind(lat, lng)
+    .first();
+}
+
+async function upsertCellFacility(env, lat, lng, totalHotelCount) {
+  await env.DB.prepare(
+    `INSERT INTO cell_facilities (lat, lng, total_hotel_count, checked_at)
+     VALUES (?, ?, ?, ?)
+     ON CONFLICT(lat, lng) DO UPDATE SET
+       total_hotel_count = excluded.total_hotel_count, checked_at = excluded.checked_at`
+  )
+    .bind(lat, lng, totalHotelCount, nowJSTISO())
+    .run();
+}
+
+// 発見したホテルを恒久データとして保存する（hotel_no で一意。既存なら名前・座標を更新）。
+// ホテル自身の座標からそのホテルが属するグリッドセル（cell_lat/cell_lng）も計算して
+// 一緒に保存する（vacancy_cellsとJOINして空室確認状況を調べるため）。
+async function upsertHotel(env, hotel) {
+  const hotelCell = snapToCell(hotel.lat, hotel.lng);
+  const [hLatEnc, hLngEnc] = encodeCell(hotel.lat, hotel.lng);
+  const [cLatEnc, cLngEnc] = encodeCell(hotelCell.lat, hotelCell.lng);
+  await env.DB.prepare(
+    `INSERT INTO hotels (hotel_no, name, lat, lng, cell_lat, cell_lng, discovered_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?)
+     ON CONFLICT(hotel_no) DO UPDATE SET
+       name = excluded.name, lat = excluded.lat, lng = excluded.lng,
+       cell_lat = excluded.cell_lat, cell_lng = excluded.cell_lng`
+  )
+    .bind(hotel.hotelNo, hotel.name, hLatEnc, hLngEnc, cLatEnc, cLngEnc, nowJSTISO())
+    .run();
 }
 
 async function getHotelCache(env, date, lat, lng) {
@@ -404,14 +551,14 @@ async function getHotelCache(env, date, lat, lng) {
     .first();
 }
 
-async function upsertHotelCache(env, date, lat, lng, hotels) {
+async function upsertHotelCache(env, date, lat, lng, payload) {
   await env.DB.prepare(
     `INSERT INTO hotel_details (date, lat, lng, payload, fetched_at)
      VALUES (?, ?, ?, ?, ?)
      ON CONFLICT(date, lat, lng) DO UPDATE SET
        payload = excluded.payload, fetched_at = excluded.fetched_at`
   )
-    .bind(date, lat, lng, JSON.stringify(hotels), nowJSTISO())
+    .bind(date, lat, lng, JSON.stringify(payload), nowJSTISO())
     .run();
 }
 

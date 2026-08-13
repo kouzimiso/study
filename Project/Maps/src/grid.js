@@ -88,19 +88,6 @@ export function jitterPoint(lat, lng, spreadKm) {
   return { lat: lat + dLat, lng: lng + dLng };
 }
 
-/**
- * 指定した矩形範囲に含まれるグローバル格子のセル数のおおまかな見積もり
- * （実際にセルを列挙せずに算出。範囲内の検索カバー率＝検索率の分母に使う）。
- */
-export function estimateCellCount(south, west, north, east) {
-  const latStep = kmToLatDeg(CELL_SIZE_KM);
-  const midLat = (south + north) / 2;
-  const lngStep = kmToLngDeg(CELL_SIZE_KM, midLat);
-  const rows = Math.ceil((north - south) / latStep) + 1;
-  const cols = Math.ceil((east - west) / lngStep) + 1;
-  return Math.max(0, rows) * Math.max(0, cols);
-}
-
 /** セルのキャッシュキー（度 × 1e6 の整数）。DBに格納する形式。 */
 export function encodeCell(lat, lng) {
   return [Math.round(lat * 1e6), Math.round(lng * 1e6)];
