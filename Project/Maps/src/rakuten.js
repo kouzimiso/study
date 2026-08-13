@@ -29,6 +29,27 @@ export function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+const RATE_LIMIT_MAX_RETRIES = 3; // 429を受けても即諦めず、少し待ってこの回数までリトライする
+const RATE_LIMIT_BACKOFF_MS = 1200; // 楽天のエラーメッセージ("Try again in 1 seconds")に基づく待機時間
+
+/**
+ * fetch()のラッパー。楽天APIが429（レート制限）を返しても即座にエラーにせず、
+ * 少し待ってから数回までリトライする。1回程度の瞬間的な詰まりで検索ラウンド全体が
+ * 0件のまま諦めてしまうのを防ぐ。リトライを使い切ってもまだ429ならそのまま返す
+ * （呼び出し元が RakutenRateLimitError に変換する）。
+ */
+async function fetchWithRateLimitRetry(url, options) {
+  let res;
+  for (let attempt = 0; attempt <= RATE_LIMIT_MAX_RETRIES; attempt++) {
+    res = await fetch(url, options);
+    if (res.status !== 429) return res;
+    if (attempt < RATE_LIMIT_MAX_RETRIES) {
+      await sleep(RATE_LIMIT_BACKOFF_MS * (attempt + 1));
+    }
+  }
+  return res;
+}
+
 /** キーが揃っている（API呼び出しに使える）かどうか */
 export function hasCredentials(creds) {
   return Boolean(creds && creds.appId && creds.accessKey);
@@ -95,7 +116,7 @@ export async function fetchVacantHotelCount(cell, checkinDate, creds) {
     params.set("affiliateId", creds.affiliateId);
   }
 
-  const res = await fetch(`${ENDPOINT}?${params.toString()}`, { headers: refererHeaders(creds) });
+  const res = await fetchWithRateLimitRetry(`${ENDPOINT}?${params.toString()}`, { headers: refererHeaders(creds) });
 
   if (res.status === 404) {
     // 該当エリアに空室施設が0件のときも404が返るケースがある
@@ -142,7 +163,7 @@ export async function fetchVacantHotels(cell, checkinDate, creds) {
     params.set("affiliateId", creds.affiliateId);
   }
 
-  const res = await fetch(`${ENDPOINT}?${params.toString()}`, { headers: refererHeaders(creds) });
+  const res = await fetchWithRateLimitRetry(`${ENDPOINT}?${params.toString()}`, { headers: refererHeaders(creds) });
   if (res.status === 404) return [];
   if (res.status === 429) throw new RakutenRateLimitError("rakuten API rate limited (429)");
   if (!res.ok) {
@@ -190,7 +211,7 @@ export async function fetchHotelFacilities(cell, creds) {
     params.set("affiliateId", creds.affiliateId);
   }
 
-  const res = await fetch(`${SIMPLE_HOTEL_ENDPOINT}?${params.toString()}`, { headers: refererHeaders(creds) });
+  const res = await fetchWithRateLimitRetry(`${SIMPLE_HOTEL_ENDPOINT}?${params.toString()}`, { headers: refererHeaders(creds) });
   if (res.status === 404) return [];
   if (res.status === 429) throw new RakutenRateLimitError("rakuten API rate limited (429)");
   if (!res.ok) {
@@ -208,7 +229,9 @@ export async function fetchHotelFacilities(cell, creds) {
 
 /**
  * 指定したクレデンシャルが楽天APIで使えるか検証する（設定画面のキーテストに使用）。
- * 東京駅周辺の小さな範囲で施設検索を1回だけ呼び、エラーなしでレスポンスが返ればOK。
+ * 東京駅周辺で施設検索を1回だけ呼び、エラーなしでレスポンスが返ればOK。
+ * 半径は楽天APIで許される上限の3.0kmを使う。テストである以上「たまたま0件」の余地を
+ * 極力なくし、0件が返ったら確実にキー側の問題だと判断できるようにする。
  * @returns {Promise<{ok:boolean, count?:number, status?:number, message?:string}>}
  */
 export async function validateCredentials(creds) {
@@ -220,14 +243,14 @@ export async function validateCredentials(creds) {
     datumType: "1",
     latitude: "35.6809",
     longitude: "139.7671",
-    searchRadius: "0.1",
+    searchRadius: "3.0",
     hits: "1",
     responseType: "small",
     elements: "hotelNo",
   });
 
   try {
-    const res = await fetch(`${SIMPLE_HOTEL_ENDPOINT}?${params.toString()}`, { headers: refererHeaders(creds) });
+    const res = await fetchWithRateLimitRetry(`${SIMPLE_HOTEL_ENDPOINT}?${params.toString()}`, { headers: refererHeaders(creds) });
     if (res.status === 404) return { ok: true, count: 0 };
     if (!res.ok) {
       const body = await res.text().catch(() => "");

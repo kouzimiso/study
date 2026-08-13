@@ -13,7 +13,10 @@ import { cellsWithinCircle, snapToCell, jitterPoint, encodeCell, CELL_RADIUS_KM 
 import { fetchPlaceSeeds } from "./overpass.js";
 
 // ---- 設定値 ----
-const REQUEST_INTERVAL_MS = 200; // 楽天APIへの連続リクエスト間隔
+// 楽天APIへの連続リクエスト間隔。エラーメッセージ("Try again in 1 seconds")から見て
+// 実際の制限は概ね1秒に1回程度とみられるため、それを下回らない間隔にする
+// （rakuten.js側にも429時のリトライを実装済みだが、そもそも自滅的に制限を踏みにいかない）。
+const REQUEST_INTERVAL_MS = 1100;
 const MAX_SEARCH_RADIUS_KM = 12; // 1回の検索で許可する最大半径
 const MAX_CELLS_PER_SEARCH = 40; // 1回の検索で分解するセルの上限（API呼び出し回数の目安）
 // 範囲検索は「①発見フェーズ（実在ホテルを見つける）」→「②空室確認フェーズ（発見済みホテルの
