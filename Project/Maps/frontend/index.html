@@ -147,6 +147,12 @@
   .hotel-circle{ filter:drop-shadow(0 0 6px currentColor); mix-blend-mode:screen; }
   .poi-star-marker{ filter:drop-shadow(0 0 4px var(--accent-poi)); background:none; border:none; }
   .poi-star-svg{ fill:var(--accent-poi); stroke:#0E1517; stroke-width:1; }
+  .poi-label{
+    background:rgba(22,33,31,.9); border:1px solid var(--panel-border); color:var(--text-primary);
+    font-size:10.5px; padding:2px 7px; border-radius:6px; box-shadow:0 2px 8px rgba(0,0,0,.35);
+    font-weight:500;
+  }
+  .poi-label::before{ display:none; }
 
   .leaflet-popup-content-wrapper{ background:#16211F; color:var(--text-primary); border-radius:10px; }
   .leaflet-popup-tip{ background:#16211F; }
@@ -291,7 +297,12 @@ poiToggle.onclick = () => {
   if (poiOn) { map.addLayer(poiLayer); loadPois(); }
   else { map.removeLayer(poiLayer); }
 };
-map.on('moveend', () => { if (poiOn) loadPois(); });
+let poiDebounceTimer = null;
+map.on('moveend', () => {
+  if (!poiOn) return;
+  clearTimeout(poiDebounceTimer);
+  poiDebounceTimer = setTimeout(loadPois, 400); // ドラッグ中に連発しないよう間引く
+});
 
 // ---------- 空室ヒートマップ（蓄積データ） ----------
 // 空き0（完全満室）は常に赤で固定し、1件でも空きがあれば黄〜緑の範囲で表示する。
@@ -616,25 +627,55 @@ const poiIcon = L.divIcon({
   popupAnchor: [0, -8],
 });
 
+// 直近に取得した範囲（表示範囲より少し広め）とその結果をキャッシュしておき、
+// 新しい表示範囲がキャッシュ済みの範囲に完全に収まっていれば再検索しない。
+// 少しのパン・ズームのたびに毎回Overpassへ問い合わせるのを防ぐため。
+let poiCache = null; // { bounds: L.LatLngBounds, elements: [...] }
+let poiAbortController = null;
+
+const POI_LABEL_MIN_ZOOM = 15; // これ以上ズームインしたら、クリックしなくても名前を常時表示する
+// （「ここは空いてそう→近くにどんな観光地があるか」を確認したい場面なので、
+// 拡大したら一目で全部の名前が見えた方が使いやすい。縮小時はクリックで詳細を見る）
+
+function renderPois(elements) {
+  poiLayer.clearLayers();
+  const showLabels = map.getZoom() >= POI_LABEL_MIN_ZOOM;
+  for (const el of elements) {
+    const name = el.tags?.name || '観光地';
+    const marker = L.marker([el.lat, el.lon], { icon: poiIcon })
+      .bindPopup(`<div class="popup-title">${name}</div><div class="popup-sub">観光地</div>`);
+    if (showLabels) {
+      marker.bindTooltip(name, { permanent: true, direction: 'right', offset: [8, 0], className: 'poi-label' });
+    }
+    marker.addTo(poiLayer);
+  }
+}
+
 async function loadPois() {
   if (map.getZoom() < 9) { poiLayer.clearLayers(); return; }
-  const b = map.getBounds();
-  const bbox = `${b.getSouth()},${b.getWest()},${b.getNorth()},${b.getEast()}`;
-  const query = `[out:json][timeout:20];node["tourism"~"attraction|museum|viewpoint|gallery|artwork"](${bbox});out body 150;`;
+  const bounds = map.getBounds();
+
+  if (poiCache && poiCache.bounds.contains(bounds)) {
+    renderPois(poiCache.elements);
+    return;
+  }
+
+  if (poiAbortController) poiAbortController.abort(); // 古いリクエストが残っていたら中断
+  const abortController = new AbortController();
+  poiAbortController = abortController;
+
+  const padded = bounds.pad(0.5); // 表示範囲より広めに取得してキャッシュを効かせる
+  const bbox = `${padded.getSouth()},${padded.getWest()},${padded.getNorth()},${padded.getEast()}`;
+  const query = `[out:json][timeout:20];node["tourism"~"attraction|museum|viewpoint|gallery|artwork"](${bbox});out body 300;`;
   try {
     const res = await fetch('https://overpass-api.de/api/interpreter', {
-      method: 'POST', body: query,
+      method: 'POST', body: query, signal: abortController.signal,
     });
     const data = await res.json();
-    poiLayer.clearLayers();
-    for (const el of data.elements || []) {
-      const name = el.tags?.name || '観光地';
-      L.marker([el.lat, el.lon], { icon: poiIcon })
-        .bindPopup(`<div class="popup-title">${name}</div><div class="popup-sub">観光地</div>`)
-        .addTo(poiLayer);
-    }
+    poiCache = { bounds: padded, elements: data.elements || [] };
+    renderPois(poiCache.elements);
   } catch (e) {
-    console.error('POI取得失敗', e);
+    if (e.name !== 'AbortError') console.error('POI取得失敗', e);
   }
 }
 
