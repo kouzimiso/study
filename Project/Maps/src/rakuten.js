@@ -173,16 +173,34 @@ export async function fetchVacantHotels(cell, checkinDate, creds) {
   const data = await res.json();
   return (data?.hotels ?? [])
     .map((h) => {
-      const b = h.hotelBasicInfo ?? {};
-      const room = h.roomInfo?.[0];
+      const { basic, room } = splitHotelEntry(h);
       return {
-        hotelNo: b.hotelNo,
-        name: b.hotelName,
+        hotelNo: basic.hotelNo,
+        name: basic.hotelName,
         price: room?.dailyCharge?.total,
-        url: b.hotelInformationUrl || b.planListUrl || null,
+        url: basic.hotelInformationUrl || basic.planListUrl || null,
       };
     })
     .filter((h) => h.hotelNo != null);
+}
+
+// 楽天のホテル一覧は各ホテルが「[{hotelBasicInfo:...}, {roomInfo:...}]」という
+// 2要素配列で返ってくる（{hotelBasicInfo, roomInfo}という単一オブジェクトではない）。
+// さらに roomInfo 自体も「[{roomBasicInfo:...}, {dailyCharge:...}]」という同じ形の
+// 2要素配列で、dailyChargeは roomInfo[0] ではなく roomInfo[1] 側に入っている。
+// 実機のレスポンスをcurlで直接確認して判明した。念のため単一オブジェクト形式でも
+// 動くようにフォールバックしておく。
+function splitHotelEntry(entry) {
+  const parts = Array.isArray(entry) ? entry : [entry];
+  const basicPart = parts.find((p) => p && p.hotelBasicInfo);
+  const roomInfoPart = parts.find((p) => p && p.roomInfo);
+  const roomInfoArr = roomInfoPart?.roomInfo;
+  const roomParts = Array.isArray(roomInfoArr) ? roomInfoArr : roomInfoArr ? [roomInfoArr] : [];
+  const dailyChargePart = roomParts.find((p) => p && p.dailyCharge);
+  return {
+    basic: basicPart?.hotelBasicInfo ?? {},
+    room: dailyChargePart,
+  };
 }
 
 /**
@@ -220,8 +238,8 @@ export async function fetchHotelFacilities(cell, creds) {
   const data = await res.json();
   return (data?.hotels ?? [])
     .map((h) => {
-      const b = h.hotelBasicInfo ?? {};
-      return { hotelNo: b.hotelNo, name: b.hotelName, lat: b.latitude, lng: b.longitude };
+      const { basic } = splitHotelEntry(h);
+      return { hotelNo: basic.hotelNo, name: basic.hotelName, lat: basic.latitude, lng: basic.longitude };
     })
     .filter((h) => h.hotelNo != null && Number.isFinite(h.lat) && Number.isFinite(h.lng));
 }
