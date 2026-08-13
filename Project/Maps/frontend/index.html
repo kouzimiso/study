@@ -18,7 +18,7 @@
     --accent-open-dim:#2C6E58;
     --accent-crowded:#C1503A;
     --accent-crowded-dim:#7A3527;
-    --accent-some:#E08A3C;
+    --accent-some:#E8C22C;
     --accent-poi:#D8A34E;
     --radius-panel:14px;
   }
@@ -111,6 +111,8 @@
   .settings-panel.show{ display:block; }
   .settings-title{ font-weight:700; font-size:14px; margin-bottom:4px; }
   .settings-desc{ font-size:11.5px; color:var(--text-muted); line-height:1.65; margin-bottom:6px; }
+  .settings-getkey{ display:block; font-size:11.5px; color:var(--accent-open); text-decoration:none; margin-bottom:4px; }
+  .settings-getkey:hover{ text-decoration:underline; }
   .settings-panel label{ display:block; font-size:11px; color:var(--text-muted); letter-spacing:.04em; margin:10px 0 4px; }
   .settings-panel input{
     width:100%; padding:7px 9px; border-radius:8px; border:1px solid var(--panel-border);
@@ -183,7 +185,7 @@
     <label>観光地を表示</label>
     <div class="toggle" id="poiToggle"></div>
   </div>
-  <div class="hint-text"><b>「この範囲を検索」</b>を押すと、①まず実在するホテルの場所を発見し、②発見済みホテルの場所だけを狙って空室を確認します（架空の座標を当てずっぽうで検索しないので、海や山中への無駄打ちがありません）。新規に見つからなくなるかレート制限に達するまで自動で連続検索します。検索結果とホテルの場所はみんなで共有され、蓄積されていきます。</div>
+  <div class="hint-text"><b>「この範囲を検索」</b>を押すと、今表示している地図の範囲の空き状況を調べます。検索結果はみんなで共有され、蓄積されていきます。</div>
   <button class="settings-btn search-btn" id="searchBtn">この範囲を検索</button>
   <button class="settings-btn" id="settingsBtn">APIキー設定</button>
 </div>
@@ -195,6 +197,7 @@
     空室検索には楽天トラベルAPIのキーが必要です。入力したキーはこのブラウザにのみ保存され、あなたが検索するときのAPI呼び出しに使われます（サーバーには保存されません）。
     検索した結果データだけがサーバーに蓄積され、他の人も共有します。
   </div>
+  <a class="settings-getkey" href="https://webservice.rakuten.co.jp/app/create" target="_blank" rel="noopener">まだキーをお持ちでない方はこちら（楽天ウェブサービスでアプリ登録） ↗</a>
   <label>アプリID（applicationId）</label>
   <input type="text" id="setAppId" placeholder="xxxxxxxx" spellcheck="false" autocomplete="off">
   <label>アクセスキー（accessKey）</label>
@@ -262,7 +265,9 @@ const poiLayer = L.layerGroup();
 
 // ---------- 日付コントロール ----------
 const dateInput = document.getElementById('dateInput');
-const todayStr = () => new Date().toISOString().slice(0, 10);
+// new Date().toISOString() はUTC基準の日付になり、JSTの日付とずれることがある
+// （例: JST 8/14 の早朝はUTCではまだ8/13）。サーバー側のtodayJST()と合わせてJSTで計算する。
+const todayStr = () => new Date(Date.now() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10);
 dateInput.value = todayStr();
 
 function shiftDate(days) {
@@ -287,13 +292,15 @@ poiToggle.onclick = () => {
 map.on('moveend', () => { if (poiOn) loadPois(); });
 
 // ---------- 空室ヒートマップ（蓄積データ） ----------
-// 空き0（完全満室）は常に赤で固定し、1件でも空きがあればオレンジ〜緑の範囲で
-// 表示する。maxに対する相対値だけで連続的に色を付けると、空きが少数でもmaxが
-// 大きいとほぼ赤に埋もれてしまい「完全満室」と見分けがつかなくなるため。
+// 空き0（完全満室）は常に赤で固定し、1件でも空きがあれば黄〜緑の範囲で表示する。
+// maxに対する相対値だけで連続的に色を付けると、空きが少数でもmaxが大きいと
+// ほぼ赤に埋もれてしまい「完全満室」と見分けがつかなくなるため、赤は分岐で固定する。
+// オレンジは赤に近すぎて（特に半透明・screenブレンド下で）見分けにくかったため、
+// 信号機と同じ赤→黄→緑の配色にして色相を大きく離す。
 function colorForCount(count, max) {
   if (count <= 0) return 'rgb(193,80,58)'; // 混雑（赤）＝空室ゼロ（完全満室）
   const t = max > 0 ? Math.min(1, count / max) : 0;
-  const from = [224, 138, 60];   // 空きあり（オレンジ）
+  const from = [232, 194, 44];   // 空きあり（黄）
   const to   = [69, 176, 140];   // 穴場（緑）
   const rgb = from.map((c, i) => Math.round(c + (to[i] - c) * t));
   return `rgb(${rgb[0]},${rgb[1]},${rgb[2]})`;
@@ -321,7 +328,7 @@ async function loadHeatmap(date) {
       color: 'transparent',
       weight: 0,
       fillColor: colorForCount(hotelCount, max),
-      fillOpacity: 0.32,
+      fillOpacity: 0.58,
       className: 'hotel-circle',
       bubblingMouseEvents: false,
     }).addTo(vacancyLayer);
