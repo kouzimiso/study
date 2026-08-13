@@ -197,12 +197,16 @@ async function handleSearchArea(url, request, env) {
   let hotelsDiscovered = 0;
   let rateLimited = false;
   let budget = AREA_SAMPLE_FETCH_BUDGET;
+  let errorCount = 0;
+  let lastErrorMessage;
+  const MAX_CONSECUTIVE_ERRORS = 5; // 同じ原因で全予算を空回りさせないための早期打ち切り
 
   // ---- ②空室確認フェーズ：発見済みホテルの場所だけを狙う ----
   const vacancyBudget = budget - AREA_DISCOVERY_MIN_BUDGET;
   if (vacancyBudget > 0) {
     const candidateCells = await getUncheckedHotelCells(env, date, today, south, west, north, east);
     shuffle(candidateCells);
+    let consecutiveErrors = 0;
     for (const c of candidateCells) {
       if (vacancyChecked >= vacancyBudget) break;
       try {
@@ -210,6 +214,7 @@ async function handleSearchArea(url, request, env) {
         await upsertCell(env, date, c.clat, c.clng, c.radiusKm, count);
         vacancyChecked += 1;
         budget -= 1;
+        consecutiveErrors = 0;
         features.push({
           type: "Feature",
           geometry: { type: "Point", coordinates: [c.lng, c.lat] },
@@ -221,7 +226,12 @@ async function handleSearchArea(url, request, env) {
           rateLimited = true;
           break;
         }
+        errorCount += 1;
+        consecutiveErrors += 1;
+        lastErrorMessage = String(err?.message || err);
         console.error(`vacancy check (${c.clat},${c.clng}) failed:`, err);
+        if (consecutiveErrors >= MAX_CONSECUTIVE_ERRORS) break; // 同じ原因で空回りしている可能性が高い
+        await sleep(REQUEST_INTERVAL_MS);
       }
     }
   }
@@ -231,6 +241,7 @@ async function handleSearchArea(url, request, env) {
     const seeds = await fetchPlaceSeeds(south, west, north, east);
     const seen = new Set();
     let attempts = 0;
+    let consecutiveErrors = 0;
 
     while (budget > 0 && attempts < AREA_SAMPLE_MAX_ATTEMPTS) {
       attempts += 1;
@@ -259,13 +270,19 @@ async function handleSearchArea(url, request, env) {
         }
         hotelsDiscovered += found.length;
         budget -= 1;
+        consecutiveErrors = 0;
         await sleep(REQUEST_INTERVAL_MS);
       } catch (err) {
         if (err instanceof RakutenRateLimitError) {
           rateLimited = true;
           break;
         }
+        errorCount += 1;
+        consecutiveErrors += 1;
+        lastErrorMessage = String(err?.message || err);
         console.error(`facility discovery (${clat},${clng}) failed:`, err);
+        if (consecutiveErrors >= MAX_CONSECUTIVE_ERRORS) break; // 同じ原因で空回りしている可能性が高い
+        await sleep(REQUEST_INTERVAL_MS);
       }
     }
   }
@@ -278,7 +295,7 @@ async function handleSearchArea(url, request, env) {
     type: "FeatureCollection",
     date,
     features,
-    stats: { vacancyChecked, hotelsDiscovered },
+    stats: { vacancyChecked, hotelsDiscovered, errorCount, lastErrorMessage },
     knownHotels: areaStats.knownHotels,
     checkedHotels: areaStats.checkedHotels,
     searchRate,

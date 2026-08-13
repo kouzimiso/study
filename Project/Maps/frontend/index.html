@@ -362,6 +362,7 @@ async function searchVisibleArea() {
       await loadHeatmap(date);
       const discoveredThisRound = data.stats?.hotelsDiscovered ?? 0;
       const checkedThisRound = data.stats?.vacancyChecked ?? 0;
+      const errorCount = data.stats?.errorCount ?? 0;
       totalDiscovered += discoveredThisRound;
       totalChecked += checkedThisRound;
       const knownHotels = data.knownHotels ?? 0;
@@ -374,7 +375,10 @@ async function searchVisibleArea() {
         break;
       }
       if (discoveredThisRound === 0 && checkedThisRound === 0) {
-        statusTag.textContent = `${baseStatus}（これ以上新規に見つからないため終了。この範囲はほぼ検索済みです） ｜ 円クリック=ホテル一覧`;
+        const errNote = errorCount > 0
+          ? `（エラー${errorCount}件のため中断: ${data.stats?.lastErrorMessage ?? '不明'}）`
+          : '（これ以上新規に見つからないため終了。この範囲はほぼ検索済みです）';
+        statusTag.textContent = `${baseStatus}${errNote} ｜ 円クリック=ホテル一覧`;
         break;
       }
       if (round >= SEARCH_ROUND_CAP) {

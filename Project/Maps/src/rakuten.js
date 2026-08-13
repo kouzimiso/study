@@ -204,8 +204,7 @@ export async function fetchHotelFacilities(cell, creds) {
     longitude: String(cell.lng),
     searchRadius: String(cell.radiusKm),
     hits: "30",
-    responseType: "small",
-    elements: "hotelNo,hotelName,latitude,longitude",
+    responseType: "large", // elements+small の組み合わせは未検証のため、全項目返る実績のあるlargeを使う
   });
   if (creds.affiliateId) {
     params.set("affiliateId", creds.affiliateId);
