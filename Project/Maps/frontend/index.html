@@ -135,7 +135,8 @@
   .legend .bar{ height:8px; border-radius:999px; background:linear-gradient(90deg, var(--accent-crowded) 0%, var(--accent-crowded) 10%, var(--accent-some) 14%, var(--accent-open) 100%); }
   .legend .labels{ display:flex; justify-content:space-between; font-size:10.5px; color:var(--text-muted); margin-top:6px; font-family:'JetBrains Mono', monospace; }
   .legend .poi-key{ display:flex; align-items:center; gap:6px; margin-top:10px; font-size:11px; color:var(--text-muted); }
-  .legend .poi-dot{ width:8px; height:8px; border-radius:50%; background:var(--accent-poi); box-shadow:0 0 6px var(--accent-poi); }
+  .legend .poi-dot{ width:12px; height:12px; display:inline-flex; filter:drop-shadow(0 0 4px var(--accent-poi)); }
+  .legend .poi-dot svg{ fill:var(--accent-poi); stroke:#0E1517; stroke-width:1; }
 
   .status-tag{
     position:absolute; bottom:20px; right:16px; z-index:1000; font-family:'JetBrains Mono', monospace;
@@ -144,7 +145,8 @@
   }
 
   .hotel-circle{ filter:drop-shadow(0 0 6px currentColor); mix-blend-mode:screen; }
-  .poi-dot-marker{ filter:drop-shadow(0 0 4px var(--accent-poi)); }
+  .poi-star-marker{ filter:drop-shadow(0 0 4px var(--accent-poi)); background:none; border:none; }
+  .poi-star-svg{ fill:var(--accent-poi); stroke:#0E1517; stroke-width:1; }
 
   .leaflet-popup-content-wrapper{ background:#16211F; color:var(--text-primary); border-radius:10px; }
   .leaflet-popup-tip{ background:#16211F; }
@@ -220,7 +222,7 @@
   <div class="title">検索地点の空き状況</div>
   <div class="bar"></div>
   <div class="labels"><span>空き0（満室）</span><span>空きあり</span><span>空き多（穴場）</span></div>
-  <div class="poi-key"><span class="poi-dot"></span>観光地（クリックで詳細）</div>
+  <div class="poi-key"><span class="poi-dot"><svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg></span>観光地（クリックで詳細）</div>
 </div>
 
 <div class="status-tag" id="statusTag">読み込み中…</div>
@@ -600,6 +602,20 @@ function onDateChange() {
 }
 
 // ---------- 観光地POI（Overpass API） ----------
+// ホテルの空室ヒートマップ（丸）と紛らわしいため、観光地は星形アイコンで表示する
+// （Leafletに星形マーカーは無いので、SVGを埋め込んだdivIconを使う）。
+const POI_STAR_SVG =
+  '<svg viewBox="0 0 24 24" width="16" height="16" class="poi-star-svg">' +
+  '<path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>' +
+  '</svg>';
+const poiIcon = L.divIcon({
+  className: 'poi-star-marker',
+  html: POI_STAR_SVG,
+  iconSize: [16, 16],
+  iconAnchor: [8, 8],
+  popupAnchor: [0, -8],
+});
+
 async function loadPois() {
   if (map.getZoom() < 9) { poiLayer.clearLayers(); return; }
   const b = map.getBounds();
@@ -613,10 +629,8 @@ async function loadPois() {
     poiLayer.clearLayers();
     for (const el of data.elements || []) {
       const name = el.tags?.name || '観光地';
-      L.circleMarker([el.lat, el.lon], {
-        radius: 4, className: 'poi-dot-marker',
-        color: 'transparent', fillColor: '#D8A34E', fillOpacity: 0.95,
-      }).bindPopup(`<div class="popup-title">${name}</div><div class="popup-sub">観光地</div>`)
+      L.marker([el.lat, el.lon], { icon: poiIcon })
+        .bindPopup(`<div class="popup-title">${name}</div><div class="popup-sub">観光地</div>`)
         .addTo(poiLayer);
     }
   } catch (e) {
