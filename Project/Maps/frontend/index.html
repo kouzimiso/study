@@ -18,6 +18,7 @@
     --accent-open-dim:#2C6E58;
     --accent-crowded:#C1503A;
     --accent-crowded-dim:#7A3527;
+    --accent-some:#E08A3C;
     --accent-poi:#D8A34E;
     --radius-panel:14px;
   }
@@ -127,9 +128,9 @@
   .settings-config{ font-size:11px; color:var(--text-muted); margin-top:8px; border-top:1px solid var(--panel-border); padding-top:8px; line-height:1.6; }
   .settings-note{ font-size:10.5px; color:var(--text-muted); line-height:1.5; margin-top:8px; opacity:.75; }
 
-  .legend{ bottom:20px; left:16px; padding:12px 14px; width:210px; }
+  .legend{ bottom:20px; left:16px; padding:12px 14px; width:240px; }
   .legend .title{ font-size:11px; color:var(--text-muted); letter-spacing:.04em; margin-bottom:8px; }
-  .legend .bar{ height:8px; border-radius:999px; background:linear-gradient(90deg, var(--accent-crowded), #6E6A3E, var(--accent-open)); }
+  .legend .bar{ height:8px; border-radius:999px; background:linear-gradient(90deg, var(--accent-crowded) 0%, var(--accent-crowded) 10%, var(--accent-some) 14%, var(--accent-open) 100%); }
   .legend .labels{ display:flex; justify-content:space-between; font-size:10.5px; color:var(--text-muted); margin-top:6px; font-family:'JetBrains Mono', monospace; }
   .legend .poi-key{ display:flex; align-items:center; gap:6px; margin-top:10px; font-size:11px; color:var(--text-muted); }
   .legend .poi-dot{ width:8px; height:8px; border-radius:50%; background:var(--accent-poi); box-shadow:0 0 6px var(--accent-poi); }
@@ -215,7 +216,7 @@
 <div class="panel legend">
   <div class="title">検索地点の空き状況</div>
   <div class="bar"></div>
-  <div class="labels"><span>空き少（混雑）</span><span>空き多（穴場）</span></div>
+  <div class="labels"><span>空き0（満室）</span><span>空きあり</span><span>空き多（穴場）</span></div>
   <div class="poi-key"><span class="poi-dot"></span>観光地（クリックで詳細）</div>
 </div>
 
@@ -286,10 +287,14 @@ poiToggle.onclick = () => {
 map.on('moveend', () => { if (poiOn) loadPois(); });
 
 // ---------- 空室ヒートマップ（蓄積データ） ----------
+// 空き0（完全満室）は常に赤で固定し、1件でも空きがあればオレンジ〜緑の範囲で
+// 表示する。maxに対する相対値だけで連続的に色を付けると、空きが少数でもmaxが
+// 大きいとほぼ赤に埋もれてしまい「完全満室」と見分けがつかなくなるため。
 function colorForCount(count, max) {
+  if (count <= 0) return 'rgb(193,80,58)'; // 混雑（赤）＝空室ゼロ（完全満室）
   const t = max > 0 ? Math.min(1, count / max) : 0;
-  const from = [193, 80, 58];   // 混雑（赤）
-  const to   = [69, 176, 140];  // 穴場（緑）
+  const from = [224, 138, 60];   // 空きあり（オレンジ）
+  const to   = [69, 176, 140];   // 穴場（緑）
   const rgb = from.map((c, i) => Math.round(c + (to[i] - c) * t));
   return `rgb(${rgb[0]},${rgb[1]},${rgb[2]})`;
 }
