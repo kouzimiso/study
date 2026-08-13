@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+<title>宿・空きマップ｜広域ホテル空室マップ</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-deep:#0E1517;
+    --panel:#16211F;
+    --panel-border:#283835;
+    --text-primary:#EAF3EE;
+    --text-muted:#8CA39B;
+    --accent-open:#45B08C;
+    --accent-open-dim:#2C6E58;
+    --accent-crowded:#C1503A;
+    --accent-crowded-dim:#7A3527;
+    --accent-poi:#D8A34E;
+    --radius-panel:14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;height:100%;background:var(--bg-deep);color:var(--text-primary);
+    font-family:'Zen Kaku Gothic New', system-ui, sans-serif;}
+  #map{position:absolute; inset:0;}
+
+  .brand{
+    position:absolute; top:16px; left:16px; z-index:1000;
+    display:flex; align-items:baseline; gap:10px;
+    pointer-events:none;
+  }
+  .brand .mark{
+    font-family:'JetBrains Mono', monospace; font-weight:600; font-size:11px;
+    letter-spacing:.14em; color:var(--accent-open); text-transform:uppercase;
+    border:1px solid var(--accent-open-dim); border-radius:999px; padding:4px 10px;
+    background:rgba(20,32,29,.7); backdrop-filter:blur(6px);
+  }
+  .brand h1{font-size:15px; font-weight:700; margin:0; letter-spacing:.02em; text-shadow:0 1px 8px rgba(0,0,0,.6);}
+
+  .panel{
+    position:absolute; z-index:1000; background:rgba(22,33,31,.86);
+    border:1px solid var(--panel-border); border-radius:var(--radius-panel);
+    backdrop-filter:blur(10px); box-shadow:0 12px 30px rgba(0,0,0,.35);
+  }
+
+  .controls{ top:64px; left:16px; padding:14px 16px; width:250px; }
+  .controls .row{ display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:10px; }
+  .controls .row:last-child{ margin-bottom:0; }
+  .controls label{ font-size:12px; color:var(--text-muted); letter-spacing:.03em; }
+
+  .date-stepper{ display:flex; align-items:center; gap:6px; }
+  .date-stepper button{
+    width:26px; height:26px; border-radius:8px; border:1px solid var(--panel-border);
+    background:transparent; color:var(--text-primary); cursor:pointer; font-size:14px; line-height:1;
+  }
+  .date-stepper button:hover{ border-color:var(--accent-open); color:var(--accent-open); }
+  .date-stepper input[type=date]{
+    background:#0F1917; border:1px solid var(--panel-border); border-radius:8px;
+    color:var(--text-primary); font-family:'JetBrains Mono', monospace; font-size:12px;
+    padding:5px 6px; width:132px;
+  }
+
+  .controls select{
+    background:#0F1917; border:1px solid var(--panel-border); border-radius:8px;
+    color:var(--text-primary); font-family:'JetBrains Mono', monospace; font-size:12px;
+    padding:5px 8px; outline:none; cursor:pointer;
+  }
+  .controls select:focus{ border-color:var(--accent-open); }
+
+  .toggle{
+    position:relative; width:38px; height:22px; border-radius:999px;
+    background:#28403A; border:1px solid var(--panel-border); cursor:pointer; flex:none;
+  }
+  .toggle.on{ background:var(--accent-open-dim); border-color:var(--accent-open); }
+  .toggle::after{
+    content:''; position:absolute; top:2px; left:2px; width:16px; height:16px; border-radius:50%;
+    background:var(--text-primary); transition:transform .15s ease;
+  }
+  .toggle.on::after{ transform:translateX(16px); background:var(--accent-open); }
+
+  .hint-text{ font-size:11px; color:var(--text-muted); line-height:1.6; margin-bottom:8px; }
+  .hint-text b{ color:var(--accent-open); font-weight:700; }
+
+  .settings-btn{
+    width:100%; margin-top:2px; padding:8px 10px; border-radius:9px; border:1px solid var(--accent-open-dim);
+    background:transparent; color:var(--accent-open); font-family:inherit; font-size:12px; font-weight:700;
+    cursor:pointer; letter-spacing:.02em;
+  }
+  .settings-btn:hover{ background:rgba(69,176,140,.12); }
+  .settings-btn:disabled{ opacity:.5; cursor:default; }
+
+  .search-btn{
+    background:var(--accent-open); border-color:var(--accent-open); color:#0E1517;
+  }
+  .search-btn:hover{ background:#54c49b; }
+
+  .key-warning{
+    top:16px; left:50%; transform:translateX(-50%); z-index:1000;
+    max-width:440px; padding:10px 14px; font-size:12px; line-height:1.5;
+    border-color:var(--accent-crowded-dim); display:none; text-align:center;
+  }
+  .key-warning.show{ display:block; }
+  .key-warning b{ color:var(--accent-crowded); }
+
+  .settings-overlay{ position:absolute; inset:0; background:rgba(10,14,13,.55); z-index:1100; display:none; backdrop-filter:blur(2px); }
+  .settings-overlay.show{ display:block; }
+  .settings-panel{ top:50%; left:50%; transform:translate(-50%,-50%); width:360px; padding:18px; z-index:1200; display:none; }
+  .settings-panel.show{ display:block; }
+  .settings-title{ font-weight:700; font-size:14px; margin-bottom:4px; }
+  .settings-desc{ font-size:11.5px; color:var(--text-muted); line-height:1.65; margin-bottom:6px; }
+  .settings-panel label{ display:block; font-size:11px; color:var(--text-muted); letter-spacing:.04em; margin:10px 0 4px; }
+  .settings-panel input{
+    width:100%; padding:7px 9px; border-radius:8px; border:1px solid var(--panel-border);
+    background:#0F1917; color:var(--text-primary); font-family:'JetBrains Mono', monospace; font-size:12px; outline:none;
+  }
+  .settings-panel input:focus{ border-color:var(--accent-open); }
+  .settings-btns{ display:flex; gap:8px; margin-top:14px; }
+  .settings-btns button{ flex:1; font-family:inherit; font-size:11.5px; font-weight:700; border-radius:8px; padding:8px 10px; cursor:pointer; }
+  .settings-btns .save{ background:var(--accent-open); border:none; color:#0E1517; }
+  .settings-btns .test{ background:transparent; border:1px solid var(--accent-open-dim); color:var(--accent-open); }
+  .settings-btns .test:disabled{ opacity:.4; cursor:default; }
+  .settings-status{ font-size:11.5px; line-height:1.5; min-height:16px; margin-top:10px; }
+  .settings-status.ok{ color:var(--accent-open); }
+  .settings-status.err{ color:var(--accent-crowded); }
+  .settings-config{ font-size:11px; color:var(--text-muted); margin-top:8px; border-top:1px solid var(--panel-border); padding-top:8px; line-height:1.6; }
+  .settings-note{ font-size:10.5px; color:var(--text-muted); line-height:1.5; margin-top:8px; opacity:.75; }
+
+  .legend{ bottom:20px; left:16px; padding:12px 14px; width:210px; }
+  .legend .title{ font-size:11px; color:var(--text-muted); letter-spacing:.04em; margin-bottom:8px; }
+  .legend .bar{ height:8px; border-radius:999px; background:linear-gradient(90deg, var(--accent-crowded), #6E6A3E, var(--accent-open)); }
+  .legend .labels{ display:flex; justify-content:space-between; font-size:10.5px; color:var(--text-muted); margin-top:6px; font-family:'JetBrains Mono', monospace; }
+  .legend .poi-key{ display:flex; align-items:center; gap:6px; margin-top:10px; font-size:11px; color:var(--text-muted); }
+  .legend .poi-dot{ width:8px; height:8px; border-radius:50%; background:var(--accent-poi); box-shadow:0 0 6px var(--accent-poi); }
+
+  .status-tag{
+    position:absolute; bottom:20px; right:16px; z-index:1000; font-family:'JetBrains Mono', monospace;
+    font-size:10.5px; color:var(--text-muted); background:rgba(22,33,31,.8); border:1px solid var(--panel-border);
+    border-radius:999px; padding:5px 12px; max-width:320px; text-align:right;
+  }
+
+  .hotel-circle{ filter:drop-shadow(0 0 6px currentColor); mix-blend-mode:screen; }
+  .poi-dot-marker{ filter:drop-shadow(0 0 4px var(--accent-poi)); }
+
+  .leaflet-popup-content-wrapper{ background:#16211F; color:var(--text-primary); border-radius:10px; }
+  .leaflet-popup-tip{ background:#16211F; }
+  .popup-title{ font-weight:700; font-size:13px; margin-bottom:2px; }
+  .popup-sub{ font-size:11px; color:var(--text-muted); font-family:'JetBrains Mono', monospace; }
+  .hotel-popup .leaflet-popup-content{ margin:12px 14px; }
+  .hotel-row{ padding:8px 0; border-bottom:1px solid rgba(255,255,255,.08); }
+  .hotel-row:last-child{ border-bottom:none; }
+  .hotel-row-name{ font-size:12px; font-weight:600; color:var(--text-primary); }
+  .hotel-row-price{ font-size:11px; color:var(--accent-open); margin-top:2px; }
+  .hotel-row-link{ display:inline-block; font-size:11px; margin-top:3px; color:#FF8F00; text-decoration:none; }
+  .hotel-row-link:hover{ text-decoration:underline; }
+</style>
+</head>
+<body>
+
+<div id="map"></div>
+
+<div class="brand">
+  <span class="mark">open search</span>
+  <h1>宿・空きマップ</h1>
+</div>
+
+<div class="panel key-warning" id="keyWarning">
+  <b>楽天トラベルAPIキーが未設定です。</b>検索するには右上の「APIキー設定」から自分のキーを入力してください。
+</div>
+
+<div class="panel controls">
+  <div class="row">
+    <label>宿泊日</label>
+    <div class="date-stepper">
+      <button id="prevDay">‹</button>
+      <input type="date" id="dateInput" />
+      <button id="nextDay">›</button>
+    </div>
+  </div>
+  <div class="row">
+    <label>観光地を表示</label>
+    <div class="toggle" id="poiToggle"></div>
+  </div>
+  <div class="hint-text"><b>「この範囲を検索」</b>を押すと、今地図に表示されている範囲をランダムにサンプリング検索します（広い範囲を隅々まで検索するより、統計的に空き状況をつかむのが目的）。押すたびに検索率が上がります。検索結果はみんなで共有され、蓄積されていきます。</div>
+  <button class="settings-btn search-btn" id="searchBtn">この範囲を検索</button>
+  <button class="settings-btn" id="settingsBtn">APIキー設定</button>
+</div>
+
+<div class="settings-overlay" id="settingsOverlay"></div>
+<div class="panel settings-panel" id="settingsPanel">
+  <div class="settings-title">楽天トラベル API キー設定</div>
+  <div class="settings-desc">
+    空室検索には楽天トラベルAPIのキーが必要です。入力したキーはこのブラウザにのみ保存され、あなたが検索するときのAPI呼び出しに使われます（サーバーには保存されません）。
+    検索した結果データだけがサーバーに蓄積され、他の人も共有します。
+  </div>
+  <label>アプリID（applicationId）</label>
+  <input type="text" id="setAppId" placeholder="xxxxxxxx" spellcheck="false" autocomplete="off">
+  <label>アクセスキー（accessKey）</label>
+  <input type="password" id="setAccessKey" placeholder="yyyyyyyy" autocomplete="off">
+  <label>アフィリエイトID（任意）</label>
+  <input type="text" id="setAffiliateId" placeholder="（省略可）" spellcheck="false" autocomplete="off">
+  <div class="settings-status" id="settingsStatus"></div>
+  <div class="settings-btns">
+    <button class="save" id="settingsSave">保存</button>
+    <button class="test" id="settingsTest">キーをテスト</button>
+  </div>
+  <div class="settings-config" id="settingsConfig">読み込み中…</div>
+  <div class="settings-note">
+    アプリID・アクセスキーは楽天ウェブサービスの「アプリ登録」画面で取得できます。
+    キーが漏れないよう、この画面の入力内容を他人と共有しないでください。
+  </div>
+</div>
+
+<div class="panel legend">
+  <div class="title">検索地点の空き状況</div>
+  <div class="bar"></div>
+  <div class="labels"><span>空き少（混雑）</span><span>空き多（穴場）</span></div>
+  <div class="poi-key"><span class="poi-dot"></span>観光地（クリックで詳細）</div>
+</div>
+
+<div class="status-tag" id="statusTag">読み込み中…</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+if (typeof L === 'undefined') {
+  document.getElementById('map').innerHTML =
+    '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#8CA39B;font-family:sans-serif;padding:24px;text-align:center;">' +
+    '地図ライブラリ(Leaflet)の読み込みに失敗しました。<br>ネットワーク環境やCDNへのアクセス制限をご確認ください。</div>';
+  throw new Error('Leaflet failed to load');
+}
+</script>
+<script>
+// ============================================================
+// 設定：Cloudflare WorkerをデプロイしたURLをここに入れてください。
+// 空のままの場合は同一オリジンへの相対パスでAPIを呼びます
+// （フロントとWorkerを同じオリジンで配信している場合のみ動作します）。
+// ============================================================
+const CONFIG = {
+  API_BASE: "https://rakuten-vacancy-worker.travelmaps.workers.dev",
+};
+
+// ---------- 地図初期化 ----------
+const map = L.map('map', { zoomControl: false, attributionControl: true })
+  .setView([36.2, 139.5], 6);
+
+window.addEventListener('error', (e) => {
+  const tag = document.getElementById('statusTag');
+  if (tag) tag.textContent = `エラー: ${e.message || '不明なエラーが発生しました'}`;
+  console.error(e);
+});
+
+L.control.zoom({ position: 'bottomright' }).addTo(map);
+L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+  attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+  maxZoom: 19,
+}).addTo(map);
+
+const vacancyLayer = L.layerGroup().addTo(map);
+const poiLayer = L.layerGroup();
+
+// ---------- 日付コントロール ----------
+const dateInput = document.getElementById('dateInput');
+const todayStr = () => new Date().toISOString().slice(0, 10);
+dateInput.value = todayStr();
+
+function shiftDate(days) {
+  const d = new Date(dateInput.value + 'T00:00:00Z');
+  d.setUTCDate(d.getUTCDate() + days);
+  dateInput.value = d.toISOString().slice(0, 10);
+  onDateChange();
+}
+document.getElementById('prevDay').onclick = () => shiftDate(-1);
+document.getElementById('nextDay').onclick = () => shiftDate(1);
+dateInput.onchange = onDateChange;
+
+// ---------- POIトグル ----------
+const poiToggle = document.getElementById('poiToggle');
+let poiOn = false;
+poiToggle.onclick = () => {
+  poiOn = !poiOn;
+  poiToggle.classList.toggle('on', poiOn);
+  if (poiOn) { map.addLayer(poiLayer); loadPois(); }
+  else { map.removeLayer(poiLayer); }
+};
+map.on('moveend', () => { if (poiOn) loadPois(); });
+
+// ---------- 空室ヒートマップ（蓄積データ） ----------
+function colorForCount(count, max) {
+  const t = max > 0 ? Math.min(1, count / max) : 0;
+  const from = [193, 80, 58];   // 混雑（赤）
+  const to   = [69, 176, 140];  // 穴場（緑）
+  const rgb = from.map((c, i) => Math.round(c + (to[i] - c) * t));
+  return `rgb(${rgb[0]},${rgb[1]},${rgb[2]})`;
+}
+
+async function loadHeatmap(date) {
+  vacancyLayer.clearLayers();
+  const statusTag = document.getElementById('statusTag');
+  statusTag.textContent = `${date} のデータを取得中…`;
+
+  let features;
+  try {
+    features = (await fetchJson(`/api/heatmap?date=${date}`)).features;
+  } catch (e) {
+    statusTag.textContent = `サーバーに接続できません: ${e.message}（CONFIG.API_BASEの設定を確認してください）`;
+    return;
+  }
+
+  const max = Math.max(1, ...features.map(f => f.properties.hotelCount));
+  for (const f of features) {
+    const [lng, lat] = f.geometry.coordinates;
+    const { hotelCount, radiusKm } = f.properties;
+    const circle = L.circle([lat, lng], {
+      radius: radiusKm * 1000,
+      color: 'transparent',
+      weight: 0,
+      fillColor: colorForCount(hotelCount, max),
+      fillOpacity: 0.32,
+      className: 'hotel-circle',
+      bubblingMouseEvents: false,
+    }).addTo(vacancyLayer);
+    circle.on('click', () => showHotels(lat, lng, radiusKm));
+  }
+
+  let suffix = '';
+  const status = await fetchJson(`/api/status?date=${date}`).catch(() => null);
+  if (status) suffix = `／ 蓄積${status.cellCount}地点`;
+  statusTag.textContent = `${date}${suffix} ｜ 「この範囲を検索」＝検索 ／ 円クリック=ホテル一覧`;
+}
+
+// ---------- 検索（表示範囲をまるごと検索） ----------
+let searching = false;
+const searchBtn = document.getElementById('searchBtn');
+const settingsBtnEl = document.getElementById('settingsBtn');
+
+function pct(x) {
+  return x == null ? '?' : `${(x * 100).toFixed(1)}%`;
+}
+
+async function searchVisibleArea() {
+  if (searching) return;
+  searching = true;
+  searchBtn.disabled = true;
+  settingsBtnEl.disabled = true;
+  const date = dateInput.value;
+  const statusTag = document.getElementById('statusTag');
+  const b = map.getBounds();
+  statusTag.textContent = `${date} ／ 表示範囲をサンプリング検索中…`;
+  try {
+    const data = await fetchJson(
+      `/api/search-area?date=${date}&south=${b.getSouth()}&west=${b.getWest()}&north=${b.getNorth()}&east=${b.getEast()}`
+    );
+    await loadHeatmap(date);
+    const searched = data.searchedCells ?? 0;
+    statusTag.textContent =
+      `${date} ／ 検索率${pct(data.searchRate)}（${searched}地点）・空き率${pct(data.vacancyRate)}` +
+      `（今回新規${data.stats?.fetchedCells ?? 0}地点）` +
+      (data.partial ? '（レート制限のため中断。少し待って再度押してください）' : '') +
+      ' ｜ もう一度押すと検索率が上がります ／ 円クリック=ホテル一覧';
+  } catch (e) {
+    statusTag.textContent = `検索に失敗: ${e.message}`;
+  } finally {
+    searching = false;
+    searchBtn.disabled = false;
+    settingsBtnEl.disabled = false;
+  }
+}
+
+searchBtn.onclick = searchVisibleArea;
+
+// ---------- 空室ホテル一覧（セルクリック） ----------
+function esc(s) {
+  return String(s ?? '').replace(/[&<>"']/g, (c) => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+  }[c]));
+}
+
+function hotelPopupContent(hotels) {
+  if (!hotels.length) {
+    return '<div class="popup-sub">このエリアに空室ありのホテルは見つかりませんでした</div>';
+  }
+  const rows = hotels.map(h => `
+    <div class="hotel-row">
+      <div class="hotel-row-name">${esc(h.name)}</div>
+      <div class="hotel-row-price">${h.price ? '¥' + Number(h.price).toLocaleString() + '〜/泊' : '料金は公式サイトで'}</div>
+      ${h.url ? `<a class="hotel-row-link" href="${esc(h.url)}" target="_blank" rel="noopener">楽天トラベルで見る ↗</a>` : ''}
+    </div>`).join('');
+  return `<div class="popup-title">空室ありホテル ${hotels.length}件</div>${rows}`;
+}
+
+async function showHotels(lat, lng, radiusKm) {
+  const date = dateInput.value;
+  const popup = L.popup({ maxWidth: 340, maxHeight: 380, className: 'hotel-popup' })
+    .setLatLng([lat, lng])
+    .setContent('<div class="popup-sub">ホテルを読み込み中…</div>')
+    .openOn(map);
+  try {
+    const data = await fetchJson(`/api/hotels?date=${date}&lat=${lat}&lng=${lng}&radiusKm=${radiusKm}`);
+    popup.setContent(hotelPopupContent(data.hotels || []));
+  } catch (e) {
+    popup.setContent(`<div class="popup-sub">取得に失敗: ${esc(e.message)}</div>`);
+  }
+}
+
+// ---------- APIキー設定画面 ----------
+const settingsPanel = document.getElementById('settingsPanel');
+const settingsOverlay = document.getElementById('settingsOverlay');
+const settingsStatus = document.getElementById('settingsStatus');
+const settingsConfig = document.getElementById('settingsConfig');
+const settingsTestBtn = document.getElementById('settingsTest');
+const setAppId = document.getElementById('setAppId');
+const setAccessKey = document.getElementById('setAccessKey');
+const setAffiliateId = document.getElementById('setAffiliateId');
+const keyWarning = document.getElementById('keyWarning');
+
+function openSettings() {
+  const c = loadCreds() || {};
+  setAppId.value = c.appId || '';
+  setAccessKey.value = c.accessKey || '';
+  setAffiliateId.value = c.affiliateId || '';
+  settingsStatus.textContent = '';
+  settingsStatus.className = 'settings-status';
+  settingsPanel.classList.add('show');
+  settingsOverlay.classList.add('show');
+  loadConfig();
+}
+function closeSettings() {
+  settingsPanel.classList.remove('show');
+  settingsOverlay.classList.remove('show');
+}
+settingsBtnEl.onclick = openSettings;
+settingsOverlay.onclick = closeSettings;
+
+async function loadConfig() {
+  try {
+    const cfg = await fetchJson('/api/config');
+    settingsConfig.textContent =
+      cfg.serverKeyConfigured
+        ? 'サーバー側に共通キーが設定済みです（自分のキーが無くても検索できます）'
+        : 'サーバー側のキーは未設定です。検索には自分のキーが必要です。';
+  } catch (e) {
+    settingsConfig.textContent = '設定情報の取得に失敗しました（Workerの接続先を確認してください）';
+  }
+}
+
+document.getElementById('settingsSave').onclick = () => {
+  const c = {
+    appId: setAppId.value.trim(),
+    accessKey: setAccessKey.value.trim(),
+    affiliateId: setAffiliateId.value.trim(),
+  };
+  saveCreds(c);
+  settingsStatus.textContent = c.appId ? 'このブラウザに保存しました。' : '入力をクリアしました。';
+  settingsStatus.className = 'settings-status ok';
+  updateKeyWarning();
+};
+
+settingsTestBtn.onclick = async () => {
+  const c = {
+    appId: setAppId.value.trim(),
+    accessKey: setAccessKey.value.trim(),
+    affiliateId: setAffiliateId.value.trim(),
+  };
+  if (!c.appId || !c.accessKey) {
+    settingsStatus.textContent = 'アプリIDとアクセスキーの両方を入力してください。';
+    settingsStatus.className = 'settings-status err';
+    return;
+  }
+  settingsTestBtn.disabled = true;
+  settingsStatus.textContent = '楽天APIでキーを検証中…';
+  settingsStatus.className = 'settings-status';
+  try {
+    const res = await fetch(`${CONFIG.API_BASE}/api/settings`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ ...c, referer: location.origin + location.pathname }),
+    });
+    const data = await res.json();
+    if (data.ok) {
+      saveCreds(c);
+      settingsStatus.textContent =
+        `キーは有効です。東京近郊の検証検索で施設を${data.checkedCount ?? 0}件取得できました。`;
+      settingsStatus.className = 'settings-status ok';
+      updateKeyWarning();
+    } else {
+      settingsStatus.textContent = `無効なキーです: ${data.detail || data.error || '不明なエラー'}`;
+      settingsStatus.className = 'settings-status err';
+    }
+  } catch (e) {
+    settingsStatus.textContent = `通信エラー: ${e.message}`;
+    settingsStatus.className = 'settings-status err';
+  } finally {
+    settingsTestBtn.disabled = false;
+  }
+};
+
+// ---------- 共通ヘルパー ----------
+const CREDS_STORAGE_KEY = 'rakutenVacancy:creds';
+
+function loadCreds() {
+  try { return JSON.parse(localStorage.getItem(CREDS_STORAGE_KEY) || 'null'); } catch { return null; }
+}
+function saveCreds(c) {
+  if (c && (c.appId || c.accessKey)) localStorage.setItem(CREDS_STORAGE_KEY, JSON.stringify(c));
+  else localStorage.removeItem(CREDS_STORAGE_KEY);
+}
+function authHeaders() {
+  const c = loadCreds();
+  const h = {};
+  if (c?.appId) h['x-rakuten-app-id'] = c.appId;
+  if (c?.accessKey) h['x-rakuten-access-key'] = c.accessKey;
+  if (c?.affiliateId) h['x-rakuten-affiliate-id'] = c.affiliateId;
+  // 楽天API側の「アプリ登録」で設定したApplication URLとの照合にRefererヘッダーが必要なため、
+  // 自分自身のURLをWorker経由で送る（Workerからのサーバー間fetchはブラウザと違い自動で付かない）
+  if (c?.appId || c?.accessKey) h['x-rakuten-referer'] = location.origin + location.pathname;
+  return h;
+}
+
+async function fetchJson(path, options = {}) {
+  const opts = { ...options };
+  opts.headers = { ...authHeaders(), ...(options.headers || {}) };
+  const res = await fetch(`${CONFIG.API_BASE}${path}`, opts);
+  if (!res.ok) {
+    let msg = `HTTP ${res.status}`;
+    try { const d = await res.json(); if (d?.message) msg = d.message; } catch {}
+    throw new Error(msg);
+  }
+  return res.json();
+}
+
+async function updateKeyWarning() {
+  try {
+    const cfg = await fetchJson('/api/config');
+    const hasKey = Boolean(loadCreds()?.appId) || Boolean(cfg.serverKeyConfigured);
+    keyWarning.classList.toggle('show', !hasKey);
+  } catch (e) {
+    keyWarning.classList.remove('show');
+  }
+}
+
+function onDateChange() {
+  loadHeatmap(dateInput.value);
+  updateKeyWarning();
+}
+
+// ---------- 観光地POI（Overpass API） ----------
+async function loadPois() {
+  if (map.getZoom() < 9) { poiLayer.clearLayers(); return; }
+  const b = map.getBounds();
+  const bbox = `${b.getSouth()},${b.getWest()},${b.getNorth()},${b.getEast()}`;
+  const query = `[out:json][timeout:20];node["tourism"~"attraction|museum|viewpoint|gallery|artwork"](${bbox});out body 150;`;
+  try {
+    const res = await fetch('https://overpass-api.de/api/interpreter', {
+      method: 'POST', body: query,
+    });
+    const data = await res.json();
+    poiLayer.clearLayers();
+    for (const el of data.elements || []) {
+      const name = el.tags?.name || '観光地';
+      L.circleMarker([el.lat, el.lon], {
+        radius: 4, className: 'poi-dot-marker',
+        color: 'transparent', fillColor: '#D8A34E', fillOpacity: 0.95,
+      }).bindPopup(`<div class="popup-title">${name}</div><div class="popup-sub">観光地</div>`)
+        .addTo(poiLayer);
+    }
+  } catch (e) {
+    console.error('POI取得失敗', e);
+  }
+}
+
+// ---------- 初期化 ----------
+onDateChange();
+</script>
+</body>
+</html>
