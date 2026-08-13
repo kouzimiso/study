@@ -97,7 +97,7 @@ npm run dev               # http://localhost:8787 で起動
 
 ## フロントエンド
 
-`frontend/index.html` の `CONFIG.API_BASE` にWorkerのURLを入れてください（フロントとWorkerを同一オリジンで配信する場合は空のままで相対パス呼び出しになります）。デモ用のダミーデータ表示は廃止しており、常に実際のWorker/APIにアクセスします。
+`index.html` の `CONFIG.API_BASE` にWorkerのURLを入れてください（フロントとWorkerを同一オリジンで配信する場合は空のままで相対パス呼び出しになります）。デモ用のダミーデータ表示は廃止しており、常に実際のWorker/APIにアクセスします。
 
 操作方法：
 1. 宿泊日を選択

@@ -46,7 +46,7 @@
 
 ## 6. システム構成
 ```
-[フロントエンド] frontend/index.html（Leaflet.js + CARTOダークタイル）
+[フロントエンド] index.html（Leaflet.js + CARTOダークタイル）
    ↓ クリック検索 / 蓄積表示 / ホテル一覧（REST + CORS）
 [Cloudflare Worker]（無料枠）
    /api/search   : 指定地点をグリッド分解 → 楽天空室検索API → vacancy_cellsに保存
@@ -81,7 +81,7 @@
 - 429（レート制限）は `/api/search` では `partial:true` でここまでに検索できたセルを200で返す。`/api/hotels` では `{error:"rate_limited"}` で返す
 
 ## 9. フロントエンド仕様
-- 単一HTMLファイル（`frontend/index.html`）。Leaflet.js（CDN: cdnjs.cloudflare.com）+ CARTOダークタイル
+- 単一HTMLファイル（`index.html`）。Leaflet.js（CDN: cdnjs.cloudflare.com）+ CARTOダークタイル
 - 主要UI：
   - 宿泊日ステッパー（前日／翌日／日付直接指定）
   - 検索半径セレクタ（3/8/12km）

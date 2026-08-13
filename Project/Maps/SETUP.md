@@ -12,7 +12,7 @@
 | D1へのスキーマ適用（リモート） | 済み |
 | Workerのデプロイ | 済み：`https://rakuten-vacancy-worker.travelmaps.workers.dev` |
 | workers.dev サブドメイン登録 | 済み（`travelmaps`） |
-| `frontend/index.html` の `CONFIG.API_BASE` | 上記URLに設定済み |
+| `index.html` の `CONFIG.API_BASE` | 上記URLに設定済み |
 | 楽天ウェブサービスのAPIキー登録 | **未完了（利用者ごとに必要）** |
 
 つまり、バックエンドの立ち上げは完了しています。残っているのは「楽天のAPIキーを取得して、画面の『APIキー設定』から登録する」ことだけです。
@@ -50,13 +50,13 @@ scripts\setup.bat
 4. リモートD1へのスキーマ適用
 5. Workerのデプロイ
    - このとき「workers.dev サブドメイン未登録」と出た場合は、登録画面をブラウザで自動的に開きます。**画面で好きな名前を選んで保存し**、コンソールに戻って Enter を押すと自動で再デプロイされます（この「名前を選ぶ」作業だけはCLIから自動化できません）
-6. デプロイされたURLを `frontend/index.html` の `CONFIG.API_BASE` に自動反映
+6. デプロイされたURLを `index.html` の `CONFIG.API_BASE` に自動反映
 
 ### 2. 楽天APIキーの取得・登録（利用者ごとに必要）
 
 1. https://webservice.rakuten.co.jp/app/create でアプリ登録し、`アプリID` を取得
 2. 同じ画面（[Your Apps](https://webservice.rakuten.co.jp/app/list)）で `アクセスキー` も取得
-3. `frontend/index.html` をブラウザで開き、「APIキー設定」→ アプリID・アクセスキーを入力 →「キーをテスト」で検証 →「保存」
+3. `index.html` をブラウザで開き、「APIキー設定」→ アプリID・アクセスキーを入力 →「キーをテスト」で検証 →「保存」
 
 キーはブラウザの `localStorage` にのみ保存され、サーバーには送られません（検索時のAPI呼び出しにその都度使われるだけです）。
 
@@ -86,7 +86,7 @@ scripts\deploy.bat
 scripts\dev.bat
 ```
 
-`http://127.0.0.1:8787` でWorkerが起動します。フロントから試すには `frontend/index.html` の `CONFIG.API_BASE` を一時的に `http://127.0.0.1:8787` に変更し、確認後は本番URLに戻してください（コミット時にローカルURLが残らないよう注意）。ローカルの楽天API呼び出しは本物のAPIに実際に飛びます（モックではありません）。
+`http://127.0.0.1:8787` でWorkerが起動します。フロントから試すには `index.html` の `CONFIG.API_BASE` を一時的に `http://127.0.0.1:8787` に変更し、確認後は本番URLに戻してください（コミット時にローカルURLが残らないよう注意）。ローカルの楽天API呼び出しは本物のAPIに実際に飛びます（モックではありません）。
 
 ## トラブルシューティング（実際に発生した事例）
 
@@ -94,7 +94,7 @@ scripts\dev.bat
   → `CONFIG.API_BASE` が空、またはWorkerが未デプロイの状態。ブラウザから直接見えているのはCORSエラーやDNS未解決であり、楽天側の問題ではない。`scripts\setup.bat` を実行してデプロイを完了させる
 - **デプロイ直後にWorkerのURLへアクセスするとSSLエラーになる**
   → `workers.dev` サブドメイン未登録、またはDNS/TLS反映待ち（数分かかることがある）。`setup.bat` が自動で登録画面を開くので、名前を決めて保存後、数分待って再アクセス
-- **`.ps1`/`wrangler.toml`/`frontend/index.html` を PowerShell の `Get-Content`/`Set-Content` で書き換えると日本語が文字化けする**
+- **`.ps1`/`wrangler.toml`/`index.html` を PowerShell の `Get-Content`/`Set-Content` で書き換えると日本語が文字化けする**
   → BOM無しUTF-8ファイルをWindows PowerShell 5.1がシステムのANSIコードページとして誤読するため。このリポジトリのスクリプトは `.NET` の `File.ReadAllText`/`WriteAllText` にBOM無しUTF-8を明示して回避済み。今後同様のファイル書き換えを追加する場合も同じ方法を使うこと
 - **有効なキーのはずなのに `REQUEST_CONTEXT_BODY_HTTP_REFERRER_MISSING`（403）で「キーをテスト」/検索が失敗する**
   → 2026年2月頃の楽天ウェブサービスAPI移行で、`Referer` ヘッダーだけでなく **`Origin` ヘッダーも必須**になった（エラー名に反して、Refererだけ付けても解消しない）。楽天へ直接curlで実機検証し、`Referer`のみ→失敗、`Referer`+`Origin`→成功、を確認済み。`src/rakuten.js` の `refererHeaders()` で両方を自動付与するよう対応済み（Originは`referer`の値からオリジン部分を自動抽出）

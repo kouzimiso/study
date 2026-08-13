@@ -83,10 +83,10 @@ if ($deployOutput -match "register a workers\.dev subdomain") {
 
 $urlMatch = [regex]::Match($deployOutput, 'https://[a-z0-9.\-]+\.workers\.dev')
 
-Section 6 $total "frontend/index.html にデプロイURLを反映しています..."
+Section 6 $total "index.html にデプロイURLを反映しています..."
 if ($urlMatch.Success) {
   $workerUrl = $urlMatch.Value
-  $frontendPath = (Resolve-Path "frontend/index.html").Path
+  $frontendPath = (Resolve-Path "index.html").Path
   # 注意: Get-Content/Set-Content はBOM無しUTF-8ファイルをシステムのANSIコードページとして
   # 誤読・誤書込みし、日本語部分を文字化けさせることがあるため、.NETのFile APIで
   # 明示的にBOM無しUTF-8として読み書きする
@@ -94,16 +94,16 @@ if ($urlMatch.Success) {
   $frontend = [System.IO.File]::ReadAllText($frontendPath, $utf8NoBom)
   $frontend = [regex]::Replace($frontend, 'API_BASE:\s*"[^"]*"', "API_BASE: `"$workerUrl`"")
   [System.IO.File]::WriteAllText($frontendPath, $frontend, $utf8NoBom)
-  Write-Host "  frontend/index.html の CONFIG.API_BASE を $workerUrl に設定しました。"
+  Write-Host "  index.html の CONFIG.API_BASE を $workerUrl に設定しました。"
 } else {
-  Write-Host "  デプロイURLを自動検出できませんでした。frontend/index.html の CONFIG.API_BASE を手動で設定してください。" -ForegroundColor Yellow
+  Write-Host "  デプロイURLを自動検出できませんでした。index.html の CONFIG.API_BASE を手動で設定してください。" -ForegroundColor Yellow
 }
 
 Write-Host ""
 Write-Host "=== セットアップ完了 ===" -ForegroundColor Green
 Write-Host "残っている手動作業:"
 Write-Host "  1. https://webservice.rakuten.co.jp/app/create で楽天APIキー（アプリID・アクセスキー）を取得"
-Write-Host "  2. frontend/index.html を開いて「APIキー設定」から登録・テスト"
+Write-Host "  2. index.html を開いて「APIキー設定」から登録・テスト"
 Write-Host ""
 Write-Host "サーバー側に共通キーを持たせたい場合（任意）: scripts\set-server-keys.bat"
 Write-Host "コード変更後の再デプロイ: scripts\deploy.bat"
