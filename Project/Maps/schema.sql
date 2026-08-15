@@ -56,3 +56,27 @@ CREATE TABLE IF NOT EXISTS hotels (
 );
 CREATE INDEX IF NOT EXISTS idx_hotels_bbox ON hotels(lat, lng);
 CREATE INDEX IF NOT EXISTS idx_hotels_cell ON hotels(cell_lat, cell_lng);
+
+-- 観光地POI（Overpass/OpenStreetMap由来）の半永久キャッシュ。ホテルと違って毎回の
+-- ブラウザからの直接問い合わせをやめ、サーバー側でみんなに共有・蓄積する。
+-- 閉園・閉館などで内容が変わることがあるため、日付は持たないが恒久データでもなく、
+-- poi_coverage の swept_at が古くなったら再取得して更新する。
+CREATE TABLE IF NOT EXISTS pois (
+  osm_id INTEGER PRIMARY KEY,   -- OpenStreetMapのノードID
+  name TEXT,
+  lat INTEGER NOT NULL,         -- 度 × 1e6
+  lng INTEGER NOT NULL,
+  tourism_type TEXT,            -- attraction/museum/viewpoint/gallery/artwork
+  updated_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_pois_bbox ON pois(lat, lng);
+
+-- POI用の粗いカバレッジ格子（ホテル用グリッドとは別管理）。このセルをいつ最後に
+-- Overpassでスイープしたかを記録し、一定日数を過ぎたら再スイープして
+-- 閉園・閉館などの変化を取り込む。
+CREATE TABLE IF NOT EXISTS poi_coverage (
+  lat INTEGER NOT NULL,         -- 格子セル中心 (度 × 1e6)
+  lng INTEGER NOT NULL,
+  swept_at TEXT NOT NULL,
+  PRIMARY KEY (lat, lng)
+);

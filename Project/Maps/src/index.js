@@ -10,7 +10,7 @@ import {
   hasCredentials,
 } from "./rakuten.js";
 import { cellsWithinCircle, snapToCell, jitterPoint, encodeCell, CELL_RADIUS_KM } from "./grid.js";
-import { fetchPlaceSeeds } from "./overpass.js";
+import { fetchPlaceSeeds, fetchPois } from "./overpass.js";
 
 // ---- 設定値 ----
 // 楽天APIへの連続リクエスト間隔。エラーメッセージ("Try again in 1 seconds")から見て
@@ -28,6 +28,13 @@ const AREA_SAMPLE_MAX_ATTEMPTS = 200; // ①発見フェーズの乱数サンプ
 const SEED_BIAS_RATIO = 0.8; // 街・集落の座標が取れた場合に、その周辺を優先する割合（残りは完全ランダムで取りこぼしを防ぐ）
 const SEED_SPREAD_KM = 10; // 街・集落の中心からどの程度散らしてサンプリングするか
 const HOTELS_PER_AREA_QUERY_LIMIT = 1000; // 範囲検索1回でDBから読む既知ホテル数の上限（CPU保護）
+// 観光地POIは日付を持たない半永久データとしてサーバー側でキャッシュする。
+// ホテル用グリッド(4km)とは別に、POI用の粗いカバレッジ格子(約5.5km四方)で
+// 「いつスイープしたか」を記録し、一定日数が過ぎたら再取得して閉園等の変化を取り込む。
+const POI_CELL_DEG = 0.05;
+const POI_STALE_DAYS = 30;
+const POI_SWEEP_CHECK_LIMIT = 60; // 再取得が必要か確認するセル数の上限（広い範囲でのCPU保護）
+const POI_MAX_ESTIMATED_CELLS = 4000; // これを超える範囲は広すぎるとしてスイープをスキップ
 
 // フロントエンド（Cloudflare Pages等）からのクロスオリジン呼び出しを許可する
 const CORS_HEADERS = {
@@ -51,6 +58,7 @@ export default {
       if (url.pathname === "/api/hotels") return await handleHotels(url, request, env);
       if (url.pathname === "/api/heatmap") return await handleHeatmap(url, env);
       if (url.pathname === "/api/status") return await handleStatus(url, env);
+      if (url.pathname === "/api/pois") return await handlePois(url, env);
       return json({ error: "not_found" }, 404);
     } catch (err) {
       if (err instanceof RakutenRateLimitError) {
@@ -394,6 +402,92 @@ async function handleStatus(url, env) {
   });
 }
 
+// 指定した矩形範囲の観光地POIを返す（日付を持たない半永久データ、サーバー側でキャッシュ）。
+// ・ホテルとは別に、POI用の粗いカバレッジ格子で「いつ最後にOverpassでスイープしたか」を
+//   記録する。範囲内に未スイープ・または古い（POI_STALE_DAYS超）セルがあれば、
+//   その矩形をまとめて1回Overpassに問い合わせて更新する（セル単位で何度も問い合わせない）
+// ・以後はDBのキャッシュから返すだけなので、Overpassへの問い合わせ回数を大きく減らせる
+//   （毎回ブラウザから直接叩いていた従来方式に比べ、みんなで共有・再利用できる）
+async function handlePois(url, env) {
+  const south = Number(url.searchParams.get("south"));
+  const west = Number(url.searchParams.get("west"));
+  const north = Number(url.searchParams.get("north"));
+  const east = Number(url.searchParams.get("east"));
+  if (
+    ![south, west, north, east].every(Number.isFinite) ||
+    south >= north ||
+    west >= east ||
+    Math.abs(south) > 90 ||
+    Math.abs(north) > 90 ||
+    Math.abs(west) > 180 ||
+    Math.abs(east) > 180
+  ) {
+    return json({ error: "south, west, north, east が必要です" }, 400);
+  }
+
+  const minRow = Math.floor(south / POI_CELL_DEG);
+  const maxRow = Math.ceil(north / POI_CELL_DEG);
+  const minCol = Math.floor(west / POI_CELL_DEG);
+  const maxCol = Math.ceil(east / POI_CELL_DEG);
+  const estimatedCells = (maxRow - minRow + 1) * (maxCol - minCol + 1);
+
+  if (estimatedCells <= POI_MAX_ESTIMATED_CELLS) {
+    const staleBefore = new Date(Date.now() - POI_STALE_DAYS * 24 * 60 * 60 * 1000).toISOString();
+    let needsSweep = false;
+    let checked = 0;
+    outer: for (let row = minRow; row <= maxRow; row++) {
+      for (let col = minCol; col <= maxCol; col++) {
+        checked += 1;
+        if (checked > POI_SWEEP_CHECK_LIMIT) break outer;
+        const clat = Math.round(row * POI_CELL_DEG * 1e6);
+        const clng = Math.round(col * POI_CELL_DEG * 1e6);
+        const coverage = await getPoiCoverage(env, clat, clng);
+        if (!coverage || coverage.swept_at < staleBefore) {
+          needsSweep = true;
+          break outer;
+        }
+      }
+    }
+
+    if (needsSweep) {
+      try {
+        const pois = await fetchPois(south, west, north, east);
+        const sweptAt = nowJSTISO();
+        for (const p of pois) {
+          await upsertPoi(env, p);
+        }
+        for (let row = minRow; row <= maxRow; row++) {
+          for (let col = minCol; col <= maxCol; col++) {
+            await upsertPoiCoverage(env, Math.round(row * POI_CELL_DEG * 1e6), Math.round(col * POI_CELL_DEG * 1e6), sweptAt);
+          }
+        }
+      } catch (err) {
+        console.error("POI sweep failed:", err);
+        // 取得に失敗しても、キャッシュ済みのデータで応答は続ける
+      }
+    }
+  }
+
+  const latMin = Math.round(south * 1e6);
+  const latMax = Math.round(north * 1e6);
+  const lngMin = Math.round(west * 1e6);
+  const lngMax = Math.round(east * 1e6);
+  const rows = await env.DB.prepare(
+    `SELECT osm_id, name, lat, lng, tourism_type FROM pois WHERE lat BETWEEN ? AND ? AND lng BETWEEN ? AND ?`
+  )
+    .bind(latMin, latMax, lngMin, lngMax)
+    .all();
+
+  return json({
+    elements: (rows.results || []).map((r) => ({
+      id: r.osm_id,
+      lat: r.lat / 1e6,
+      lon: r.lng / 1e6,
+      tags: { name: r.name, tourism: r.tourism_type },
+    })),
+  });
+}
+
 // サーバー側の設定状況（フロントの設定画面・キー未設定の案内に使う）
 async function handleConfig(env) {
   return json({ serverKeyConfigured: hasCredentials(serverCredentials(env)) });
@@ -562,6 +656,35 @@ async function upsertHotel(env, hotel) {
        cell_lat = excluded.cell_lat, cell_lng = excluded.cell_lng`
   )
     .bind(hotel.hotelNo, hotel.name, hLatEnc, hLngEnc, cLatEnc, cLngEnc, nowJSTISO())
+    .run();
+}
+
+async function getPoiCoverage(env, lat, lng) {
+  return env.DB.prepare(`SELECT swept_at FROM poi_coverage WHERE lat = ? AND lng = ?`)
+    .bind(lat, lng)
+    .first();
+}
+
+async function upsertPoiCoverage(env, lat, lng, sweptAt) {
+  await env.DB.prepare(
+    `INSERT INTO poi_coverage (lat, lng, swept_at)
+     VALUES (?, ?, ?)
+     ON CONFLICT(lat, lng) DO UPDATE SET swept_at = excluded.swept_at`
+  )
+    .bind(lat, lng, sweptAt)
+    .run();
+}
+
+async function upsertPoi(env, poi) {
+  const [latEnc, lngEnc] = encodeCell(poi.lat, poi.lng);
+  await env.DB.prepare(
+    `INSERT INTO pois (osm_id, name, lat, lng, tourism_type, updated_at)
+     VALUES (?, ?, ?, ?, ?, ?)
+     ON CONFLICT(osm_id) DO UPDATE SET
+       name = excluded.name, lat = excluded.lat, lng = excluded.lng,
+       tourism_type = excluded.tourism_type, updated_at = excluded.updated_at`
+  )
+    .bind(poi.osmId, poi.name, latEnc, lngEnc, poi.tourismType, nowJSTISO())
     .run();
 }
 

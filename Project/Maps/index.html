@@ -47,6 +47,21 @@
   }
 
   .controls{ top:64px; left:16px; padding:14px 16px; width:250px; }
+
+  .menu-toggle{ display:none; }
+  @media (max-width: 640px){
+    .menu-toggle{
+      display:flex; align-items:center; justify-content:center;
+      position:absolute; top:16px; left:16px; z-index:1002;
+      width:38px; height:38px; border-radius:50%;
+      background:rgba(22,33,31,.86); border:1px solid var(--panel-border);
+      color:var(--accent-open); font-size:20px; font-weight:700; line-height:1;
+      cursor:pointer; backdrop-filter:blur(10px); box-shadow:0 8px 20px rgba(0,0,0,.35);
+    }
+    .brand{ display:none; } /* モバイルでは折りたたみボタンと重なるため隠す */
+    .controls{ display:none; top:64px; left:16px; right:16px; width:auto; max-width:280px; }
+    .controls.show{ display:block; }
+  }
   .controls .row{ display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:10px; }
   .controls .row:last-child{ margin-bottom:0; }
   .controls label{ font-size:12px; color:var(--text-muted); letter-spacing:.03em; }
@@ -176,6 +191,8 @@
   <h1>宿・空きマップ</h1>
 </div>
 
+<button class="menu-toggle" id="menuToggleBtn" aria-label="メニューを開閉">···</button>
+
 <div class="panel key-warning" id="keyWarning">
   <b>楽天トラベルAPIキーが未設定です。</b>検索するには右上の「APIキー設定」から自分のキーを入力してください。
 </div>
@@ -270,6 +287,12 @@ L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
 
 const vacancyLayer = L.layerGroup().addTo(map);
 const poiLayer = L.layerGroup();
+
+// ---------- モバイル用メニュー開閉（スマホでは普段は隠す） ----------
+const menuToggleBtn = document.getElementById('menuToggleBtn');
+const controlsPanel = document.querySelector('.controls');
+menuToggleBtn.onclick = () => controlsPanel.classList.toggle('show');
+map.on('click', () => controlsPanel.classList.remove('show')); // 地図をタップしたら閉じる
 
 // ---------- 日付コントロール ----------
 const dateInput = document.getElementById('dateInput');
@@ -664,14 +687,15 @@ async function loadPois() {
   const abortController = new AbortController();
   poiAbortController = abortController;
 
-  const padded = bounds.pad(0.5); // 表示範囲より広めに取得してキャッシュを効かせる
-  const bbox = `${padded.getSouth()},${padded.getWest()},${padded.getNorth()},${padded.getEast()}`;
-  const query = `[out:json][timeout:20];node["tourism"~"attraction|museum|viewpoint|gallery|artwork"](${bbox});out body 300;`;
+  // Overpassへは直接問い合わせず、自前のWorker経由で取得する。Worker側がDBに
+  // 半永久キャッシュしてみんなで共有するので、みんなが同じ場所を見るたびに
+  // Overpassへ問い合わせることがなくなる（閉園等の変化は一定日数ごとに再取得される）。
+  const padded = bounds.pad(0.5); // 表示範囲より広めに取得してクライアント側キャッシュも効かせる
   try {
-    const res = await fetch('https://overpass-api.de/api/interpreter', {
-      method: 'POST', body: query, signal: abortController.signal,
-    });
-    const data = await res.json();
+    const data = await fetchJson(
+      `/api/pois?south=${padded.getSouth()}&west=${padded.getWest()}&north=${padded.getNorth()}&east=${padded.getEast()}`,
+      { signal: abortController.signal }
+    );
     poiCache = { bounds: padded, elements: data.elements || [] };
     renderPois(poiCache.elements);
   } catch (e) {
