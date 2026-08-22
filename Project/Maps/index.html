@@ -269,6 +269,17 @@ const CONFIG = {
   API_BASE: "https://rakuten-vacancy-worker.travelmaps.workers.dev",
 };
 
+// 楽天API側の「アプリ登録」で設定したApplication URL（本番のページURLと一致させる必要がある）。
+// ローカル（localhost/127.0.0.1）でテストする時だけ、実際のlocation（http://localhost:xxxx/）
+// ではなくこの本番URLをRefererとして送る。Rakutenの登録を書き換えずにローカルで
+// 動作確認できるようにするため（Referer/Originはブラウザ強制ではなく自分で組み立てて
+// 送っているだけなので、値を差し替えても技術的には問題ない）。
+const PRODUCTION_URL = "https://kouzimiso.github.io/study/Project/Maps/";
+function currentReferer() {
+  const isLocal = /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname);
+  return isLocal ? PRODUCTION_URL : location.origin + location.pathname;
+}
+
 // ---------- 地図初期化 ----------
 const map = L.map('map', { zoomControl: false, attributionControl: true })
   .setView([36.2, 139.5], 6);
@@ -328,14 +339,16 @@ map.on('moveend', () => {
 });
 
 // ---------- 空室ヒートマップ（蓄積データ） ----------
-// 空き0（完全満室）は常に赤で固定し、1件でも空きがあれば黄〜緑の範囲で表示する。
-// maxに対する相対値だけで連続的に色を付けると、空きが少数でもmaxが大きいと
-// ほぼ赤に埋もれてしまい「完全満室」と見分けがつかなくなるため、赤は分岐で固定する。
-// オレンジは赤に近すぎて（特に半透明・screenブレンド下で）見分けにくかったため、
-// 信号機と同じ赤→黄→緑の配色にして色相を大きく離す。
-function colorForCount(count, max) {
+// 空き0（完全満室）は常に赤、それ以外は黄〜緑の範囲で表示する。
+// 以前は「今表示されているデータの中で一番空きが多いセル」を基準にした相対評価だったが、
+// 全国表示だと新宿・難波のような突出して宿が密集した一箇所が基準（緑）になってしまい、
+// 他の地域は実際には十分空きがあっても相対的に見劣りして黄〜赤寄りになっていた。
+// 絶対的な件数基準に変更し、VACANCY_GREEN_THRESHOLD件以上あれば緑（穴場）とする。
+const VACANCY_GREEN_THRESHOLD = 5; // これ以上の空きホテル数で緑（穴場）にする
+
+function colorForCount(count) {
   if (count <= 0) return 'rgb(193,80,58)'; // 混雑（赤）＝空室ゼロ（完全満室）
-  const t = max > 0 ? Math.min(1, count / max) : 0;
+  const t = Math.min(1, count / VACANCY_GREEN_THRESHOLD);
   const from = [232, 194, 44];   // 空きあり（黄）
   const to   = [69, 176, 140];   // 穴場（緑）
   const rgb = from.map((c, i) => Math.round(c + (to[i] - c) * t));
@@ -355,7 +368,6 @@ async function loadHeatmap(date) {
     return;
   }
 
-  const max = Math.max(1, ...features.map(f => f.properties.hotelCount));
   for (const f of features) {
     const [lng, lat] = f.geometry.coordinates;
     const { hotelCount, radiusKm } = f.properties;
@@ -363,7 +375,7 @@ async function loadHeatmap(date) {
       radius: radiusKm * 1000,
       color: 'transparent',
       weight: 0,
-      fillColor: colorForCount(hotelCount, max),
+      fillColor: colorForCount(hotelCount),
       fillOpacity: 0.58,
       className: 'hotel-circle',
       bubblingMouseEvents: false,
@@ -565,7 +577,7 @@ settingsTestBtn.onclick = async () => {
     const res = await fetch(`${CONFIG.API_BASE}/api/settings`, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ ...c, referer: location.origin + location.pathname }),
+      body: JSON.stringify({ ...c, referer: currentReferer() }),
     });
     const data = await res.json();
     if (data.ok) {
@@ -603,8 +615,9 @@ function authHeaders() {
   if (c?.accessKey) h['x-rakuten-access-key'] = c.accessKey;
   if (c?.affiliateId) h['x-rakuten-affiliate-id'] = c.affiliateId;
   // 楽天API側の「アプリ登録」で設定したApplication URLとの照合にRefererヘッダーが必要なため、
-  // 自分自身のURLをWorker経由で送る（Workerからのサーバー間fetchはブラウザと違い自動で付かない）
-  if (c?.appId || c?.accessKey) h['x-rakuten-referer'] = location.origin + location.pathname;
+  // 自分自身のURLをWorker経由で送る（Workerからのサーバー間fetchはブラウザと違い自動で付かない）。
+  // ローカルテスト時は本番URLに差し替える（currentReferer()参照）。
+  if (c?.appId || c?.accessKey) h['x-rakuten-referer'] = currentReferer();
   return h;
 }
 
