@@ -1,19 +1,34 @@
 #!/usr/bin/env node
 'use strict';
 
+const fs = require('fs');
 const path = require('path');
 const { rankRestaurants } = require('./scoring');
 const { searchRestaurants, getPlaceDetails, toScoringInput } = require('./googlePlaces');
+const { generateMapHtml } = require('./mapExport');
 
 /**
  * 使い方:
  *   GOOGLE_PLACES_API_KEY=xxx node src/cli.js "渋谷 ラーメン"
- *   node src/cli.js --demo        # APIキーなしでサンプルデータを使ってランキング表示を確認
+ *   node src/cli.js --demo                 # APIキーなしでサンプルデータを使ってランキング表示を確認
+ *   node src/cli.js --demo --map           # 上記に加え map.html を生成し、ブラウザの地図で店舗を確認
+ *   node src/cli.js "渋谷 ラーメン" --map out.html  # 出力先を指定
  */
 async function main() {
-  const args = process.argv.slice(2);
-  const isDemo = args.includes('--demo');
-  const query = args.filter((a) => a !== '--demo').join(' ');
+  const rawArgs = process.argv.slice(2);
+  const isDemo = rawArgs.includes('--demo');
+
+  const mapFlagIndex = rawArgs.indexOf('--map');
+  const wantsMap = mapFlagIndex !== -1;
+  const mapOutputArg =
+    wantsMap && rawArgs[mapFlagIndex + 1] && !rawArgs[mapFlagIndex + 1].startsWith('--')
+      ? rawArgs[mapFlagIndex + 1]
+      : null;
+  const mapOutputPath = path.resolve(mapOutputArg || 'map.html');
+
+  const query = rawArgs
+    .filter((a) => a !== '--demo' && a !== '--map' && a !== mapOutputArg)
+    .join(' ');
   const apiKey = process.env.GOOGLE_PLACES_API_KEY;
 
   let restaurants;
@@ -61,6 +76,14 @@ async function main() {
     }
     console.log('');
   });
+
+  if (wantsMap) {
+    const html = generateMapHtml(ranked, {
+      title: query ? `RestaurantFinder マップ（${query}）` : 'RestaurantFinder マップ（デモ）',
+    });
+    fs.writeFileSync(mapOutputPath, html, 'utf8');
+    console.log(`地図を出力しました: ${mapOutputPath}\nブラウザで開いてください。`);
+  }
 }
 
 main().catch((err) => {

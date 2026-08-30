@@ -21,6 +21,7 @@ const SEARCH_FIELD_MASK = [
   'places.userRatingCount',
   'places.priceLevel',
   'places.googleMapsUri',
+  'places.location',
 ].join(',');
 
 const DETAILS_FIELD_MASK = [
@@ -31,6 +32,7 @@ const DETAILS_FIELD_MASK = [
   'priceLevel',
   'reviews',
   'googleMapsUri',
+  'location',
 ].join(',');
 
 /**
@@ -113,6 +115,8 @@ function toScoringInput(placeDetails) {
     reviewCount: placeDetails.userRatingCount || 0,
     priceLevel: placeDetails.priceLevel,
     googleMapsUri: placeDetails.googleMapsUri,
+    lat: placeDetails.location ? placeDetails.location.latitude : undefined,
+    lng: placeDetails.location ? placeDetails.location.longitude : undefined,
     reviews,
   };
 }
