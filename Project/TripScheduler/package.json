@@ -1,0 +1,14 @@
+{
+  "name": "trip-scheduler",
+  "version": "1.0.0",
+  "private": true,
+  "description": "食事・Wifi電源・ホテル空室・混雑回避を組み合わせた旅程を作り、.icsカレンダーに変換するツール",
+  "scripts": {
+    "test": "node --test test/*.test.js",
+    "build:ics": "node src/generateIcs.js data/silver-week-2026.json silver-week-2026.ics \"シルバーウィーク2026 大船発 旅程\""
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "license": "MIT"
+}
