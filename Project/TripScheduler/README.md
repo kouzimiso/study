@@ -23,13 +23,37 @@
   N日分のRouteを選ぶロジック
 - `src/generateIcs.js` — イベント配列を `.ics`（iCalendar）形式に
   変換するスクリプト（依存ライブラリなし）
+- `src/toGanttPlanList.js` — 同じイベント配列を
+  [`Project/WebGantt`](../WebGantt/) の **PlanList JSON形式**に変換する
+  スクリプト。1つの旅程データから、カレンダー（.ics）とガントチャート
+  （WebGantt）の両方を作れる
 
 ## 使い方
 
 ```bash
 npm test                # ユニットテスト
 npm run build:ics       # data/silver-week-2026.json → silver-week-2026.ics を生成
+npm run build:gantt     # data/silver-week-2026.json → silver-week-2026.planlist.json を生成
 ```
+
+### ガントチャートで見る（WebGanttと両立）
+
+`npm run build:gantt` で生成される `silver-week-2026.planlist.json` は
+[`Project/WebGantt`](../WebGantt/) の `gantt.html` にそのまま読み込める
+PlanList形式。1日＝1つのPlan、その日の各予定（移動・観光・食事・温泉・
+Wifi電源休憩）が子Todoになり、種類ごとに `type`
+（`move` / `sightseeing` / `food` / `onsen` / `work`）が付く。
+
+```bash
+npm run build:gantt
+# WebGantt/gantt.html をブラウザで開き、「📂 読込」で
+# TripScheduler/silver-week-2026.planlist.json を選択するとガント表示できる
+```
+
+`data/silver-week-2026.json` の各イベントに `category`（move/sightseeing/
+food/onsen/work）と `routeId`（`data/routes.json` のRoute ID）を持たせて
+いるのはこの変換のため。イベントの元データを1つ増やすだけで、カレンダー
+とガントチャートの両方が最新化される。
 
 ### Routeを選ぶ（一度行った場所は次から後回しになる）
 

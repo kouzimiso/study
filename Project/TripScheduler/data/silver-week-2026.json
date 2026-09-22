@@ -5,7 +5,9 @@
     "end": "09:30",
     "title": "大船→真鶴 移動",
     "location": "車 or JR東海道線",
-    "description": "車で約1時間。真鶴・湯河原ルート1日目。"
+    "description": "車で約1時間。真鶴・湯河原ルート1日目。",
+    "category": "move",
+    "routeId": "manazuru-yugawara"
   },
   {
     "date": "2026-09-21",
@@ -13,7 +15,9 @@
     "end": "11:30",
     "title": "真鶴岬・三ツ石、真鶴半島の遊歩道",
     "location": "真鶴岬",
-    "description": "黒い奇岩と海の絶景。"
+    "description": "黒い奇岩と海の絶景。",
+    "category": "sightseeing",
+    "routeId": "manazuru-yugawara"
   },
   {
     "date": "2026-09-21",
@@ -21,7 +25,9 @@
     "end": "12:30",
     "title": "真鶴港周辺で昼食",
     "location": "真鶴港",
-    "description": "地魚・海鮮。"
+    "description": "地魚・海鮮。",
+    "category": "food",
+    "routeId": "manazuru-yugawara"
   },
   {
     "date": "2026-09-21",
@@ -29,7 +35,9 @@
     "end": "14:00",
     "title": "湯河原へ移動",
     "location": "真鶴→湯河原",
-    "description": ""
+    "description": "",
+    "category": "move",
+    "routeId": "manazuru-yugawara"
   },
   {
     "date": "2026-09-21",
@@ -37,7 +45,9 @@
     "end": "16:00",
     "title": "湯河原温泉 日帰り入浴",
     "location": "湯河原温泉",
-    "description": "施設は事前予約推奨。箱根より空いている見込み。"
+    "description": "施設は事前予約推奨。箱根より空いている見込み。",
+    "category": "onsen",
+    "routeId": "manazuru-yugawara"
   },
   {
     "date": "2026-09-21",
@@ -45,7 +55,9 @@
     "end": "17:00",
     "title": "湯河原駅周辺のカフェでWifi/電源休憩",
     "location": "湯河原駅周辺",
-    "description": ""
+    "description": "",
+    "category": "work",
+    "routeId": "manazuru-yugawara"
   },
   {
     "date": "2026-09-22",
@@ -53,7 +65,9 @@
     "end": "09:40",
     "title": "大船→佐島 移動",
     "location": "車",
-    "description": "約40分。三浦半島西海岸ルート。"
+    "description": "約40分。三浦半島西海岸ルート。",
+    "category": "move",
+    "routeId": "miura-west-coast"
   },
   {
     "date": "2026-09-22",
@@ -61,7 +75,9 @@
     "end": "10:30",
     "title": "佐島マリーナ散策",
     "location": "佐島",
-    "description": ""
+    "description": "",
+    "category": "sightseeing",
+    "routeId": "miura-west-coast"
   },
   {
     "date": "2026-09-22",
@@ -69,7 +85,9 @@
     "end": "11:30",
     "title": "秋谷海岸・立石公園",
     "location": "秋谷",
-    "description": ""
+    "description": "",
+    "category": "sightseeing",
+    "routeId": "miura-west-coast"
   },
   {
     "date": "2026-09-22",
@@ -77,7 +95,9 @@
     "end": "12:30",
     "title": "佐島or秋谷で昼食",
     "location": "佐島・秋谷",
-    "description": "新鮮な地魚。"
+    "description": "新鮮な地魚。",
+    "category": "food",
+    "routeId": "miura-west-coast"
   },
   {
     "date": "2026-09-22",
@@ -85,7 +105,9 @@
     "end": "14:00",
     "title": "荒崎公園散策",
     "location": "荒崎公園",
-    "description": "岩礁の景観。"
+    "description": "岩礁の景観。",
+    "category": "sightseeing",
+    "routeId": "miura-west-coast"
   },
   {
     "date": "2026-09-22",
@@ -93,7 +115,9 @@
     "end": "15:00",
     "title": "秋谷エリアのカフェでWifi/電源休憩",
     "location": "秋谷",
-    "description": "件数は少なめ、要現地確認。"
+    "description": "件数は少なめ、要現地確認。",
+    "category": "work",
+    "routeId": "miura-west-coast"
   },
   {
     "date": "2026-09-22",
@@ -101,7 +125,9 @@
     "end": "18:00",
     "title": "立石公園で夕陽鑑賞",
     "location": "立石公園",
-    "description": "9月下旬の日没は17:45頃が目安。要事前確認。"
+    "description": "9月下旬の日没は17:45頃が目安。要事前確認。",
+    "category": "sightseeing",
+    "routeId": "miura-west-coast"
   },
   {
     "date": "2026-09-23",
@@ -109,7 +135,9 @@
     "end": "09:00",
     "title": "大船→ヤビツ峠 移動",
     "location": "車",
-    "description": "約1時間。秋分の日は午前中心の行程で混雑回避。"
+    "description": "約1時間。秋分の日は午前中心の行程で混雑回避。",
+    "category": "move",
+    "routeId": "yabitsu-miyagase"
   },
   {
     "date": "2026-09-23",
@@ -117,7 +145,9 @@
     "end": "10:30",
     "title": "ヤビツ峠 富士山・大山の眺望",
     "location": "ヤビツ峠",
-    "description": "ヒルクライムの聖地でもあるためサイクリストに注意。"
+    "description": "ヒルクライムの聖地でもあるためサイクリストに注意。",
+    "category": "sightseeing",
+    "routeId": "yabitsu-miyagase"
   },
   {
     "date": "2026-09-23",
@@ -125,7 +155,9 @@
     "end": "11:00",
     "title": "ヤビツ峠レストハウスで休憩・軽食",
     "location": "ヤビツ峠レストハウス",
-    "description": "通年営業。"
+    "description": "通年営業。",
+    "category": "food",
+    "routeId": "yabitsu-miyagase"
   },
   {
     "date": "2026-09-23",
@@ -133,7 +165,9 @@
     "end": "12:00",
     "title": "宮ヶ瀬湖畔散策",
     "location": "宮ヶ瀬湖",
-    "description": ""
+    "description": "",
+    "category": "sightseeing",
+    "routeId": "yabitsu-miyagase"
   },
   {
     "date": "2026-09-23",
@@ -141,7 +175,9 @@
     "end": "13:00",
     "title": "宮ヶ瀬周辺で昼食",
     "location": "宮ヶ瀬",
-    "description": ""
+    "description": "",
+    "category": "food",
+    "routeId": "yabitsu-miyagase"
   },
   {
     "date": "2026-09-23",
@@ -149,6 +185,8 @@
     "end": "14:00",
     "title": "帰路につく",
     "location": "宮ヶ瀬→大船",
-    "description": "9/23午後〜夜は上り混雑のピーク予想。混雑ピーク前の移動完了を目指す。"
+    "description": "9/23午後〜夜は上り混雑のピーク予想。混雑ピーク前の移動完了を目指す。",
+    "category": "move",
+    "routeId": "yabitsu-miyagase"
   }
 ]

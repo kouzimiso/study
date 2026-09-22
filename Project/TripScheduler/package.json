@@ -5,7 +5,8 @@
   "description": "食事・Wifi電源・ホテル空室・混雑回避を組み合わせた旅程を作り、.icsカレンダーに変換するツール",
   "scripts": {
     "test": "node --test test/*.test.js",
-    "build:ics": "node src/generateIcs.js data/silver-week-2026.json silver-week-2026.ics \"シルバーウィーク2026 大船発 旅程\""
+    "build:ics": "node src/generateIcs.js data/silver-week-2026.json silver-week-2026.ics \"シルバーウィーク2026 大船発 旅程\"",
+    "build:gantt": "node src/toGanttPlanList.js data/silver-week-2026.json silver-week-2026.planlist.json data/routes.json"
   },
   "engines": {
     "node": ">=18"

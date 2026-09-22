@@ -107,3 +107,4 @@ config_android_build.log
 
 # TripScheduler の生成物
 Project/TripScheduler/*.ics
+Project/TripScheduler/*.planlist.json

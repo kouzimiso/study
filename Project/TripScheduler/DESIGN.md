@@ -131,6 +131,45 @@ Google Popular Times等の公式APIは提供されていないため、まずは
   1日の訪問順を線でつないで地図上に描画（スコアに応じた色分けは流用）
 - **.ics エクスポート**：Googleカレンダー等に取り込めるiCalendar形式で
   出力（`Project/TripScheduler/src/generateIcs.js` として今回試作した）
+- **ガントチャート（WebGantt）エクスポート**：`Project/WebGantt` が持つ
+  PlanList JSON仕様に変換して出力（`src/toGanttPlanList.js`、後述）
+
+### WebGantt（PlanList形式）との両立
+
+`Project/WebGantt`（既存の私物スケジュール／Todo管理アプリ）は
+「PlanList」という独自のJSON仕様を持っている（`Project/WebGantt/README.md`
+参照）。TripSchedulerの旅程イベント配列（`date`/`start`/`end`/`title`/
+`location`/`description`）に **`category`**（`move`/`sightseeing`/
+`food`/`onsen`/`work`）と **`routeId`**（`data/routes.json` のID）の
+2フィールドを足すだけで、同じ配列から
+
+1. `src/generateIcs.js` → `.ics`（カレンダーアプリ用）
+2. `src/toGanttPlanList.js` → PlanList JSON（`Project/WebGantt/gantt.html`
+   でガントチャート表示用）
+
+の両方を生成できる（下図）。イベントの正本は1つのまま、出力先ごとに
+アダプタを分ける構成にしたので、旅程を編集しても片方だけ更新漏れが
+起きない。
+
+```
+data/silver-week-2026.json（イベント配列 + category + routeId）
+        ├─ src/generateIcs.js        → .ics（カレンダー）
+        └─ src/toGanttPlanList.js    → PlanList JSON（WebGanttのガント表示）
+```
+
+変換の対応関係：
+
+| TripScheduler（イベント） | WebGantt（PlanList） |
+|---|---|
+| 同じ `date` を持つイベント群 | 1つの Plan（`todo: [...]` を持つ親） |
+| `title` | 子 Todo の `name` |
+| `category` | 子 Todo の `type`（move/sightseeing/food/onsen/work） |
+| `start`/`end`（`date`と結合） | 子 Todo の `start`/`end`（`"YYYY-MM-DD HH:MM"`） |
+| `location` + `description` | 子 Todo の `text` |
+| `routeId` で引いた Route の `name`/`notes` | Plan の `name`/`text` |
+
+実データで `Project/WebGantt/gantt_core.js` の `loadPlansFlat()` +
+`buildModels()` に通して検証済み（3 Plan・19バーが正しく構築される）。
 
 ## 6. 段階的な実装ロードマップ
 
@@ -139,6 +178,7 @@ Google Popular Times等の公式APIは提供されていないため、まずは
 | 0 | 手動でPOIを選定し、Markdown＋.icsで旅程を作る | ✅ 今回実施 |
 | 1 | 旅程データをJSON化し、.icsを自動生成するスクリプト | ✅ 今回実施 |
 | 1.5 | Routeカタログ化（`data/routes.json`）＋訪問履歴ベースの選定ロジック（`selectRoutesForTrip()`） | ✅ 今回実施 |
+| 1.6 | WebGantt PlanList形式への変換（`src/toGanttPlanList.js`）でガントチャート表示と両立 | ✅ 今回実施 |
 | 2 | RestaurantFinderのスコアリングを `foodStops` 選定に接続 | 未着手 |
 | 3 | Overpass APIでWifi/電源スポットを自動収集し `wifiPowerStops` に反映 | 未着手 |
 | 4 | 楽天トラベルAPI（Maps/rakuten.js）でホテル空室を自動反映 | 未着手 |
