@@ -167,9 +167,17 @@ data/silver-week-2026.json（イベント配列 + category + routeId）
 | `start`/`end`（`date`と結合） | 子 Todo の `start`/`end`（`"YYYY-MM-DD HH:MM"`） |
 | `location` + `description` | 子 Todo の `text` |
 | `routeId` で引いた Route の `name`/`notes` | Plan の `name`/`text` |
+| `routeId` で引いた Route の `tags` | Plan の `settings.tags`（+固定タグ `旅行`/`TripScheduler`） |
+
+`priority`/`tags`/`status` は実運用のPlanList（例：ユーザー私物の
+`Shibaura_SC` リポジトリの `RunTodo.json`）に合わせて `settings` 配下に
+置く形にした。`gantt_core.js` の `meta(plan, key, default)` はPlanの
+トップレベル→`settings`の順に見るため、どちらに置いても動作上は同じだが、
+実運用ファイルとの一貫性を優先した。
 
 実データで `Project/WebGantt/gantt_core.js` の `loadPlansFlat()` +
-`buildModels()` に通して検証済み（3 Plan・19バーが正しく構築される）。
+`buildModels()` に通して検証済み（3 Plan・19バーが正しく構築され、
+`meta()` 経由で `priority`/`tags` も正しく読めることを確認）。
 
 ## 6. 段階的な実装ロードマップ
 

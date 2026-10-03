@@ -59,7 +59,6 @@ function convertEventsToGanttPlanList(events, options = {}) {
       name: event.title,
       type: CATEGORY_TYPE[event.category] || 'sightseeing',
       complete: false,
-      status: 'todo',
       start: toPlanListDateTime(event.date, event.start),
       end: toPlanListDateTime(event.date, event.end),
       text: [event.location, event.description].filter(Boolean).join(' / '),
@@ -69,7 +68,6 @@ function convertEventsToGanttPlanList(events, options = {}) {
       name: planName,
       type: 'todo',
       task_kind: 'human',
-      priority: 'normal',
       text: route ? route.notes || '' : '',
       schedule: {
         start: toPlanListDateTime(date, sorted[0].start),
@@ -77,6 +75,15 @@ function convertEventsToGanttPlanList(events, options = {}) {
         completion: '',
       },
       todo,
+      // 実運用の PlanList（Shibaura_SC の RunTodo.json 等）では priority/tags/status を
+      // settings 配下に置く。gantt_core.js の meta() はトップレベル→settings の順で
+      // 見るため、どちらに置いても動くが、実運用ファイルとの一貫性のため settings に置く。
+      settings: {
+        description: planName,
+        priority: 'normal',
+        tags: ['旅行', 'TripScheduler', ...(route && route.tags ? route.tags : [])],
+        status: 'todo',
+      },
     };
   }
 

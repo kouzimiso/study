@@ -92,6 +92,18 @@ test('convertEventsToGanttPlanList: 各Planが仕様上必須のフィールド�
   });
 });
 
+test('convertEventsToGanttPlanList: priority/tags/statusは実運用のPlanList（RunTodo.json等）に合わせてsettings配下に置く', () => {
+  const routesWithTags = [
+    { id: 'manazuru-yugawara', name: '真鶴・湯河原ルート', notes: '', tags: ['海', '温泉'] },
+  ];
+  const planList = convertEventsToGanttPlanList(sampleEvents, { routes: routesWithTags });
+  const day1 = planList['真鶴・湯河原ルート（2026-09-21）'];
+  assert.equal(day1.settings.priority, 'normal');
+  assert.equal(day1.settings.status, 'todo');
+  assert.ok(day1.settings.tags.includes('海'));
+  assert.ok(day1.settings.tags.includes('温泉'));
+});
+
 test('convertEventsToGanttPlanList: 実データ(silver-week-2026.json/routes.json)を変換できる', () => {
   // eslint-disable-next-line global-require
   const events = require('../data/silver-week-2026.json');
