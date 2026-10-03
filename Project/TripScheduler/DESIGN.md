@@ -138,10 +138,22 @@ Google Popular Times等の公式APIは提供されていないため、まずは
 
 ## 5. UI／出力
 
-- **タイムラインビュー**：1日ごとにカード形式で時間割を表示（今回の
-  Markdownの表と同じ構造をWebUIにする）
-- **地図ビュー**：`Project/RestaurantFinder/src/mapExport.js` を拡張し、
-  1日の訪問順を線でつないで地図上に描画（スコアに応じた色分けは流用）
+- **タイムラインビュー**（実装済み）：`index.html`（`src/buildIndexHtml.js`
+  で生成）が日ごとにカード形式で時間割を表示する。データはビルド時に
+  HTMLへ埋め込むため、`file://` で開いても（ホテル検索タブを除いて）動く
+- **ルートカタログビュー**（実装済み）：`index.html` の2つ目のタブ。
+  訪問履歴から「未訪問」「前回訪問からN日」を計算してバッジ表示する
+- **地図ビュー**（実装済み）：`index.html` の3つ目のタブ。Leaflet
+  （CDN読み込み）で各Routeの `searchCenter` をマーカー表示。色は
+  `crowdRisk`。`RestaurantFinder/src/mapExport.js` と同じ発想（スコア/
+  リスクに応じた色分け）だが、1日の訪問順を線で結ぶところまでは未実装
+- **楽天ホテル検索**（実装済み、ライブ検証済み）：`index.html` の4つ目の
+  タブ。ブラウザから直接 `openapi.rakuten.co.jp` を叩く。APIキーは
+  localStorageにのみ保存しサーバーには送らない（`Project/Maps/index.html`
+  と同じ設計）。楽天API側のCORSは `Access-Control-Allow-Origin: *` で
+  許可されているため直接呼べるが、「アプリ登録」のApplication URLと
+  実際のRefererが一致しないと `HTTP_REFERRER_NOT_ALLOWED` になる
+  （詳細はREADME参照）
 - **.ics エクスポート**：Googleカレンダー等に取り込めるiCalendar形式で
   出力（`Project/TripScheduler/src/generateIcs.js` として今回試作した）
 - **ガントチャート（WebGantt）エクスポート**：`Project/WebGantt` が持つ
@@ -203,12 +215,13 @@ data/silver-week-2026.json（イベント配列 + category + routeId）
 | 1.7 | Route選定後の「日内スケジューリング」を自動化（`buildDaySchedule()`）＋選定からの統合パイプライン（`planTrip.js`） | ✅ 今回実施 |
 | 2 | RestaurantFinderのスコアリングを `foodStops` 選定に接続 | 未着手 |
 | 3 | Overpass APIでWifi/電源スポットを自動収集し `wifiPowerStops` に反映 | 🟡 ロジック実装・モックテスト済み。ライブ検証はこのセッションのネットワーク制約で未実施（`src/overpassWifi.js`/`src/updateWifiPowerStops.js`） |
-| 4 | 楽天トラベルAPI（Maps/rakuten.js）でホテル空室を自動反映 | 未着手 |
+| 4 | 楽天トラベルAPIでホテル空室を反映 | ✅ ブラウザから直接呼ぶ形で今回実施（`index.html` 「楽天ホテル検索」タブ）。キー検証・Referer要件まで実機確認済み。空室検索の自動組み込み（`foodStops`同様にRouteへ反映）は未着手 |
 | 5 | 混雑ピーク時間帯を避ける制約の `planTrip.js` への組み込み（現状は開始時刻固定） | 未着手 |
-| 6 | Webタイムライン UI（既存Maps同様、Cloudflare Workers + D1想定）＋訪問履歴をD1で管理 | 未着手 |
+| 6 | Webタイムライン UI | ✅ `index.html`（`src/buildIndexHtml.js`）として今回実施。ただし訪問履歴の保存先は今もローカルのJSONファイルで、Cloudflare Workers + D1でのオンライン化は未着手 |
 
-Phase 2以降は既存の `RestaurantFinder` と `Maps` のコードをライブラリ
-として共通化する（例：`Project/shared/` に切り出す）のが自然な流れ。
+Phase 2・4（自動反映の残り）は既存の `RestaurantFinder` と `Maps` の
+コードをライブラリとして共通化する（例：`Project/shared/` に切り出す）
+のが自然な流れ。
 
 ## 未解決の論点
 

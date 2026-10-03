@@ -8,12 +8,39 @@
 パターン（Route）をカタログ化**し、一度行ったRouteは記録して次回は
 別の場所を優先する、という仕組みを持つ。
 
+## ブラウザで見る（HTML GUI）
+
+```bash
+npm run build:html   # index.html を生成（デフォルトで同梱済み）
+```
+
+[`index.html`](./index.html) をブラウザで開くと、以下をタブ切り替えで見られる：
+
+- **旅程**：`data/silver-week-2026.json` を日別タイムラインで表示
+- **ルートカタログ**：`data/routes.json` のRoute一覧（混雑リスク・タグ・
+  訪問履歴バッジ付き）
+- **地図**：Leaflet地図（CDN読み込み）に各Routeの検索中心座標をマーカー
+  表示。色は混雑リスクの目安
+- **楽天ホテル検索**：ブラウザから直接 `openapi.rakuten.co.jp` を呼ぶ。
+  Application ID / Access Key / Affiliate ID はこの端末のlocalStorageに
+  のみ保存され、サーバーには送らない（既存の `Project/Maps/index.html`
+  と同じ設計）
+
+**重要**：楽天API側は「アプリ登録」で設定したApplication URLと、実際に
+このページを開いたブラウザのRefererが一致しないと
+`HTTP_REFERRER_NOT_ALLOWED` で失敗する（楽天API自体のCORSは
+`Access-Control-Allow-Origin: *` で許可されているため、これさえ合えば
+ブラウザから直接呼べることは確認済み）。`file://` で直接開くと失敗するので、
+登録したURL上（例：GitHub Pages）で配信して開くこと。
+
 - [`SILVER_WEEK_2026_PLAN.md`](./SILVER_WEEK_2026_PLAN.md) — 2026年
   シルバーウィーク（9/21月〜9/23水、大船発）の具体的な旅程と、その
   下調べの根拠
 - [`DESIGN.md`](./DESIGN.md) — 上記のような旅程を自動生成する
   「スケジュールソフト」にするための設計案（Routeデータモデル・
   訪問履歴によるローテーションを含む）
+- `index.html` / `src/buildIndexHtml.js` — 上記のHTML GUI本体と、
+  データから生成するビルドスクリプト
 - `data/routes.json` — 大船から日帰り圏の行き先パターン（観光地・
   温泉・絶景ドライブ）のカタログ
 - `data/visitHistory.json` — 訪問済みRouteの記録

@@ -7,6 +7,7 @@
     "test": "node --test test/*.test.js",
     "build:ics": "node src/generateIcs.js data/silver-week-2026.json silver-week-2026.ics \"シルバーウィーク2026 大船発 旅程\"",
     "build:gantt": "node src/toGanttPlanList.js data/silver-week-2026.json silver-week-2026.planlist.json data/routes.json",
+    "build:html": "node src/buildIndexHtml.js",
     "plan": "node src/planTrip.js"
   },
   "engines": {
