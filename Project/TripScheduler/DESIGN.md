@@ -64,9 +64,18 @@ Overpass取得結果で置き換える想定（外側のRoute構造は変えな�
 
 Wifi/電源については専用の公開APIが乏しいため、**OpenStreetMap Overpass
 APIの `internet_access` / `internet_access:fee` タグ**を第一候補にする
-（既存の `Project/Maps/src/overpass.js` を拡張して取得できる）。
+（`src/overpassWifi.js` で実装済み。既存の `Project/Maps/src/overpass.js`
+と同じ「複数パブリックインスタンスへのフォールバック」の考え方を踏襲）。
 飲食店の評価は `RestaurantFinder/src/scoring.js` の
 `scoreRestaurant()` をそのまま `foodStops` のスコアに流用する。
+
+**検証状況の注記**：このセッションの実行環境からOverpass系の各インスタンス
+（`overpass-api.de`、`lz4.overpass-api.de`、`overpass.kumi.systems`、
+`overpass.nchc.org.tw`）への接続を試したところ、トンネル中断・タイムアウト・
+502などで軒並み失敗した。`overpass.osm.ch` のみ接続できたが、返るデータが
+空だった（日本のデータを持たないレプリカの可能性）。`src/overpassWifi.js`
+のロジック自体はモックfetchによるユニットテストで検証済みだが、実データでの
+動作確認は別の安定したネットワークから行う必要がある。
 
 ### 訪問履歴とローテーション
 
@@ -193,7 +202,7 @@ data/silver-week-2026.json（イベント配列 + category + routeId）
 | 1.6 | WebGantt PlanList形式への変換（`src/toGanttPlanList.js`）でガントチャート表示と両立 | ✅ 今回実施 |
 | 1.7 | Route選定後の「日内スケジューリング」を自動化（`buildDaySchedule()`）＋選定からの統合パイプライン（`planTrip.js`） | ✅ 今回実施 |
 | 2 | RestaurantFinderのスコアリングを `foodStops` 選定に接続 | 未着手 |
-| 3 | Overpass APIでWifi/電源スポットを自動収集し `wifiPowerStops` に反映 | 未着手 |
+| 3 | Overpass APIでWifi/電源スポットを自動収集し `wifiPowerStops` に反映 | 🟡 ロジック実装・モックテスト済み。ライブ検証はこのセッションのネットワーク制約で未実施（`src/overpassWifi.js`/`src/updateWifiPowerStops.js`） |
 | 4 | 楽天トラベルAPI（Maps/rakuten.js）でホテル空室を自動反映 | 未着手 |
 | 5 | 混雑ピーク時間帯を避ける制約の `planTrip.js` への組み込み（現状は開始時刻固定） | 未着手 |
 | 6 | Webタイムライン UI（既存Maps同様、Cloudflare Workers + D1想定）＋訪問履歴をD1で管理 | 未着手 |

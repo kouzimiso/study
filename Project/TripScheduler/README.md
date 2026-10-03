@@ -31,6 +31,10 @@
   [`Project/WebGantt`](../WebGantt/) の **PlanList JSON形式**に変換する
   スクリプト。1つの旅程データから、カレンダー（.ics）とガントチャート
   （WebGantt）の両方を作れる
+- `src/overpassWifi.js` — OpenStreetMap Overpass APIから、座標周辺の
+  Wifi/電源の目安になるカフェ等を検索するロジック（APIキー不要）
+- `src/updateWifiPowerStops.js` — 各Routeの `searchCenter` を使って
+  Overpass検索を行い、`wifiPowerStops` を拡充するCLI
 
 ## 使い方
 
@@ -100,3 +104,21 @@ node src/toGanttPlanList.js /tmp/trip.json /tmp/trip.planlist.json data/routes.j
 インポートできる。任意の旅程を組みたい場合は `data/*.json` と同じ形式
 （`date`, `start`, `end`, `title`, `location`, `description`）で
 JSONを作り、`node src/generateIcs.js <入力.json> <出力.ics>` を実行する。
+
+### Wifi/電源スポットの自動収集（Overpass API・APIキー不要）
+
+```bash
+node src/updateWifiPowerStops.js              # dry-run：見つかった候補を表示するだけ
+node src/updateWifiPowerStops.js --write       # data/routes.json のwifiPowerStopsを実際に更新
+```
+
+各Routeの `searchCenter`（検索中心の緯度経度）周辺で、`internet_access`
+タグを持つカフェ・レストラン等をOverpass APIから検索し、確認済みの候補を
+`wifiPowerStops` に追加する。1つのRouteの検索が失敗しても他のRouteの処理は
+続行する。
+
+**注意**：このセッションの実行環境からはOverpass系の主要インスタンス
+（`overpass-api.de` 等）への接続が不安定で、ライブデータでの動作確認が
+できていない。`src/overpassWifi.js` のロジックはモックfetchによるユニット
+テストで検証済みだが、実際にWifi/電源情報を収集する際は、安定したネット
+ワークから一度 dry-run で結果を確認してから `--write` を使うこと。
