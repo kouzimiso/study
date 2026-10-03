@@ -114,14 +114,18 @@ Google Popular Times等の公式APIは提供されていないため、まずは
 処理：
 1. **Route選定**（実装済み）：`selectRoutesForTrip()` で日数分のRouteを
    訪問履歴・混雑リスク・方角の多様性から選ぶ
-2. **日内スケジューリング**（未実装）：選ばれた各Routeの `highlights` /
-   `foodStops` / `wifiPowerStops` / `onsenStops` を、滞在時間・移動時間・
-   食事の時間帯（昼食は11:30-13:30等）を考慮して1日の時間割に展開する。
-   今回は手作業でMarkdownの表に組んだが、ロジック化するなら
-   `recommendedDurationHours` を軸に貪欲法で十分（厳密な最適化は不要）
-3. 連休最終日など `crowdIndex` が高い時間帯には、移動系（帰路）の予定を
-   優先的に割り当てる制約を入れる
-4. 生成した候補を複数パターン提示し、ユーザーが入れ替え可能にする
+2. **日内スケジューリング**（実装済み）：`buildDaySchedule()` が、選ばれた
+   Routeの `highlights` / `foodStops` / `onsenStops` / `wifiPowerStops` を
+   「往路移動→観光→（中間で昼食）→温泉→Wifi電源休憩→帰路移動」の順に、
+   `recommendedDurationHours` を総枠として均等割りで展開する。厳密な
+   最適化ではなく実用十分な近似解（`accessFromOfuna.car` の文字列から
+   `parseTravelMinutes()` で移動時間を推定し、往復分を確保する）
+3. **統合パイプライン**（実装済み）：`src/planTrip.js` が1と2を連結し、
+   N日分の旅程イベント配列を1コマンドで生成する（`npm run plan`）
+4. 連休最終日など `crowdIndex` が高い時間帯には、移動系（帰路）の予定を
+   優先的に割り当てる制約を入れる（現状は未実装。`planTrip.js` は
+   開始時刻を固定で展開するのみ）
+5. 生成した候補を複数パターン提示し、ユーザーが入れ替え可能にする
 
 ## 5. UI／出力
 
@@ -187,10 +191,11 @@ data/silver-week-2026.json（イベント配列 + category + routeId）
 | 1 | 旅程データをJSON化し、.icsを自動生成するスクリプト | ✅ 今回実施 |
 | 1.5 | Routeカタログ化（`data/routes.json`）＋訪問履歴ベースの選定ロジック（`selectRoutesForTrip()`） | ✅ 今回実施 |
 | 1.6 | WebGantt PlanList形式への変換（`src/toGanttPlanList.js`）でガントチャート表示と両立 | ✅ 今回実施 |
+| 1.7 | Route選定後の「日内スケジューリング」を自動化（`buildDaySchedule()`）＋選定からの統合パイプライン（`planTrip.js`） | ✅ 今回実施 |
 | 2 | RestaurantFinderのスコアリングを `foodStops` 選定に接続 | 未着手 |
 | 3 | Overpass APIでWifi/電源スポットを自動収集し `wifiPowerStops` に反映 | 未着手 |
 | 4 | 楽天トラベルAPI（Maps/rakuten.js）でホテル空室を自動反映 | 未着手 |
-| 5 | Route選定後の「日内スケジューリング」を自動化（現状は手作業でMarkdown化） | 未着手 |
+| 5 | 混雑ピーク時間帯を避ける制約の `planTrip.js` への組み込み（現状は開始時刻固定） | 未着手 |
 | 6 | Webタイムライン UI（既存Maps同様、Cloudflare Workers + D1想定）＋訪問履歴をD1で管理 | 未着手 |
 
 Phase 2以降は既存の `RestaurantFinder` と `Maps` のコードをライブラリ

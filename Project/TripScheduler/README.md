@@ -21,6 +21,10 @@
   イベント配列
 - `src/selectRoutes.js` — 訪問履歴・混雑リスク・方角の多様性から
   N日分のRouteを選ぶロジック
+- `src/buildDaySchedule.js` — 1つのRouteを、移動・観光・食事・温泉・
+  Wifi電源休憩を含む1日分の時間割（イベント配列）に自動展開するロジック
+- `src/planTrip.js` — `selectRoutes` → `buildDaySchedule` を繋いで、
+  N日分の旅程イベント配列を一括生成するCLI
 - `src/generateIcs.js` — イベント配列を `.ics`（iCalendar）形式に
   変換するスクリプト（依存ライブラリなし）
 - `src/toGanttPlanList.js` — 同じイベント配列を
@@ -69,6 +73,28 @@ console.log(selectRoutesForTrip(routes, visitHistory, 3, { today: new Date() }))
 旅行後は `data/visitHistory.json` に `{ "routeId": "...", "visitedOn": "YYYY-MM-DD" }`
 を追記するだけで、次回の選定では今回行ったRouteの優先度が下がり、
 自動的に別の行き先が提案されるようになる。
+
+### 旅程を1コマンドで自動生成する（Route選定＋日内スケジューリング）
+
+```bash
+npm run plan 3 -- --start-date=2026-09-21 --out=data/my-trip.json
+# 出力先を省略すると標準出力にJSONを吐く。選ばれたRouteと選定理由はstderrに出る。
+```
+
+`src/planTrip.js` は `selectRoutesForTrip()` でN日分のRouteを選び、
+各Routeを `buildDaySchedule()` で1日分の時間割（移動→観光→昼食→温泉→
+Wifi電源休憩→帰路、という順の近似スケジュール）に展開する。出力は
+そのまま `generateIcs.js` / `toGanttPlanList.js` に渡せる。
+
+```bash
+node src/planTrip.js 3 --start-date=2026-09-21 --out=/tmp/trip.json
+node src/generateIcs.js /tmp/trip.json /tmp/trip.ics
+node src/toGanttPlanList.js /tmp/trip.json /tmp/trip.planlist.json data/routes.json
+```
+
+`--max-crowd-risk=low` で混雑リスクの上限を絞ったり、`--exclude=id1,id2`
+で特定Routeを除外したりできる（`data/silver-week-2026.json` は、この
+自動生成結果に地名の表記調整などを手作業で加えたもの）。
 
 生成された `.ics` ファイルはGoogleカレンダー・Appleカレンダー等に
 インポートできる。任意の旅程を組みたい場合は `data/*.json` と同じ形式
