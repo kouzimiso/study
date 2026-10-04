@@ -5,8 +5,10 @@ const assert = require('node:assert/strict');
 
 const {
   buildSpotsQuery,
+  buildSpotsQueryBbox,
   classifySpotTags,
   findSpotsAround,
+  findSpotsInBbox,
   haversineMeters,
 } = require('../src/overpassSpots');
 
@@ -101,4 +103,43 @@ test('findSpotsAround: 外部から渡したAbortSignal（キャンセルボタ�
     /aborted/
   );
   assert.equal(calls, 2, '両方のミラーに中断済みのsignalが渡っているはず');
+});
+
+test('buildSpotsQueryBbox: 矩形(bbox)を含むクエリを生成する（around:は使わない）', () => {
+  const q = buildSpotsQueryBbox([35.1, 139.1, 35.2, 139.2], ['sightseeing', 'food']);
+  assert.match(q, /\(35\.1,139\.1,35\.2,139\.2\)/);
+  assert.doesNotMatch(q, /around:/);
+  assert.match(q, /tourism/);
+  assert.match(q, /amenity.*restaurant/);
+});
+
+test('findSpotsInBbox: Overpass結果を分類・重複排除して返す（距離は持たない）', async () => {
+  const fetchImpl = makeFetchStub([
+    {
+      ok: true,
+      body: {
+        elements: [
+          { id: 1, lat: 35.15, lon: 139.15, tags: { name: '鶴岡八幡宮', tourism: 'attraction' } },
+          { id: 2, lat: 35.15, lon: 139.15, tags: { name: '鶴岡八幡宮', tourism: 'attraction' } }, // 重複
+          { id: 3, lat: 35.16, lon: 139.16, tags: { name: '食堂B', amenity: 'restaurant' } },
+        ],
+      },
+    },
+  ]);
+  const spots = await findSpotsInBbox([35.1, 139.1, 35.2, 139.2], ['sightseeing', 'food'], {
+    fetchImpl,
+    endpoints: ['https://a.example'],
+  });
+  assert.equal(spots.length, 2);
+  assert.ok(spots.every((s) => !('distanceMeters' in s)));
+  assert.ok(spots.some((s) => s.name === '鶴岡八幡宮' && s.type === 'sightseeing'));
+  assert.ok(spots.some((s) => s.name === '食堂B' && s.type === 'food'));
+});
+
+test('findSpotsInBbox: 無効なtypesだけならfetchせず空配列', async () => {
+  let called = false;
+  const fetchImpl = async () => { called = true; return { ok: true, json: async () => ({ elements: [] }) }; };
+  const spots = await findSpotsInBbox([35.0, 139.0, 35.1, 139.1], ['unknown-type'], { fetchImpl });
+  assert.deepEqual(spots, []);
+  assert.equal(called, false);
 });

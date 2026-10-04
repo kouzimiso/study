@@ -93,6 +93,29 @@ function buildSpotsQuery(lat, lng, radiusMeters, types) {
 }
 
 /**
+ * 出発地〜目的地のルート沿いのスポットを探すためのクエリ。中心＋半径では
+ * なく矩形（bbox）で絞り込む（`Test/travel-route-planner.html`の
+ * fetchOverpass(bbox, types)と同じ考え方）。実際に「ルートから何m以内か」
+ * の判定は、bboxの中からルート座標列（`src/routeLine.js`）を使って呼び出し
+ * 元（ブラウザ側）で絞り込む。
+ * @param {[number,number,number,number]} bbox [minLat, minLng, maxLat, maxLng]
+ * @param {string[]} types
+ * @returns {string} Overpass QL
+ */
+function buildSpotsQueryBbox(bbox, types) {
+  const [minLat, minLng, maxLat, maxLng] = bbox;
+  const lines = [];
+  types.forEach((type) => {
+    const def = SPOT_TYPES[type];
+    if (!def) return;
+    def.selectors.forEach((sel) => {
+      lines.push(`${sel}(${minLat},${minLng},${maxLat},${maxLng});`);
+    });
+  });
+  return `[out:json][timeout:25];(\n${lines.join('\n')}\n);out body 150;`;
+}
+
+/**
  * Overpass要素のタグから、リクエストされたタイプのうちどれに該当するか判定する。
  * 複数当てはまる場合は types の順で最初に一致したものを返す。
  * @param {object} tags
@@ -210,6 +233,22 @@ async function findSpotsAround(lat, lng, radiusMeters, types, options = {}) {
   const query = buildSpotsQuery(lat, lng, radiusMeters, validTypes);
   const data = await fetchOverpassRaw(query, options);
 
+  const spots = parseOverpassElements(data, validTypes).map((spot) => ({
+    ...spot,
+    distanceMeters: Math.round(haversineMeters(lat, lng, spot.lat, spot.lng)),
+  }));
+  spots.sort((a, b) => a.distanceMeters - b.distanceMeters);
+  return spots;
+}
+
+/**
+ * Overpass要素の配列から、名前付きで重複のないスポット配列を作る
+ * （`findSpotsAround()`/`findSpotsInBbox()` の共通部分）。
+ * @param {{elements?: object[]}} data fetchOverpassRaw()の戻り値
+ * @param {string[]} validTypes
+ * @returns {{id:string, name:string, type:string, lat:number, lng:number, hours:string|null, tags:object}[]}
+ */
+function parseOverpassElements(data, validTypes) {
   const seen = new Set();
   const spots = [];
   (data.elements || []).forEach((el) => {
@@ -227,22 +266,39 @@ async function findSpotsAround(lat, lng, radiusMeters, types, options = {}) {
       type,
       lat: el.lat,
       lng: el.lon,
-      distanceMeters: Math.round(haversineMeters(lat, lng, el.lat, el.lon)),
       hours: el.tags.opening_hours || null,
       tags: el.tags,
     });
   });
-
-  spots.sort((a, b) => a.distanceMeters - b.distanceMeters);
   return spots;
+}
+
+/**
+ * 矩形（bbox）内のスポットを検索する。出発地〜目的地のルート沿いの
+ * スポットを探す用途で、`findSpotsAround()`と違い中心からの距離は持たない
+ * （ルート上のどの位置にあるかは、呼び出し元が`src/routeLine.js`の
+ * `distanceToRouteMeters()`/`routeProgressRatio()`で判定する）。
+ * @param {[number,number,number,number]} bbox [minLat, minLng, maxLat, maxLng]
+ * @param {string[]} types
+ * @param {{fetchImpl?: typeof fetch, endpoints?: string[], timeoutMs?: number, signal?: AbortSignal}} [options]
+ * @returns {Promise<{id:string, name:string, type:string, lat:number, lng:number, hours:string|null, tags:object}[]>}
+ */
+async function findSpotsInBbox(bbox, types, options = {}) {
+  const validTypes = types.filter((t) => SPOT_TYPES[t]);
+  if (validTypes.length === 0) return [];
+  const query = buildSpotsQueryBbox(bbox, validTypes);
+  const data = await fetchOverpassRaw(query, options);
+  return parseOverpassElements(data, validTypes);
 }
 
   return {
     SPOT_TYPES,
     buildSpotsQuery,
+    buildSpotsQueryBbox,
     classifySpotTags,
     fetchOverpassRaw,
     findSpotsAround,
+    findSpotsInBbox,
     haversineMeters,
   };
 });

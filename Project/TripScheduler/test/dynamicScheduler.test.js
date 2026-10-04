@@ -3,21 +3,14 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 
-const {
-  estimateTravelMinutes,
-  selectSpotsForDay,
-  orderSpotsGreedy,
-  buildDynamicDaySchedule,
-} = require('../src/dynamicScheduler');
+const { estimateTravelMinutes, buildRouteSchedule } = require('../src/dynamicScheduler');
 
-const center = { lat: 35.3556, lng: 139.5309, name: '大船駅' };
+const from = { lat: 35.3556, lng: 139.5309, name: '大船駅' };
+const to = { lat: 35.45, lng: 139.63, name: '鎌倉駅' };
 
-const sampleSpots = [
-  { id: 's1', name: '観光地A', type: 'sightseeing', lat: 35.36, lng: 139.54, distanceMeters: 600, hours: null },
-  { id: 's2', name: '観光地B', type: 'sightseeing', lat: 35.37, lng: 139.55, distanceMeters: 1800, hours: '09:00-17:00' },
-  { id: 's3', name: '観光地C', type: 'sightseeing', lat: 35.38, lng: 139.56, distanceMeters: 3000, hours: null },
-  { id: 's4', name: '食堂A', type: 'food', lat: 35.355, lng: 139.53, distanceMeters: 300, hours: null },
-  { id: 's5', name: 'カフェA', type: 'wifi', lat: 35.354, lng: 139.532, distanceMeters: 400, hours: null },
+const orderedStops = [
+  { id: 's1', name: '観光地A', type: 'sightseeing', lat: 35.36, lng: 139.54, hours: null },
+  { id: 's4', name: '食堂A', type: 'food', lat: 35.4, lng: 139.58, hours: '11:00-14:00' },
 ];
 
 test('estimateTravelMinutes: 車は徒歩より速く見積もる', () => {
@@ -30,27 +23,19 @@ test('estimateTravelMinutes: 最低5分を保証する', () => {
   assert.equal(estimateTravelMinutes(10, 'car'), 5);
 });
 
-test('selectSpotsForDay: カテゴリごとの上限を守りつつ近い順に選ぶ', () => {
-  const selected = selectSpotsForDay(sampleSpots, { maxByType: { sightseeing: 2, food: 1, wifi: 1 } });
-  const sightseeingCount = selected.filter((s) => s.type === 'sightseeing').length;
-  assert.equal(sightseeingCount, 2);
-  assert.ok(selected.some((s) => s.name === '観光地A'));
-  assert.ok(selected.some((s) => s.name === '観光地B'));
-  assert.ok(!selected.some((s) => s.name === '観光地C')); // 上限超過で除外
-});
+test('buildRouteSchedule: 出発地→スポット→目的地の順に移動・滞在イベントを積む', () => {
+  const events = buildRouteSchedule(from, to, '2026-11-01', orderedStops, { startTime: '09:00', mode: 'car' });
 
-test('orderSpotsGreedy: 中心から最も近い順に巡回する（最近傍法）', () => {
-  const ordered = orderSpotsGreedy(center, [sampleSpots[2], sampleSpots[0], sampleSpots[3]]);
-  assert.equal(ordered[0].name, '食堂A'); // 300m, 一番近い
-});
-
-test('buildDynamicDaySchedule: 移動→滞在の繰り返しで、最後に出発地点に戻る', () => {
-  const selected = selectSpotsForDay(sampleSpots, { maxByType: { sightseeing: 1, food: 1 } });
-  const events = buildDynamicDaySchedule(center, '2026-11-01', selected, { startTime: '09:00', mode: 'car' });
-
+  // move, stay, move, stay, move（最後は目的地への移動）
+  assert.equal(events.length, 5);
   assert.equal(events[0].category, 'move');
-  assert.equal(events[events.length - 1].category, 'move');
-  assert.ok(events[events.length - 1].title.includes('大船駅'));
+  assert.equal(events[1].category, 'sightseeing');
+  assert.equal(events[1].title, '観光地A');
+  assert.equal(events[2].category, 'move');
+  assert.equal(events[3].category, 'food');
+  assert.equal(events[3].title, '食堂A');
+  assert.equal(events[4].category, 'move');
+  assert.ok(events[4].title.includes('鎌倉駅'));
   assert.ok(events.every((e) => e.date === '2026-11-01'));
   // 時刻が単調増加しているか
   for (let i = 1; i < events.length; i++) {
@@ -58,15 +43,28 @@ test('buildDynamicDaySchedule: 移動→滞在の繰り返しで、最後に出�
   }
 });
 
-test('buildDynamicDaySchedule: returnToCenter=falseなら帰路イベントを追加しない', () => {
-  const selected = [sampleSpots[0]];
-  const events = buildDynamicDaySchedule(center, '2026-11-01', selected, { returnToCenter: false });
-  // move(往路) + 滞在 の2件のみ
-  assert.equal(events.length, 2);
-  assert.equal(events[1].category, 'sightseeing');
+test('buildRouteSchedule: 立ち寄り先が0件でも出発地→目的地の移動イベントは生成する', () => {
+  const events = buildRouteSchedule(from, to, '2026-11-01', [], { startTime: '09:00', mode: 'car' });
+  assert.equal(events.length, 1);
+  assert.equal(events[0].category, 'move');
+  assert.ok(events[0].title.includes('大船駅'));
+  assert.ok(events[0].title.includes('鎌倉駅'));
 });
 
-test('buildDynamicDaySchedule: スポットが0件なら移動イベントも生成されない', () => {
-  const events = buildDynamicDaySchedule(center, '2026-11-01', [], {});
-  assert.deepEqual(events, []);
+test('buildRouteSchedule: 出発地と目的地が同じ（往復ルート）でも動く', () => {
+  const events = buildRouteSchedule(from, from, '2026-11-01', orderedStops, { startTime: '09:00', mode: 'car' });
+  assert.equal(events.length, 5);
+  assert.ok(events[4].title.includes('大船駅'));
+});
+
+test('buildRouteSchedule: stopsの滞在時間はタイプごとの目安に応じて変わる（onsenは長め）', () => {
+  const stops = [{ id: 's9', name: '温泉', type: 'onsen', lat: 35.4, lng: 139.6, hours: null }];
+  const events = buildRouteSchedule(from, to, '2026-11-01', stops, { startTime: '09:00', mode: 'car' });
+  const stay = events.find((e) => e.category === 'onsen');
+  const stayMinutes = (
+    parseInt(stay.end.split(':')[0], 10) * 60 + parseInt(stay.end.split(':')[1], 10)
+  ) - (
+    parseInt(stay.start.split(':')[0], 10) * 60 + parseInt(stay.start.split(':')[1], 10)
+  );
+  assert.equal(stayMinutes, 90);
 });
