@@ -106,7 +106,7 @@ async function fetchOverpassRaw(query, options = {}) {
   const fetchImpl = options.fetchImpl || globalThis.fetch;
   if (!fetchImpl) throw new Error('fetch is not available in this environment');
   const endpoints = options.endpoints || DEFAULT_ENDPOINTS;
-  const timeoutMs = options.timeoutMs || 15000;
+  const timeoutMs = options.timeoutMs || 10000;
   const isBrowser = typeof window !== 'undefined';
 
   let lastError;

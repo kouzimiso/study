@@ -153,6 +153,21 @@ function buildIndexHtml(data, options = {}) {
     <p class="hint">色は混雑リスクの目安（緑=空いている傾向／黄=やや混雑／赤=激混み想定）。マーカーをクリックすると詳細を表示します。</p>
   </section>
   <section id="tab-planner" class="tab">
+    <div id="dp-file-warning" class="route-card" style="display:none;border-color:#E8C22C;">
+      <h3 style="color:#E8C22C;">⚠️ file:// で開いています</h3>
+      <p class="notes">
+        このページを <code>file://</code> で直接開くと、ブラウザは
+        <code>Origin: null</code> としてリクエストを送るため、
+        overpass-api.de 等のサーバーがCORSヘッダーを返さず、
+        スポット検索が失敗することがあります（コンソールに
+        <code>No 'Access-Control-Allow-Origin' header is present</code>
+        と出ていたら、これが原因です）。<br/><br/>
+        <strong>回避策</strong>：このフォルダでローカルサーバーを起動してから、
+        <code>http://localhost:8000/index.html</code> のようなURLで開いてください。
+        例：<code>npx serve .</code> または <code>python -m http.server 8000</code>。
+        GitHub Pages等で公開して開くのでも構いません。
+      </p>
+    </div>
     <div class="route-card">
       <h3>地点から動的にプランを作る</h3>
       <p class="notes">
@@ -469,6 +484,10 @@ function buildIndexHtml(data, options = {}) {
     const statusEl = document.getElementById('dp-status');
     const resultEl = document.getElementById('dp-result');
     const locInput = document.getElementById('dp-location');
+
+    if (location.protocol === 'file:') {
+      document.getElementById('dp-file-warning').style.display = 'block';
+    }
 
     function setStatus(msg, isError) {
       statusEl.textContent = msg;
