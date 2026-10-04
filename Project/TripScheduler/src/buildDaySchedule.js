@@ -9,9 +9,20 @@
  *
  * 厳密な最適化ではなく、実用十分な近似解を返す：
  *   往路移動 → 観光(highlights) → （中間で昼食） → 温泉 → Wifi電源休憩 → 帰路移動
+ *
+ * Node.js（CommonJS）とブラウザ（<script>での直接読み込み、
+ * window.TripSchedulerBuildDaySchedule）の両方で使えるUMD形式。
+ * ブラウザでの利用は index.html（src/buildIndexHtml.js が生成）の
+ * 「現地プラン作成」タブから。
  */
+(function (root, factory) {
+  const mod = factory();
+  if (typeof module !== 'undefined' && module.exports) module.exports = mod;
+  else root.TripSchedulerBuildDaySchedule = mod;
+})(typeof self !== 'undefined' ? self : this, function () {
+  'use strict';
 
-const DEFAULT_TRAVEL_MINUTES = 60;
+  const DEFAULT_TRAVEL_MINUTES = 60;
 const FOOD_MINUTES = 60;
 const ONSEN_MINUTES = 120;
 const WORK_MINUTES = 60;
@@ -141,8 +152,9 @@ function buildDaySchedule(route, date, options = {}) {
   return events;
 }
 
-module.exports = {
-  parseTravelMinutes,
-  addMinutes,
-  buildDaySchedule,
-};
+  return {
+    parseTravelMinutes,
+    addMinutes,
+    buildDaySchedule,
+  };
+});

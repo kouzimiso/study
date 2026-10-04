@@ -21,6 +21,11 @@ npm run build:html   # index.html を生成（デフォルトで同梱済み）
   訪問履歴バッジ付き）
 - **地図**：Leaflet地図（CDN読み込み）に各Routeの検索中心座標をマーカー
   表示。色は混雑リスクの目安
+- **現地プラン作成**：地名（または現在地）を入力すると、その周辺の
+  OpenStreetMap上の観光地・飲食店・Wifi/電源カフェ・温泉銭湯を検索し、
+  カテゴリバランスを考慮して1日あたりの立ち寄り先を自動選定、時間割に
+  組む（`Test/travel-route-planner.html` という既存の個人プロトタイプの
+  考え方を踏襲。APIキー不要、ブラウザから直接OSMに問い合わせる）
 - **楽天ホテル検索**：ブラウザから直接 `openapi.rakuten.co.jp` を呼ぶ。
   Application ID / Access Key / Affiliate ID はこの端末のlocalStorageに
   のみ保存され、サーバーには送らない（既存の `Project/Maps/index.html`
@@ -62,6 +67,15 @@ npm run build:html   # index.html を生成（デフォルトで同梱済み）
   Wifi/電源の目安になるカフェ等を検索するロジック（APIキー不要）
 - `src/updateWifiPowerStops.js` — 各Routeの `searchCenter` を使って
   Overpass検索を行い、`wifiPowerStops` を拡充するCLI
+- `src/geocode.js` — Nominatim（OSM）を使った地名→緯度経度のジオコー
+  ディング（APIキー不要、Node.js/ブラウザ両対応UMD）
+- `src/overpassSpots.js` — 観光地/飲食店/Wifi電源/温泉を横断して検索
+  するOverpassクライアント（Node.js/ブラウザ両対応UMD）
+- `src/dynamicScheduler.js` — `findSpotsAround()` が返したスポットから
+  中心地点を起点に1日分の時間割を動的に組むロジック（最近傍法で巡回順を
+  決め、直線距離と移動手段から所要時間を概算）。「現地プラン作成」タブの
+  中身はこれら3つのUMDモジュール＋`buildDaySchedule.js`をそのまま
+  `index.html` に埋め込んで動かしている
 
 ## 使い方
 
@@ -149,3 +163,26 @@ node src/updateWifiPowerStops.js --write       # data/routes.json のwifiPowerSt
 できていない。`src/overpassWifi.js` のロジックはモックfetchによるユニット
 テストで検証済みだが、実際にWifi/電源情報を収集する際は、安定したネット
 ワークから一度 dry-run で結果を確認してから `--write` を使うこと。
+
+### 現地プラン作成タブ（地点を指定して動的にスケジュールを組む）
+
+`index.html` の「現地プラン作成」タブで、地名（または現在地）・検索半径・
+日数・興味カテゴリ（観光地/飲食店/Wifi電源/温泉）・移動手段を指定すると：
+
+1. `src/geocode.js`（Nominatim）で地点を緯度経度に変換
+2. `src/overpassSpots.js`（Overpass API）でその周辺のスポットを検索
+3. `src/dynamicScheduler.js` が、カテゴリごとの上限件数を守りつつ中心から
+   近い順にスポットを選び（`selectSpotsForDay()`）、最近傍法で巡回順を
+   決めて（`orderSpotsGreedy()`）、移動時間を直線距離と移動手段の速度から
+   概算しながら1日分の時間割を組む（`buildDynamicDaySchedule()`）。
+   複数日を指定した場合は、使用済みスポットを除外しながら日ごとに
+   選定し直す
+4. 結果を旅程タブと同じカードUIで表示し、専用の地図（選ばれなかった
+   候補は薄いグレー、採用されたスポットは種類別の色）にプロットする
+
+**検証状況**：ロジック自体（`test/geocode.test.js` / `test/overpassSpots.test.js`
+/ `test/dynamicScheduler.test.js`）はモックfetchで検証済みで、ブラウザでの
+UI動作（タブ表示・フォーム・地図初期化・エラーハンドリング）もPlaywrightで
+確認済み。ただし実際のOverpass APIへのライブ接続は、このセッションの
+実行環境ではプロキシの接続不安定（Nominatim側は問題なし）により確認
+できていない。安定したネットワーク・通常のブラウザから試すこと。

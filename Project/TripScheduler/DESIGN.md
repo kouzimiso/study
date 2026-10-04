@@ -218,10 +218,15 @@ data/silver-week-2026.json（イベント配列 + category + routeId）
 | 4 | 楽天トラベルAPIでホテル空室を反映 | ✅ ブラウザから直接呼ぶ形で今回実施（`index.html` 「楽天ホテル検索」タブ）。キー検証・Referer要件まで実機確認済み。空室検索の自動組み込み（`foodStops`同様にRouteへ反映）は未着手 |
 | 5 | 混雑ピーク時間帯を避ける制約の `planTrip.js` への組み込み（現状は開始時刻固定） | 未着手 |
 | 6 | Webタイムライン UI | ✅ `index.html`（`src/buildIndexHtml.js`）として今回実施。ただし訪問履歴の保存先は今もローカルのJSONファイルで、Cloudflare Workers + D1でのオンライン化は未着手 |
+| 7 | 地点を指定して動的にRoute相当のプランを生成（`data/routes.json`の事前定義に頼らない） | ✅ `index.html` 「現地プラン作成」タブとして今回実施。`src/geocode.js`（Nominatim）・`src/overpassSpots.js`（Overpass、観光/飲食/Wifi電源/温泉を横断検索）・`src/dynamicScheduler.js`（最近傍法での巡回順決定＋直線距離からの移動時間概算）。UIと各ロジックはモックテスト・Playwrightで検証済みだが、Overpass APIへのライブ接続はこのセッションの実行環境では未確認（Nominatim側は確認済み） |
 
 Phase 2・4（自動反映の残り）は既存の `RestaurantFinder` と `Maps` の
 コードをライブラリとして共通化する（例：`Project/shared/` に切り出す）
-のが自然な流れ。
+のが自然な流れ。Phase 7は `data/routes.json` の手動カタログを代替する
+ものではなく、「今回の旅行のために知らない土地で即興プランを組みたい」
+という別のユースケースを満たす。ユーザー私物の
+`Test/travel-route-planner.html`（出発地→目的地のルート沿いにOSMで
+スポットを検索し、経路に追加していくプロトタイプ）の考え方を参考にした。
 
 ## 未解決の論点
 
@@ -241,3 +246,13 @@ Phase 2・4（自動反映の残り）は既存の `RestaurantFinder` と `Maps`
   追記していく運用が現実的
 - 日帰りではなく1泊以上のRoute（今回は扱っていない）を組み込む場合、
   ホテル空室（Maps/rakuten.js）との接続が必須になる
+- 「現地プラン作成」タブの巡回順決定（`orderSpotsGreedy()`）は最近傍法の
+  近似解で、スポット数が増えると遠回りが生じやすい。カテゴリごとの上限
+  件数（`DEFAULT_MAX_BY_TYPE`）も固定値で、ユーザーが調整できない
+- 動的検索したスポットは営業時間判定（`travel-route-planner.html` にある
+  曜日・時刻ベースの開店チェック）を今回は実装していない。Overpassの
+  `opening_hours` タグは取得しているが表示のみで、スケジュール生成には
+  未反映
+- Overpass APIはこのセッションの実行環境では接続できなかったため、
+  実データでの検索結果の精度（ヒット件数・分類の妥当性）は未検証。
+  安定したネットワークでの実地検証が必要

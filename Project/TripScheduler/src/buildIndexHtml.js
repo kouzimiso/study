@@ -47,6 +47,12 @@ function buildIndexHtml(data, options = {}) {
   const title = escapeHtml(options.title || 'TripScheduler');
   const today = options.today || new Date();
 
+  // 動的プランナー用のロジック（Node.js/ブラウザ両対応のUMDモジュール）をそのまま
+  // <script>として埋め込む。ブラウザではwindow.TripScheduler*に展開される。
+  const embeddedModules = ['buildDaySchedule.js', 'overpassSpots.js', 'geocode.js', 'dynamicScheduler.js']
+    .map((file) => fs.readFileSync(path.join(__dirname, file), 'utf8'))
+    .join('\n');
+
   const lastVisitByRoute = new Map();
   (data.visitHistory || []).forEach((v) => {
     const prev = lastVisitByRoute.get(v.routeId);
@@ -136,6 +142,7 @@ function buildIndexHtml(data, options = {}) {
   <button data-tab="itinerary" class="active">旅程</button>
   <button data-tab="routes">ルートカタログ</button>
   <button data-tab="map">地図</button>
+  <button data-tab="planner">現地プラン作成</button>
   <button data-tab="hotel">楽天ホテル検索</button>
 </nav>
 <main>
@@ -144,6 +151,56 @@ function buildIndexHtml(data, options = {}) {
   <section id="tab-map" class="tab">
     <div id="map"></div>
     <p class="hint">色は混雑リスクの目安（緑=空いている傾向／黄=やや混雑／赤=激混み想定）。マーカーをクリックすると詳細を表示します。</p>
+  </section>
+  <section id="tab-planner" class="tab">
+    <div class="route-card">
+      <h3>地点から動的にプランを作る</h3>
+      <p class="notes">
+        地名を入力すると、その周辺のOpenStreetMap上の観光地・飲食店・Wifi/電源カフェ・
+        温泉銭湯を検索し、1日あたりの立ち寄り先を自動で選んで時間割を組みます
+        （APIキー不要、ブラウザから直接OSMに問い合わせます）。
+      </p>
+      <div class="row">
+        <div class="field" style="flex:2 1 200px;">
+          <label>地点（地名・駅名など）</label>
+          <input id="dp-location" type="text" placeholder="例：鎌倉駅" />
+        </div>
+        <div class="field" style="flex:0 0 auto;align-self:flex-end;">
+          <button class="btn secondary" id="dp-use-gps" type="button">📍 現在地を使う</button>
+        </div>
+      </div>
+      <div class="row">
+        <div class="field"><label>検索半径(km)</label><input id="dp-radius" type="number" value="2" min="0.5" max="10" step="0.5" /></div>
+        <div class="field"><label>日数</label><input id="dp-days" type="number" value="1" min="1" max="7" step="1" /></div>
+        <div class="field"><label>移動手段</label>
+          <select id="dp-mode" style="width:100%;padding:8px;border-radius:8px;background:#0B1011;color:#EAF3EE;border:1px solid #283835;">
+            <option value="walk">徒歩</option>
+            <option value="bike">自転車</option>
+            <option value="car" selected>車</option>
+          </select>
+        </div>
+      </div>
+      <div class="row">
+        <div class="field"><label>開始日</label><input id="dp-start-date" type="date" /></div>
+        <div class="field"><label>1日目の開始時刻</label><input id="dp-start-time" type="time" value="09:00" /></div>
+      </div>
+      <div class="field">
+        <label>検索するスポットの種類</label>
+        <div style="display:flex;gap:14px;flex-wrap:wrap;font-size:12px;">
+          <label style="display:flex;align-items:center;gap:4px;white-space:nowrap;"><input type="checkbox" id="dp-cat-sightseeing" checked /> 観光地</label>
+          <label style="display:flex;align-items:center;gap:4px;white-space:nowrap;"><input type="checkbox" id="dp-cat-food" checked /> 飲食店</label>
+          <label style="display:flex;align-items:center;gap:4px;white-space:nowrap;"><input type="checkbox" id="dp-cat-wifi" checked /> Wifi/電源</label>
+          <label style="display:flex;align-items:center;gap:4px;white-space:nowrap;"><input type="checkbox" id="dp-cat-onsen" /> 温泉・銭湯</label>
+        </div>
+      </div>
+      <button class="btn" id="dp-go" type="button">🔍 検索してスケジュールを作る</button>
+      <p id="dp-status" class="hint"></p>
+    </div>
+    <div id="dp-map-wrap" class="route-card" style="display:none;">
+      <h3>検索結果マップ</h3>
+      <div id="dp-map" style="height:360px;border-radius:12px;"></div>
+    </div>
+    <div id="dp-result"></div>
   </section>
   <section id="tab-hotel" class="tab">
     <div class="route-card">
@@ -182,6 +239,7 @@ function buildIndexHtml(data, options = {}) {
 </main>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"><\/script>
 <script>
+` + embeddedModules + `
   const DATA = JSON.parse(${JSON.stringify(payloadJson)});
   const CROWD_COLOR = ${JSON.stringify(CROWD_RISK_COLOR)};
   const CROWD_LABEL = ${JSON.stringify(CROWD_RISK_LABEL)};
@@ -194,16 +252,16 @@ function buildIndexHtml(data, options = {}) {
       .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
   }
 
-  function renderItinerary() {
+  function buildDayCardsHtml(events) {
     const byDate = new Map();
-    DATA.itinerary.forEach((e) => {
+    events.forEach((e) => {
       if (!byDate.has(e.date)) byDate.set(e.date, []);
       byDate.get(e.date).push(e);
     });
     const dates = [...byDate.keys()].sort();
-    const html = dates.map((date) => {
-      const events = byDate.get(date).slice().sort((a, b) => a.start.localeCompare(b.start));
-      const rows = events.map((e) => {
+    return dates.map((date) => {
+      const dayEvents = byDate.get(date).slice().sort((a, b) => a.start.localeCompare(b.start));
+      const rows = dayEvents.map((e) => {
         const color = CATEGORY_COLOR[e.category] || '#8CA39B';
         const label = CATEGORY_LABEL[e.category] || e.category || '';
         return '<div class="event-row">' +
@@ -219,6 +277,10 @@ function buildIndexHtml(data, options = {}) {
       }).join('');
       return '<div class="day-card"><h2>' + escapeHtml(date) + '</h2>' + rows + '</div>';
     }).join('');
+  }
+
+  function renderItinerary() {
+    const html = buildDayCardsHtml(DATA.itinerary);
     document.getElementById('tab-itinerary').innerHTML = html || '<p class="hint">旅程データがありません。</p>';
   }
 
@@ -358,6 +420,164 @@ function buildIndexHtml(data, options = {}) {
     });
   }
 
+  // ─── 現地プラン作成タブ：地点を指定し、OSM上の周辺スポットから動的に
+  // スケジュールを組む（Test/travel-route-planner.html の考え方を踏襲）───
+  let dpMap = null;
+
+  function addDaysISO(dateStr, days) {
+    const d = new Date(dateStr + 'T00:00:00Z');
+    d.setUTCDate(d.getUTCDate() + days);
+    return d.toISOString().slice(0, 10);
+  }
+
+  function renderPlannerMap(center, spots, events) {
+    const mapWrap = document.getElementById('dp-map-wrap');
+    mapWrap.style.display = 'block';
+    if (!dpMap) {
+      dpMap = L.map('dp-map');
+      L.tileLayer('https://cyberjapandata.gsi.go.jp/xyz/pale/{z}/{x}/{y}.png', {
+        attribution: '地図: <a href="https://maps.gsi.go.jp/development/ichiran.html" target="_blank" rel="noopener">国土地理院</a>',
+        maxZoom: 18,
+      }).addTo(dpMap);
+    } else {
+      dpMap.eachLayer((layer) => { if (!(layer instanceof L.TileLayer)) dpMap.removeLayer(layer); });
+    }
+    setTimeout(() => dpMap.invalidateSize(), 0);
+
+    const usedSpotIds = new Set(events.filter((e) => e.spotId).map((e) => e.spotId));
+    const bounds = [[center.lat, center.lng]];
+    L.marker([center.lat, center.lng]).addTo(dpMap)
+      .bindPopup('<strong>' + escapeHtml(center.name || '出発地点') + '</strong>（出発地点）');
+
+    spots.forEach((spot) => {
+      const used = usedSpotIds.has(spot.id);
+      const color = used ? (CATEGORY_COLOR[spot.type] || '#45B08C') : '#4A5A55';
+      const marker = L.circleMarker([spot.lat, spot.lng], {
+        radius: used ? 9 : 5, color, fillColor: color, fillOpacity: used ? 0.9 : 0.35, weight: used ? 2 : 1,
+      }).addTo(dpMap);
+      marker.bindPopup(
+        '<strong>' + escapeHtml(spot.name) + '</strong><br/>' +
+        escapeHtml(CATEGORY_LABEL[spot.type] || spot.type) + (used ? '（スケジュールに採用）' : '')
+      );
+      bounds.push([spot.lat, spot.lng]);
+    });
+
+    dpMap.fitBounds(bounds, { padding: [40, 40] });
+  }
+
+  function initPlannerTab() {
+    const statusEl = document.getElementById('dp-status');
+    const resultEl = document.getElementById('dp-result');
+    const locInput = document.getElementById('dp-location');
+
+    function setStatus(msg, isError) {
+      statusEl.textContent = msg;
+      statusEl.style.color = isError ? '#C1503A' : '';
+    }
+
+    document.getElementById('dp-use-gps').addEventListener('click', () => {
+      if (!navigator.geolocation) { setStatus('このブラウザは現在地取得に対応していません', true); return; }
+      setStatus('現在地を取得中…');
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          locInput.value = '現在地';
+          locInput.dataset.lat = pos.coords.latitude;
+          locInput.dataset.lng = pos.coords.longitude;
+          setStatus('現在地を取得しました（' + pos.coords.latitude.toFixed(4) + ', ' + pos.coords.longitude.toFixed(4) + '）');
+        },
+        () => setStatus('現在地の取得に失敗しました。地名を入力してください。', true),
+        { timeout: 10000 }
+      );
+    });
+
+    locInput.addEventListener('input', () => {
+      delete locInput.dataset.lat;
+      delete locInput.dataset.lng;
+    });
+
+    document.getElementById('dp-go').addEventListener('click', async () => {
+      const radiusKm = parseFloat(document.getElementById('dp-radius').value) || 2;
+      const days = Math.max(1, Math.min(7, parseInt(document.getElementById('dp-days').value, 10) || 1));
+      const mode = document.getElementById('dp-mode').value;
+      const startDateInput = document.getElementById('dp-start-date').value;
+      const startTime = document.getElementById('dp-start-time').value || '09:00';
+
+      const types = [];
+      if (document.getElementById('dp-cat-sightseeing').checked) types.push('sightseeing');
+      if (document.getElementById('dp-cat-food').checked) types.push('food');
+      if (document.getElementById('dp-cat-wifi').checked) types.push('wifi');
+      if (document.getElementById('dp-cat-onsen').checked) types.push('onsen');
+      if (types.length === 0) { setStatus('スポットの種類を1つ以上選んでください', true); return; }
+
+      resultEl.innerHTML = '';
+
+      let center;
+      if (locInput.dataset.lat && locInput.dataset.lng) {
+        center = { lat: parseFloat(locInput.dataset.lat), lng: parseFloat(locInput.dataset.lng), name: '現在地' };
+      } else {
+        const query = locInput.value.trim();
+        if (!query) { setStatus('地点を入力するか、現在地を使ってください', true); return; }
+        setStatus('地点を検索中…（Nominatimへ問い合わせています）');
+        let geo;
+        try {
+          geo = await TripSchedulerGeocode.geocodeLocation(query);
+        } catch (err) {
+          setStatus('地点検索でエラーが発生しました: ' + err.message, true);
+          return;
+        }
+        if (!geo) { setStatus('「' + query + '」が見つかりませんでした。別の表記で試してください。', true); return; }
+        center = { lat: geo.lat, lng: geo.lng, name: geo.name };
+      }
+
+      setStatus('周辺のスポットを検索中…（OpenStreetMap Overpass APIへ問い合わせています）');
+      let spots;
+      try {
+        spots = await TripSchedulerOverpassSpots.findSpotsAround(center.lat, center.lng, Math.round(radiusKm * 1000), types);
+      } catch (err) {
+        setStatus(
+          'Overpass APIへの接続に失敗しました（' + err.message + '）。' +
+          'ネットワーク環境や混雑状況によって接続できないことがあります。少し時間をおくか別のネットワークで再試行してください。',
+          true
+        );
+        return;
+      }
+
+      if (spots.length === 0) {
+        setStatus('半径' + radiusKm + 'km以内にスポットが見つかりませんでした。半径を広げるか種類を増やしてみてください。');
+        return;
+      }
+
+      const remaining = spots.slice();
+      const allEvents = [];
+      const usedCounts = [];
+      const baseDate = startDateInput || new Date().toISOString().slice(0, 10);
+
+      for (let i = 0; i < days; i++) {
+        const date = addDaysISO(baseDate, i);
+        const daySpots = TripSchedulerDynamicScheduler.selectSpotsForDay(remaining, {});
+        daySpots.forEach((s) => {
+          const idx = remaining.findIndex((r) => r.id === s.id);
+          if (idx >= 0) remaining.splice(idx, 1);
+        });
+        usedCounts.push(daySpots.length);
+        const events = TripSchedulerDynamicScheduler.buildDynamicDaySchedule(center, date, daySpots, {
+          startTime: i === 0 ? startTime : '09:00',
+          mode,
+        });
+        allEvents.push(...events);
+      }
+
+      if (allEvents.length === 0) {
+        setStatus('スケジュールを生成できるスポットがありませんでした。半径や種類を見直してください。');
+        return;
+      }
+
+      setStatus('✅ 周辺' + spots.length + '件のスポットから ' + days + '日分のスケジュールを作成しました（使用: ' + usedCounts.join('件 / ') + '件）');
+      resultEl.innerHTML = buildDayCardsHtml(allEvents);
+      safeRun(() => renderPlannerMap(center, spots, allEvents), 'planner');
+    });
+  }
+
   let mapInitialized = false;
 
   document.querySelectorAll('nav button').forEach((btn) => {
@@ -388,6 +608,7 @@ function buildIndexHtml(data, options = {}) {
 
   safeRun(renderItinerary, 'itinerary');
   safeRun(renderRoutes, 'routes');
+  safeRun(initPlannerTab, 'planner');
   safeRun(initHotelTab, 'hotel');
 <\/script>
 </body>
