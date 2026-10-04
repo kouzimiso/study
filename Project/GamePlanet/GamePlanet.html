@@ -992,12 +992,84 @@ function tubeMaterial(base){
 }
 function cylGeo(seg){const g=new THREE.CylinderGeometry(1,1,1,seg||12,1,true);g.translate(0,0.5,0);return g;}
 
+// ---------- v18 皮膚シェーダー（インスタンス属性 aS=(皮膚の種類, 幼体斑紋, 模様の周波数, 濡れ)） ----------
+//   種類 0=滑らか/湿った皮膚 1=鱗 2=毛皮 3=キチン/甲板 4=樹皮/種皮 5=卵殻（斑点）
+//   ・手続き的ノイズのバンプ（法線摂動）で皮膚の凹凸・鱗・毛並みを出す
+//   ・カウンターシェーディング（背は濃く腹は淡い）、色むら、溝の擬似AO、毛皮の縁の透過光
+//   ・幼体の白い斑点（シカの子のような隠蔽色）
+const SKIN_GLSL=`
+varying vec4 vS;varying vec3 vLP;varying vec3 vWN;
+float hsh_(vec3 p){p=fract(p*0.3183099+0.1);p*=17.0;return fract(p.x*p.y*p.z*(p.x+p.y+p.z));}
+float vn_(vec3 x){vec3 i=floor(x),f=fract(x);f=f*f*(3.0-2.0*f);
+  return mix(mix(mix(hsh_(i),hsh_(i+vec3(1,0,0)),f.x),mix(hsh_(i+vec3(0,1,0)),hsh_(i+vec3(1,1,0)),f.x),f.y),
+             mix(mix(hsh_(i+vec3(0,0,1)),hsh_(i+vec3(1,0,1)),f.x),mix(hsh_(i+vec3(0,1,1)),hsh_(i+vec3(1,1,1)),f.x),f.y),f.z);}
+float vor_(vec3 x){vec3 i=floor(x),f=fract(x);float d=8.0;
+  for(int a=-1;a<=1;a++)for(int b=-1;b<=1;b++)for(int c=-1;c<=1;c++){vec3 o=vec3(float(a),float(b),float(c));
+    vec3 r=o+vec3(hsh_(i+o),hsh_(i+o+13.1),hsh_(i+o+27.7))-f;d=min(d,dot(r,r));}
+  return sqrt(d);}
+float skinH_(vec3 p,float k){
+  if(k<0.5)return vn_(p*0.7)*0.55+vn_(p*2.6)*0.25;                                   // 湿った皮膚
+  if(k<1.5)return smoothstep(0.0,0.55,vor_(p*1.1))*0.9+vn_(p*4.0)*0.1;               // 鱗
+  if(k<2.5)return vn_(vec3(p.x*4.0,p.y*0.7,p.z*4.0))*0.65+vn_(p*9.0)*0.35;           // 毛並み
+  if(k<3.5)return 0.75-0.75*(1.0-smoothstep(0.0,0.09,abs(fract(p.y*0.16)-0.5)))+vn_(p*1.5)*0.25; // 甲板の節
+  if(k<4.5)return vn_(vec3(p.x*1.6,p.y*0.18,p.z*1.6))*0.8+vn_(p*3.0)*0.2;            // 樹皮
+  return vn_(p*1.2)*0.3;                                                              // 卵殻
+}`;
+function creatureMaterial(opts){
+  opts=opts||{};
+  const m=opts.base||new THREE.MeshStandardMaterial({roughness:opts.roughness!=null?opts.roughness:0.62,metalness:0.0});
+  m.extensions={derivatives:true};
+  // onBeforeCompile の関数ソースが同一だと three.js がプログラムを共有してしまうため、チューブ用と区別する
+  m.customProgramCacheKey=()=>'gp-skin-'+(opts.tube?'tube':'solid');
+  m.onBeforeCompile=sh=>{
+    let vs=sh.vertexShader.replace('#include <common>','#include <common>\nattribute vec4 aS;varying vec4 vS;varying vec3 vLP;varying vec3 vWN;'+(opts.tube?'\nattribute vec4 aR;':''));
+    if(opts.tube)vs=vs.replace('#include <beginnormal_vertex>','#include <beginnormal_vertex>\nobjectNormal.x/=max(aR.z,1e-3);objectNormal.z/=max(aR.w,1e-3);objectNormal=normalize(objectNormal);');
+    vs=vs.replace('#include <begin_vertex>','#include <begin_vertex>\n'+(opts.tube?'float rad_=mix(aR.x,aR.y,clamp(position.y,0.0,1.0));transformed.x*=rad_*aR.z;transformed.z*=rad_*aR.w;\n':'')+
+      'vS=aS;\n#ifdef USE_INSTANCING\nvLP=vec3(transformed.x*length(instanceMatrix[0].xyz),transformed.y*length(instanceMatrix[1].xyz),transformed.z*length(instanceMatrix[2].xyz));\nvWN=normalize(mat3(modelMatrix)*mat3(instanceMatrix)*objectNormal);\n#else\nvLP=transformed;vWN=normalize(mat3(modelMatrix)*objectNormal);\n#endif\n'+
+      (opts.tube?'':'')
+    );
+    sh.vertexShader=vs;
+    sh.fragmentShader=sh.fragmentShader
+      .replace('#include <common>','#include <common>\n'+SKIN_GLSL)
+      .replace('#include <color_fragment>',`#include <color_fragment>
+        vec3 P_=vLP*max(vS.z,0.01);float k_=vS.x;float h_=skinH_(P_,k_);
+        // アンチエイリアス: 1ピクセルに模様の1周期以上が入るほど遠い/小さいときは凹凸を平均値へ
+        float mf_=k_<0.5?2.6:k_<1.5?3.0:k_<2.5?6.0:k_<3.5?1.2:k_<4.5?2.5:1.2;
+        float aa_=clamp(1.6-length(fwidth(P_))*mf_*1.4,0.0,1.0);h_=mix(0.5,h_,aa_);
+        float up_=vWN.y;
+        diffuseColor.rgb*=0.84+0.3*vn_(P_*0.22+7.0);                          // 色むら
+        diffuseColor.rgb*=mix(0.78,1.08,h_);                                   // 溝の擬似AO
+        if(k_<4.5)diffuseColor.rgb*=mix(1.16,0.84,smoothstep(-0.55,0.75,up_)); // カウンターシェーディング
+        if(k_>4.5)diffuseColor.rgb*=1.0-0.6*(1.0-smoothstep(0.12,0.2,vor_(P_*0.9+2.0)))*step(0.6,hsh_(floor(P_*0.9+2.0))); // 卵殻の斑点
+        if(vS.y>0.01){float sp_=1.0-smoothstep(0.2,0.3,vor_(P_*0.55+3.1));
+          diffuseColor.rgb=mix(diffuseColor.rgb,min(vec3(1.0),diffuseColor.rgb*1.6+0.12),sp_*vS.y*smoothstep(-0.1,0.5,up_));}`)
+      .replace('#include <roughnessmap_fragment>',`#include <roughnessmap_fragment>
+        roughnessFactor=mix(roughnessFactor,0.2,vS.w);
+        if(k_>1.5&&k_<2.5)roughnessFactor=max(roughnessFactor,0.85);
+        if(k_>2.5&&k_<3.5)roughnessFactor*=0.6;
+        if(k_>4.5)roughnessFactor=0.42;`)
+      .replace('#include <normal_fragment_maps>',`#include <normal_fragment_maps>
+        {// 凹凸の高さは模様の大きさに比例（＝傾きが一定）。細かすぎる模様は aa_ で平らにする
+         float bs_=(k_<0.5?0.12:k_<1.5?0.3:k_<2.5?0.18:k_<3.5?0.25:k_<4.5?0.4:0.08)/(max(vS.z,0.01)*mf_)*aa_;
+         vec3 dpx_=dFdx(-vViewPosition),dpy_=dFdy(-vViewPosition);
+         float dhx_=dFdx(h_)*bs_,dhy_=dFdy(h_)*bs_;
+         vec3 r1_=cross(dpy_,normal),r2_=cross(normal,dpx_);float det_=dot(dpx_,r1_);
+         vec3 gr_=sign(det_)*(dhx_*r1_+dhy_*r2_);
+         normal=normalize(abs(det_)*normal-gr_);}`)
+      .replace('#include <emissivemap_fragment>',`#include <emissivemap_fragment>
+        {float fr_=pow(1.0-abs(dot(normal,normalize(vViewPosition))),3.0);
+         totalEmissiveRadiance+=diffuseColor.rgb*fr_*(k_>1.5&&k_<2.5?0.28:0.08);}`);
+  };
+  return m;
+}
+
 // ---------- インスタンスプール ----------
 class Pool{
   constructor(scene,geo,mat,max,opts){
     opts=opts||{};
     this.max=max;this.n=0;
     if(opts.tube){this.aR=new THREE.InstancedBufferAttribute(new Float32Array(max*4),4);this.aR.setUsage(THREE.DynamicDrawUsage);geo.setAttribute('aR',this.aR);}
+    if(opts.skin){this.aS=new THREE.InstancedBufferAttribute(new Float32Array(max*4),4);this.aS.setUsage(THREE.DynamicDrawUsage);geo.setAttribute('aS',this.aS);this.cur=[0,0,0.3,0];}
     this.mesh=new THREE.InstancedMesh(geo,mat,max);
     this.mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
     this.mesh.setColorAt(0,new THREE.Color(1,1,1));this.mesh.instanceColor.setUsage(THREE.DynamicDrawUsage);
@@ -1014,8 +1086,9 @@ class Pool{
     a[o+8]=Z[0];a[o+9]=Z[1];a[o+10]=Z[2];a[o+11]=0;a[o+12]=P[0];a[o+13]=P[1];a[o+14]=P[2];a[o+15]=1;
     const ca=this.mesh.instanceColor.array;ca[i*3]=c[0];ca[i*3+1]=c[1];ca[i*3+2]=c[2];
     if(aR&&this.aR){const r=this.aR.array;r[i*4]=aR[0];r[i*4+1]=aR[1];r[i*4+2]=aR[2];r[i*4+3]=aR[3];}
+    if(this.aS){const r=this.aS.array,k=this.cur;r[i*4]=k[0];r[i*4+1]=k[1];r[i*4+2]=k[2];r[i*4+3]=k[3];}
   }
-  end(){this.mesh.count=this.n;this.mesh.instanceMatrix.needsUpdate=true;this.mesh.instanceColor.needsUpdate=true;if(this.aR)this.aR.needsUpdate=true;}
+  end(){this.mesh.count=this.n;this.mesh.instanceMatrix.needsUpdate=true;this.mesh.instanceColor.needsUpdate=true;if(this.aR)this.aR.needsUpdate=true;if(this.aS)this.aS.needsUpdate=true;}
 }
 
 // ---------- 生物描画（Rig → インスタンス） ----------
@@ -1051,58 +1124,133 @@ function organColor(o,col){const[r,g,b]=col,k=o.type;
     default:return[r,g,b];
   }}
 
+// 形質 → 皮膚の種類（0=湿った皮膚 1=鱗 2=毛皮 3=キチン/甲板 4=樹皮）
+function skinKind(R){const g=R.g||[];
+  if(R.mode==='plant')return 4;
+  if(R.mode==='float')return 0;
+  if((g[20]||0)>.55)return 0;                 // 水棲: ぬめりのある皮膚
+  if((g[2]||0)>.62)return 3;                  // 高装甲: 甲板・キチン
+  if((g[0]||0)>.5&&(g[4]||0)<.55)return 1;    // 厚い外皮で神経が控えめ: 鱗（爬虫類的）
+  if((g[16]||0)>.3)return 2;                  // 中〜大型の陸生: 毛皮
+  return 0;}
 class CreatureLayer{
   constructor(scene,max){
     max=max||12000;
-    this.tube=new Pool(scene,cylGeo(14),tubeMaterial(),max,{tube:true});
-    this.ball=new Pool(scene,new THREE.SphereGeometry(1,16,12),new THREE.MeshStandardMaterial({roughness:0.62}),max);
-    this.ellip=new Pool(scene,new THREE.SphereGeometry(1,14,10),new THREE.MeshStandardMaterial({roughness:0.55}),max);
+    // v18: 胴・肢・頭は手続き的皮膚シェーダー（鱗/毛並み/湿った皮膚/甲板/樹皮/卵殻）
+    this.tube=new Pool(scene,cylGeo(18),creatureMaterial({tube:true,roughness:0.62}),max,{tube:true,skin:true});
+    this.ball=new Pool(scene,new THREE.SphereGeometry(1,20,14),creatureMaterial({roughness:0.62}),max,{skin:true});
+    this.ellip=new Pool(scene,new THREE.SphereGeometry(1,18,12),creatureMaterial({roughness:0.55}),max,{skin:true});
     const cg=new THREE.ConeGeometry(1,1,10);cg.translate(0,0.5,0);
     this.cone=new Pool(scene,cg,new THREE.MeshStandardMaterial({roughness:0.45}),max);
-    this.eye=new Pool(scene,new THREE.SphereGeometry(1,16,12),new THREE.MeshStandardMaterial({roughness:0.08,metalness:0.0}),2000);
+    // 眼: 角膜の濡れた反射（クリアコート）
+    this.eye=new Pool(scene,new THREE.SphereGeometry(1,16,12),new THREE.MeshPhysicalMaterial({roughness:0.25,metalness:0.0,clearcoat:1.0,clearcoatRoughness:0.04}),2000);
     this.flat=new Pool(scene,new THREE.SphereGeometry(1,12,8),new THREE.MeshStandardMaterial({roughness:0.7,side:THREE.DoubleSide,transparent:true,opacity:0.88}),max,{shadow:true});
-    this.pools=[this.tube,this.ball,this.ellip,this.cone,this.eye,this.flat];
+    // 寒天質の卵（水中の卵塊）
+    this.jelly=new Pool(scene,new THREE.SphereGeometry(1,14,10),new THREE.MeshPhysicalMaterial({roughness:0.05,metalness:0,transparent:true,opacity:0.42,clearcoat:1,depthWrite:false}),3000,{shadow:false,renderOrder:3});
+    // 接地影（足元の柔らかい接触影。シャドウマップの粗さを補い、地面に立っている感じを出す）
+    const bg=new THREE.PlaneGeometry(2,2);bg.rotateX(-Math.PI/2);
+    const bm=new THREE.MeshBasicMaterial({map:soft(),color:0x000000,transparent:true,opacity:0.5,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-4,polygonOffsetUnits:-4});
+    this.blob=new Pool(scene,bg,bm,4000,{shadow:false,renderOrder:1});
+    this.pools=[this.tube,this.ball,this.ellip,this.cone,this.eye,this.flat,this.jelly,this.blob];
+  }
+  setSkin(k){this.tube.cur=k;this.ball.cur=k;this.ellip.cur=k;}
+  // 接地影: (x,y)=シミュ座標, z=地面高, r=半径
+  addBlob(x,y,z,r){this.blob.push([r,0,0],[0,1,0],[0,0,r],[x,z+0.4,-y],[1,1,1]);}
+  // 卵・種子・卵塊（o: 個体, P: シミュ座標, prog: 発生の進み 0..1）
+  addEgg(o,P,size,prog,t,water){
+    const g=o.g,rnd=hash2(o.id,7,3),wob=prog>0.72?Math.sin(t*(10+rnd*6)+rnd*9)*0.35*(prog-0.72)/0.28:0;
+    const fw=[Math.cos(wob),0,Math.sin(wob)],up=[-Math.sin(wob),0,Math.cos(wob)];
+    if(o.bmode==='seed'){
+      // 種子（樹皮質の種皮）→ 発芽が近づくと芽が出る
+      this.setSkin([4,0,1.4,0]);const c=lin([.42,.3,.17]);
+      this.ellip.push(T3([size*.7,0,0]),T3([0,size*.5,0]),T3([0,0,size*.45]),T3([P[0],P[1],P[2]+size*.4]),c);
+      if(prog>0.55){const h=size*(prog-0.55)*4;this.cone.push(T3([size*.18,0,0]),T3([0,0,h]),T3([0,size*.18,0]),T3([P[0],P[1],P[2]+size*.6]),lin([.35,.75,.25]));}
+      return;}
+    if(water){
+      // 水中: 寒天質の卵（カエル/魚の卵塊のように透明な殻の中に胚が見える）
+      const e=size*(0.35+prog*0.45);
+      this.jelly.push(T3([size,0,0]),T3([0,size,0]),T3([0,0,size]),[P[0],P[2]+size,-P[1]],lin([.75,.85,.8]));
+      this.setSkin([0,0,1,0.8]);
+      this.ellip.push(T3(v3.mul(fw,e*(1+prog*.5))),T3([0,e,0]),T3(v3.mul(up,e)),T3([P[0],P[1],P[2]+size]),lin([.12,.11,.1].map((v,i)=>v+(o._col?o._col[i]*.25:0))));
+      return;}
+    // 陸上: 斑点のある硬い殻の卵（孵化前に揺れる）
+    const base=g[11]>.55?[.62,.72,.66]:g[20]>.5?[.86,.84,.74]:[.93,.9,.82];
+    this.setSkin([5,0,2.2,0]);
+    this.ellip.push(T3(v3.mul(fw,size*.78)),T3([0,size*.78,0]),T3(v3.mul(up,size*1.05)),T3([P[0],P[1],P[2]+size*0.95]),lin(base));
   }
   begin(){this.pools.forEach(p=>p.begin());}
   end(){this.pools.forEach(p=>p.end());}
-  // R: Rig, opts:{sel, tint}
+  // R: Rig, opts:{sel, tint, juv(0..1 幼さ), t(時刻), crouch(隠れる), puff(威嚇), camo([r,g,b] 隠蔽色), pant(呼吸の速さ倍率), groundZ}
   add(R,opts){
     opts=opts||{};
     const fc={};const F=i=>fc[i]||(fc[i]=Rig.particleFrame(R,i));
     const upRef=R.tb?Rig.frameAt(R,{t:'T'})[2]:[0,0,1];
-    const pos=a=>Rig.pointAt(R,a,F);
-    const tint=c=>{let o=c;if(opts.sel)o=[Math.min(1,c[0]*1.15+.05),Math.min(1,c[1]*1.15+.05),Math.min(1,c[2]*1.1+.05)];return lin(o);};
+    const juv=opts.juv||0,t=opts.t||0,seed=opts.seed||0;
+    // 姿勢の演出: 隠れる=身を低く伏せる / 威嚇=体を膨らませて立ち上がる（足は地面に残る）
+    const C0=Rig.center(R),gz0=opts.groundZ!=null?opts.groundZ:C0[2]-R.hipH;
+    const sxy=opts.puff?1.08:opts.crouch?1.05:1,sz=opts.puff?1.15:opts.crouch?0.62:1;
+    const xf=(sxy!==1||sz!==1)?p=>[C0[0]+(p[0]-C0[0])*sxy,C0[1]+(p[1]-C0[1])*sxy,gz0+(p[2]-gz0)*sz]:p=>p;
+    const pos=a=>xf(Rig.pointAt(R,a,F));
+    const camo=opts.camo,ck=opts.camoK||0;
+    const tint=c=>{let o=c;
+      // 幼体は淡く柔らかい色
+      if(juv>0)o=[o[0]+(Math.min(1,o[0]*1.1+.1)-o[0])*juv*.5,o[1]+(Math.min(1,o[1]*1.1+.09)-o[1])*juv*.5,o[2]+(Math.min(1,o[2]*1.05+.06)-o[2])*juv*.5];
+      if(camo&&ck>0)o=[o[0]+(camo[0]-o[0])*ck,o[1]+(camo[1]-o[1])*ck,o[2]+(camo[2]-o[2])*ck];
+      if(opts.sel)o=[Math.min(1,o[0]*1.15+.05),Math.min(1,o[1]*1.15+.05),Math.min(1,o[2]*1.1+.05)];return lin(o);};
+    // 皮膚の種類（形質から）と模様の周波数（体の大きさに合わせる）
+    const g=R.g||[],sk=opts.skin!=null?opts.skin:skinKind(R);
+    const freq=clamp(0.55/Math.max(0.15,R.scale||1),0.1,3);
+    const wet=sk===0?0.75:0;
+    // 呼吸: 胴が周期的に膨らむ（小さい・若い・興奮しているほど速い）
+    const br=(1.6+juv*2.2+(opts.pant||0)*3)/Math.sqrt(Math.max(0.3,R.scale||1));
+    const breath=1+Math.sin(t*br*Math.PI*2*0.35+seed*6.28)*(0.025+(opts.pant?0.02:0));
+    let ext=0;
     R.renderStrokes.forEach(rs=>{
       const col=tint(strokeCol(R.color,rs.kind));
+      const isBody=rs.group==='body'||rs.group==='belly';
+      const rk=(isBody?breath:1)*(opts.puff?1.06:1);
+      this.setSkin([rs.kind==='wood'?4:(rs.group==='digit'&&sk===2?0:sk),isBody||rs.group==='leg'?juv*(opts.spots||0):0,freq,rs.kind==='leaf'?0.3:wet]);
       const P=rs.nodes.map(n=>pos(n.a));
       for(let k=0;k<rs.nodes.length;k++){
-        const n=rs.nodes[k],p=P[k];
+        const n=rs.nodes[k],p=P[k],r=n.r*rk,r1=k<rs.nodes.length-1?rs.nodes[k+1].r*rk:r;
         const ex=rs.ellipse&&n.rw?n.rw/n.r:1,ez=rs.ellipse&&n.rh?n.rh/n.r:1;
+        const dx=p[0]-C0[0],dy=p[1]-C0[1];ext=Math.max(ext,Math.hypot(dx,dy)+r*0.6);
         if(k<rs.nodes.length-1){
           const q=P[k+1],d=v3.sub(q,p),L=v3.len(d);
           if(L>1e-6){const fr=perpFrame(d,upRef);
             const ex2=rs.ellipse&&rs.nodes[k+1].rw?(n.rw+rs.nodes[k+1].rw)/(n.r+rs.nodes[k+1].r):ex;
             const ez2=rs.ellipse&&rs.nodes[k+1].rh?(n.rh+rs.nodes[k+1].rh)/(n.r+rs.nodes[k+1].r):ez;
-            this.tube.push(T3(fr[0]),T3(v3.mul(fr[1],L)),T3(fr[2]),T3(p),col,[n.r,rs.nodes[k+1].r,ex2,ez2]);}
+            this.tube.push(T3(fr[0]),T3(v3.mul(fr[1],L)),T3(fr[2]),T3(p),col,[r,r1,ex2,ez2]);}
         }
         const dir=k<P.length-1?v3.sub(P[k+1],p):k>0?v3.sub(p,P[k-1]):[1,0,0];
         const fr=perpFrame(dir,upRef);
-        this.ball.push(T3(v3.mul(fr[0],n.r*ex)),T3(v3.mul(fr[1],n.r)),T3(v3.mul(fr[2],n.r*ez)),T3(p),col);
+        this.ball.push(T3(v3.mul(fr[0],r*ex)),T3(v3.mul(fr[1],r)),T3(v3.mul(fr[2],r*ez)),T3(p),col);
       }
     });
+    // 接地影
+    if(R.mode!=='plant'&&opts.blob!==false){const lift=Math.max(0,C0[2]-gz0-R.hipH*1.2);const a=Math.max(0.15,0.75-lift/Math.max(20,R.hipH*6));
+      this.addBlob(C0[0],C0[1],gz0,Math.max(4,ext*1.15+R.hipH*0.3)*(1.25-a*0.35));}
+    // まばたき（数秒ごとに一瞬まぶたを閉じる）
+    const blink=opts.t!=null&&((t*0.31+seed*3.7)%1)<0.035?0.12:1;
+    this.setSkin([sk,0,freq*1.4,wet]);
     const minO=opts.minOrgan||0;
     R.organs.forEach(o=>{
       if(minO&&o.size<minO&&o.type!=='eye'&&o.type!=='head')return;
       const p=pos(o.a);
       let fr=o.a.t==='T'?Rig.frameAt(R,o.a):o.a.t==='P'?F(o.a.i):(R.plantFrame);
       const dirW=v3.norm([fr[0][0]*o.dirL[0]+fr[1][0]*o.dirL[1]+fr[2][0]*o.dirL[2],fr[0][1]*o.dirL[0]+fr[1][1]*o.dirL[1]+fr[2][1]*o.dirL[2],fr[0][2]*o.dirL[0]+fr[1][2]*o.dirL[1]+fr[2][2]*o.dirL[2]]);
-      const B=perpFrame(dirW,upRef),s=Math.max(0.05,o.size),col=tint(organColor(o,R.color));
+      // 幼体の体型（ベビースキーマ）: 頭と目が大きく、鼻先は短く、角・牙・爪・棘は未発達
+      const JS={head:1+.5*juv,eye:1+.6*juv,ear:1+.25*juv,muzzle:1-.35*juv,tooth:1-.7*juv,claw:1-.6*juv,spike:1-.8*juv,hoof:1-.3*juv}[o.type]||1;
+      const B=perpFrame(dirW,upRef),s=Math.max(0.05,o.size)*JS,col=tint(organColor(o,R.color));
       const put=(pool,sx,sy,sz,off)=>{const pp=off?v3.add(p,v3.mul(dirW,off)):p;pool.push(T3(v3.mul(B[0],sx)),T3(v3.mul(B[1],sy)),T3(v3.mul(B[2],sz)),T3(pp),col);};
       switch(o.type){
-        case'eye':{this.eye.push(T3(v3.mul(B[0],s)),T3(v3.mul(B[1],s)),T3(v3.mul(B[2],s)),T3(p),lin([.93,.91,.86]));
+        case'eye':{const bz=blink;this.eye.push(T3(v3.mul(B[0],s)),T3(v3.mul(B[1],s)),T3(v3.mul(B[2],s*bz)),T3(p),bz<1?col:lin([.93,.91,.86]));
+          if(bz<1)break;
           const iris=lin([Math.min(1,R.color[0]*.5+.12),Math.min(1,R.color[1]*.42+.08),Math.min(1,R.color[2]*.4+.08)]);
           this.eye.push(T3(v3.mul(B[0],s*.62)),T3(v3.mul(B[1],s*.5)),T3(v3.mul(B[2],s*.62)),T3(v3.add(p,v3.mul(dirW,s*.62))),iris);
-          this.eye.push(T3(v3.mul(B[0],s*.3)),T3(v3.mul(B[1],s*.3)),T3(v3.mul(B[2],s*.3)),T3(v3.add(p,v3.mul(dirW,s*.82))),[0.005,0.004,0.005]);break;}
+          this.eye.push(T3(v3.mul(B[0],s*.3)),T3(v3.mul(B[1],s*.3)),T3(v3.mul(B[2],s*.3)),T3(v3.add(p,v3.mul(dirW,s*.82))),[0.005,0.004,0.005]);
+          // 角膜のハイライト（光源側の小さな白点）
+          this.eye.push(T3(v3.mul(B[0],s*.12)),T3(v3.mul(B[1],s*.12)),T3(v3.mul(B[2],s*.12)),T3(v3.add(v3.add(p,v3.mul(dirW,s*.86)),v3.mul(B[2],s*.32))),[3,3,3]);break;}
         case'head':put(this.ellip,s*.78,s*1.05,s*.72,s*.15);break;
         case'muzzle':put(this.ellip,s*.55,s*1.0,s*.5,s*.5);break;
         case'core':case'fruit':case'tentacle':put(this.ellip,s,s,s);break;
@@ -1311,16 +1459,27 @@ function orgScale(o){
   if(o.multicell)return clamp(Math.pow(o.multicell,0.35)/4,0.5,3);
   return 1;
 }
+// v18: 成長による体格倍率（生まれたては成体の約3割の大きさ。0.04刻みで量子化して物理リグの再構築を抑える）
+function growScale(o){
+  if(o.stage!=='juv')return 1;
+  const m=o.dev||0,f=o.bmode==='fission'?0.55+0.45*m:0.26+0.74*Math.pow(m,0.75);
+  return Math.round(f*25)/25;
+}
 function rigFor(o){
-  const s=orgScale(o);
+  const s=orgScale(o)*growScale(o);
   if(!o._rig||o._rigScale!==s||o._rigView!==builtKey){
     if(!o.body3d)o.body3d=buildBody3D(o.g);
-    const p=uvToXY(o.u,o.v);
-    o._rig=Rig.create(o.body3d,{scale:s,x:p.x,y:p.y,heading:Math.random()*6.28,env,groundZ:gz,water:waterAt,teleportDist:TS*8});
+    let p=uvToXY(o.u,o.v),hd=Math.random()*6.28;
+    // 成長で作り直すときは、今いる場所と向きを引き継ぐ
+    if(o._rig&&o._rigView===builtKey){const c=Rig.center(o._rig);p={x:c[0],y:c[1]};if(o._rig.headingDes!=null)hd=o._rig.headingDes;else if(o._rig.heading!=null)hd=o._rig.heading;}
+    o._rig=Rig.create(o.body3d,{scale:s,x:p.x,y:p.y,heading:hd,env,groundZ:gz,water:waterAt,teleportDist:TS*8});
     o._rigScale=s;o._rigView=builtKey;
   }
   return o._rig;
 }
+// 足元の地面の色（隠れる個体の保護色に使う）
+function groundRGB(x,y){const uv=toUV(x,y),idx=tileIdx(uv.u,uv.v);const aN=Math.max(0,Math.min(1,simY/4.6e9));
+  return terrainRGB(HM[idx],WM[idx],VM[idx],MB[idx],FG[idx],aN);}
 
 function stepAndDraw(col,dt,focusOrg,selOrg_){
   if(!camera._placed)camera.position.set(0,600,600);
@@ -1331,14 +1490,34 @@ function stepAndDraw(col,dt,focusOrg,selOrg_){
   live.forEach(o=>{
     const p=uvToXY(o.u,o.v);
     if(Math.abs(p.x)>HALF*0.98||Math.abs(p.y)>HALF*0.98){o._rig=null;return;}
+    // 卵・種子: 物理リグなしで地面（水中なら水底）に置く
+    if(o.stage==='egg'){
+      o._rig=null;
+      const z=gz(p.x,p.y),wet=waterAt(p.x,p.y)!=null;
+      const adult=orgScale(o),size=Math.max(2.2,(o.bmode==='seed'?1.6:2.6)*adult*(0.7+o.g[16]*0.6));
+      const tot=o._incub0||(o._incub0=Math.max(o.incub,0.5)),prog=Math.max(0,Math.min(1,1-o.incub/tot));
+      if(!o._col)o._col=LifeGfx.color(o.g);
+      layer.addEgg(o,[p.x,p.y,z],size,prog,time,wet);
+      o._eggPos=[p.x,p.y,z+size*2];o._eggProg=prog;
+      vis.push(o);return;
+    }
     const R=rigFor(o);
     Rig.setGoal(R,p.x,p.y);
-    R.vmax=Math.max(8,Rig.maxSpeed(R));
+    // 逃走・追跡中は全力で走る（歩行域を超えて走行域へ）
+    const act=o.act||'idle',fast=act==='flee'||act==='hunt';
+    R.vmax=Math.max(8,Rig.maxSpeed(R))*(fast?2.2:1);
     // 詳細度（LOD）: カメラから遠い個体は物理サブステップと小さな器官を省略
     const c=Rig.center(R),cp=camera.position,dc=Math.hypot(c[0]-cp.x,c[2]-cp.y,-c[1]-cp.z);
     const near=dc<900||o===selOrg_||o===focusOrg;
     Rig.step(R,dt,near?8:dc<2500?5:3);
-    layer.add(R,{sel:o===selOrg_,minOrgan:near?0:dc*0.004});
+    const juv=o.stage==='juv'?Math.max(0,1-(o.dev||0)):0;
+    const hide=act==='hide';
+    if(hide&&!o._camo)o._camo=groundRGB(c[0],c[1]);if(!hide)o._camo=null;
+    o._hideK=Math.max(0,Math.min(1,(o._hideK||0)+(hide?dt*1.5:-dt*2)));
+    layer.add(R,{sel:o===selOrg_,minOrgan:near?0:dc*0.004,t:time,seed:(o.id*0.6180339)%1,juv,
+      spots:(o.bmode==='live'||o.bmode==='egg')?1:0,groundZ:gz(c[0],c[1]),
+      crouch:hide,puff:act==='fight',pant:fast||act==='fight'?1:0,
+      camo:o._camo,camoK:o._camo?o._hideK*(0.25+Life.stealth(o)*0.55):0});
     vis.push(o);
   });
   layer.end();
@@ -1356,7 +1535,7 @@ function render(col,dt,opts){
   const vis=stepAndDraw(col,dt,opts.focus,opts.sel);
   // カメラ
   let tx=0,ty=0;
-  const fo=opts.focus&&opts.focus._rig?Rig.center(opts.focus._rig):null;
+  const fo=opts.focus&&opts.focus._rig?Rig.center(opts.focus._rig):(opts.focus&&opts.focus.stage==='egg'&&opts.focus._eggPos?opts.focus._eggPos:null);
   if(fo){tx=fo[0];ty=fo[1];}
   else if(opts.target){tx=opts.target.x;ty=opts.target.y;}
   const tz=fo?fo[2]:gz(tx,ty);
@@ -1431,7 +1610,7 @@ function render(state,target,opts){
   // 円を描いて歩かせる（歩容・接地を観察できる）
   if(opts.walk!==false&&R.mode!=='plant'){const rad=Math.max(60,R.hipH*8),a=state.t*0.25;Rig.setGoal(R,Math.cos(a)*rad,Math.sin(a)*rad);}
   Rig.step(R,dt);
-  layer.begin();layer.add(R,{});layer.end();
+  layer.begin();layer.add(R,{t:state.t,seed:0.37});layer.end();
   const c=Rig.center(R);
   let ext=40;R.renderStrokes.forEach(rs=>rs.nodes.forEach(n=>{const p=Rig.pointAt(R,n.a);ext=Math.max(ext,Math.hypot(p[0]-c[0],p[1]-c[1],p[2]-c[2])+n.r);}));
   const dist=ext*3.2/(opts.zoom||1),yaw=opts.yaw||0;
@@ -2251,6 +2430,184 @@ function mkGenome(pA,pB,ov,mr){
   return g;
 }
 
+// ================================================================
+// Life — v18 ライフサイクル（卵・種子・出産 → 幼体 → 成体）と生存戦略
+//   ・繁殖で生まれる個体は成体ではなく、卵/種子/赤子/分裂直後の小さな細胞として生まれる
+//   ・成熟度 dev(0..1) に応じて体格・速度・攻撃・防御・エネルギー上限が伸びる
+//     幼体は弱く、熱ストレス・事故・捕食で死にやすい（幼体死亡率が高い＝r/K選択の基本）
+//   ・生存戦略: 💨逃走（速度）/ ⚔反撃（強さ）/ 🍃隠れる（隠密）を形質から選ぶ
+//     成長で戦略は変わりうる（幼体は隠れ、成体は戦う 等）
+//   ・捕食者は感覚範囲で獲物を探し、追跡→接触で力比べ。親が近ければ子を守って戦う
+// ================================================================
+const Life=(function(){
+'use strict';
+const c01=v=>v<0?0:v>1?1:v;
+const wrapD=d=>((d+1.5)%1)-.5;
+function dist(a,b){const du=wrapD(b.u-a.u),dv=b.v-a.v;return Math.sqrt(du*du+dv*dv);}
+// 繁殖様式: seed=種子 / fission=分裂 / egg=卵生 / live=胎生（赤子で生まれる）
+function birthMode(g){
+  if(trophic(g)==='plant')return 'seed';
+  if(rStage(g).st===0)return 'fission';
+  // 神経・体格が大きく陸生ほど胎生寄り。水棲・小型・装甲（節足動物的）は卵生寄り
+  const vivi=g[4]*.3+g[5]*.25+g[16]*.3+(1-g[20])*.2+g[7]*.1-g[2]*.15;
+  return vivi>.52?'live':'egg';
+}
+// 成熟に要する時間（シミュ秒）。大型ほど長い
+function devTime(g){return 7+g[16]*16+g[4]*4;}
+// 成長段階係数
+const grow=o=>o.stage==='egg'?0:(o.dev==null?1:o.dev);
+// ---- 能力値（成熟度で伸びる） ----
+function fleePow(o,tr){tr=tr||traits(o.g);const m=grow(o);return tr.spd*(0.3+0.7*Math.pow(m,0.8))*(0.75+o.g[7]*0.25+o.g[1]*0.15);}
+function attackPow(o,tr){tr=tr||traits(o.g);const m=grow(o);
+  return (tr.aggro*.45+tr.toxin*.3+o.g[1]*.25+o.g[16]*.55)*(0.12+0.88*Math.pow(m,1.3));}
+function defensePow(o,tr){tr=tr||traits(o.g);if(o.stage==='egg')return .04+o.g[2]*.06;const m=grow(o);
+  return (tr.armor*.6+o.g[16]*.5+tr.toxin*.25)*(0.18+0.82*m);}
+function stealth(o){const g=o.g,m=grow(o);
+  if(o.stage==='egg')return c01(.35+g[0]*.35);
+  return c01((1-g[16])*.4+g[0]*.2+(1-g[17])*.12+(1-m)*.3+g[7]*.05);}
+// 戦略の選択（その時点の能力で最も有利なもの）
+function chooseStrategy(o,tr){
+  if(o.stage==='egg')return 'hide';
+  tr=tr||traits(o.g);
+  // 反撃は攻撃性・装甲・毒が高い個体ほど選ぶ（おとなしい草食は戦うより逃げるか隠れる）
+  const temper=.45+tr.aggro*.8+tr.armor*.35+tr.toxin*.4;
+  const f=fleePow(o,tr)*1.45, a=(attackPow(o,tr)*.5+defensePow(o,tr)*.5)*temper, h=stealth(o)*1.15;
+  return f>=a&&f>=h?'flee':a>=h?'fight':'hide';
+}
+const STRAT_JP={flee:'💨逃走',fight:'⚔反撃',hide:'🍃隠れる'};
+const STAGE_JP={egg:'🥚卵',seed:'🌰種子',juv:'🐣幼体',adult:'成体'};
+function stageLabel(o){
+  if(o.stage==='egg')return o.bmode==='seed'?STAGE_JP.seed:STAGE_JP.egg;
+  if(o.stage==='juv')return o.bmode==='seed'?'🌱若芽':o.bmode==='fission'?'🦠娘細胞':STAGE_JP.juv;
+  return STAGE_JP.adult;
+}
+// 生まれた直後の初期化（繁殖でのみ呼ぶ。散布・自然発生は成体のまま）
+function birth(o,parent){
+  if(!o)return o;
+  const mode=birthMode(o.g);o.bmode=mode;o.parentId=parent?parent.id:0;o.dev=0;o.age=0;
+  if(mode==='seed'){o.stage='egg';o.incub=2.5+Math.random()*3;o.e=.3;}
+  else if(mode==='egg'){o.stage='egg';o.incub=2+o.g[16]*3.5+Math.random();o.e=.35;}
+  else if(mode==='live'){o.stage='juv';o.dev=.1;o.e=.45;}
+  else {o.stage='juv';o.dev=.45;o.e=.3;}
+  o.strat=chooseStrategy(o);o.act='idle';
+  return o;
+}
+// 成長段階が付いていない個体（自然発生・散布・旧セーブ）は成体として扱う
+function ensure(o){if(o.strat==null){if(o.stage==null){o.stage='adult';o.dev=1;}o.bmode=o.bmode||birthMode(o.g);o.strat=chooseStrategy(o);o.act='idle';}}
+
+// ---- 毎ステップ: 発生・成長・幼体の死亡リスク。戻り値 false=死亡 ----
+function develop(o,dt,tr,env){
+  ensure(o);
+  if(o.stage==='egg'){
+    // 種子は水と栄養があるときに発芽が進む（休眠）。卵は胚発生（温度ストレスに弱い）
+    const ok=o.bmode==='seed'?(env.water>.3||env.nu>.05?1:.25):1;
+    o.incub-=dt*ok;o.e-=.002*dt;
+    if(env.heat>.6&&Math.random()<(env.heat-.6)*.6*dt)return false;   // 胚の熱死
+    if(o.incub<=0){o.stage='juv';o.dev=o.bmode==='seed'?.06:.08;o.e=Math.max(o.e,.3);o.hatchT=performance.now();o.strat=chooseStrategy(o,tr);}
+    return true;
+  }
+  if(o.stage==='juv'){
+    // 成長はエネルギーを消費。飢えていると成長が止まる
+    if(o.e>.22){const r=1/devTime(o.g);o.dev+=r*dt*(o.e>.6?1.2:.7);o.e-=r*dt*.35;}
+    // 寿命時間でも成熟（高速再生時の整合）
+    o.dev=Math.max(o.dev,Math.min(1,o.age/(tr.life*.18)));
+    // 幼体の偶発的な死（病気・事故・環境）: (1-dev)^2 に比例
+    if(Math.random()<.035*(1-o.dev)*(1-o.dev)*dt)return false;
+    if(o.dev>=1){o.dev=1;o.stage='adult';}
+    o.strat=chooseStrategy(o,tr);
+  }
+  return true;
+}
+// エネルギー上限（体が小さいほど蓄えられない）
+const eCap=o=>o.stage==='adult'?2.5:o.stage==='egg'?.6:.55+1.95*o.dev;
+
+// ---- 捕食者の狩り（追跡→接触で力比べ）。戻り値=得たエネルギー ----
+function hunt(o,oi,tr,dt,orgs){
+  if(o.stage!=='adult'&&o.dev<.4)return 0;
+  const tc=trophic(o.g),omni=tc==='omnivore';
+  o.huntCd=Math.max(0,(o.huntCd||0)-dt);
+  let p=o.prey&&o.prey.alive?o.prey:null;
+  const range=.018+tr.neural*.03+o.g[7]*.015;
+  if(!p){o.prey=null;o.chaseT=0;if(o.act==='hunt')o.act='idle';
+    if(o.huntCd>0||o.e>eCap(o)*.8)return 0;
+    let best=null,bs=0;
+    for(let j=0;j<orgs.length;j++){const q=orgs[j];if(q===o||!q.alive)continue;
+      if(trophic(q.g)==='plant')continue;
+      if(q.parentId===o.id||o.parentId===q.id)continue;          // 自分の子・親は襲わない
+      if(omni&&!(q.stage==='egg'||q.dev<.5))continue;             // 雑食は卵と小さな幼体のみ
+      const d=dist(o,q);if(d>range)continue;
+      // 隠れている個体は見つけにくい
+      if(Math.random()<stealth(q)*(q.strat==='hide'?.95:.35))continue;
+      const vul=1/(.25+defensePow(q)+(q.strat==='fight'?attackPow(q)*.5:0));
+      const sc=(.3+q.e)*vul/(d+.004);
+      if(sc>bs){bs=sc;best=q;}}
+    if(!best)return 0;p=o.prey=best;o.chaseT=0;
+  }
+  const d=dist(o,p);
+  // 見失う: 距離が開いた / 隠れた獲物を見失う / 追跡疲労
+  o.chaseT=(o.chaseT||0)+dt;
+  if(d>range*1.6||(p.act==='hide'&&Math.random()<stealth(p)*1.4*dt)||o.chaseT>3+tr.neural*4){
+    o.prey=null;o.huntCd=1.2;o.act='idle';return 0;}
+  p._threat=o;p._threatT=.6;
+  o.act='hunt';
+  const contact=.004+o.g[16]*.003;
+  if(d>contact){
+    const sp=Math.min(d,.0065*fleePow(o,tr)*dt);
+    o.mvU=wrapD(p.u-o.u)/d*sp;o.mvV=(p.v-o.v)/d*sp;o.e-=.02*dt;
+    return 0;
+  }
+  // 接触: 親（成体）が近くにいれば子を守って代わりに戦う
+  let def=p;
+  if(p.stage!=='adult'&&p.parentId){const par=orgs.find(q=>q.id===p.parentId&&q.alive);
+    if(par&&par.stage==='adult'&&dist(par,p)<.02&&par.strat!=='hide'){def=par;def.act='fight';par._guardT=1.2;}}
+  const atk=attackPow(o,tr)*(.75+Math.random()*.5);
+  const fightBack=def.act==='fight'||def.strat==='fight';
+  const dv=(defensePow(def)*(fightBack?1.4:1)+(fightBack?attackPow(def)*.8:0))*(.75+Math.random()*.5);
+  o.prey=null;o.huntCd=1.5;o.act='idle';
+  if(atk>dv){
+    def.alive=false;def._cause=def.stage==='egg'?'卵を捕食':def.stage==='juv'?'幼体を捕食':'捕食';
+    logEvent('EXTINCTION',{cause:def._cause,gen:def.gen,age:+(def.age||0).toFixed(1)});
+    let gain=def.e*.6+.15*(.3+grow(def));
+    // 有毒の獲物は食べた側も傷つく
+    const tx=def.g[11];if(tx>.55)gain-=(tx-.55)*1.6;
+    return gain;
+  }
+  // 撃退: 捕食者は負傷。反撃が強烈なら返り討ち
+  o.e-=.18*Math.min(2,dv/(atk+1e-3));
+  if(fightBack&&dv>atk*1.7&&o.stage==='adult'){o.e=-1;o._cause='返り討ち';}
+  return 0;
+}
+
+// ---- 被食者の反応と移動（戦略に従う）。o.mvU/mvV に移動量を書く ----
+function respond(o,tr,dt,orgs){
+  if(o.stage==='egg'){o.mvU=o.mvV=0;o.act='hide';return true;}
+  const t=o._threat;
+  if(o._threatT>0&&t&&t.alive){
+    o._threatT-=dt;
+    const d=dist(o,t)+1e-6,du=wrapD(o.u-t.u)/d,dv=(o.v-t.v)/d;
+    // 幼体は親（成体・戦う/逃げる）のもとへ逃げ込む
+    if(o.stage==='juv'&&o.parentId){const par=orgs.find(q=>q.id===o.parentId&&q.alive);
+      if(par&&par.stage==='adult'&&par.strat==='fight'&&dist(o,par)<.05){
+        const pd=dist(o,par)+1e-6,sp=Math.min(pd,.0075*fleePow(o,tr)*dt);
+        o.mvU=wrapD(par.u-o.u)/pd*sp;o.mvV=(par.v-o.v)/pd*sp;o.act='flee';o.e-=.02*dt;return true;}}
+    if(o.strat==='flee'){const sp=.0078*fleePow(o,tr)*dt;o.mvU=du*sp;o.mvV=dv*sp;o.act='flee';o.e-=.03*dt;}
+    else if(o.strat==='hide'){o.mvU=o.mvV=0;o.act='hide';}
+    else {o.mvU=o.mvV=0;o.act='fight';o.e-=.01*dt;}
+    return true;
+  }
+  o._threat=null;o._threatT=0;
+  if(o.act!=='hunt')o.act='idle';
+  // 平時: 幼体は親のそばに留まる（親が離れていれば寄っていく）
+  if(o.stage==='juv'&&o.parentId&&o.bmode!=='seed'&&o.bmode!=='fission'){
+    const par=orgs.find(q=>q.id===o.parentId&&q.alive);
+    if(par){const d=dist(o,par);if(d>.008&&d<.08){const sp=Math.min(d-.006,.003*fleePow(o,tr)*dt+.0004*dt);
+      o.mvU=wrapD(par.u-o.u)/d*sp;o.mvV=(par.v-o.v)/d*sp;return true;}}
+  }
+  return false;
+}
+return{birthMode,birth,ensure,develop,eCap,hunt,respond,fleePow,attackPow,defensePow,stealth,chooseStrategy,stageLabel,grow,devTime,STRAT_JP,STAGE_JP};
+})();
+
 // ---- Organisms ----
 let organisms=[];
 let selOrg=null;
@@ -2260,7 +2617,7 @@ function spawnOrg(u,v,pA,pB,ov){
   const ti=Math.floor(u*N)%N,tj=Math.floor(v*N)%N,idx=tj*N+ti;
   const g=mkGenome(pA,pB,ov,VR[idx]>.5?.12:.07);
   const rs=rStage(g);
-  const o={id:++orgId,g,u,v,e:.6+Math.random()*.3,age:0,gen:pA?(pA.gen||0)+1:0,alive:true,st:rs.st,gt:rs.gt,rt:0};
+  const o={id:++orgId,g,u,v,e:.6+Math.random()*.3,age:0,gen:pA?(pA.gen||0)+1:0,alive:true,st:rs.st,gt:rs.gt,rt:0,stage:'adult',dev:1};   // 繁殖で生まれる場合は Life.birth が卵/幼体に設定し直す
   // 多細胞系統の継承: 世代ごとに細胞数が増えうるが O2拡散限界/循環系で上限が決まる（MultiScale）
   const mcP=pA&&pA.mc?pA:(pB&&pB.mc?pB:null);
   if(mcP&&typeof MultiScale!=='undefined'){o.mc=MultiScale.inherit(mcP.mc,g);o.multicell=o.mc.cells;}
@@ -2277,6 +2634,11 @@ function simOrgs(dt){
     if(o.age>tr.life){rem.push(oi);return;}
     const ti=Math.floor(o.u*N)%N,tj=Math.floor(o.v*N)%N,idx=tj*N+ti;
     const nu=NM[idx],w=WM[idx],vo=VM[idx],or2=OM[idx],mb=MB[idx],fg=FG[idx],vr=VR[idx];
+    // ---- v18 発生・成長（卵/種子 → 幼体 → 成体） ----
+    {const tP=12+o.g[18]*o.g[18]*340+o.g[14]*o.g[14]*260,tW=22+o.g[18]*170+o.g[19]*130+o.g[14]*140,dT=(TM[idx]-tP)/tW;
+     if(!Life.develop(o,dt,tr,{water:w,nu,heat:1-Math.exp(-dT*dT*.85)})){o._cause=o.stage==='egg'?'卵の死':'幼体の死';rem.push(oi);return;}}
+    if(o.stage==='egg'){o.act='hide';o.mvU=o.mvV=0;if(o.e<=0)rem.push(oi);return;}   // 卵/種子は動かず食べない
+    const gm=o.dev;                                   // 成熟度（幼体は小さく弱い）
     const isV=vo>.3&&w>.5,tc=trophic(o.g);
     const h2s=H2SM[idx],ch4=CH4M[idx],co2=CO2M[idx];
     const lightE=Math.max(0,(cool-.28))*1.5;         // 光の利用可能量（冷却後に上昇）
@@ -2294,46 +2656,66 @@ function simOrgs(dt){
     else if(tc==='herbivore'){eg=mb*.13+fg*.10+or2*.07+chemoE*.3;MB[idx]=Math.max(0,MB[idx]-eg*dt*.15);}
     else if(tc==='carnivore'){
       eg=mb*.04+chemoE*.2;
-      for(let j=0;j<organisms.length;j++){if(j===oi||!organisms[j].alive)continue;const o2=organisms[j];const du=o.u-o2.u,dv=o.v-o2.v;if(du*du+dv*dv<.002&&tr.aggro>.4){const tr2=traits(o2.g);if(tr.toxin*.4+tr.aggro*.4>tr2.armor*.5){eg+=o2.e*.6;o2.alive=false;logEvent('EXTINCTION',{cause:'捕食',gen:o2.gen,age:+o2.age.toFixed(1)});break;}}}
-    }else{eg=photoE*.4+chemoE*.4+mb*.09+fg*.07+or2*.05;}
+      // v18: 感覚範囲で獲物を探して追跡し、接触したら力比べ（獲物は逃走/反撃/隠れるで抵抗）
+      o.mvU=o.mvV=0;
+      if(tr.aggro>.4)o.e+=Life.hunt(o,oi,tr,dt,organisms);
+    }else{eg=photoE*.4+chemoE*.4+mb*.09+fg*.07+or2*.05;
+      o.mvU=o.mvV=0;
+      if(tc==='omnivore'&&tr.aggro>.5)o.e+=Life.hunt(o,oi,tr,dt,organisms);   // 雑食は卵や小さな幼体を狙う
+    }
+    if(tc!=='carnivore'&&tc!=='omnivore'){o.mvU=o.mvV=0;}
     eg*=(1+o.g[6]*.25);                               // g[6] 走化性精度 → 採餌効率
     eg*=(1-vr*.3);
+    eg*=(.45+.55*gm);                                 // 幼体は口も消化管も小さい
     o.e+=eg*dt;
     const sz=o.g[16];
-    // 基礎代謝 + 神経維持ATP(g[5]) + size²ペナルティ + 攻撃コスト
-    o.e-=(0.004+tr.eRate*.012+sz*sz*.004+tr.aggro*.002+tr.neural*o.g[5]*.006)*dt;
+    // 基礎代謝 + 神経維持ATP(g[5]) + size²ペナルティ + 攻撃コスト（体が小さいほど代謝量も小さい）
+    o.e-=(0.004+tr.eRate*.012+sz*sz*.004+tr.aggro*.002+tr.neural*o.g[5]*.006)*(.5+.5*gm)*dt;
     // ---- v14 熱ストレス（指数関数・遺伝子で最適温度が変化。好熱菌は高温を"好む"） ----
     const tPref = 12 + o.g[18]*o.g[18]*340 + o.g[14]*o.g[14]*260;   // 耐熱/化学合成で好適温↑ (最大~600°C)
     const tWidth= 22 + o.g[18]*170 + o.g[19]*130 + o.g[14]*140;      // 許容幅
     const dTn=(TM[idx]-tPref)/tWidth;
-    o.e-=(1-Math.exp(-dTn*dTn*0.85))*0.05*dt;                        // 指数的に飽和する熱ストレス
+    o.e-=(1-Math.exp(-dTn*dTn*0.85))*0.05*(1.8-.8*gm)*dt;            // 指数的に飽和する熱ストレス（幼体ほど弱い）
     o._eg=eg;                                                         // METABOLISMログ用
     if(o===selOrg&&(keys.ArrowLeft||keys.ArrowRight||keys.ArrowUp||keys.ArrowDown)){
       let du=0,dv=0;if(keys.ArrowLeft)du--;if(keys.ArrowRight)du++;if(keys.ArrowUp)dv--;if(keys.ArrowDown)dv++;
       const sp=Math.max(tr.spd,.3)*.003*dt,l=Math.sqrt(du*du+dv*dv)||1;
       o.u=((o.u+du/l*sp)+1)%1;o.v=Math.max(.01,Math.min(.99,o.v+dv/l*sp*.5));o.e-=sp*.8;
-    }else{const a=n2d(o.u*4,o.v*4+o.age*.4,1,oi*7)*Math.PI*2,sp=tr.spd*.002*dt;o.u=((o.u+Math.cos(a)*sp)+1)%1;o.v=Math.max(.01,Math.min(.99,o.v+Math.sin(a)*sp*.5));}
-    if(o.e<=0){rem.push(oi);return;}
-    o.e=Math.min(2.5,o.e);
+    }else{
+      // v18: 生存戦略（逃走/隠れる/反撃）・狩りの追跡・幼体の親への追従 → なければ放浪
+      const busy=Life.respond(o,tr,dt,organisms)||o.act==='hunt';
+      if(busy&&(o.mvU||o.mvV)){o.u=((o.u+o.mvU)+1)%1;o.v=Math.max(.01,Math.min(.99,o.v+o.mvV));}
+      else if(!busy){const a=n2d(o.u*4,o.v*4+o.age*.4,1,oi*7)*Math.PI*2,sp=tr.spd*(.35+.65*gm)*.002*dt;o.u=((o.u+Math.cos(a)*sp)+1)%1;o.v=Math.max(.01,Math.min(.99,o.v+Math.sin(a)*sp*.5));}
+    }
+    if(o.e<=0||!o.alive){rem.push(oi);return;}
+    o.e=Math.min(Life.eCap(o),o.e);
     const rs=rStage(o.g);o.st=rs.st;o.gt=rs.gt;
     if(o.rt>0)o.rt-=dt;
-    if(o.e>.7+LifeGfx.traits(o.g).repro*.35&&organisms.length<MAXO*.95&&o.rt<=0){
+    if(o.stage==='adult'&&o.e>.7+LifeGfx.traits(o.g).repro*.35&&organisms.length<MAXO*.95&&o.rt<=0){
       if(o.st===0){
-        // 無性生殖 → Genome.mutate
+        // 無性生殖 → Genome.mutate（分裂: 娘細胞は小さく生まれて育つ。植物は種子を落とす）
         o.e-=.25; o.rt=.4;
         const ng=Genome.mutate(o.g, 0.07, 0.22);
-        spawnOrg(((o.u+(Math.random()-.5)*.01)+1)%1,Math.max(.01,Math.min(.99,o.v+(Math.random()-.5)*.01)),null,null,ng);
+        const sd=Life.birthMode(ng)==='seed'?.03:.01;
+        Life.birth(spawnOrg(((o.u+(Math.random()-.5)*sd)+1)%1,Math.max(.01,Math.min(.99,o.v+(Math.random()-.5)*sd)),null,null,ng),o);
       } else {
         // 有性生殖 → Breeding.cross
         let mate=null,md=.06;
-        organisms.forEach((o2,j)=>{if(j===oi||!o2.alive)return;const ok=o.st===1&&o2.st===1||(o.gt===0||o2.gt===0||(o.gt===1&&o2.gt===2)||(o.gt===2&&o2.gt===1));if(!ok)return;const du=o.u-o2.u,dv=o.v-o2.v,d=Math.sqrt(du*du+dv*dv);if(d<md){md=d;mate=o2;}});
+        organisms.forEach((o2,j)=>{if(j===oi||!o2.alive||o2.stage!=='adult')return;const ok=o.st===1&&o2.st===1||(o.gt===0||o2.gt===0||(o.gt===1&&o2.gt===2)||(o.gt===2&&o2.gt===1));if(!ok)return;const du=o.u-o2.u,dv=o.v-o2.v,d=Math.sqrt(du*du+dv*dv);if(d<md){md=d;mate=o2;}});
         if(mate){
           const c=o.gt===1?.4:.18; o.e-=c; mate.e-=.12;
           o.rt=o.gt===1?1.0:.25; mate.rt=.25;
           const dominant=o.gt===1?.65:.5;
           const ng=Breeding.cross(o.g, mate.g, {rate:0.07, amt:0.22, dominant});
           const sp2=o.gt===1?o:mate;
-          spawnOrg(((sp2.u+(Math.random()-.5)*.015)+1)%1,Math.max(.01,Math.min(.99,sp2.v+(Math.random()-.5)*.015)),o,mate,ng);
+          // 卵生は一度に複数の卵（多産・高死亡率）、胎生は1頭の赤子を産む（親の投資大）
+          const bm=Life.birthMode(ng),clutch=bm==='egg'?1+Math.floor(Math.random()*(2+o.g[21]*2)):1;
+          if(bm==='live'){sp2.e-=.15;}
+          for(let k=0;k<clutch&&organisms.length<MAXO*.95;k++){
+            const cg=k===0?ng:Breeding.cross(o.g, mate.g, {rate:0.07, amt:0.22, dominant});
+            const ch=spawnOrg(((sp2.u+(Math.random()-.5)*.012)+1)%1,Math.max(.01,Math.min(.99,sp2.v+(Math.random()-.5)*.012)),o,mate,cg);
+            Life.birth(ch,sp2);
+          }
         }
       }
     }
@@ -2344,6 +2726,8 @@ function simOrgs(dt){
     for(let a=-1;a<=1;a++)for(let b=-1;b<=1;b++){const ni=(di+a+N)%N,nj=Math.max(0,Math.min(N-1,dj+b));OM[nj*N+ni]=Math.min(1,OM[nj*N+ni]+bio*.07);MB[nj*N+ni]=Math.min(1,MB[nj*N+ni]+bio*.05);}
     if(selOrg===d)selOrg=null;d.alive=false;organisms.splice(i,1);
   });
+  // 捕食で死んだ個体（他個体の処理中に alive=false になったもの）を除去
+  if(organisms.some(o=>!o.alive)){organisms=organisms.filter(o=>{if(o.alive)return true;if(selOrg===o)selOrg=null;return false;});}
   if(organisms.length===0||Math.random()<.12)tryAbio();
   if(Math.random()<.04){const ri=Math.floor(Math.random()*N),rj=Math.floor(Math.random()*N),ridx=rj*N+ri;if(OM[ridx]>.01){const dc=OM[ridx]*.04*dt;OM[ridx]-=dc;NM[ridx]=Math.min(1,NM[ridx]+dc*.4);}if(NM[ridx]<.3&&VM[ridx]>.1)NM[ridx]=Math.min(1,NM[ridx]+.002*dt);}
 }
@@ -3008,11 +3392,13 @@ function drawRegion2D(){
     const ti2=Math.floor(o.u*N)%N,tj2=Math.floor(o.v*N)%N;
     const gh=Math.max(0,HM[tj2*N+ti2])*.8;
     const{sx,sy}=iso(wx,wy,gh);
+    // v18: 卵・種子は小さな楕円で描く
+    if(o.stage==='egg'){ctx.fillStyle=o.bmode==='seed'?'#7a5a32':'#efe6cf';ctx.beginPath();ctx.ellipse(sx,sy-2,2.2,3,0,0,Math.PI*2);ctx.fill();return;}
     if(!o.body3d)o.body3d=buildBody3D(o.g);
     // v15d: 多細胞クラスター → 細胞数に応じたスケール拡大・単一3Dモデル（仕様1.7）
     const cellFactor = o.multicell ? Math.pow(o.multicell, 0.35) : 1; // 細胞数^0.35でスケール（急増防止）
     const isSel=o===selOrg, b3=o.body3d;
-    const bscale=Math.max(0.6, TW*0.045)*cellFactor;
+    const bscale=Math.max(0.6, TW*0.045)*cellFactor*(o.stage==='juv'?0.3+0.7*(o.dev||0):1);
     // LOD: 画面上の見かけサイズで描画精度を決定
     const lodSize=b3.size*bscale;
     // 落ち影
@@ -4427,11 +4813,25 @@ function drawRegion(){
   catch(e){if(!drawRegion._warned){console.error('Region3D failed',e);drawRegion._warned=true;}drawRegion2D();return;}
   ctx.drawImage(res.canvas,0,0,W,H);
   // ---- オーバーレイ: エネルギーバー・選択個体の物理情報 ----
-  res.visible.forEach(o=>{const R=o._rig;if(!R)return;const c=Rig.center(R),p=Region3D.project(c[0],c[1],c[2]+R.hipH*1.6+8);if(!p.vis||!Region3D.visibleFrom(c[0],c[1],c[2]+R.hipH))return;
-    const bw=22;ctx.fillStyle='rgba(0,0,0,.5)';ctx.fillRect(p.sx-bw/2,p.sy,bw,3);ctx.fillStyle=o.e>.5?'#4f8':'#f84';ctx.fillRect(p.sx-bw/2,p.sy,bw*Math.min(1,o.e/1.5),3);
+  const ACT_ICON={flee:'💨',fight:'⚔',hide:'🍃',hunt:'🎯'};
+  res.visible.forEach(o=>{
+    // 卵・種子: 孵化（発芽）までの進み具合
+    if(o.stage==='egg'){const e=o._eggPos;if(!e)return;const p=Region3D.project(e[0],e[1],e[2]+6);if(!p.vis||!Region3D.visibleFrom(e[0],e[1],e[2]))return;
+      ctx.font='11px sans-serif';ctx.textAlign='center';ctx.fillText(o.bmode==='seed'?'🌰':'🥚',p.sx,p.sy-3);ctx.textAlign='left';
+      const bw=18;ctx.fillStyle='rgba(0,0,0,.5)';ctx.fillRect(p.sx-bw/2,p.sy,bw,3);ctx.fillStyle='#ffe6a0';ctx.fillRect(p.sx-bw/2,p.sy,bw*(o._eggProg||0),3);
+      if(o===selOrg){ctx.font='10px monospace';ctx.textAlign='center';const t=(o.bmode==='seed'?'種子 発芽':'卵 孵化')+' '+Math.round((o._eggProg||0)*100)+'%  隠密'+Math.round(Life.stealth(o)*100);
+        const w=ctx.measureText(t).width+8;ctx.fillStyle='rgba(0,0,0,.55)';ctx.fillRect(p.sx-w/2,p.sy-28,w,13);ctx.fillStyle='#ffe9a8';ctx.fillText(t,p.sx,p.sy-18);ctx.textAlign='left';}
+      return;}
+    const R=o._rig;if(!R)return;const c=Rig.center(R),p=Region3D.project(c[0],c[1],c[2]+R.hipH*1.6+8);if(!p.vis||!Region3D.visibleFrom(c[0],c[1],c[2]+R.hipH))return;
+    const bw=22;ctx.fillStyle='rgba(0,0,0,.5)';ctx.fillRect(p.sx-bw/2,p.sy,bw,3);ctx.fillStyle=o.e>.5?'#4f8':'#f84';ctx.fillRect(p.sx-bw/2,p.sy,bw*Math.min(1,o.e/Life.eCap(o)),3);
+    // 幼体: 成熟度バー
+    if(o.stage==='juv'){ctx.fillStyle='rgba(0,0,0,.5)';ctx.fillRect(p.sx-bw/2,p.sy+4,bw,2);ctx.fillStyle='#9cf';ctx.fillRect(p.sx-bw/2,p.sy+4,bw*(o.dev||0),2);}
+    // 行動（逃走/反撃/隠れる/狩り）
+    const ic=ACT_ICON[o.act];if(ic){ctx.font='11px sans-serif';ctx.textAlign='center';ctx.fillText(ic,p.sx+bw/2+8,p.sy+5);ctx.textAlign='left';}
     if(o===selOrg||o===possessed){
-      const lines=[(PLAN_NAMES_RIG[o.body3d&&o.body3d.plan]||'')+(o.mc?' / '+MultiScale.describe(o.mc):''),rigSummary(R)];
-      ctx.font='10px monospace';ctx.textAlign='center';lines.forEach((t,k)=>{ctx.fillStyle='rgba(0,0,0,.55)';const w=ctx.measureText(t).width+8;ctx.fillRect(p.sx-w/2,p.sy-30+k*13,w,13);ctx.fillStyle=k?'#9cf':'#ffe9a8';ctx.fillText(t,p.sx,p.sy-20+k*13);});ctx.textAlign='left';}
+      const lines=[(PLAN_NAMES_RIG[o.body3d&&o.body3d.plan]||'')+(o.mc?' / '+MultiScale.describe(o.mc):''),rigSummary(R),
+        Life.stageLabel(o)+(o.stage==='juv'?' 成熟'+Math.round((o.dev||0)*100)+'%':'')+'  戦略:'+(Life.STRAT_JP[o.strat]||'—')+'  速'+Life.fleePow(o).toFixed(2)+' 攻'+Life.attackPow(o).toFixed(2)+' 防'+Life.defensePow(o).toFixed(2)];
+      ctx.font='10px monospace';ctx.textAlign='center';lines.forEach((t,k)=>{ctx.fillStyle='rgba(0,0,0,.55)';const w=ctx.measureText(t).width+8;ctx.fillRect(p.sx-w/2,p.sy-43+k*13,w,13);ctx.fillStyle=k?'#9cf':'#ffe9a8';ctx.fillText(t,p.sx,p.sy-33+k*13);});ctx.textAlign='left';}
   });
   // コンパス
   ctx.save();ctx.translate(W-38,58);ctx.rotate(-rvAngle);ctx.fillStyle='rgba(255,80,80,.9)';ctx.beginPath();ctx.moveTo(0,-13);ctx.lineTo(-4,4);ctx.lineTo(4,4);ctx.closePath();ctx.fill();ctx.fillStyle='rgba(200,200,200,.45)';ctx.beginPath();ctx.moveTo(0,13);ctx.lineTo(-4,-4);ctx.lineTo(4,-4);ctx.closePath();ctx.fill();ctx.restore();
@@ -4655,8 +5055,8 @@ function handleTap(sx,sy){
     }
     lastTap=now;
     // 生物選択
-    if(HAS3D()){let best=null,bd=46;focusCol.orgs.forEach(o=>{if(!o.alive||!o._rig)return;const c=Rig.center(o._rig),p=Region3D.project(c[0],c[1],c[2]);if(!p.vis)return;const d=Math.hypot(sx-p.sx,sy-p.sy);if(d<bd){bd=d;best=o;}});
-      selOrg=best;if(best)flash('選択: G'+best.gen+' '+trophic(best.g)+'\nダブルタップで詳細');lastTapOrg=best;return;}
+    if(HAS3D()){let best=null,bd=46;focusCol.orgs.forEach(o=>{if(!o.alive)return;const c=o._rig?Rig.center(o._rig):(o.stage==='egg'&&o._eggPos?o._eggPos:null);if(!c)return;const p=Region3D.project(c[0],c[1],c[2]);if(!p.vis)return;const d=Math.hypot(sx-p.sx,sy-p.sy);if(d<bd){bd=d;best=o;}});
+      selOrg=best;if(best)flash('選択: G'+best.gen+' '+trophic(best.g)+' '+Life.stageLabel(best)+'\nダブルタップで詳細');lastTapOrg=best;return;}
     const col=focusCol,cu=col.u,cv2=col.v,SPAN=.15,TILES=32;
     const OX=W*.5,OY=H*.62;
     let best=null,bd=25;
@@ -4806,9 +5206,9 @@ document.getElementById('poss-repro').addEventListener('click',()=>{
   const o=possessed; if(!o)return; if(o.e<0.6){flash('エネルギー不足(生殖には0.6必要)');return;}
   o.e-=0.3;
   const ng=Genome.mutate(o.g,0.08,0.2);
-  const c=spawnOrg(((o.u+(Math.random()-.5)*.02)+1)%1,Math.max(.01,Math.min(.99,o.v+(Math.random()-.5)*.02)),o,null,ng);
+  const c=Life.birth(spawnOrg(((o.u+(Math.random()-.5)*.02)+1)%1,Math.max(.01,Math.min(.99,o.v+(Math.random()-.5)*.02)),o,null,ng),o);
   if(c&&focusCol)focusCol.orgs.push(c);
-  flash('🧬 子を産んだ'); logEvent('REPRODUCE',{mode:'憑依生殖',gen:o.gen});
+  flash(c&&c.stage==='egg'?(c.bmode==='seed'?'🌰 種子を落とした':'🥚 卵を産んだ'):'🧬 子を産んだ'); logEvent('REPRODUCE',{mode:'憑依生殖',gen:o.gen});
 });
 document.getElementById('poss-mate').addEventListener('click',()=>{
   const o=possessed; if(!o)return;
@@ -4824,9 +5224,9 @@ document.getElementById('mate-ok').addEventListener('click',()=>{
   if(!o||!m||!o.alive||!m.alive){mateTarget=null;return;}
   const ng=Breeding.cross(o.g,m.g,{rate:0.08,amt:0.2});
   o.e-=0.2;m.e-=0.2;
-  const c=spawnOrg(((o.u+(Math.random()-.5)*.02)+1)%1,Math.max(.01,Math.min(.99,o.v+(Math.random()-.5)*.02)),o,m,ng);
+  const c=Life.birth(spawnOrg(((o.u+(Math.random()-.5)*.02)+1)%1,Math.max(.01,Math.min(.99,o.v+(Math.random()-.5)*.02)),o,m,ng),o);
   if(c&&focusCol)focusCol.orgs.push(c);
-  flash('💞 交配成功・子誕生'); logEvent('REPRODUCE',{mode:'憑依交配',dist:+gdist(o.g,m.g).toFixed(3)});
+  flash(c&&c.stage==='egg'?'💞 交配成功・🥚産卵':'💞 交配成功・🍼赤子誕生'); logEvent('REPRODUCE',{mode:'憑依交配',dist:+gdist(o.g,m.g).toFixed(3)});
   mateTarget=null;
 });
 document.getElementById('mate-no').addEventListener('click',()=>{document.getElementById('mate').style.display='none';mateTarget=null;flash('交配を拒否');});
@@ -5072,6 +5472,27 @@ function closeDetailView() {
   if (detRafId) { cancelAnimationFrame(detRafId); detRafId = null; }
 }
 
+// v18: 成長段階と生存戦略（成熟度で伸びる実効値を成体値と並べて表示）
+function lifeHtml(o,row){
+  Life.ensure(o);
+  const BM={seed:'🌰種子で殖える',fission:'🦠分裂で殖える',egg:'🥚卵生（多産・高死亡率）',live:'🤱胎生（赤子を産み守る）'};
+  const ad=Object.assign({},o,{stage:'adult',dev:1});
+  const fp=Life.fleePow(o),ap=Life.attackPow(o),dp=Life.defensePow(o),st=Life.stealth(o);
+  const fA=Life.fleePow(ad),aA=Life.attackPow(ad),dA=Life.defensePow(ad);
+  const prog=o.stage==='egg'?(o._eggProg!=null?o._eggProg:0):(o.dev||0);
+  return `<div style="border-top:1px solid #0d2010;padding-top:8px;margin-top:6px">
+  <div style="font-size:10px;margin-bottom:4px">成長段階: <b style="color:#ffe9a8">${Life.stageLabel(o)}</b>
+   ${o.stage==='egg'?'（孵化まで'+Math.round(prog*100)+'%）':o.stage==='juv'?'（成熟度 '+Math.round(prog*100)+'%）':''}
+   / 繁殖: <b>${BM[o.bmode||Life.birthMode(o.g)]}</b></div>
+  <div style="font-size:10px;margin-bottom:4px">生存戦略: <b style="color:#aaddff">${Life.STRAT_JP[o.strat]||'—'}</b>
+   ${o.act&&o.act!=='idle'?' / 現在: <b style="color:#ff9">'+({flee:'逃走中',fight:'応戦中',hide:'潜伏中',hunt:'狩り中'}[o.act]||o.act)+'</b>':''}</div>
+  ${row('💨','逃げ足', fp/Math.max(1e-3,fA), fp.toFixed(2)+'/'+fA.toFixed(2))}
+  ${row('⚔','戦闘力', ap/Math.max(1e-3,aA), ap.toFixed(2)+'/'+aA.toFixed(2))}
+  ${row('🛡','防御力', dp/Math.max(1e-3,dA), dp.toFixed(2)+'/'+dA.toFixed(2))}
+  ${row('🍃','隠密',   st, (st*100).toFixed(0))}
+  <div style="font-size:9px;color:#667">数値は「現在 / 成体時」。幼体は弱く死にやすいが、成長とともに強くなる</div>
+  </div>`;
+}
 function renderDetailStats(o) {
   const g = o.g, tr = traits(g), tc = trophic(g);
   const TNAMES={plant:'🌿植物',herbivore:'🦌草食',carnivore:'🦁肉食',omnivore:'◎雑食',detritivore:'🍂腐食'};
@@ -5110,7 +5531,8 @@ ${row('🌿','光合成',     tr.photo,    (tr.photo*100).toFixed(0))}
 ${row('🔥','化学合成',   tr.chem,     (tr.chem*100).toFixed(0))}
 ${row('📏','体格',       g[16],       g[16].toFixed(2))}
 ${row('⏳','寿命',       g[23],       tr.life.toFixed(1))}
-</div>`;
+</div>
+${lifeHtml(o,row)}`;
   document.getElementById('det-stats').innerHTML = html;
 }
 
