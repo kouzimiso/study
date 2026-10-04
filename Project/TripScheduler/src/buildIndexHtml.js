@@ -536,7 +536,10 @@ function buildIndexHtml(data, options = {}) {
       } catch (err) {
         setStatus(
           'Overpass APIへの接続に失敗しました（' + err.message + '）。' +
-          'ネットワーク環境や混雑状況によって接続できないことがあります。少し時間をおくか別のネットワークで再試行してください。',
+          '広告ブロッカーやセキュリティ系の拡張機能（uBlock Origin等）が ' +
+          'overpass-api.de 系のドメインをブロックしていないか確認してください' +
+          '（一度シークレットウィンドウで試すと切り分けられます）。詳細は' +
+          'ブラウザの開発者ツール（F12）のConsoleタブにも出力しています。',
           true
         );
         return;

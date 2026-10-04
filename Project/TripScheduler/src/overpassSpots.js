@@ -17,7 +17,8 @@
   const DEFAULT_ENDPOINTS = [
     'https://overpass-api.de/api/interpreter',
     'https://overpass.kumi.systems/api/interpreter',
-    'https://lz4.overpass-api.de/api/interpreter',
+    'https://overpass.openstreetmap.ru/api/interpreter',
+    'https://overpass.private.coffee/api/interpreter',
   ];
 
   const USER_AGENT = 'study-tripscheduler/1.0 (+https://github.com/kouzimiso/study)';
@@ -105,29 +106,34 @@ async function fetchOverpassRaw(query, options = {}) {
   const fetchImpl = options.fetchImpl || globalThis.fetch;
   if (!fetchImpl) throw new Error('fetch is not available in this environment');
   const endpoints = options.endpoints || DEFAULT_ENDPOINTS;
-  const timeoutMs = options.timeoutMs || 20000;
+  const timeoutMs = options.timeoutMs || 15000;
+  const isBrowser = typeof window !== 'undefined';
 
   let lastError;
   for (const endpoint of endpoints) {
     try {
       const res = await fetchImpl(endpoint, {
         method: 'POST',
-        // User-Agent はブラウザのfetchでは "forbidden header name" で設定できない
-        // （設定してもブラウザに無視される）。Node.js環境（CLI/テスト）でのみ送る。
-        headers:
-          typeof window === 'undefined'
-            ? { 'content-type': 'application/x-www-form-urlencoded', 'user-agent': USER_AGENT }
-            : { 'content-type': 'application/x-www-form-urlencoded' },
+        mode: 'cors',
+        // Content-Type を明示すると、サーバーによってはボディを
+        // urlencodedフォームとして解釈しようとして失敗することがある
+        // （Overpass APIはボディをそのまま生クエリとして受け付けるため、
+        // 指定しないほうが安全）。User-Agent はブラウザのfetchでは
+        // "forbidden header name" で設定できない（ブラウザが無視する）ため、
+        // Node.js環境（CLI/テスト）でのみ付与する。
+        headers: isBrowser ? undefined : { 'content-type': 'text/plain', 'user-agent': USER_AGENT },
         body: query,
         signal: typeof AbortSignal !== 'undefined' && AbortSignal.timeout ? AbortSignal.timeout(timeoutMs) : undefined,
       });
       if (!res.ok) {
         lastError = new Error(`overpass error ${res.status} (${endpoint})`);
+        if (isBrowser) console.warn('[TripScheduler] Overpass endpoint failed:', endpoint, res.status);
         continue;
       }
       return await res.json();
     } catch (err) {
       lastError = err;
+      if (isBrowser) console.warn('[TripScheduler] Overpass endpoint error:', endpoint, err && err.message);
     }
   }
   throw lastError || new Error('no overpass endpoints configured');
