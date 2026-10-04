@@ -1,17 +1,27 @@
 'use strict';
 
 /**
- * TripSchedulerのデータ（routes.json / visitHistory.json / 旅程イベントJSON）を
- * 1つのHTMLページに埋め込んで、ブラウザで開くだけで見られるGUIを生成する。
+ * TripSchedulerのデータ（routes.json / visitHistory.json）を1つのHTMLページに
+ * 埋め込んで、ブラウザで開くだけで見られるGUIを生成する。
  *
- * - 「旅程」タブ：日別タイムライン表示
- * - 「ルートカタログ」タブ：Routeの一覧（訪問履歴バッジ付き）
- * - 「地図」タブ：Leaflet地図（CDN）にRouteの検索中心座標をマーカー表示
+ * - 「現地プラン作成」タブ：地点を指定して動的にOSM上のスポットを検索し、
+ *   旅程（時間割）を自動生成するメイン機能。検索結果は自動的に
+ *   「ルートカタログ」タブの検索履歴にも追記される
+ * - 「ルートカタログ」タブ：手動登録のRoute一覧（訪問履歴バッジ付き）＋
+ *   「現地プラン作成」タブで検索するたびに増える検索履歴（ブラウザの
+ *   localStorageに保存、このページ単体では他の端末と共有されない）
+ * - 「地図」タブ：Leaflet地図（CDN）にRouteの検索中心座標と、検索履歴の
+ *   中心座標をマーカー表示
  * - 「楽天ホテル検索」タブ：ブラウザから直接 openapi.rakuten.co.jp を呼ぶ。
  *   APIキーはブラウザのlocalStorageにのみ保存し、このファイルやリポジトリには書き込まない
  *   （楽天API側のCORSはAccess-Control-Allow-Origin: *で許可されているため直接呼べる。
  *   ただし「アプリ登録」で設定したApplication URLとブラウザのRefererが一致する必要がある。
  *   このページはGitHub Pages等、登録したURL上で開くことを想定）。
+ *
+ * 旧「旅程」タブ（`data/silver-week-2026.json`という固定データを表示するだけの
+ * タブ）は、「現地プラン作成」タブが同じカード表示で動的に旅程を作れるように
+ * なったため廃止した（固定データ自体や.ics/ガントチャート変換CLIは
+ * `src/planTrip.js`等として引き続き使える）。
  */
 
 const fs = require('fs');
@@ -39,7 +49,7 @@ function daysSince(dateStr, today) {
 }
 
 /**
- * @param {{routes: object[], visitHistory: object[], itinerary: object[]}} data
+ * @param {{routes: object[], visitHistory: object[]}} data
  * @param {{title?: string, today?: Date}} [options]
  * @returns {string} 完成したHTML文字列
  */
@@ -49,7 +59,7 @@ function buildIndexHtml(data, options = {}) {
 
   // 動的プランナー用のロジック（Node.js/ブラウザ両対応のUMDモジュール）をそのまま
   // <script>として埋め込む。ブラウザではwindow.TripScheduler*に展開される。
-  const embeddedModules = ['buildDaySchedule.js', 'overpassSpots.js', 'geocode.js', 'dynamicScheduler.js']
+  const embeddedModules = ['buildDaySchedule.js', 'overpassSpots.js', 'geocode.js', 'dynamicScheduler.js', 'routeLine.js']
     .map((file) => fs.readFileSync(path.join(__dirname, file), 'utf8'))
     .join('\n');
 
@@ -69,7 +79,6 @@ function buildIndexHtml(data, options = {}) {
 
   const payload = {
     routes: routesWithVisit,
-    itinerary: data.itinerary || [],
     generatedAt: today.toISOString(),
   };
   const payloadJson = escapeForScriptTag(JSON.stringify(payload));
@@ -136,23 +145,21 @@ function buildIndexHtml(data, options = {}) {
 <body>
 <header>
   <h1>${title}</h1>
-  <p>食事・Wifi/電源・混雑回避を踏まえたRouteカタログと旅程、ホテル検索をまとめたページ</p>
+  <p>地点を指定して動的に組む旅程プランナーと、検索するたびに増えるRouteカタログ、ホテル検索をまとめたページ</p>
 </header>
 <nav>
-  <button data-tab="itinerary" class="active">旅程</button>
+  <button data-tab="planner" class="active">現地プラン作成</button>
   <button data-tab="routes">ルートカタログ</button>
   <button data-tab="map">地図</button>
-  <button data-tab="planner">現地プラン作成</button>
   <button data-tab="hotel">楽天ホテル検索</button>
 </nav>
 <main>
-  <section id="tab-itinerary" class="tab active"></section>
   <section id="tab-routes" class="tab"></section>
   <section id="tab-map" class="tab">
     <div id="map"></div>
-    <p class="hint">色は混雑リスクの目安（緑=空いている傾向／黄=やや混雑／赤=激混み想定）。マーカーをクリックすると詳細を表示します。</p>
+    <p class="hint">緑系の丸=手動登録のRouteカタログ（色は混雑リスクの目安：緑=空いている傾向／黄=やや混雑／赤=激混み想定）、青の四角=「現地プラン作成」タブの検索履歴。マーカーをクリックすると詳細を表示します。</p>
   </section>
-  <section id="tab-planner" class="tab">
+  <section id="tab-planner" class="tab active">
     <div id="dp-file-warning" class="route-card" style="display:none;border-color:#E8C22C;">
       <h3 style="color:#E8C22C;">⚠️ file:// で開いています</h3>
       <p class="notes">
@@ -214,6 +221,7 @@ function buildIndexHtml(data, options = {}) {
     <div id="dp-map-wrap" class="route-card" style="display:none;">
       <h3>検索結果マップ</h3>
       <div id="dp-map" style="height:360px;border-radius:12px;"></div>
+      <p id="dp-map-note" class="hint"></p>
     </div>
     <div id="dp-result"></div>
   </section>
@@ -267,6 +275,49 @@ function buildIndexHtml(data, options = {}) {
       .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
   }
 
+  // ─── 検索履歴（ルートカタログの自動追加分）───
+  // 「現地プラン作成」タブで検索するたびに1件追加される。サーバーを
+  // 持たないページなので、この端末のブラウザのlocalStorageにのみ保存する
+  // （他の端末・他のブラウザとは共有されない）。
+  const SEARCH_HISTORY_KEY = 'tripscheduler_searchHistory';
+  const SEARCH_HISTORY_LIMIT = 200;
+
+  function loadSearchHistory() {
+    try {
+      const raw = JSON.parse(localStorage.getItem(SEARCH_HISTORY_KEY) || '[]');
+      return Array.isArray(raw) ? raw : [];
+    } catch (err) {
+      return [];
+    }
+  }
+
+  function saveSearchHistoryEntry(entry) {
+    const list = loadSearchHistory();
+    list.unshift(entry);
+    try {
+      localStorage.setItem(SEARCH_HISTORY_KEY, JSON.stringify(list.slice(0, SEARCH_HISTORY_LIMIT)));
+    } catch (err) {
+      // localStorageが使えない（プライベートモード等）場合は履歴への追加のみ諦める
+    }
+  }
+
+  function deleteSearchHistoryEntry(id) {
+    const list = loadSearchHistory().filter((e) => e.id !== id);
+    try {
+      localStorage.setItem(SEARCH_HISTORY_KEY, JSON.stringify(list));
+    } catch (err) {
+      // 無視
+    }
+  }
+
+  function clearSearchHistory() {
+    try {
+      localStorage.removeItem(SEARCH_HISTORY_KEY);
+    } catch (err) {
+      // 無視
+    }
+  }
+
   function buildDayCardsHtml(events) {
     const byDate = new Map();
     events.forEach((e) => {
@@ -294,13 +345,23 @@ function buildIndexHtml(data, options = {}) {
     }).join('');
   }
 
-  function renderItinerary() {
-    const html = buildDayCardsHtml(DATA.itinerary);
-    document.getElementById('tab-itinerary').innerHTML = html || '<p class="hint">旅程データがありません。</p>';
+  function buildSearchHistoryCardHtml(entry) {
+    const typeLabels = (entry.types || []).map((t) => CATEGORY_LABEL[t] || t).join('・');
+    const usedTotal = (entry.usedCounts || []).reduce((sum, n) => sum + n, 0);
+    return '<div class="route-card" data-search-id="' + escapeHtml(entry.id) + '">' +
+      '<h3>📍 ' + escapeHtml(entry.centerName || '検索地点') + '</h3>' +
+      '<span class="badge" style="background:#5EA8E822;color:#5EA8E8;">現地プラン作成の検索履歴</span>' +
+      '<p class="notes">' +
+        escapeHtml(new Date(entry.searchedAt).toLocaleString('ja-JP')) + ' / 半径' + escapeHtml(entry.radiusKm) + 'km / ' +
+        escapeHtml(entry.days) + '日分 / ' + escapeHtml({ walk: '徒歩', bike: '自転車', car: '車' }[entry.mode] || entry.mode) +
+      '</p>' +
+      '<p class="notes">対象: ' + escapeHtml(typeLabels) + ' / 周辺' + escapeHtml(entry.totalSpots) + '件中' + escapeHtml(usedTotal) + '件を採用</p>' +
+      '<button class="btn secondary" data-del-search-id="' + escapeHtml(entry.id) + '" style="font-size:11px;padding:4px 10px;">この履歴を削除</button>' +
+    '</div>';
   }
 
   function renderRoutes() {
-    const html = DATA.routes.map((route) => {
+    const curatedHtml = DATA.routes.map((route) => {
       const riskColor = CROWD_COLOR[route.crowdRisk] || '#8CA39B';
       const riskLabel = CROWD_LABEL[route.crowdRisk] || route.crowdRisk || '';
       const tags = (route.tags || []).map((t) => '<span class="tag">' + escapeHtml(t) + '</span>').join('');
@@ -315,10 +376,56 @@ function buildIndexHtml(data, options = {}) {
         tags +
       '</div>';
     }).join('');
-    document.getElementById('tab-routes').innerHTML = html;
+
+    const history = loadSearchHistory();
+    const historyHtml = history.length
+      ? '<h2 style="font-size:14px;margin:18px 0 10px;color:var(--text-muted);">🔎 現地プラン作成の検索履歴（' + history.length + '件・この端末のブラウザにのみ保存）' +
+          '<button class="btn secondary" id="routes-clear-history" style="font-size:11px;padding:3px 8px;margin-left:8px;">すべて削除</button>' +
+        '</h2>' +
+        history.map(buildSearchHistoryCardHtml).join('')
+      : '';
+
+    document.getElementById('tab-routes').innerHTML = curatedHtml + historyHtml;
+
+    document.querySelectorAll('[data-del-search-id]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        deleteSearchHistoryEntry(btn.getAttribute('data-del-search-id'));
+        renderRoutes();
+        if (leafletMap) renderSearchHistoryMarkers();
+      });
+    });
+    const clearBtn = document.getElementById('routes-clear-history');
+    if (clearBtn) {
+      clearBtn.addEventListener('click', () => {
+        if (!confirm('検索履歴をすべて削除しますか？（手動登録のRouteカタログは消えません）')) return;
+        clearSearchHistory();
+        renderRoutes();
+        if (leafletMap) renderSearchHistoryMarkers();
+      });
+    }
   }
 
   let leafletMap = null;
+  let searchHistoryLayer = null;
+
+  function renderSearchHistoryMarkers() {
+    if (!leafletMap) return;
+    if (searchHistoryLayer) leafletMap.removeLayer(searchHistoryLayer);
+    searchHistoryLayer = L.layerGroup();
+    loadSearchHistory().forEach((entry) => {
+      if (typeof entry.centerLat !== 'number' || typeof entry.centerLng !== 'number') return;
+      const marker = L.rectangle(
+        [[entry.centerLat - 0.003, entry.centerLng - 0.003], [entry.centerLat + 0.003, entry.centerLng + 0.003]],
+        { color: '#5EA8E8', fillColor: '#5EA8E8', fillOpacity: 0.7, weight: 1.5 }
+      );
+      marker.bindPopup(
+        '<strong>' + escapeHtml(entry.centerName || '検索地点') + '</strong>（検索履歴）<br/>' +
+        '<span style="font-size:11px;color:#555;">' + escapeHtml(new Date(entry.searchedAt).toLocaleString('ja-JP')) + '</span>'
+      );
+      searchHistoryLayer.addLayer(marker);
+    });
+    searchHistoryLayer.addTo(leafletMap);
+  }
 
   function renderMap() {
     const withCenter = DATA.routes.filter((r) => r.searchCenter);
@@ -332,11 +439,16 @@ function buildIndexHtml(data, options = {}) {
       attribution: '地図: <a href="https://maps.gsi.go.jp/development/ichiran.html" target="_blank" rel="noopener">国土地理院</a>',
       maxZoom: 18,
     }).addTo(map);
-    if (withCenter.length === 0) {
+
+    const history = loadSearchHistory();
+    const boundPoints = withCenter.map((r) => [r.searchCenter.lat, r.searchCenter.lng])
+      .concat(history.filter((h) => typeof h.centerLat === 'number').map((h) => [h.centerLat, h.centerLng]));
+
+    if (boundPoints.length === 0) {
       map.setView([35.3556, 139.5309], 10);
+      renderSearchHistoryMarkers();
       return;
     }
-    const bounds = L.latLngBounds(withCenter.map((r) => [r.searchCenter.lat, r.searchCenter.lng]));
     withCenter.forEach((route) => {
       const color = CROWD_COLOR[route.crowdRisk] || '#8CA39B';
       const marker = L.circleMarker([route.searchCenter.lat, route.searchCenter.lng], {
@@ -349,7 +461,8 @@ function buildIndexHtml(data, options = {}) {
         '<span style="font-size:11px;color:#555;">' + escapeHtml(tags) + '</span>'
       );
     });
-    map.fitBounds(bounds, { padding: [40, 40] });
+    renderSearchHistoryMarkers();
+    map.fitBounds(L.latLngBounds(boundPoints), { padding: [40, 40] });
   }
 
   function initHotelTab() {
@@ -445,7 +558,16 @@ function buildIndexHtml(data, options = {}) {
     return d.toISOString().slice(0, 10);
   }
 
-  function renderPlannerMap(center, spots, events) {
+  const DAY_LINE_COLORS = ['#45B08C', '#5EA8E8', '#E8C22C', '#B98AE0', '#C1503A', '#E8955B', '#8CA39B'];
+
+  /**
+   * @param {{lat:number,lng:number,name?:string}} center
+   * @param {object[]} spots findSpotsAround()が返した全候補（採用/不採用を含む）
+   * @param {object[]} events buildDynamicDaySchedule()が返したイベント配列（複数日分）
+   * @param {{lat:number,lng:number}[][]} dayWaypoints 日ごとの巡回順（中心→スポット→…→中心）の座標配列
+   * @param {'walk'|'bike'|'car'} mode
+   */
+  async function renderPlannerMap(center, spots, events, dayWaypoints, mode) {
     const mapWrap = document.getElementById('dp-map-wrap');
     mapWrap.style.display = 'block';
     if (!dpMap) {
@@ -458,6 +580,9 @@ function buildIndexHtml(data, options = {}) {
       dpMap.eachLayer((layer) => { if (!(layer instanceof L.TileLayer)) dpMap.removeLayer(layer); });
     }
     setTimeout(() => dpMap.invalidateSize(), 0);
+
+    const noteEl = document.getElementById('dp-map-note');
+    noteEl.textContent = '経路を計算中…';
 
     const usedSpotIds = new Set(events.filter((e) => e.spotId).map((e) => e.spotId));
     const bounds = [[center.lat, center.lng]];
@@ -478,6 +603,35 @@ function buildIndexHtml(data, options = {}) {
     });
 
     dpMap.fitBounds(bounds, { padding: [40, 40] });
+
+    // 日ごとの巡回ルートをOSRM（失敗時は直線近似）で描画する
+    // （Test/travel-route-planner.htmlのルート表示を踏襲）。
+    let anyFallback = false;
+    let anyReal = false;
+    for (let dayIdx = 0; dayIdx < (dayWaypoints || []).length; dayIdx++) {
+      const points = dayWaypoints[dayIdx];
+      if (!points || points.length < 2) continue;
+      let line;
+      try {
+        line = await TripSchedulerRouteLine.fetchRouteLine(points, mode);
+      } catch (err) {
+        line = { coords: points.map((p) => [p.lng, p.lat]), real: false };
+      }
+      if (line.real) anyReal = true; else anyFallback = true;
+      const latlngs = line.coords.map((c) => [c[1], c[0]]);
+      const color = DAY_LINE_COLORS[dayIdx % DAY_LINE_COLORS.length];
+      L.polyline(latlngs, {
+        color, weight: 4, opacity: 0.75, dashArray: line.real ? null : '7,7',
+      }).addTo(dpMap).bindPopup((dayIdx + 1) + '日目の移動ルート' + (line.real ? '' : '（直線近似）'));
+    }
+
+    if (anyFallback && anyReal) {
+      noteEl.textContent = '一部の日は道路ルートAPI（OSRM）が応答しなかったため、直線（破線）で近似表示しています。';
+    } else if (anyFallback && !anyReal) {
+      noteEl.textContent = '道路ルートAPI（OSRM）に接続できなかったため、すべて直線（破線）で近似表示しています。';
+    } else {
+      noteEl.textContent = '';
+    }
   }
 
   function initPlannerTab() {
@@ -548,17 +702,21 @@ function buildIndexHtml(data, options = {}) {
         center = { lat: geo.lat, lng: geo.lng, name: geo.name };
       }
 
-      setStatus('周辺のスポットを検索中…（OpenStreetMap Overpass APIへ問い合わせています）');
+      setStatus('周辺のスポットを検索中…（OpenStreetMap Overpass APIへ問い合わせています。混雑時は最大20秒ほどかかります）');
       let spots;
       try {
         spots = await TripSchedulerOverpassSpots.findSpotsAround(center.lat, center.lng, Math.round(radiusKm * 1000), types);
       } catch (err) {
+        const isTimeout = /timed out|AbortError/i.test((err && err.name) || '') || /timed out/i.test((err && err.message) || '');
         setStatus(
           'Overpass APIへの接続に失敗しました（' + err.message + '）。' +
-          '広告ブロッカーやセキュリティ系の拡張機能（uBlock Origin等）が ' +
-          'overpass-api.de 系のドメインをブロックしていないか確認してください' +
-          '（一度シークレットウィンドウで試すと切り分けられます）。詳細は' +
-          'ブラウザの開発者ツール（F12）のConsoleタブにも出力しています。',
+          (isTimeout
+            ? '複数のOverpassミラーすべてが混雑等で20秒以内に応答しませんでした。' +
+              '少し時間をおいて再試行するか、検索半径を狭めてみてください。'
+            : '広告ブロッカーやセキュリティ系の拡張機能（uBlock Origin等）が ' +
+              'overpass-api.de 系のドメインをブロックしていないか確認してください' +
+              '（一度シークレットウィンドウで試すと切り分けられます）。') +
+          '詳細はブラウザの開発者ツール（F12）のConsoleタブにも出力しています。',
           true
         );
         return;
@@ -572,6 +730,7 @@ function buildIndexHtml(data, options = {}) {
       const remaining = spots.slice();
       const allEvents = [];
       const usedCounts = [];
+      const dayWaypoints = [];
       const baseDate = startDateInput || new Date().toISOString().slice(0, 10);
 
       for (let i = 0; i < days; i++) {
@@ -587,6 +746,20 @@ function buildIndexHtml(data, options = {}) {
           mode,
         });
         allEvents.push(...events);
+
+        // 地図にルートを描くための、その日の巡回順（中心→スポット→…→中心）。
+        // buildDynamicDaySchedule()の内部で使っている順序決定ロジックと同じ
+        // orderSpotsGreedy()を使うことで、表示されるルートと時間割の順序を一致させる。
+        const ordered = TripSchedulerDynamicScheduler.orderSpotsGreedy(center, daySpots);
+        if (ordered.length > 0) {
+          dayWaypoints.push([
+            { lat: center.lat, lng: center.lng },
+            ...ordered.map((s) => ({ lat: s.lat, lng: s.lng })),
+            { lat: center.lat, lng: center.lng },
+          ]);
+        } else {
+          dayWaypoints.push([]);
+        }
       }
 
       if (allEvents.length === 0) {
@@ -596,7 +769,25 @@ function buildIndexHtml(data, options = {}) {
 
       setStatus('✅ 周辺' + spots.length + '件のスポットから ' + days + '日分のスケジュールを作成しました（使用: ' + usedCounts.join('件 / ') + '件）');
       resultEl.innerHTML = buildDayCardsHtml(allEvents);
-      safeRun(() => renderPlannerMap(center, spots, allEvents), 'planner');
+      safeRun(() => renderPlannerMap(center, spots, allEvents, dayWaypoints, mode), 'planner');
+
+      // この検索結果を「ルートカタログ」タブの検索履歴に自動追加する
+      // （検索するたびに増えていく方式。この端末のブラウザにのみ保存）。
+      saveSearchHistoryEntry({
+        id: 'search-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8),
+        searchedAt: new Date().toISOString(),
+        centerName: center.name || locInput.value.trim() || '検索地点',
+        centerLat: center.lat,
+        centerLng: center.lng,
+        radiusKm,
+        days,
+        mode,
+        types,
+        totalSpots: spots.length,
+        usedCounts,
+      });
+      safeRun(renderRoutes, 'routes');
+      if (leafletMap) safeRun(renderSearchHistoryMarkers, 'map');
     });
   }
 
@@ -618,17 +809,25 @@ function buildIndexHtml(data, options = {}) {
     });
   });
 
+  function reportSafeRunError(label, err) {
+    console.error(label + ' failed:', err);
+    const el = document.getElementById('tab-' + label);
+    if (el) el.insertAdjacentHTML('beforeend', '<p class="hint" style="color:#C1503A;">' + label + ' の初期化に失敗しました: ' + escapeHtml(err.message) + '</p>');
+  }
+
+  // fnが戻り値としてPromiseを返す場合（renderPlannerMap等）も、同期関数と
+  // 同じように例外（reject）をキャッチしてエラー表示する。
   function safeRun(fn, label) {
     try {
-      fn();
+      const result = fn();
+      if (result && typeof result.catch === 'function') {
+        result.catch((err) => reportSafeRunError(label, err));
+      }
     } catch (err) {
-      console.error(label + ' failed:', err);
-      const el = document.getElementById('tab-' + label);
-      if (el) el.insertAdjacentHTML('beforeend', '<p class="hint" style="color:#C1503A;">' + label + ' の初期化に失敗しました: ' + escapeHtml(err.message) + '</p>');
+      reportSafeRunError(label, err);
     }
   }
 
-  safeRun(renderItinerary, 'itinerary');
   safeRun(renderRoutes, 'routes');
   safeRun(initPlannerTab, 'planner');
   safeRun(initHotelTab, 'hotel');
@@ -639,21 +838,17 @@ function buildIndexHtml(data, options = {}) {
 }
 
 function main() {
-  const [, , routesArg, visitHistoryArg, itineraryArg, outArg] = process.argv;
+  const [, , routesArg, visitHistoryArg, outArg] = process.argv;
   const routesPath = path.resolve(routesArg || path.join(__dirname, '..', 'data', 'routes.json'));
   const visitHistoryPath = path.resolve(
     visitHistoryArg || path.join(__dirname, '..', 'data', 'visitHistory.json')
-  );
-  const itineraryPath = path.resolve(
-    itineraryArg || path.join(__dirname, '..', 'data', 'silver-week-2026.json')
   );
   const outPath = path.resolve(outArg || path.join(__dirname, '..', 'index.html'));
 
   const routes = JSON.parse(fs.readFileSync(routesPath, 'utf8'));
   const visitHistory = JSON.parse(fs.readFileSync(visitHistoryPath, 'utf8'));
-  const itinerary = JSON.parse(fs.readFileSync(itineraryPath, 'utf8'));
 
-  const html = buildIndexHtml({ routes, visitHistory, itinerary });
+  const html = buildIndexHtml({ routes, visitHistory });
   fs.writeFileSync(outPath, html, 'utf8');
   console.log(`生成しました: ${outPath}`);
 }

@@ -102,41 +102,56 @@ function classifySpotTags(tags, types) {
   return null;
 }
 
+/**
+ * 複数のOverpassミラーへ同時に問い合わせ、最初に成功したものを採用する。
+ * ミラーごとに混雑度・レイテンシの差が大きいため、1つずつ順番に試して
+ * 1つあたり長めのタイムアウトを待つ（直列）方式だと、合計の待ち時間が
+ * 「ミラー数×タイムアウト」まで伸びてしまう。並列（Promise.any）にすれば、
+ * 一番早く応答したミラーの時間だけで済む。
+ * なお `[out:json][timeout:25]` でサーバー側に25秒の処理猶予を伝えている
+ * ため、クライアント側のタイムアウトをそれより短くすると、サーバーが
+ * まだ処理中でも「signal timed out」として先に失敗扱いになってしまう。
+ */
 async function fetchOverpassRaw(query, options = {}) {
   const fetchImpl = options.fetchImpl || globalThis.fetch;
   if (!fetchImpl) throw new Error('fetch is not available in this environment');
   const endpoints = options.endpoints || DEFAULT_ENDPOINTS;
-  const timeoutMs = options.timeoutMs || 10000;
+  const timeoutMs = options.timeoutMs || 20000;
   const isBrowser = typeof window !== 'undefined';
 
-  let lastError;
-  for (const endpoint of endpoints) {
-    try {
-      const res = await fetchImpl(endpoint, {
-        method: 'POST',
-        mode: 'cors',
-        // Content-Type を明示すると、サーバーによってはボディを
-        // urlencodedフォームとして解釈しようとして失敗することがある
-        // （Overpass APIはボディをそのまま生クエリとして受け付けるため、
-        // 指定しないほうが安全）。User-Agent はブラウザのfetchでは
-        // "forbidden header name" で設定できない（ブラウザが無視する）ため、
-        // Node.js環境（CLI/テスト）でのみ付与する。
-        headers: isBrowser ? undefined : { 'content-type': 'text/plain', 'user-agent': USER_AGENT },
-        body: query,
-        signal: typeof AbortSignal !== 'undefined' && AbortSignal.timeout ? AbortSignal.timeout(timeoutMs) : undefined,
-      });
-      if (!res.ok) {
-        lastError = new Error(`overpass error ${res.status} (${endpoint})`);
-        if (isBrowser) console.warn('[TripScheduler] Overpass endpoint failed:', endpoint, res.status);
-        continue;
+  const attempts = endpoints.map((endpoint) =>
+    (async () => {
+      try {
+        const res = await fetchImpl(endpoint, {
+          method: 'POST',
+          mode: 'cors',
+          // Content-Type を明示すると、サーバーによってはボディを
+          // urlencodedフォームとして解釈しようとして失敗することがある
+          // （Overpass APIはボディをそのまま生クエリとして受け付けるため、
+          // 指定しないほうが安全）。User-Agent はブラウザのfetchでは
+          // "forbidden header name" で設定できない（ブラウザが無視する）ため、
+          // Node.js環境（CLI/テスト）でのみ付与する。
+          headers: isBrowser ? undefined : { 'content-type': 'text/plain', 'user-agent': USER_AGENT },
+          body: query,
+          signal: typeof AbortSignal !== 'undefined' && AbortSignal.timeout ? AbortSignal.timeout(timeoutMs) : undefined,
+        });
+        if (!res.ok) {
+          throw new Error(`overpass error ${res.status} (${endpoint})`);
+        }
+        return await res.json();
+      } catch (err) {
+        if (isBrowser) console.warn('[TripScheduler] Overpass endpoint error:', endpoint, err && err.message);
+        throw err;
       }
-      return await res.json();
-    } catch (err) {
-      lastError = err;
-      if (isBrowser) console.warn('[TripScheduler] Overpass endpoint error:', endpoint, err && err.message);
-    }
+    })()
+  );
+
+  try {
+    return await Promise.any(attempts);
+  } catch (aggregateErr) {
+    const errors = aggregateErr && aggregateErr.errors;
+    throw (errors && errors[errors.length - 1]) || aggregateErr || new Error('no overpass endpoints configured');
   }
-  throw lastError || new Error('no overpass endpoints configured');
 }
 
 /**

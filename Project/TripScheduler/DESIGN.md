@@ -138,18 +138,28 @@ Google Popular Times等の公式APIは提供されていないため、まずは
 
 ## 5. UI／出力
 
-- **タイムラインビュー**（実装済み）：`index.html`（`src/buildIndexHtml.js`
-  で生成）が日ごとにカード形式で時間割を表示する。データはビルド時に
-  HTMLへ埋め込むため、`file://` で開いても（ホテル検索タブ・「現地プラン
-  作成」タブを除いて）動く。この2タブは外部API（楽天／Overpass）に
-  `fetch()` するため、`file://` だと `Origin: null` になり
-  `HTTP_REFERRER_NOT_ALLOWED`やCORS拒否で失敗する（詳細は後述）
+- **現地プラン作成ビュー**（実装済み、メインタブ）：`index.html`
+  （`src/buildIndexHtml.js` で生成）の1つ目のタブ。地点を指定して動的に
+  スポットを検索し、日ごとにカード形式で時間割を表示する。選ばれた
+  立ち寄り先を結ぶ移動ルートは、`src/routeLine.js`（OSRM）が取得した
+  経路ジオメトリを日ごとに色分けして地図に重ねる（OSRM失敗時は直線
+  （破線）で近似表示）。旧来の固定データ（`data/silver-week-2026.json`）
+  をそのまま表示する「旅程」タブは、このタブが同じカードUIで動的に
+  旅程を作れるようになったため廃止した。楽天ホテル検索タブと合わせて、
+  外部API（楽天／Overpass／OSRM／Nominatim）に `fetch()` する2タブは
+  `file://` で開くと `Origin: null` になり `HTTP_REFERRER_NOT_ALLOWED`
+  やCORS拒否で失敗する（詳細は後述）
 - **ルートカタログビュー**（実装済み）：`index.html` の2つ目のタブ。
-  訪問履歴から「未訪問」「前回訪問からN日」を計算してバッジ表示する
+  `data/routes.json` の手動登録Route（訪問履歴から「未訪問」「前回訪問
+  からN日」を計算してバッジ表示）に加えて、「現地プラン作成」タブで
+  **検索するたびに1件追記される検索履歴**を表示する。検索履歴はこの
+  端末のブラウザのlocalStorageにのみ保存（`tripscheduler_searchHistory`
+  キー、最大200件）され、1件ずつ、または一括で削除できる
 - **地図ビュー**（実装済み）：`index.html` の3つ目のタブ。Leaflet
-  （CDN読み込み）で各Routeの `searchCenter` をマーカー表示。色は
-  `crowdRisk`。`RestaurantFinder/src/mapExport.js` と同じ発想（スコア/
-  リスクに応じた色分け）だが、1日の訪問順を線で結ぶところまでは未実装
+  （CDN読み込み）で各Routeの `searchCenter`（色は`crowdRisk`）と、
+  検索履歴の中心座標（青い四角）をまとめてマーカー表示。
+  `RestaurantFinder/src/mapExport.js` と同じ発想（スコア/リスクに応じた
+  色分け）
 - **楽天ホテル検索**（実装済み、ライブ検証済み）：`index.html` の4つ目の
   タブ。ブラウザから直接 `openapi.rakuten.co.jp` を叩く。APIキーは
   localStorageにのみ保存しサーバーには送らない（`Project/Maps/index.html`
@@ -222,6 +232,7 @@ data/silver-week-2026.json（イベント配列 + category + routeId）
 | 5 | 混雑ピーク時間帯を避ける制約の `planTrip.js` への組み込み（現状は開始時刻固定） | 未着手 |
 | 6 | Webタイムライン UI | ✅ `index.html`（`src/buildIndexHtml.js`）として今回実施。ただし訪問履歴の保存先は今もローカルのJSONファイルで、Cloudflare Workers + D1でのオンライン化は未着手 |
 | 7 | 地点を指定して動的にRoute相当のプランを生成（`data/routes.json`の事前定義に頼らない） | ✅ `index.html` 「現地プラン作成」タブとして今回実施。`src/geocode.js`（Nominatim）・`src/overpassSpots.js`（Overpass、観光/飲食/Wifi電源/温泉を横断検索）・`src/dynamicScheduler.js`（最近傍法での巡回順決定＋直線距離からの移動時間概算）。UIと各ロジックはモックテスト・Playwrightで検証済みだが、Overpass APIへのライブ接続はこのセッションの実行環境では未確認（Nominatim側は確認済み） |
+| 8 | ① 地図にルートプランナーのような経路線を表示 ② 固定の「旅程」タブを廃止し「現地プラン作成」に一本化 ③ ルートカタログを検索するたびに増える方式に変更 | ✅ ①`src/routeLine.js`（OSRM、失敗時は直線近似にフォールバック）で今回実施 ②「旅程」タブと`renderItinerary()`を削除（`data/silver-week-2026.json`とそれを使うCLI`planTrip.js`/`generateIcs.js`/`toGanttPlanList.js`自体は維持） ③「現地プラン作成」タブでの検索ごとに`localStorage`（`tripscheduler_searchHistory`）へ1件追記し、「ルートカタログ」「地図」タブに反映。Playwrightで複数回検索→履歴蓄積→複数日のルート線描画まで確認済みだが、OSRM/Overpass/Nominatimへのライブ接続はこのセッションでは未確認 |
 
 Phase 2・4（自動反映の残り）は既存の `RestaurantFinder` と `Maps` の
 コードをライブラリとして共通化する（例：`Project/shared/` に切り出す）
@@ -264,6 +275,26 @@ Phase 2・4（自動反映の残り）は既存の `RestaurantFinder` と `Maps`
   直接開いていたことと判明（`file://`はOrigin:nullとして送られ、
   `overpass-api.de`等がCORSヘッダーを返さずブロックされる）。対応として
   `file://`検出時にページ内へ警告（ローカルサーバー起動を促す）を表示する
-  ようにした（`src/buildIndexHtml.js`の`#dp-file-warning`）。ネットワーク
-  到達性が原因の失敗（タイムアウト等）とは別の問題だったため、
-  エンドポイント分散・タイムアウト短縮だけでは解決しない
+  ようにした（`src/buildIndexHtml.js`の`#dp-file-warning`）他、Windowsで
+  ワンクリックでローカルサーバーを起動できる`start-local-server.bat`を
+  追加した
+- `http://localhost`経由に直しても、今度は4つのOverpassミラー全てで
+  `signal timed out`が発生。これはCORS拒否ではなく、クライアント側の
+  `AbortSignal.timeout()`がサーバーより先に切れていたことが原因
+  （一度`timeoutMs`を15000→10000に短縮したのが逆効果だった。Overpass
+  クエリは`[timeout:25]`でサーバーに25秒の処理猶予を伝えているため、
+  クライアント側がそれより短いと、サーバーが処理中でも先に失敗扱いに
+  なる）。対応として `src/overpassSpots.js` の `fetchOverpassRaw()` を
+  直列リトライから `Promise.any()` による並列問い合わせに変更し
+  （4ミラーを同時に試し、最初に成功したものを使う）、1ミラーあたりの
+  タイムアウトを20000msに戻した。これにより合計の最悪待ち時間が
+  「ミラー数×タイムアウト」から「タイムアウト1回分」に短縮される
+- 「ルートカタログ」タブの検索履歴は`localStorage`（1端末・1ブラウザ内）
+  にのみ保存されるため、別の端末やブラウザとは共有されない。また最大
+  200件でそれ以降は古いものから切り捨てる簡易実装。複数端末で共有・
+  恒久化したい場合は、Cloudflare Workers + D1等のバックエンド
+  （Phase 6で触れた「オンライン化」）が必要になる
+- 地図上のルート線はOSRMの公開デモサーバー（`router.project-osrm.org`）
+  1本のみに依存しており、ミラーが無い。Overpassで直面したのと同種の
+  混雑・レート制限が起きる可能性があるが、失敗時は直線近似に自動的に
+  フォールバックするため、スケジュール自体の生成は止まらない設計にした
