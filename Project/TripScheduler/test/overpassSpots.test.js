@@ -80,3 +80,25 @@ test('findSpotsAround: 無効なtypesだけならfetchせず空配列', async ()
   assert.deepEqual(spots, []);
   assert.equal(called, false);
 });
+
+test('findSpotsAround: 外部から渡したAbortSignal（キャンセルボタン相当）で全ミラーが中断される', async () => {
+  const controller = new AbortController();
+  controller.abort();
+  const abortError = new Error('aborted');
+  abortError.name = 'AbortError';
+  let calls = 0;
+  const fetchImpl = async (url, init) => {
+    calls += 1;
+    if (init.signal && init.signal.aborted) throw abortError;
+    throw new Error('should not reach here');
+  };
+  await assert.rejects(
+    () => findSpotsAround(35.0, 139.0, 1000, ['food'], {
+      fetchImpl,
+      signal: controller.signal,
+      endpoints: ['https://a.example', 'https://b.example'],
+    }),
+    /aborted/
+  );
+  assert.equal(calls, 2, '両方のミラーに中断済みのsignalが渡っているはず');
+});

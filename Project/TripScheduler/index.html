@@ -130,7 +130,10 @@
           <label style="display:flex;align-items:center;gap:4px;white-space:nowrap;"><input type="checkbox" id="dp-cat-onsen" /> 温泉・銭湯</label>
         </div>
       </div>
-      <button class="btn" id="dp-go" type="button">🔍 検索してスケジュールを作る</button>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+        <button class="btn" id="dp-go" type="button">🔍 検索してスケジュールを作る</button>
+        <button class="btn secondary" id="dp-cancel" type="button" style="display:none;">✕ キャンセル</button>
+      </div>
       <p id="dp-status" class="hint"></p>
     </div>
     <div id="dp-map-wrap" class="route-card" style="display:none;">
@@ -363,6 +366,27 @@ function buildDaySchedule(route, date, options = {}) {
 
   const USER_AGENT = 'study-tripscheduler/1.0 (+https://github.com/kouzimiso/study)';
 
+  /**
+   * 複数のAbortSignal（タイムアウト用・呼び出し元のキャンセルボタン用など）を
+   * 1つにまとめる。`AbortSignal.any()`は比較的新しいAPIのため、どの環境でも
+   * 動くようにイベントリスナーで手動合成する。signalが1つも無ければ
+   * undefinedを返す（fetchにsignal:undefinedを渡しても無視されるだけ）。
+   * @param {(AbortSignal|undefined|null)[]} signals
+   * @returns {AbortSignal|undefined}
+   */
+  function combineSignals(signals) {
+    const valid = signals.filter(Boolean);
+    if (valid.length === 0) return undefined;
+    if (valid.length === 1) return valid[0];
+    if (typeof AbortController === 'undefined') return valid[0];
+    const controller = new AbortController();
+    valid.forEach((s) => {
+      if (s.aborted) controller.abort(s.reason);
+      else s.addEventListener('abort', () => controller.abort(s.reason), { once: true });
+    });
+    return controller.signal;
+  }
+
 /**
  * スポット種別の定義。`selectors` は Overpass QL の `node[...]` 部分（複数可、OR相当）。
  */
@@ -451,6 +475,10 @@ function classifySpotTags(tags, types) {
  * なお `[out:json][timeout:25]` でサーバー側に25秒の処理猶予を伝えている
  * ため、クライアント側のタイムアウトをそれより短くすると、サーバーが
  * まだ処理中でも「signal timed out」として先に失敗扱いになってしまう。
+ * `options.signal` を渡すと（例：UIの「キャンセル」ボタン）、タイムアウト
+ * 前でもユーザーの意思で中断できる。両方を1つのsignalに合成して全ミラーに
+ * 共有するので、どちらが先に発火してもすべてのミラーへのリクエストが
+ * まとめて中断される。
  */
 async function fetchOverpassRaw(query, options = {}) {
   const fetchImpl = options.fetchImpl || globalThis.fetch;
@@ -458,6 +486,8 @@ async function fetchOverpassRaw(query, options = {}) {
   const endpoints = options.endpoints || DEFAULT_ENDPOINTS;
   const timeoutMs = options.timeoutMs || 20000;
   const isBrowser = typeof window !== 'undefined';
+  const timeoutSignal = typeof AbortSignal !== 'undefined' && AbortSignal.timeout ? AbortSignal.timeout(timeoutMs) : undefined;
+  const signal = combineSignals([options.signal, timeoutSignal]);
 
   const attempts = endpoints.map((endpoint) =>
     (async () => {
@@ -473,7 +503,7 @@ async function fetchOverpassRaw(query, options = {}) {
           // Node.js環境（CLI/テスト）でのみ付与する。
           headers: isBrowser ? undefined : { 'content-type': 'text/plain', 'user-agent': USER_AGENT },
           body: query,
-          signal: typeof AbortSignal !== 'undefined' && AbortSignal.timeout ? AbortSignal.timeout(timeoutMs) : undefined,
+          signal,
         });
         if (!res.ok) {
           throw new Error(`overpass error ${res.status} (${endpoint})`);
@@ -578,9 +608,28 @@ async function findSpotsAround(lat, lng, radiusMeters, types, options = {}) {
   const ENDPOINT = 'https://nominatim.openstreetmap.org/search';
   const USER_AGENT = 'study-tripscheduler/1.0 (+https://github.com/kouzimiso/study)';
 
+  /**
+   * 複数のAbortSignal（タイムアウト用・呼び出し元のキャンセルボタン用など）を
+   * 1つにまとめる（`src/overpassSpots.js` の同名関数と同じロジック）。
+   * @param {(AbortSignal|undefined|null)[]} signals
+   * @returns {AbortSignal|undefined}
+   */
+  function combineSignals(signals) {
+    const valid = signals.filter(Boolean);
+    if (valid.length === 0) return undefined;
+    if (valid.length === 1) return valid[0];
+    if (typeof AbortController === 'undefined') return valid[0];
+    const controller = new AbortController();
+    valid.forEach((s) => {
+      if (s.aborted) controller.abort(s.reason);
+      else s.addEventListener('abort', () => controller.abort(s.reason), { once: true });
+    });
+    return controller.signal;
+  }
+
 /**
  * @param {string} query 地名・住所
- * @param {{fetchImpl?: typeof fetch, countryCodes?: string, timeoutMs?: number}} [options]
+ * @param {{fetchImpl?: typeof fetch, countryCodes?: string, timeoutMs?: number, signal?: AbortSignal}} [options]
  * @returns {Promise<{lat:number, lng:number, name:string}|null>}
  */
 async function geocodeOnce(query, options = {}) {
@@ -594,6 +643,8 @@ async function geocodeOnce(query, options = {}) {
   });
   if (options.countryCodes) params.set('countrycodes', options.countryCodes);
 
+  const timeoutSignal = typeof AbortSignal !== 'undefined' && AbortSignal.timeout ? AbortSignal.timeout(options.timeoutMs || 8000) : undefined;
+
   const res = await fetchImpl(`${ENDPOINT}?${params.toString()}`, {
     // User-Agent はブラウザのfetchでは "forbidden header name" で設定できない
     // （設定してもブラウザに無視される）。Node.js環境（CLI/テスト）でのみ送る。
@@ -601,7 +652,7 @@ async function geocodeOnce(query, options = {}) {
       typeof window === 'undefined'
         ? { Accept: 'application/json', 'User-Agent': USER_AGENT }
         : { Accept: 'application/json' },
-    signal: typeof AbortSignal !== 'undefined' && AbortSignal.timeout ? AbortSignal.timeout(options.timeoutMs || 8000) : undefined,
+    signal: combineSignals([options.signal, timeoutSignal]),
   });
   if (!res.ok) return null;
   const data = await res.json();
@@ -616,7 +667,7 @@ async function geocodeOnce(query, options = {}) {
 /**
  * 「日本国内向けの絞り込み」→「"<query> 日本"で再試行」の順に試す。
  * @param {string} query
- * @param {{fetchImpl?: typeof fetch, timeoutMs?: number}} [options]
+ * @param {{fetchImpl?: typeof fetch, timeoutMs?: number, signal?: AbortSignal}} [options]
  * @returns {Promise<{lat:number, lng:number, name:string}|null>}
  */
 async function geocodeLocation(query, options = {}) {
@@ -630,7 +681,9 @@ async function geocodeLocation(query, options = {}) {
       const result = await attempt();
       if (result) return result;
     } catch (err) {
-      // 次の候補を試す
+      // ユーザーによるキャンセル（またはタイムアウト）は次の候補を試さず、
+      // そのまま呼び出し元に伝える。それ以外のエラーは次の候補を試す。
+      if (err && err.name === 'AbortError') throw err;
     }
   }
   return null;
@@ -891,7 +944,7 @@ function buildDynamicDaySchedule(center, date, spots, options = {}) {
   return { OSRM_PROFILE, buildOsrmUrl, fetchRouteLine };
 });
 
-  const DATA = JSON.parse("{\"routes\":[{\"id\":\"manazuru-yugawara\",\"name\":\"真鶴・湯河原 絶景と日帰り温泉ルート\",\"category\":[\"scenicDrive\",\"onsen\"],\"areaDirection\":\"西（湯河原方面）\",\"accessFromOfuna\":{\"car\":\"約1時間\",\"train\":\"JR東海道線で50分程度\"},\"distanceKm\":35,\"searchCenter\":{\"lat\":35.1511,\"lng\":139.1448},\"highlights\":[\"真鶴岬・三ツ石（黒い奇岩と海の絶景、日の出スポット）\",\"真鶴半島の照葉樹林の遊歩道\"],\"foodStops\":[{\"name\":\"真鶴港周辺の海鮮店\",\"note\":\"地魚・干物\"}],\"wifiPowerStops\":[{\"name\":\"湯河原駅周辺のカフェ\",\"note\":\"要現地確認\"}],\"onsenStops\":[{\"name\":\"湯河原温泉の日帰り入浴施設\",\"note\":\"箱根に比べて空いている傾向\"}],\"crowdRisk\":\"low\",\"recommendedDurationHours\":7,\"tags\":[\"海\",\"温泉\",\"絶景\",\"日の出\"],\"notes\":\"箱根の陰に隠れがちだが、絶景と温泉の両方を楽しめる。連休中でも箱根本体より空いている見込み。\",\"visitStatus\":\"未訪問\"},{\"id\":\"miura-west-coast\",\"name\":\"三浦半島西海岸 佐島・秋谷・荒崎ルート\",\"category\":[\"scenicDrive\",\"sightseeing\"],\"areaDirection\":\"南西（三浦半島西岸）\",\"accessFromOfuna\":{\"car\":\"約40分\"},\"distanceKm\":20,\"searchCenter\":{\"lat\":35.2639,\"lng\":139.5844},\"highlights\":[\"佐島マリーナ\",\"秋谷海岸・立石公園（夕景の名所）\",\"荒崎公園（岩礁と夕陽）\"],\"foodStops\":[{\"name\":\"佐島の漁港食堂\",\"note\":\"新鮮な地魚\"},{\"name\":\"秋谷海岸沿いのカフェ\",\"note\":\"海の見える席あり\"}],\"wifiPowerStops\":[{\"name\":\"秋谷・佐島エリアのカフェ\",\"note\":\"件数は少なめ、要現地確認\"}],\"crowdRisk\":\"medium\",\"recommendedDurationHours\":6,\"tags\":[\"海\",\"夕陽\",\"絶景\"],\"notes\":\"観光地化されすぎておらず、江ノ島・鎌倉に比べて連休中でも動きやすい。夕方は立石公園の夕陽が狙い目。\",\"visitStatus\":\"未訪問\"},{\"id\":\"misaki-jogashima\",\"name\":\"三崎・城ヶ島 マグロと灯台ルート\",\"category\":[\"sightseeing\",\"food\"],\"areaDirection\":\"南（三浦半島南端）\",\"accessFromOfuna\":{\"car\":\"約1時間強\"},\"distanceKm\":35,\"searchCenter\":{\"lat\":35.1372,\"lng\":139.6103},\"highlights\":[\"三崎港・三崎下町商店街\",\"城ヶ島灯台・城ヶ島公園\"],\"foodStops\":[{\"name\":\"三崎・城ヶ島のマグロ料理店（中村屋など）\",\"note\":\"連休中は行列必至。早朝〜開店直後が狙い目\"}],\"wifiPowerStops\":[{\"name\":\"三崎港周辺のカフェ\",\"note\":\"要現地確認\"}],\"crowdRisk\":\"high\",\"recommendedDurationHours\":5,\"tags\":[\"海\",\"グルメ\",\"灯台\"],\"notes\":\"連休中は道路・駐車場ともに激混みの報告あり。行くなら早朝出発必須。今回のプランでは見送り、次点候補として保持。\",\"visitStatus\":\"前回訪問から519日\"},{\"id\":\"oiso-ninomiya\",\"name\":\"大磯・二宮 湘南西部ルート\",\"category\":[\"sightseeing\",\"scenicDrive\"],\"areaDirection\":\"西（湘南西部）\",\"accessFromOfuna\":{\"car\":\"約35分\",\"train\":\"JR東海道線で30分程度\"},\"distanceKm\":20,\"searchCenter\":{\"lat\":35.3089,\"lng\":139.3133},\"highlights\":[\"大磯の海岸線\",\"旧吉田茂邸\",\"二宮 吾妻山公園（相模湾と富士山の眺望）\"],\"foodStops\":[{\"name\":\"大磯・二宮の海沿いカフェ\",\"note\":\"\"}],\"wifiPowerStops\":[{\"name\":\"大磯駅・二宮駅周辺のカフェ\",\"note\":\"要現地確認\"}],\"crowdRisk\":\"low\",\"recommendedDurationHours\":5,\"tags\":[\"海\",\"眺望\",\"歴史\"],\"notes\":\"江ノ島・鎌倉より観光客が少なく、連休中でも落ち着いて過ごせる。\",\"visitStatus\":\"未訪問\"},{\"id\":\"tsurumaki-onsen\",\"name\":\"鶴巻温泉ルート\",\"category\":[\"onsen\"],\"areaDirection\":\"北西（秦野方面）\",\"accessFromOfuna\":{\"car\":\"約45分\",\"train\":\"小田急線で1時間程度\"},\"distanceKm\":25,\"searchCenter\":{\"lat\":35.3817,\"lng\":139.3222},\"highlights\":[\"秦野盆地の自然\"],\"foodStops\":[{\"name\":\"鶴巻温泉駅周辺の食事処\",\"note\":\"\"}],\"wifiPowerStops\":[{\"name\":\"秦野駅周辺のカフェ\",\"note\":\"要現地確認\"}],\"onsenStops\":[{\"name\":\"弘法の里湯（駅徒歩圏の日帰り温泉）\",\"note\":\"\"}],\"crowdRisk\":\"low\",\"recommendedDurationHours\":4,\"tags\":[\"温泉\",\"駅近\"],\"notes\":\"駅からすぐの日帰り温泉で、半日〜夕方の締めくくりに使いやすい。\",\"visitStatus\":\"未訪問\"},{\"id\":\"atsugi-onsenkyo\",\"name\":\"あつぎ温泉郷（七沢・飯山・広沢寺）ルート\",\"category\":[\"onsen\",\"nature\"],\"areaDirection\":\"北（厚木方面）\",\"accessFromOfuna\":{\"car\":\"約50分\"},\"distanceKm\":30,\"searchCenter\":{\"lat\":35.4294,\"lng\":139.2925},\"highlights\":[\"広沢寺弁天橋周辺の渓流\"],\"foodStops\":[{\"name\":\"七沢・飯山エリアの食事処\",\"note\":\"\"}],\"wifiPowerStops\":[{\"name\":\"本厚木駅周辺のカフェ\",\"note\":\"要現地確認\"}],\"onsenStops\":[{\"name\":\"七沢・飯山・広沢寺の日帰り温泉施設\",\"note\":\"\"}],\"crowdRisk\":\"low\",\"recommendedDurationHours\":5,\"tags\":[\"温泉\",\"渓流\",\"静か\"],\"notes\":\"温泉郷としてまとまっており、静かに過ごしたい日向け。\",\"visitStatus\":\"未訪問\"},{\"id\":\"yabitsu-miyagase\",\"name\":\"ヤビツ峠・宮ヶ瀬 絶景ワインディングルート\",\"category\":[\"scenicDrive\",\"nature\"],\"areaDirection\":\"北西（丹沢方面）\",\"accessFromOfuna\":{\"car\":\"約1時間\"},\"distanceKm\":35,\"searchCenter\":{\"lat\":35.4206,\"lng\":139.2097},\"highlights\":[\"ヤビツ峠からの富士山・大山の眺望\",\"宮ヶ瀬湖畔の景観\"],\"foodStops\":[{\"name\":\"ヤビツ峠レストハウス\",\"note\":\"通年営業、峠の食事処\"}],\"wifiPowerStops\":[{\"name\":\"宮ヶ瀬周辺の道の駅・施設\",\"note\":\"要現地確認\"}],\"crowdRisk\":\"medium\",\"recommendedDurationHours\":6,\"tags\":[\"山\",\"絶景\",\"ワインディング\"],\"notes\":\"サイクリスト・登山客はいるが、車の大渋滞は箱根ほどではない。峠道のため運転好きにおすすめ。\",\"visitStatus\":\"未訪問\"},{\"id\":\"hakone\",\"name\":\"箱根ルート（参考・連休中は激混み想定）\",\"category\":[\"onsen\",\"sightseeing\"],\"areaDirection\":\"西（箱根方面）\",\"accessFromOfuna\":{\"car\":\"約1時間半〜（渋滞時はそれ以上）\"},\"distanceKm\":50,\"searchCenter\":{\"lat\":35.2323,\"lng\":139.1056},\"highlights\":[\"芦ノ湖\",\"大涌谷\",\"箱根の温泉旅館\"],\"foodStops\":[{\"name\":\"箱根各所の食事処\",\"note\":\"\"}],\"wifiPowerStops\":[{\"name\":\"箱根湯本駅周辺のカフェ\",\"note\":\"\"}],\"crowdRisk\":\"high\",\"recommendedDurationHours\":8,\"tags\":[\"温泉\",\"定番\",\"観光地\"],\"notes\":\"国内屈指の観光地で、5連休中は道路・施設ともに大渋滞が確実視される。今回は見送り、閑散期の次点候補として保持。\",\"visitStatus\":\"未訪問\"}],\"generatedAt\":\"2026-10-04T06:54:30.077Z\"}");
+  const DATA = JSON.parse("{\"routes\":[{\"id\":\"manazuru-yugawara\",\"name\":\"真鶴・湯河原 絶景と日帰り温泉ルート\",\"category\":[\"scenicDrive\",\"onsen\"],\"areaDirection\":\"西（湯河原方面）\",\"accessFromOfuna\":{\"car\":\"約1時間\",\"train\":\"JR東海道線で50分程度\"},\"distanceKm\":35,\"searchCenter\":{\"lat\":35.1511,\"lng\":139.1448},\"highlights\":[\"真鶴岬・三ツ石（黒い奇岩と海の絶景、日の出スポット）\",\"真鶴半島の照葉樹林の遊歩道\"],\"foodStops\":[{\"name\":\"真鶴港周辺の海鮮店\",\"note\":\"地魚・干物\"}],\"wifiPowerStops\":[{\"name\":\"湯河原駅周辺のカフェ\",\"note\":\"要現地確認\"}],\"onsenStops\":[{\"name\":\"湯河原温泉の日帰り入浴施設\",\"note\":\"箱根に比べて空いている傾向\"}],\"crowdRisk\":\"low\",\"recommendedDurationHours\":7,\"tags\":[\"海\",\"温泉\",\"絶景\",\"日の出\"],\"notes\":\"箱根の陰に隠れがちだが、絶景と温泉の両方を楽しめる。連休中でも箱根本体より空いている見込み。\",\"visitStatus\":\"未訪問\"},{\"id\":\"miura-west-coast\",\"name\":\"三浦半島西海岸 佐島・秋谷・荒崎ルート\",\"category\":[\"scenicDrive\",\"sightseeing\"],\"areaDirection\":\"南西（三浦半島西岸）\",\"accessFromOfuna\":{\"car\":\"約40分\"},\"distanceKm\":20,\"searchCenter\":{\"lat\":35.2639,\"lng\":139.5844},\"highlights\":[\"佐島マリーナ\",\"秋谷海岸・立石公園（夕景の名所）\",\"荒崎公園（岩礁と夕陽）\"],\"foodStops\":[{\"name\":\"佐島の漁港食堂\",\"note\":\"新鮮な地魚\"},{\"name\":\"秋谷海岸沿いのカフェ\",\"note\":\"海の見える席あり\"}],\"wifiPowerStops\":[{\"name\":\"秋谷・佐島エリアのカフェ\",\"note\":\"件数は少なめ、要現地確認\"}],\"crowdRisk\":\"medium\",\"recommendedDurationHours\":6,\"tags\":[\"海\",\"夕陽\",\"絶景\"],\"notes\":\"観光地化されすぎておらず、江ノ島・鎌倉に比べて連休中でも動きやすい。夕方は立石公園の夕陽が狙い目。\",\"visitStatus\":\"未訪問\"},{\"id\":\"misaki-jogashima\",\"name\":\"三崎・城ヶ島 マグロと灯台ルート\",\"category\":[\"sightseeing\",\"food\"],\"areaDirection\":\"南（三浦半島南端）\",\"accessFromOfuna\":{\"car\":\"約1時間強\"},\"distanceKm\":35,\"searchCenter\":{\"lat\":35.1372,\"lng\":139.6103},\"highlights\":[\"三崎港・三崎下町商店街\",\"城ヶ島灯台・城ヶ島公園\"],\"foodStops\":[{\"name\":\"三崎・城ヶ島のマグロ料理店（中村屋など）\",\"note\":\"連休中は行列必至。早朝〜開店直後が狙い目\"}],\"wifiPowerStops\":[{\"name\":\"三崎港周辺のカフェ\",\"note\":\"要現地確認\"}],\"crowdRisk\":\"high\",\"recommendedDurationHours\":5,\"tags\":[\"海\",\"グルメ\",\"灯台\"],\"notes\":\"連休中は道路・駐車場ともに激混みの報告あり。行くなら早朝出発必須。今回のプランでは見送り、次点候補として保持。\",\"visitStatus\":\"前回訪問から519日\"},{\"id\":\"oiso-ninomiya\",\"name\":\"大磯・二宮 湘南西部ルート\",\"category\":[\"sightseeing\",\"scenicDrive\"],\"areaDirection\":\"西（湘南西部）\",\"accessFromOfuna\":{\"car\":\"約35分\",\"train\":\"JR東海道線で30分程度\"},\"distanceKm\":20,\"searchCenter\":{\"lat\":35.3089,\"lng\":139.3133},\"highlights\":[\"大磯の海岸線\",\"旧吉田茂邸\",\"二宮 吾妻山公園（相模湾と富士山の眺望）\"],\"foodStops\":[{\"name\":\"大磯・二宮の海沿いカフェ\",\"note\":\"\"}],\"wifiPowerStops\":[{\"name\":\"大磯駅・二宮駅周辺のカフェ\",\"note\":\"要現地確認\"}],\"crowdRisk\":\"low\",\"recommendedDurationHours\":5,\"tags\":[\"海\",\"眺望\",\"歴史\"],\"notes\":\"江ノ島・鎌倉より観光客が少なく、連休中でも落ち着いて過ごせる。\",\"visitStatus\":\"未訪問\"},{\"id\":\"tsurumaki-onsen\",\"name\":\"鶴巻温泉ルート\",\"category\":[\"onsen\"],\"areaDirection\":\"北西（秦野方面）\",\"accessFromOfuna\":{\"car\":\"約45分\",\"train\":\"小田急線で1時間程度\"},\"distanceKm\":25,\"searchCenter\":{\"lat\":35.3817,\"lng\":139.3222},\"highlights\":[\"秦野盆地の自然\"],\"foodStops\":[{\"name\":\"鶴巻温泉駅周辺の食事処\",\"note\":\"\"}],\"wifiPowerStops\":[{\"name\":\"秦野駅周辺のカフェ\",\"note\":\"要現地確認\"}],\"onsenStops\":[{\"name\":\"弘法の里湯（駅徒歩圏の日帰り温泉）\",\"note\":\"\"}],\"crowdRisk\":\"low\",\"recommendedDurationHours\":4,\"tags\":[\"温泉\",\"駅近\"],\"notes\":\"駅からすぐの日帰り温泉で、半日〜夕方の締めくくりに使いやすい。\",\"visitStatus\":\"未訪問\"},{\"id\":\"atsugi-onsenkyo\",\"name\":\"あつぎ温泉郷（七沢・飯山・広沢寺）ルート\",\"category\":[\"onsen\",\"nature\"],\"areaDirection\":\"北（厚木方面）\",\"accessFromOfuna\":{\"car\":\"約50分\"},\"distanceKm\":30,\"searchCenter\":{\"lat\":35.4294,\"lng\":139.2925},\"highlights\":[\"広沢寺弁天橋周辺の渓流\"],\"foodStops\":[{\"name\":\"七沢・飯山エリアの食事処\",\"note\":\"\"}],\"wifiPowerStops\":[{\"name\":\"本厚木駅周辺のカフェ\",\"note\":\"要現地確認\"}],\"onsenStops\":[{\"name\":\"七沢・飯山・広沢寺の日帰り温泉施設\",\"note\":\"\"}],\"crowdRisk\":\"low\",\"recommendedDurationHours\":5,\"tags\":[\"温泉\",\"渓流\",\"静か\"],\"notes\":\"温泉郷としてまとまっており、静かに過ごしたい日向け。\",\"visitStatus\":\"未訪問\"},{\"id\":\"yabitsu-miyagase\",\"name\":\"ヤビツ峠・宮ヶ瀬 絶景ワインディングルート\",\"category\":[\"scenicDrive\",\"nature\"],\"areaDirection\":\"北西（丹沢方面）\",\"accessFromOfuna\":{\"car\":\"約1時間\"},\"distanceKm\":35,\"searchCenter\":{\"lat\":35.4206,\"lng\":139.2097},\"highlights\":[\"ヤビツ峠からの富士山・大山の眺望\",\"宮ヶ瀬湖畔の景観\"],\"foodStops\":[{\"name\":\"ヤビツ峠レストハウス\",\"note\":\"通年営業、峠の食事処\"}],\"wifiPowerStops\":[{\"name\":\"宮ヶ瀬周辺の道の駅・施設\",\"note\":\"要現地確認\"}],\"crowdRisk\":\"medium\",\"recommendedDurationHours\":6,\"tags\":[\"山\",\"絶景\",\"ワインディング\"],\"notes\":\"サイクリスト・登山客はいるが、車の大渋滞は箱根ほどではない。峠道のため運転好きにおすすめ。\",\"visitStatus\":\"未訪問\"},{\"id\":\"hakone\",\"name\":\"箱根ルート（参考・連休中は激混み想定）\",\"category\":[\"onsen\",\"sightseeing\"],\"areaDirection\":\"西（箱根方面）\",\"accessFromOfuna\":{\"car\":\"約1時間半〜（渋滞時はそれ以上）\"},\"distanceKm\":50,\"searchCenter\":{\"lat\":35.2323,\"lng\":139.1056},\"highlights\":[\"芦ノ湖\",\"大涌谷\",\"箱根の温泉旅館\"],\"foodStops\":[{\"name\":\"箱根各所の食事処\",\"note\":\"\"}],\"wifiPowerStops\":[{\"name\":\"箱根湯本駅周辺のカフェ\",\"note\":\"\"}],\"crowdRisk\":\"high\",\"recommendedDurationHours\":8,\"tags\":[\"温泉\",\"定番\",\"観光地\"],\"notes\":\"国内屈指の観光地で、5連休中は道路・施設ともに大渋滞が確実視される。今回は見送り、閑散期の次点候補として保持。\",\"visitStatus\":\"未訪問\"}],\"generatedAt\":\"2026-10-04T07:13:03.778Z\"}");
   const CROWD_COLOR = {"low":"#45B08C","medium":"#E8C22C","high":"#C1503A"};
   const CROWD_LABEL = {"low":"空いている傾向","medium":"やや混雑","high":"激混み想定"};
   const CATEGORY_LABEL = { move:'移動', sightseeing:'観光', food:'食事', onsen:'温泉', work:'Wifi/電源' };
@@ -1296,7 +1349,17 @@ function buildDynamicDaySchedule(center, date, spots, options = {}) {
       delete locInput.dataset.lng;
     });
 
-    document.getElementById('dp-go').addEventListener('click', async () => {
+    const goBtn = document.getElementById('dp-go');
+    const cancelBtn = document.getElementById('dp-cancel');
+    let activeAbortController = null;
+    let cancelledByUser = false;
+
+    cancelBtn.addEventListener('click', () => {
+      cancelledByUser = true;
+      if (activeAbortController) activeAbortController.abort();
+    });
+
+    goBtn.addEventListener('click', async () => {
       const radiusKm = parseFloat(document.getElementById('dp-radius').value) || 2;
       const days = Math.max(1, Math.min(7, parseInt(document.getElementById('dp-days').value, 10) || 1));
       const mode = document.getElementById('dp-mode').value;
@@ -1311,111 +1374,128 @@ function buildDynamicDaySchedule(center, date, spots, options = {}) {
       if (types.length === 0) { setStatus('スポットの種類を1つ以上選んでください', true); return; }
 
       resultEl.innerHTML = '';
+      cancelledByUser = false;
+      // タイムアウトはあくまで保険で、本命は「キャンセル」ボタン。
+      // ユーザーがどれくらい待つかを自分で決められるようにする。
+      activeAbortController = new AbortController();
+      goBtn.disabled = true;
+      cancelBtn.style.display = 'inline-block';
 
-      let center;
-      if (locInput.dataset.lat && locInput.dataset.lng) {
-        center = { lat: parseFloat(locInput.dataset.lat), lng: parseFloat(locInput.dataset.lng), name: '現在地' };
-      } else {
-        const query = locInput.value.trim();
-        if (!query) { setStatus('地点を入力するか、現在地を使ってください', true); return; }
-        setStatus('地点を検索中…（Nominatimへ問い合わせています）');
-        let geo;
+      try {
+        let center;
+        if (locInput.dataset.lat && locInput.dataset.lng) {
+          center = { lat: parseFloat(locInput.dataset.lat), lng: parseFloat(locInput.dataset.lng), name: '現在地' };
+        } else {
+          const query = locInput.value.trim();
+          if (!query) { setStatus('地点を入力するか、現在地を使ってください', true); return; }
+          setStatus('地点を検索中…（Nominatimへ問い合わせています）');
+          let geo;
+          try {
+            geo = await TripSchedulerGeocode.geocodeLocation(query, { signal: activeAbortController.signal });
+          } catch (err) {
+            if (cancelledByUser) { setStatus('検索をキャンセルしました。', true); return; }
+            setStatus('地点検索でエラーが発生しました: ' + err.message, true);
+            return;
+          }
+          if (!geo) { setStatus('「' + query + '」が見つかりませんでした。別の表記で試してください。', true); return; }
+          center = { lat: geo.lat, lng: geo.lng, name: geo.name };
+        }
+
+        setStatus('周辺のスポットを検索中…（OpenStreetMap Overpass APIへ問い合わせています。混雑時は最大20秒ほどかかります。待てない場合は「キャンセル」で中断できます）');
+        let spots;
         try {
-          geo = await TripSchedulerGeocode.geocodeLocation(query);
+          spots = await TripSchedulerOverpassSpots.findSpotsAround(
+            center.lat, center.lng, Math.round(radiusKm * 1000), types,
+            { signal: activeAbortController.signal }
+          );
         } catch (err) {
-          setStatus('地点検索でエラーが発生しました: ' + err.message, true);
+          if (cancelledByUser) { setStatus('検索をキャンセルしました。', true); return; }
+          const isTimeout = /timed out|AbortError/i.test((err && err.name) || '') || /timed out/i.test((err && err.message) || '');
+          setStatus(
+            'Overpass APIへの接続に失敗しました（' + err.message + '）。' +
+            (isTimeout
+              ? '複数のOverpassミラーすべてが混雑等で20秒以内に応答しませんでした。' +
+                '少し時間をおいて再試行するか、検索半径を狭めてみてください。'
+              : '広告ブロッカーやセキュリティ系の拡張機能（uBlock Origin等）が ' +
+                'overpass-api.de 系のドメインをブロックしていないか確認してください' +
+                '（一度シークレットウィンドウで試すと切り分けられます）。') +
+            '詳細はブラウザの開発者ツール（F12）のConsoleタブにも出力しています。',
+            true
+          );
           return;
         }
-        if (!geo) { setStatus('「' + query + '」が見つかりませんでした。別の表記で試してください。', true); return; }
-        center = { lat: geo.lat, lng: geo.lng, name: geo.name };
-      }
 
-      setStatus('周辺のスポットを検索中…（OpenStreetMap Overpass APIへ問い合わせています。混雑時は最大20秒ほどかかります）');
-      let spots;
-      try {
-        spots = await TripSchedulerOverpassSpots.findSpotsAround(center.lat, center.lng, Math.round(radiusKm * 1000), types);
-      } catch (err) {
-        const isTimeout = /timed out|AbortError/i.test((err && err.name) || '') || /timed out/i.test((err && err.message) || '');
-        setStatus(
-          'Overpass APIへの接続に失敗しました（' + err.message + '）。' +
-          (isTimeout
-            ? '複数のOverpassミラーすべてが混雑等で20秒以内に応答しませんでした。' +
-              '少し時間をおいて再試行するか、検索半径を狭めてみてください。'
-            : '広告ブロッカーやセキュリティ系の拡張機能（uBlock Origin等）が ' +
-              'overpass-api.de 系のドメインをブロックしていないか確認してください' +
-              '（一度シークレットウィンドウで試すと切り分けられます）。') +
-          '詳細はブラウザの開発者ツール（F12）のConsoleタブにも出力しています。',
-          true
-        );
-        return;
-      }
-
-      if (spots.length === 0) {
-        setStatus('半径' + radiusKm + 'km以内にスポットが見つかりませんでした。半径を広げるか種類を増やしてみてください。');
-        return;
-      }
-
-      const remaining = spots.slice();
-      const allEvents = [];
-      const usedCounts = [];
-      const dayWaypoints = [];
-      const baseDate = startDateInput || new Date().toISOString().slice(0, 10);
-
-      for (let i = 0; i < days; i++) {
-        const date = addDaysISO(baseDate, i);
-        const daySpots = TripSchedulerDynamicScheduler.selectSpotsForDay(remaining, {});
-        daySpots.forEach((s) => {
-          const idx = remaining.findIndex((r) => r.id === s.id);
-          if (idx >= 0) remaining.splice(idx, 1);
-        });
-        usedCounts.push(daySpots.length);
-        const events = TripSchedulerDynamicScheduler.buildDynamicDaySchedule(center, date, daySpots, {
-          startTime: i === 0 ? startTime : '09:00',
-          mode,
-        });
-        allEvents.push(...events);
-
-        // 地図にルートを描くための、その日の巡回順（中心→スポット→…→中心）。
-        // buildDynamicDaySchedule()の内部で使っている順序決定ロジックと同じ
-        // orderSpotsGreedy()を使うことで、表示されるルートと時間割の順序を一致させる。
-        const ordered = TripSchedulerDynamicScheduler.orderSpotsGreedy(center, daySpots);
-        if (ordered.length > 0) {
-          dayWaypoints.push([
-            { lat: center.lat, lng: center.lng },
-            ...ordered.map((s) => ({ lat: s.lat, lng: s.lng })),
-            { lat: center.lat, lng: center.lng },
-          ]);
-        } else {
-          dayWaypoints.push([]);
+        if (spots.length === 0) {
+          setStatus('半径' + radiusKm + 'km以内にスポットが見つかりませんでした。半径を広げるか種類を増やしてみてください。');
+          return;
         }
+
+        const remaining = spots.slice();
+        const allEvents = [];
+        const usedCounts = [];
+        const dayWaypoints = [];
+        const baseDate = startDateInput || new Date().toISOString().slice(0, 10);
+
+        for (let i = 0; i < days; i++) {
+          const date = addDaysISO(baseDate, i);
+          const daySpots = TripSchedulerDynamicScheduler.selectSpotsForDay(remaining, {});
+          daySpots.forEach((s) => {
+            const idx = remaining.findIndex((r) => r.id === s.id);
+            if (idx >= 0) remaining.splice(idx, 1);
+          });
+          usedCounts.push(daySpots.length);
+          const events = TripSchedulerDynamicScheduler.buildDynamicDaySchedule(center, date, daySpots, {
+            startTime: i === 0 ? startTime : '09:00',
+            mode,
+          });
+          allEvents.push(...events);
+
+          // 地図にルートを描くための、その日の巡回順（中心→スポット→…→中心）。
+          // buildDynamicDaySchedule()の内部で使っている順序決定ロジックと同じ
+          // orderSpotsGreedy()を使うことで、表示されるルートと時間割の順序を一致させる。
+          const ordered = TripSchedulerDynamicScheduler.orderSpotsGreedy(center, daySpots);
+          if (ordered.length > 0) {
+            dayWaypoints.push([
+              { lat: center.lat, lng: center.lng },
+              ...ordered.map((s) => ({ lat: s.lat, lng: s.lng })),
+              { lat: center.lat, lng: center.lng },
+            ]);
+          } else {
+            dayWaypoints.push([]);
+          }
+        }
+
+        if (allEvents.length === 0) {
+          setStatus('スケジュールを生成できるスポットがありませんでした。半径や種類を見直してください。');
+          return;
+        }
+
+        setStatus('✅ 周辺' + spots.length + '件のスポットから ' + days + '日分のスケジュールを作成しました（使用: ' + usedCounts.join('件 / ') + '件）');
+        resultEl.innerHTML = buildDayCardsHtml(allEvents);
+        safeRun(() => renderPlannerMap(center, spots, allEvents, dayWaypoints, mode), 'planner');
+
+        // この検索結果を「ルートカタログ」タブの検索履歴に自動追加する
+        // （検索するたびに増えていく方式。この端末のブラウザにのみ保存）。
+        saveSearchHistoryEntry({
+          id: 'search-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8),
+          searchedAt: new Date().toISOString(),
+          centerName: center.name || locInput.value.trim() || '検索地点',
+          centerLat: center.lat,
+          centerLng: center.lng,
+          radiusKm,
+          days,
+          mode,
+          types,
+          totalSpots: spots.length,
+          usedCounts,
+        });
+        safeRun(renderRoutes, 'routes');
+        if (leafletMap) safeRun(renderSearchHistoryMarkers, 'map');
+      } finally {
+        goBtn.disabled = false;
+        cancelBtn.style.display = 'none';
+        activeAbortController = null;
       }
-
-      if (allEvents.length === 0) {
-        setStatus('スケジュールを生成できるスポットがありませんでした。半径や種類を見直してください。');
-        return;
-      }
-
-      setStatus('✅ 周辺' + spots.length + '件のスポットから ' + days + '日分のスケジュールを作成しました（使用: ' + usedCounts.join('件 / ') + '件）');
-      resultEl.innerHTML = buildDayCardsHtml(allEvents);
-      safeRun(() => renderPlannerMap(center, spots, allEvents, dayWaypoints, mode), 'planner');
-
-      // この検索結果を「ルートカタログ」タブの検索履歴に自動追加する
-      // （検索するたびに増えていく方式。この端末のブラウザにのみ保存）。
-      saveSearchHistoryEntry({
-        id: 'search-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8),
-        searchedAt: new Date().toISOString(),
-        centerName: center.name || locInput.value.trim() || '検索地点',
-        centerLat: center.lat,
-        centerLng: center.lng,
-        radiusKm,
-        days,
-        mode,
-        types,
-        totalSpots: spots.length,
-        usedCounts,
-      });
-      safeRun(renderRoutes, 'routes');
-      if (leafletMap) safeRun(renderSearchHistoryMarkers, 'map');
     });
   }
 
