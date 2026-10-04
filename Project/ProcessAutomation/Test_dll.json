@@ -1,0 +1,868 @@
+{
+    "test_dll": [
+        {
+            "name": "test_normal_ConfigSettingDiff.HelpEntry_../../../Tools/diff.dll",
+            "settings": {
+                "argument_names": [],
+                "argument_types": [],
+                "arguments": [],
+                "check_result": {
+                    "expected": {
+                        "result_Equals": false,
+                        "result_GetHashCode": 16745860,
+                        "result_GetType": {
+                            "error": "System.RuntimeType can not convert this object type",
+                            "result_type": "System.RuntimeType"
+                        },
+                        "result_ToString": "ConfigSettingDiff.HelpEntry"
+                    }
+                },
+                "class_name": "ConfigSettingDiff.HelpEntry",
+                "methods": [
+                    {
+                        "argument_names": [
+                            "obj"
+                        ],
+                        "argument_types": [
+                            "Object"
+                        ],
+                        "arguments": [
+                            {
+                                "key1": "value1"
+                            }
+                        ],
+                        "check_result": {
+                            "expected": null
+                        },
+                        "method_name": "Equals",
+                        "name": "test_normal_Equals",
+                        "result": "result_Equals"
+                    },
+                    {
+                        "argument_names": [],
+                        "argument_types": [],
+                        "arguments": [],
+                        "check_result": {
+                            "expected": 16745860
+                        },
+                        "method_name": "GetHashCode",
+                        "name": "test_normal_GetHashCode",
+                        "result": "result_GetHashCode"
+                    },
+                    {
+                        "argument_names": [],
+                        "argument_types": [],
+                        "arguments": [],
+                        "check_result": {
+                            "expected": {
+                                "error": "System.RuntimeType can not convert this object type",
+                                "result_type": "System.RuntimeType"
+                            }
+                        },
+                        "method_name": "GetType",
+                        "name": "test_normal_GetType",
+                        "result": "result_GetType"
+                    },
+                    {
+                        "argument_names": [],
+                        "argument_types": [],
+                        "arguments": [],
+                        "check_result": {
+                            "expected": "ConfigSettingDiff.HelpEntry"
+                        },
+                        "method_name": "ToString",
+                        "name": "test_normal_ToString",
+                        "result": "result_ToString"
+                    }
+                ],
+                "program_path": "../../../Tools/diff.dll",
+                "result": "result_ConfigSettingDiff.HelpEntry"
+            },
+            "type": "ExecuteProgram"
+        },
+        {
+            "name": "test_normal_ConfigSettingDiff.HelpEntry_../../../Tools/diff.dll",
+            "settings": {
+                "argument_names": [],
+                "argument_types": [],
+                "arguments": [],
+                "check_result": {
+                    "expected": {
+                        "result_Equals": false,
+                        "result_GetHashCode": 16495015,
+                        "result_GetType": {
+                            "error": "System.RuntimeType can not convert this object type",
+                            "result_type": "System.RuntimeType"
+                        },
+                        "result_ToString": "ConfigSettingDiff.HelpEntry"
+                    }
+                },
+                "class_name": "ConfigSettingDiff.HelpEntry",
+                "methods": [
+                    {
+                        "argument_names": [
+                            "obj"
+                        ],
+                        "argument_types": [
+                            "Object"
+                        ],
+                        "arguments": [
+                            123
+                        ],
+                        "check_result": {
+                            "expected": null
+                        },
+                        "method_name": "Equals",
+                        "name": "test_normal_Equals",
+                        "result": "result_Equals"
+                    },
+                    {
+                        "argument_names": [],
+                        "argument_types": [],
+                        "arguments": [],
+                        "check_result": {
+                            "expected": 16495015
+                        },
+                        "method_name": "GetHashCode",
+                        "name": "test_normal_GetHashCode",
+                        "result": "result_GetHashCode"
+                    },
+                    {
+                        "argument_names": [],
+                        "argument_types": [],
+                        "arguments": [],
+                        "check_result": {
+                            "expected": {
+                                "error": "System.RuntimeType can not convert this object type",
+                                "result_type": "System.RuntimeType"
+                            }
+                        },
+                        "method_name": "GetType",
+                        "name": "test_normal_GetType",
+                        "result": "result_GetType"
+                    },
+                    {
+                        "argument_names": [],
+                        "argument_types": [],
+                        "arguments": [],
+                        "check_result": {
+                            "expected": "ConfigSettingDiff.HelpEntry"
+                        },
+                        "method_name": "ToString",
+                        "name": "test_normal_ToString",
+                        "result": "result_ToString"
+                    }
+                ],
+                "program_path": "../../../Tools/diff.dll",
+                "result": "result_ConfigSettingDiff.HelpEntry"
+            },
+            "type": "ExecuteProgram"
+        },
+        {
+            "name": "test_value_error_ConfigSettingDiff.HelpEntry_../../../Tools/diff.dll",
+            "settings": {
+                "argument_names": [],
+                "argument_types": [],
+                "arguments": [],
+                "check_result": {
+                    "expected": {
+                        "result_Equals": false,
+                        "result_GetHashCode": 14237410,
+                        "result_GetType": {
+                            "error": "System.RuntimeType can not convert this object type",
+                            "result_type": "System.RuntimeType"
+                        },
+                        "result_ToString": "ConfigSettingDiff.HelpEntry"
+                    }
+                },
+                "class_name": "ConfigSettingDiff.HelpEntry",
+                "methods": [
+                    {
+                        "argument_names": [
+                            "obj"
+                        ],
+                        "argument_types": [
+                            "Object"
+                        ],
+                        "arguments": [
+                            [
+                                "a"
+                            ]
+                        ],
+                        "check_result": {
+                            "expected": null
+                        },
+                        "method_name": "Equals",
+                        "name": "test_value_error_Equals",
+                        "result": "result_Equals"
+                    },
+                    {
+                        "argument_names": [],
+                        "argument_types": [],
+                        "arguments": [],
+                        "check_result": {
+                            "expected": 14237410
+                        },
+                        "method_name": "GetHashCode",
+                        "name": "test_value_error_GetHashCode",
+                        "result": "result_GetHashCode"
+                    },
+                    {
+                        "argument_names": [],
+                        "argument_types": [],
+                        "arguments": [],
+                        "check_result": {
+                            "expected": {
+                                "error": "System.RuntimeType can not convert this object type",
+                                "result_type": "System.RuntimeType"
+                            }
+                        },
+                        "method_name": "GetType",
+                        "name": "test_value_error_GetType",
+                        "result": "result_GetType"
+                    },
+                    {
+                        "argument_names": [],
+                        "argument_types": [],
+                        "arguments": [],
+                        "check_result": {
+                            "expected": "ConfigSettingDiff.HelpEntry"
+                        },
+                        "method_name": "ToString",
+                        "name": "test_value_error_ToString",
+                        "result": "result_ToString"
+                    }
+                ],
+                "program_path": "../../../Tools/diff.dll",
+                "result": "result_ConfigSettingDiff.HelpEntry"
+            },
+            "type": "ExecuteProgram"
+        },
+        {
+            "name": "test_normal_ConfigSettingDiff.DiffResult_../../../Tools/diff.dll",
+            "settings": {
+                "argument_names": [],
+                "argument_types": [],
+                "arguments": [],
+                "check_result": {
+                    "expected": {
+                        "result_Equals": false,
+                        "result_GetHashCode": 61027830,
+                        "result_GetType": {
+                            "error": "System.RuntimeType can not convert this object type",
+                            "result_type": "System.RuntimeType"
+                        },
+                        "result_ToString": "ConfigSettingDiff.DiffResult"
+                    }
+                },
+                "class_name": "ConfigSettingDiff.DiffResult",
+                "methods": [
+                    {
+                        "argument_names": [
+                            "obj"
+                        ],
+                        "argument_types": [
+                            "Object"
+                        ],
+                        "arguments": [
+                            {
+                                "key1": "value1"
+                            }
+                        ],
+                        "check_result": {
+                            "expected": null
+                        },
+                        "method_name": "Equals",
+                        "name": "test_normal_Equals",
+                        "result": "result_Equals"
+                    },
+                    {
+                        "argument_names": [],
+                        "argument_types": [],
+                        "arguments": [],
+                        "check_result": {
+                            "expected": 61027830
+                        },
+                        "method_name": "GetHashCode",
+                        "name": "test_normal_GetHashCode",
+                        "result": "result_GetHashCode"
+                    },
+                    {
+                        "argument_names": [],
+                        "argument_types": [],
+                        "arguments": [],
+                        "check_result": {
+                            "expected": {
+                                "error": "System.RuntimeType can not convert this object type",
+                                "result_type": "System.RuntimeType"
+                            }
+                        },
+                        "method_name": "GetType",
+                        "name": "test_normal_GetType",
+                        "result": "result_GetType"
+                    },
+                    {
+                        "argument_names": [],
+                        "argument_types": [],
+                        "arguments": [],
+                        "check_result": {
+                            "expected": "ConfigSettingDiff.DiffResult"
+                        },
+                        "method_name": "ToString",
+                        "name": "test_normal_ToString",
+                        "result": "result_ToString"
+                    }
+                ],
+                "program_path": "../../../Tools/diff.dll",
+                "result": "result_ConfigSettingDiff.DiffResult"
+            },
+            "type": "ExecuteProgram"
+        },
+        {
+            "name": "test_normal_ConfigSettingDiff.DiffResult_../../../Tools/diff.dll",
+            "settings": {
+                "argument_names": [],
+                "argument_types": [],
+                "arguments": [],
+                "check_result": {
+                    "expected": {
+                        "result_Equals": false,
+                        "result_GetHashCode": 12379565,
+                        "result_GetType": {
+                            "error": "System.RuntimeType can not convert this object type",
+                            "result_type": "System.RuntimeType"
+                        },
+                        "result_ToString": "ConfigSettingDiff.DiffResult"
+                    }
+                },
+                "class_name": "ConfigSettingDiff.DiffResult",
+                "methods": [
+                    {
+                        "argument_names": [
+                            "obj"
+                        ],
+                        "argument_types": [
+                            "Object"
+                        ],
+                        "arguments": [
+                            123
+                        ],
+                        "check_result": {
+                            "expected": null
+                        },
+                        "method_name": "Equals",
+                        "name": "test_normal_Equals",
+                        "result": "result_Equals"
+                    },
+                    {
+                        "argument_names": [],
+                        "argument_types": [],
+                        "arguments": [],
+                        "check_result": {
+                            "expected": 12379565
+                        },
+                        "method_name": "GetHashCode",
+                        "name": "test_normal_GetHashCode",
+                        "result": "result_GetHashCode"
+                    },
+                    {
+                        "argument_names": [],
+                        "argument_types": [],
+                        "arguments": [],
+                        "check_result": {
+                            "expected": {
+                                "error": "System.RuntimeType can not convert this object type",
+                                "result_type": "System.RuntimeType"
+                            }
+                        },
+                        "method_name": "GetType",
+                        "name": "test_normal_GetType",
+                        "result": "result_GetType"
+                    },
+                    {
+                        "argument_names": [],
+                        "argument_types": [],
+                        "arguments": [],
+                        "check_result": {
+                            "expected": "ConfigSettingDiff.DiffResult"
+                        },
+                        "method_name": "ToString",
+                        "name": "test_normal_ToString",
+                        "result": "result_ToString"
+                    }
+                ],
+                "program_path": "../../../Tools/diff.dll",
+                "result": "result_ConfigSettingDiff.DiffResult"
+            },
+            "type": "ExecuteProgram"
+        },
+        {
+            "name": "test_value_error_ConfigSettingDiff.DiffResult_../../../Tools/diff.dll",
+            "settings": {
+                "argument_names": [],
+                "argument_types": [],
+                "arguments": [],
+                "check_result": {
+                    "expected": {
+                        "result_Equals": false,
+                        "result_GetHashCode": 44307222,
+                        "result_GetType": {
+                            "error": "System.RuntimeType can not convert this object type",
+                            "result_type": "System.RuntimeType"
+                        },
+                        "result_ToString": "ConfigSettingDiff.DiffResult"
+                    }
+                },
+                "class_name": "ConfigSettingDiff.DiffResult",
+                "methods": [
+                    {
+                        "argument_names": [
+                            "obj"
+                        ],
+                        "argument_types": [
+                            "Object"
+                        ],
+                        "arguments": [
+                            [
+                                "a"
+                            ]
+                        ],
+                        "check_result": {
+                            "expected": null
+                        },
+                        "method_name": "Equals",
+                        "name": "test_value_error_Equals",
+                        "result": "result_Equals"
+                    },
+                    {
+                        "argument_names": [],
+                        "argument_types": [],
+                        "arguments": [],
+                        "check_result": {
+                            "expected": 44307222
+                        },
+                        "method_name": "GetHashCode",
+                        "name": "test_value_error_GetHashCode",
+                        "result": "result_GetHashCode"
+                    },
+                    {
+                        "argument_names": [],
+                        "argument_types": [],
+                        "arguments": [],
+                        "check_result": {
+                            "expected": {
+                                "error": "System.RuntimeType can not convert this object type",
+                                "result_type": "System.RuntimeType"
+                            }
+                        },
+                        "method_name": "GetType",
+                        "name": "test_value_error_GetType",
+                        "result": "result_GetType"
+                    },
+                    {
+                        "argument_names": [],
+                        "argument_types": [],
+                        "arguments": [],
+                        "check_result": {
+                            "expected": "ConfigSettingDiff.DiffResult"
+                        },
+                        "method_name": "ToString",
+                        "name": "test_value_error_ToString",
+                        "result": "result_ToString"
+                    }
+                ],
+                "program_path": "../../../Tools/diff.dll",
+                "result": "result_ConfigSettingDiff.DiffResult"
+            },
+            "type": "ExecuteProgram"
+        },
+        {
+            "name": "test_normal_ConfigSettingDiff.Program_../../../Tools/diff.dll",
+            "settings": {
+                "argument_names": [],
+                "argument_types": [],
+                "arguments": [],
+                "check_result": {
+                    "expected": {
+                        "result_Equals": false,
+                        "result_FolderSettingDiff": {
+                            "error": "呼び出しのターゲットが例外をスローしました。 ---> System.NullReferenceException: オブジェクト参照がオブジェクト インスタンスに設定されていません。\r\n   場所 ConfigSettingDiff.Program.FolderSettingDiff(Dictionary`2 settings, String helpFolder, String[] configFolders)\r\n   --- 内部例外スタック トレースの終わり ---\r\n   場所 System.RuntimeMethodHandle.InvokeMethod(Object target, Object[] arguments, Signature sig, Boolean constructor)\r\n   場所 System.Reflection.RuntimeMethodInfo.UnsafeInvokeInternal(Object obj, Object[] parameters, Object[] arguments)\r\n   場所 System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)\r\n   場所 System.Reflection.MethodBase.Invoke(Object obj, Object[] parameters)",
+                            "success": false,
+                            "trace": "System.NullReferenceException: オブジェクト参照がオブジェクト インスタンスに設定されていません。\r\n   場所 ConfigSettingDiff.Program.FolderSettingDiff(Dictionary`2 settings, String helpFolder, String[] configFolders)\n\nThe above exception was the direct cause of the following exception:\n\nTraceback (most recent call last):\n  File \"FunctionControl.py\", line 669, in ExecuteProgram\n  File \"FunctionControl.py\", line 628, in execute_methods_cs\nSystem.Reflection.TargetInvocationException: 呼び出しのターゲットが例外をスローしました。 ---> System.NullReferenceException: オブジェクト参照がオブジェクト インスタンスに設定されていません。\r\n   場所 ConfigSettingDiff.Program.FolderSettingDiff(Dictionary`2 settings, String helpFolder, String[] configFolders)\r\n   --- 内部例外スタック トレースの終わり ---\r\n   場所 System.RuntimeMethodHandle.InvokeMethod(Object target, Object[] arguments, Signature sig, Boolean constructor)\r\n   場所 System.Reflection.RuntimeMethodInfo.UnsafeInvokeInternal(Object obj, Object[] parameters, Object[] arguments)\r\n   場所 System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)\r\n   場所 System.Reflection.MethodBase.Invoke(Object obj, Object[] parameters)\n"
+                        },
+                        "result_GetHashCode": 54848996,
+                        "result_GetType": {
+                            "error": "System.RuntimeType can not convert this object type",
+                            "result_type": "System.RuntimeType"
+                        },
+                        "result_Main": null,
+                        "result_ToString": "ConfigSettingDiff.Program"
+                    }
+                },
+                "class_name": "ConfigSettingDiff.Program",
+                "methods": [
+                    {
+                        "argument_names": [
+                            "args"
+                        ],
+                        "argument_types": [
+                            "String[]"
+                        ],
+                        "arguments": [
+                            null
+                        ],
+                        "check_result": {
+                            "expected": null
+                        },
+                        "method_name": "Main",
+                        "name": "test_normal_Main",
+                        "result": "result_Main"
+                    },
+                    {
+                        "argument_names": [
+                            "settings",
+                            "helpFolder",
+                            "configFolders"
+                        ],
+                        "argument_types": [
+                            "Dictionary`2",
+                            "String",
+                            "String[]"
+                        ],
+                        "arguments": [
+                            null,
+                            null,
+                            null
+                        ],
+                        "check_result": {
+                            "expected": {
+                                "error": "呼び出しのターゲットが例外をスローしました。 ---> System.NullReferenceException: オブジェクト参照がオブジェクト インスタンスに設定されていません。\r\n   場所 ConfigSettingDiff.Program.FolderSettingDiff(Dictionary`2 settings, String helpFolder, String[] configFolders)\r\n   --- 内部例外スタック トレースの終わり ---\r\n   場所 System.RuntimeMethodHandle.InvokeMethod(Object target, Object[] arguments, Signature sig, Boolean constructor)\r\n   場所 System.Reflection.RuntimeMethodInfo.UnsafeInvokeInternal(Object obj, Object[] parameters, Object[] arguments)\r\n   場所 System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)\r\n   場所 System.Reflection.MethodBase.Invoke(Object obj, Object[] parameters)",
+                                "success": false,
+                                "trace": "System.NullReferenceException: オブジェクト参照がオブジェクト インスタンスに設定されていません。\r\n   場所 ConfigSettingDiff.Program.FolderSettingDiff(Dictionary`2 settings, String helpFolder, String[] configFolders)\n\nThe above exception was the direct cause of the following exception:\n\nTraceback (most recent call last):\n  File \"FunctionControl.py\", line 669, in ExecuteProgram\n  File \"FunctionControl.py\", line 628, in execute_methods_cs\nSystem.Reflection.TargetInvocationException: 呼び出しのターゲットが例外をスローしました。 ---> System.NullReferenceException: オブジェクト参照がオブジェクト インスタンスに設定されていません。\r\n   場所 ConfigSettingDiff.Program.FolderSettingDiff(Dictionary`2 settings, String helpFolder, String[] configFolders)\r\n   --- 内部例外スタック トレースの終わり ---\r\n   場所 System.RuntimeMethodHandle.InvokeMethod(Object target, Object[] arguments, Signature sig, Boolean constructor)\r\n   場所 System.Reflection.RuntimeMethodInfo.UnsafeInvokeInternal(Object obj, Object[] parameters, Object[] arguments)\r\n   場所 System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)\r\n   場所 System.Reflection.MethodBase.Invoke(Object obj, Object[] parameters)\n"
+                            }
+                        },
+                        "method_name": "FolderSettingDiff",
+                        "name": "test_normal_FolderSettingDiff",
+                        "result": "result_FolderSettingDiff"
+                    },
+                    {
+                        "argument_names": [
+                            "obj"
+                        ],
+                        "argument_types": [
+                            "Object"
+                        ],
+                        "arguments": [
+                            {
+                                "key1": "value1"
+                            }
+                        ],
+                        "check_result": {
+                            "expected": null
+                        },
+                        "method_name": "Equals",
+                        "name": "test_normal_Equals",
+                        "result": "result_Equals"
+                    },
+                    {
+                        "argument_names": [],
+                        "argument_types": [],
+                        "arguments": [],
+                        "check_result": {
+                            "expected": 54848996
+                        },
+                        "method_name": "GetHashCode",
+                        "name": "test_normal_GetHashCode",
+                        "result": "result_GetHashCode"
+                    },
+                    {
+                        "argument_names": [],
+                        "argument_types": [],
+                        "arguments": [],
+                        "check_result": {
+                            "expected": {
+                                "error": "System.RuntimeType can not convert this object type",
+                                "result_type": "System.RuntimeType"
+                            }
+                        },
+                        "method_name": "GetType",
+                        "name": "test_normal_GetType",
+                        "result": "result_GetType"
+                    },
+                    {
+                        "argument_names": [],
+                        "argument_types": [],
+                        "arguments": [],
+                        "check_result": {
+                            "expected": "ConfigSettingDiff.Program"
+                        },
+                        "method_name": "ToString",
+                        "name": "test_normal_ToString",
+                        "result": "result_ToString"
+                    }
+                ],
+                "program_path": "../../../Tools/diff.dll",
+                "result": "result_ConfigSettingDiff.Program"
+            },
+            "type": "ExecuteProgram"
+        },
+        {
+            "name": "test_normal_ConfigSettingDiff.Program_../../../Tools/diff.dll",
+            "settings": {
+                "argument_names": [],
+                "argument_types": [],
+                "arguments": [],
+                "check_result": {
+                    "expected": {
+                        "result_Equals": false,
+                        "result_FolderSettingDiff": {
+                            "error": "呼び出しのターゲットが例外をスローしました。 ---> System.NullReferenceException: オブジェクト参照がオブジェクト インスタンスに設定されていません。\r\n   場所 ConfigSettingDiff.Program.FolderSettingDiff(Dictionary`2 settings, String helpFolder, String[] configFolders)\r\n   --- 内部例外スタック トレースの終わり ---\r\n   場所 System.RuntimeMethodHandle.InvokeMethod(Object target, Object[] arguments, Signature sig, Boolean constructor)\r\n   場所 System.Reflection.RuntimeMethodInfo.UnsafeInvokeInternal(Object obj, Object[] parameters, Object[] arguments)\r\n   場所 System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)\r\n   場所 System.Reflection.MethodBase.Invoke(Object obj, Object[] parameters)",
+                            "success": false,
+                            "trace": "System.NullReferenceException: オブジェクト参照がオブジェクト インスタンスに設定されていません。\r\n   場所 ConfigSettingDiff.Program.FolderSettingDiff(Dictionary`2 settings, String helpFolder, String[] configFolders)\n\nThe above exception was the direct cause of the following exception:\n\nTraceback (most recent call last):\n  File \"FunctionControl.py\", line 669, in ExecuteProgram\n  File \"FunctionControl.py\", line 628, in execute_methods_cs\nSystem.Reflection.TargetInvocationException: 呼び出しのターゲットが例外をスローしました。 ---> System.NullReferenceException: オブジェクト参照がオブジェクト インスタンスに設定されていません。\r\n   場所 ConfigSettingDiff.Program.FolderSettingDiff(Dictionary`2 settings, String helpFolder, String[] configFolders)\r\n   --- 内部例外スタック トレースの終わり ---\r\n   場所 System.RuntimeMethodHandle.InvokeMethod(Object target, Object[] arguments, Signature sig, Boolean constructor)\r\n   場所 System.Reflection.RuntimeMethodInfo.UnsafeInvokeInternal(Object obj, Object[] parameters, Object[] arguments)\r\n   場所 System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)\r\n   場所 System.Reflection.MethodBase.Invoke(Object obj, Object[] parameters)\n"
+                        },
+                        "result_GetHashCode": 23878916,
+                        "result_GetType": {
+                            "error": "System.RuntimeType can not convert this object type",
+                            "result_type": "System.RuntimeType"
+                        },
+                        "result_Main": null,
+                        "result_ToString": "ConfigSettingDiff.Program"
+                    }
+                },
+                "class_name": "ConfigSettingDiff.Program",
+                "methods": [
+                    {
+                        "argument_names": [
+                            "args"
+                        ],
+                        "argument_types": [
+                            "String[]"
+                        ],
+                        "arguments": [
+                            null
+                        ],
+                        "check_result": {
+                            "expected": null
+                        },
+                        "method_name": "Main",
+                        "name": "test_normal_Main",
+                        "result": "result_Main"
+                    },
+                    {
+                        "argument_names": [
+                            "settings",
+                            "helpFolder",
+                            "configFolders"
+                        ],
+                        "argument_types": [
+                            "Dictionary`2",
+                            "String",
+                            "String[]"
+                        ],
+                        "arguments": [
+                            null,
+                            null,
+                            null
+                        ],
+                        "check_result": {
+                            "expected": {
+                                "error": "呼び出しのターゲットが例外をスローしました。 ---> System.NullReferenceException: オブジェクト参照がオブジェクト インスタンスに設定されていません。\r\n   場所 ConfigSettingDiff.Program.FolderSettingDiff(Dictionary`2 settings, String helpFolder, String[] configFolders)\r\n   --- 内部例外スタック トレースの終わり ---\r\n   場所 System.RuntimeMethodHandle.InvokeMethod(Object target, Object[] arguments, Signature sig, Boolean constructor)\r\n   場所 System.Reflection.RuntimeMethodInfo.UnsafeInvokeInternal(Object obj, Object[] parameters, Object[] arguments)\r\n   場所 System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)\r\n   場所 System.Reflection.MethodBase.Invoke(Object obj, Object[] parameters)",
+                                "success": false,
+                                "trace": "System.NullReferenceException: オブジェクト参照がオブジェクト インスタンスに設定されていません。\r\n   場所 ConfigSettingDiff.Program.FolderSettingDiff(Dictionary`2 settings, String helpFolder, String[] configFolders)\n\nThe above exception was the direct cause of the following exception:\n\nTraceback (most recent call last):\n  File \"FunctionControl.py\", line 669, in ExecuteProgram\n  File \"FunctionControl.py\", line 628, in execute_methods_cs\nSystem.Reflection.TargetInvocationException: 呼び出しのターゲットが例外をスローしました。 ---> System.NullReferenceException: オブジェクト参照がオブジェクト インスタンスに設定されていません。\r\n   場所 ConfigSettingDiff.Program.FolderSettingDiff(Dictionary`2 settings, String helpFolder, String[] configFolders)\r\n   --- 内部例外スタック トレースの終わり ---\r\n   場所 System.RuntimeMethodHandle.InvokeMethod(Object target, Object[] arguments, Signature sig, Boolean constructor)\r\n   場所 System.Reflection.RuntimeMethodInfo.UnsafeInvokeInternal(Object obj, Object[] parameters, Object[] arguments)\r\n   場所 System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)\r\n   場所 System.Reflection.MethodBase.Invoke(Object obj, Object[] parameters)\n"
+                            }
+                        },
+                        "method_name": "FolderSettingDiff",
+                        "name": "test_normal_FolderSettingDiff",
+                        "result": "result_FolderSettingDiff"
+                    },
+                    {
+                        "argument_names": [
+                            "obj"
+                        ],
+                        "argument_types": [
+                            "Object"
+                        ],
+                        "arguments": [
+                            123
+                        ],
+                        "check_result": {
+                            "expected": null
+                        },
+                        "method_name": "Equals",
+                        "name": "test_normal_Equals",
+                        "result": "result_Equals"
+                    },
+                    {
+                        "argument_names": [],
+                        "argument_types": [],
+                        "arguments": [],
+                        "check_result": {
+                            "expected": 23878916
+                        },
+                        "method_name": "GetHashCode",
+                        "name": "test_normal_GetHashCode",
+                        "result": "result_GetHashCode"
+                    },
+                    {
+                        "argument_names": [],
+                        "argument_types": [],
+                        "arguments": [],
+                        "check_result": {
+                            "expected": {
+                                "error": "System.RuntimeType can not convert this object type",
+                                "result_type": "System.RuntimeType"
+                            }
+                        },
+                        "method_name": "GetType",
+                        "name": "test_normal_GetType",
+                        "result": "result_GetType"
+                    },
+                    {
+                        "argument_names": [],
+                        "argument_types": [],
+                        "arguments": [],
+                        "check_result": {
+                            "expected": "ConfigSettingDiff.Program"
+                        },
+                        "method_name": "ToString",
+                        "name": "test_normal_ToString",
+                        "result": "result_ToString"
+                    }
+                ],
+                "program_path": "../../../Tools/diff.dll",
+                "result": "result_ConfigSettingDiff.Program"
+            },
+            "type": "ExecuteProgram"
+        },
+        {
+            "name": "test_value_error_ConfigSettingDiff.Program_../../../Tools/diff.dll",
+            "settings": {
+                "argument_names": [],
+                "argument_types": [],
+                "arguments": [],
+                "check_result": {
+                    "expected": {
+                        "result_Equals": false,
+                        "result_FolderSettingDiff": {
+                            "error": "呼び出しのターゲットが例外をスローしました。 ---> System.NullReferenceException: オブジェクト参照がオブジェクト インスタンスに設定されていません。\r\n   場所 ConfigSettingDiff.Program.FolderSettingDiff(Dictionary`2 settings, String helpFolder, String[] configFolders)\r\n   --- 内部例外スタック トレースの終わり ---\r\n   場所 System.RuntimeMethodHandle.InvokeMethod(Object target, Object[] arguments, Signature sig, Boolean constructor)\r\n   場所 System.Reflection.RuntimeMethodInfo.UnsafeInvokeInternal(Object obj, Object[] parameters, Object[] arguments)\r\n   場所 System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)\r\n   場所 System.Reflection.MethodBase.Invoke(Object obj, Object[] parameters)",
+                            "success": false,
+                            "trace": "System.NullReferenceException: オブジェクト参照がオブジェクト インスタンスに設定されていません。\r\n   場所 ConfigSettingDiff.Program.FolderSettingDiff(Dictionary`2 settings, String helpFolder, String[] configFolders)\n\nThe above exception was the direct cause of the following exception:\n\nTraceback (most recent call last):\n  File \"FunctionControl.py\", line 669, in ExecuteProgram\n  File \"FunctionControl.py\", line 628, in execute_methods_cs\nSystem.Reflection.TargetInvocationException: 呼び出しのターゲットが例外をスローしました。 ---> System.NullReferenceException: オブジェクト参照がオブジェクト インスタンスに設定されていません。\r\n   場所 ConfigSettingDiff.Program.FolderSettingDiff(Dictionary`2 settings, String helpFolder, String[] configFolders)\r\n   --- 内部例外スタック トレースの終わり ---\r\n   場所 System.RuntimeMethodHandle.InvokeMethod(Object target, Object[] arguments, Signature sig, Boolean constructor)\r\n   場所 System.Reflection.RuntimeMethodInfo.UnsafeInvokeInternal(Object obj, Object[] parameters, Object[] arguments)\r\n   場所 System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)\r\n   場所 System.Reflection.MethodBase.Invoke(Object obj, Object[] parameters)\n"
+                        },
+                        "result_GetHashCode": 13583655,
+                        "result_GetType": {
+                            "error": "System.RuntimeType can not convert this object type",
+                            "result_type": "System.RuntimeType"
+                        },
+                        "result_Main": null,
+                        "result_ToString": "ConfigSettingDiff.Program"
+                    }
+                },
+                "class_name": "ConfigSettingDiff.Program",
+                "methods": [
+                    {
+                        "argument_names": [
+                            "args"
+                        ],
+                        "argument_types": [
+                            "String[]"
+                        ],
+                        "arguments": [
+                            null
+                        ],
+                        "check_result": {
+                            "expected": null
+                        },
+                        "method_name": "Main",
+                        "name": "test_value_error_Main",
+                        "result": "result_Main"
+                    },
+                    {
+                        "argument_names": [
+                            "settings",
+                            "helpFolder",
+                            "configFolders"
+                        ],
+                        "argument_types": [
+                            "Dictionary`2",
+                            "String",
+                            "String[]"
+                        ],
+                        "arguments": [
+                            null,
+                            null,
+                            null
+                        ],
+                        "check_result": {
+                            "expected": {
+                                "error": "呼び出しのターゲットが例外をスローしました。 ---> System.NullReferenceException: オブジェクト参照がオブジェクト インスタンスに設定されていません。\r\n   場所 ConfigSettingDiff.Program.FolderSettingDiff(Dictionary`2 settings, String helpFolder, String[] configFolders)\r\n   --- 内部例外スタック トレースの終わり ---\r\n   場所 System.RuntimeMethodHandle.InvokeMethod(Object target, Object[] arguments, Signature sig, Boolean constructor)\r\n   場所 System.Reflection.RuntimeMethodInfo.UnsafeInvokeInternal(Object obj, Object[] parameters, Object[] arguments)\r\n   場所 System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)\r\n   場所 System.Reflection.MethodBase.Invoke(Object obj, Object[] parameters)",
+                                "success": false,
+                                "trace": "System.NullReferenceException: オブジェクト参照がオブジェクト インスタンスに設定されていません。\r\n   場所 ConfigSettingDiff.Program.FolderSettingDiff(Dictionary`2 settings, String helpFolder, String[] configFolders)\n\nThe above exception was the direct cause of the following exception:\n\nTraceback (most recent call last):\n  File \"FunctionControl.py\", line 669, in ExecuteProgram\n  File \"FunctionControl.py\", line 628, in execute_methods_cs\nSystem.Reflection.TargetInvocationException: 呼び出しのターゲットが例外をスローしました。 ---> System.NullReferenceException: オブジェクト参照がオブジェクト インスタンスに設定されていません。\r\n   場所 ConfigSettingDiff.Program.FolderSettingDiff(Dictionary`2 settings, String helpFolder, String[] configFolders)\r\n   --- 内部例外スタック トレースの終わり ---\r\n   場所 System.RuntimeMethodHandle.InvokeMethod(Object target, Object[] arguments, Signature sig, Boolean constructor)\r\n   場所 System.Reflection.RuntimeMethodInfo.UnsafeInvokeInternal(Object obj, Object[] parameters, Object[] arguments)\r\n   場所 System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)\r\n   場所 System.Reflection.MethodBase.Invoke(Object obj, Object[] parameters)\n"
+                            }
+                        },
+                        "method_name": "FolderSettingDiff",
+                        "name": "test_value_error_FolderSettingDiff",
+                        "result": "result_FolderSettingDiff"
+                    },
+                    {
+                        "argument_names": [
+                            "obj"
+                        ],
+                        "argument_types": [
+                            "Object"
+                        ],
+                        "arguments": [
+                            [
+                                "a"
+                            ]
+                        ],
+                        "check_result": {
+                            "expected": null
+                        },
+                        "method_name": "Equals",
+                        "name": "test_value_error_Equals",
+                        "result": "result_Equals"
+                    },
+                    {
+                        "argument_names": [],
+                        "argument_types": [],
+                        "arguments": [],
+                        "check_result": {
+                            "expected": 13583655
+                        },
+                        "method_name": "GetHashCode",
+                        "name": "test_value_error_GetHashCode",
+                        "result": "result_GetHashCode"
+                    },
+                    {
+                        "argument_names": [],
+                        "argument_types": [],
+                        "arguments": [],
+                        "check_result": {
+                            "expected": {
+                                "error": "System.RuntimeType can not convert this object type",
+                                "result_type": "System.RuntimeType"
+                            }
+                        },
+                        "method_name": "GetType",
+                        "name": "test_value_error_GetType",
+                        "result": "result_GetType"
+                    },
+                    {
+                        "argument_names": [],
+                        "argument_types": [],
+                        "arguments": [],
+                        "check_result": {
+                            "expected": "ConfigSettingDiff.Program"
+                        },
+                        "method_name": "ToString",
+                        "name": "test_value_error_ToString",
+                        "result": "result_ToString"
+                    }
+                ],
+                "program_path": "../../../Tools/diff.dll",
+                "result": "result_ConfigSettingDiff.Program"
+            },
+            "type": "ExecuteProgram"
+        }
+    ]
+}

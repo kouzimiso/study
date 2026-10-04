@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>🧬 CreatureLab — 自動生成3D生物評価システム</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#020408;color:#ccddcc;font-family:'Courier New',monospace;overflow:hidden;height:100vh;display:flex;flex-direction:column}
+#topbar{display:flex;align-items:center;gap:6px;padding:6px 10px;background:rgba(0,0,0,.75);border-bottom:1px solid rgba(100,255,150,.15);flex-shrink:0;flex-wrap:wrap}
+#topbar h1{font-size:12px;letter-spacing:.2em;color:#88ffaa;margin-right:2px}
+.tb-btn{padding:5px 10px;background:rgba(0,20,10,.9);border:1px solid rgba(100,255,150,.35);color:#aaffcc;font-family:'Courier New',monospace;font-size:10px;cursor:pointer;touch-action:manipulation}
+.tb-btn:hover{border-color:rgba(100,255,150,.7)}
+#gen-count{font-size:9px;color:#335533;margin-left:auto}
+#main{flex:1;display:flex;overflow:hidden}
+#viewer{flex:1.2;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px;gap:7px;background:#010608}
+#cv-wrap{position:relative;width:100%;max-width:400px;aspect-ratio:1}
+#cv{width:100%;height:100%;display:block;background:#000810;border:1px solid rgba(100,255,150,.18);border-radius:6px}
+#creature-info{font-size:9px;color:#558855;text-align:center;line-height:1.8}
+#gen-nav{display:flex;gap:5px;align-items:center}
+#gen-nav button{padding:4px 11px;background:rgba(0,10,5,.8);border:1px solid rgba(100,255,150,.22);color:#778877;font-family:'Courier New',monospace;font-size:11px;cursor:pointer}
+#gen-nav button:hover{color:#aaffcc;border-color:rgba(100,255,150,.5)}
+#gen-label{font-size:10px;color:#335533;min-width:56px;text-align:center}
+#panel{width:310px;display:flex;flex-direction:column;border-left:1px solid rgba(100,255,150,.1);background:rgba(0,5,3,.85);overflow:hidden}
+#genome-panel{padding:7px 9px;border-bottom:1px solid rgba(100,255,150,.1);flex-shrink:0}
+#genome-panel h3{font-size:9px;color:#335533;letter-spacing:.1em;margin-bottom:4px}
+#gene-bars{display:grid;grid-template-columns:1fr 1fr;gap:1px 6px;font-size:8px}
+.gb{display:flex;align-items:center;gap:3px}
+.gb-name{color:#2a3a2a;width:34px;overflow:hidden;white-space:nowrap}
+.gb-bar{flex:1;height:5px;background:#091209;border-radius:2px;position:relative;overflow:hidden}
+.gb-fill{height:100%;border-radius:2px;transition:width .3s}
+.gb-val{color:#335533;width:22px;text-align:right;font-size:7px}
+#rating-panel{padding:7px 9px;border-bottom:1px solid rgba(100,255,150,.1);flex-shrink:0}
+#rating-panel h3{font-size:9px;color:#335533;letter-spacing:.1em;margin-bottom:5px}
+.criteria{display:flex;align-items:center;gap:5px;margin-bottom:4px}
+.criteria label{font-size:8px;color:#446644;width:52px;flex-shrink:0}
+.star-row{display:flex;gap:2px}
+.star{font-size:15px;cursor:pointer;color:#1a2a1a;touch-action:manipulation;padding:0 1px}
+.star.on{color:#ffcc00}
+textarea#comment{width:100%;height:46px;background:rgba(0,12,6,.8);border:1px solid rgba(100,255,150,.18);color:#7aaa7a;font-family:'Courier New',monospace;font-size:8px;padding:4px;resize:none;margin-top:3px}
+textarea#comment::placeholder{color:#2a3a2a}
+#rating-actions{display:flex;gap:5px;margin-top:5px}
+.ra-btn{flex:1;padding:5px;background:rgba(0,20,10,.9);border:1px solid rgba(100,255,150,.3);color:#aaffcc;font-family:'Courier New',monospace;font-size:9px;cursor:pointer;text-align:center;touch-action:manipulation}
+.ra-btn.primary{border-color:rgba(100,255,150,.55);background:rgba(0,45,20,.9)}
+#log-panel{flex:1;overflow-y:auto;padding:5px 9px}
+#log-panel h3{font-size:9px;color:#335533;letter-spacing:.1em;margin-bottom:4px;position:sticky;top:0;background:rgba(0,5,3,.95);padding-bottom:2px}
+.log-entry{border:1px solid rgba(100,255,150,.1);border-radius:3px;padding:4px 6px;margin-bottom:4px;font-size:8px;background:rgba(0,9,4,.5);cursor:pointer}
+.log-entry:hover{border-color:rgba(100,255,150,.3)}
+.log-entry.selected{border-color:rgba(100,255,150,.55)}
+.le-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:2px}
+.le-name{color:#88ccaa;font-size:9px}
+.le-comment{color:#446644;line-height:1.5;font-style:italic}
+/* AI Panel */
+#ai-panel{position:fixed;inset:0;z-index:50;background:rgba(0,4,10,.97);display:none;flex-direction:column}
+#ai-panel.show{display:flex}
+#ai-header{display:flex;align-items:center;gap:8px;padding:9px 12px;background:rgba(0,0,0,.5);border-bottom:1px solid rgba(100,200,255,.12);flex-shrink:0}
+#ai-header h2{flex:1;font-size:12px;letter-spacing:.15em;color:#88ccff}
+#ai-body{flex:1;display:flex;overflow:hidden;gap:0}
+/* 左: ログ選択 */
+#ai-left{width:220px;border-right:1px solid rgba(100,200,255,.1);overflow-y:auto;padding:8px;flex-shrink:0}
+#ai-left h4{color:#446688;margin-bottom:5px;font-size:8px;letter-spacing:.05em}
+#ai-log-select label{display:flex;align-items:flex-start;gap:4px;margin-bottom:4px;cursor:pointer;font-size:8px;color:#446655;line-height:1.4}
+#ai-log-select input{accent-color:#44ff88;margin-top:1px;flex-shrink:0}
+/* 右: メイン */
+#ai-right{flex:1;display:flex;flex-direction:column;padding:10px;gap:8px;overflow:hidden}
+/* ステップ説明 */
+.ai-step{background:rgba(0,8,18,.7);border:1px solid rgba(100,200,255,.12);border-radius:4px;padding:8px 10px;font-size:9px;color:#557799;line-height:1.7}
+.ai-step strong{color:#88aacc;display:block;margin-bottom:2px;font-size:10px}
+/* プロンプト出力エリア */
+#ai-prompt-box{flex:1;display:flex;flex-direction:column;gap:5px;min-height:0}
+#ai-prompt-label{font-size:9px;color:#446655;display:flex;align-items:center;gap:6px}
+#ai-prompt-out{flex:1;background:rgba(0,12,6,.8);border:1px solid rgba(100,255,150,.15);color:#5a8a5a;font-family:'Courier New',monospace;font-size:8px;padding:7px;resize:none;overflow-y:auto;white-space:pre-wrap;min-height:80px}
+/* AIの返答を貼るエリア */
+#ai-paste-box{display:flex;flex-direction:column;gap:5px;flex-shrink:0}
+#ai-paste-label{font-size:9px;color:#446655}
+#ai-paste-in{width:100%;height:80px;background:rgba(0,8,20,.8);border:1px solid rgba(100,150,255,.2);color:#7a9acc;font-family:'Courier New',monospace;font-size:8px;padding:6px;resize:none}
+#ai-paste-in::placeholder{color:#223344}
+#ai-paste-actions{display:flex;gap:6px}
+.aib{padding:5px 12px;background:rgba(0,15,8,.9);border:1px solid rgba(100,255,150,.3);color:#aaffcc;font-family:'Courier New',monospace;font-size:9px;cursor:pointer}
+.aib.primary{border-color:rgba(100,255,150,.6);background:rgba(0,40,20,.9)}
+/* Export */
+#export-panel{position:fixed;inset:0;z-index:51;background:rgba(0,4,10,.97);display:none;flex-direction:column;padding:14px;gap:8px;overflow-y:auto}
+#export-panel.show{display:flex}
+#export-panel h2{font-size:13px;color:#aaffcc;letter-spacing:.2em}
+#export-code{flex:1;min-height:180px;background:rgba(0,9,4,.9);border:1px solid rgba(100,255,150,.18);color:#3a8a3a;font-family:'Courier New',monospace;font-size:8px;padding:7px;resize:none;white-space:pre;overflow:auto}
+</style>
+</head>
+<body>
+<div id="topbar">
+  <h1>🧬 CreatureLab</h1>
+  <button class="tb-btn" id="btn-new">⚡ 新生成</button>
+  <button class="tb-btn" id="btn-mutate">🔀 変異</button>
+  <button class="tb-btn" id="btn-cross">💞 交叉</button>
+  <button class="tb-btn" id="btn-extreme">🌀 極端変異</button>
+  <button class="tb-btn" id="btn-ai">🤖 AI改善</button>
+  <button class="tb-btn" id="btn-export">📤 エンジン出力</button>
+  <button class="tb-btn" id="btn-import-earth">🌍 Earthから取込</button>
+  <span id="gen-count">評価:0件 世代:0</span>
+</div>
+<div id="main">
+  <div id="viewer">
+    <div id="gen-nav">
+      <button id="nav-prev">◀</button>
+      <span id="gen-label">— / —</span>
+      <button id="nav-next">▶</button>
+      <button id="nav-rand" style="font-size:9px;margin-left:3px">🎲</button>
+    </div>
+    <div id="cv-wrap"><canvas id="cv"></canvas></div>
+    <div id="creature-info">—</div>
+  </div>
+  <div id="panel">
+    <div id="genome-panel">
+      <h3>◈ 遺伝子</h3>
+      <div id="gene-bars"></div>
+    </div>
+    <div id="rating-panel">
+      <h3>◈ 評価</h3>
+      <div class="criteria"><label>奇抜さ</label><div class="star-row" data-key="bizarre"><span class="star" data-v="1">★</span><span class="star" data-v="2">★</span><span class="star" data-v="3">★</span><span class="star" data-v="4">★</span><span class="star" data-v="5">★</span></div></div>
+      <div class="criteria"><label>美しさ</label><div class="star-row" data-key="beauty"><span class="star" data-v="1">★</span><span class="star" data-v="2">★</span><span class="star" data-v="3">★</span><span class="star" data-v="4">★</span><span class="star" data-v="5">★</span></div></div>
+      <div class="criteria"><label>技術の高さ</label><div class="star-row" data-key="tech"><span class="star" data-v="1">★</span><span class="star" data-v="2">★</span><span class="star" data-v="3">★</span><span class="star" data-v="4">★</span><span class="star" data-v="5">★</span></div></div>
+      <div class="criteria"><label>独自性</label><div class="star-row" data-key="unique"><span class="star" data-v="1">★</span><span class="star" data-v="2">★</span><span class="star" data-v="3">★</span><span class="star" data-v="4">★</span><span class="star" data-v="5">★</span></div></div>
+      <textarea id="comment" placeholder="コメント（形状の特徴、改善提案など）"></textarea>
+      <div id="rating-actions">
+        <button class="ra-btn" id="btn-skip">スキップ →</button>
+        <button class="ra-btn primary" id="btn-save">★ 評価を保存</button>
+      </div>
+    </div>
+    <div id="log-panel">
+      <h3>📋 ログ <span id="log-count" style="color:#2a3a2a;font-weight:normal">(0件)</span></h3>
+      <div id="log-list"></div>
+    </div>
+  </div>
+</div>
+<!-- AI Panel -->
+<div id="ai-panel">
+  <div id="ai-header">
+    <h2>🤖 AI改善サイクル</h2>
+    <button class="tb-btn" id="ai-close">← 戻る</button>
+  </div>
+  <div id="ai-body">
+    <!-- 左: ログ選択 -->
+    <div id="ai-left">
+      <h4>① 送信するログを選択</h4>
+      <div id="ai-log-select"></div>
+    </div>
+    <!-- 右: メイン操作 -->
+    <div id="ai-right">
+      <div class="ai-step">
+        <strong>使い方（3ステップ）</strong>
+        ① 左のログにチェック　② 「プロンプト生成」でテキストをコピー　③ Claude等のAIに貼り付け → 返答のJSONをここに貼り付けて「エンジンに適用」
+      </div>
+
+      <!-- ② プロンプト生成・コピー -->
+      <div id="ai-prompt-box">
+        <div id="ai-prompt-label">
+          <span>② AIへのプロンプト（コピーしてAIに貼り付け）</span>
+          <button class="aib" id="ai-gen-prompt">プロンプト生成</button>
+          <button class="aib" id="ai-copy-prompt">📋 コピー</button>
+        </div>
+        <textarea id="ai-prompt-out" readonly placeholder="「プロンプト生成」を押すと、そのままAIに貼り付けられるテキストが生成されます"></textarea>
+      </div>
+
+      <!-- ③ AIの返答を貼り付け -->
+      <div id="ai-paste-box">
+        <div id="ai-paste-label">③ AIの返答JSON をここに貼り付け</div>
+        <textarea id="ai-paste-in" placeholder='{"mutateRate":0.08,"mutateAmt":0.3,"biasAdjust":{"攻撃":0.1},"reason":"理由"}&#10;&#10;AIの返答からJSONの部分だけコピーして貼り付けてください'></textarea>
+        <div id="ai-paste-actions">
+          <button class="aib" id="ai-clear-paste">クリア</button>
+          <button class="aib primary" id="ai-apply">✅ エンジンに適用して進化させる</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- Export Panel -->
+<div id="export-panel">
+  <h2 id="exp-title">📤 エンジン出力</h2>
+  <p style="font-size:9px;color:#335533;line-height:1.7">生成したJSをEarthの⚙モジュール設定で読み込むとエンジンが差し替わります</p>
+  <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:3px">
+    <button class="tb-btn" id="exp-genome">Genome.js を生成</button>
+    <button class="tb-btn" id="exp-lifegfx">LifeGfx.js を生成</button>
+    <button class="tb-btn" id="exp-copy">📋 コピー</button>
+    <button class="tb-btn" id="exp-download">⬇ DL</button>
+    <button class="tb-btn" id="exp-close" style="margin-left:auto">← 閉じる</button>
+  </div>
+  <textarea id="export-code" readonly>// エンジンを選択して生成してください</textarea>
+</div>
+<script>
+const GC=24;
+const GENE_NAMES=['外皮','筋肉','装甲','接着','神経','神経維持','走化性','感覚','消化','幹細胞','触媒','毒','代謝','光合成','化学合成','APレート','体格','運動','耐熱','耐寒','水適応','生殖','攻撃','寿命'];
+const PLAN_NAMES={microbe:'微生物',worm:'蠕虫',arthropod:'節足動物',swimmer:'遊泳生物',predator:'捕食者',radialoid:'放射対称',plant:'植物型'};
+const TNAMES={plant:'🌿植物',herbivore:'🦌草食',carnivore:'🦁肉食',omnivore:'◎雑食',detritivore:'🍂腐食'};
+
+// ---- ENGINE パラメータ（AIが改善するターゲット）----
+const ENGINE={
+  version:1,
+  planThresholds:{
+    microbe:{sizeMax:.15,segMax:2},
+    plant:{photoMin:.6},
+    radialoid:{bilateralMin:.4},
+    predator:{jawMin:.6},
+    swimmer:{waterMin:.6},
+    arthropod:{legMin:4,armorMin:.4},
+  },
+  mutateRate:.07, mutateAmt:.22,
+  extremeRate:.35, extremeAmt:.8,
+  bias:new Float32Array(GC).fill(0),
+  biasStrength:.15,
+  geneSalience:new Float32Array(GC).fill(1),
+};
+
+// ---- Genome ----
+const Genome={
+  clamp:v=>Math.max(0,Math.min(1,v)),
+  random(){
+    const g=new Float32Array(GC);
+    for(let i=0;i<GC;i++)g[i]=Genome.clamp(Math.random()+ENGINE.bias[i]*ENGINE.biasStrength*(Math.random()-.3));
+    return g;
+  },
+  mutate(g,rate=ENGINE.mutateRate,amt=ENGINE.mutateAmt){
+    const o=new Float32Array(g);
+    for(let i=0;i<GC;i++)if(Math.random()<rate){const sa=ENGINE.geneSalience[i];o[i]=Genome.clamp(o[i]+(Math.random()-.5)*amt*(.5+sa));}
+    return o;
+  },
+  extremeMutate(g){return Genome.mutate(g,ENGINE.extremeRate,ENGINE.extremeAmt);},
+  cross(a,b,dom=.5){
+    const g=new Float32Array(GC);
+    for(let i=0;i<GC;i++){let v=Math.random()<dom?a[i]:b[i];if(Math.random()<ENGINE.mutateRate)v+=(Math.random()-.5)*ENGINE.mutateAmt;g[i]=Genome.clamp(v);}
+    return g;
+  },
+  distance(a,b){let d=0;for(let i=0;i<GC;i++)d+=Math.abs(a[i]-b[i]);return d/GC;},
+  serialize:g=>Array.from(g).map(v=>+v.toFixed(4)),
+  deserialize:arr=>{const g=new Float32Array(GC);arr.forEach((v,i)=>g[i]=Genome.clamp(+v||0));return g;},
+};
+
+// ---- LifeGfx ----
+const LifeGfx={
+  trophic(g){const au=g[13]+g[14],he=g[12]+g[22];if(au>.9||(au>.5&&he<.6))return'plant';if(g[22]>.6&&au<.35)return'carnivore';if(g[10]>.5&&au<.45)return'herbivore';if(au>.3&&he>.3)return'omnivore';return'detritivore';},
+  color(g){const r=g[11]*.7+g[22]*.3,gr=g[13]*.6+g[10]*.3,b=g[4]*.5+g[20]*.4,m=Math.sqrt(r*r+gr*gr+b*b)||1;return[r/m,gr/m,b/m];},
+  traits(g){return{spd:g[17]*(.3+g[1]*.7)/(.5+g[2]*.5),armor:g[0]*.6+g[2]*.4,neural:(g[4]*.5+g[7]*.5)*(.4+g[5]*.6),photo:g[13],chem:g[14],toxin:g[11],aggro:g[22],life:1+g[23]*5};},
+  build3D(g){
+    const th=ENGINE.planThresholds;
+    const size=3+g[16]*9,col=LifeGfx.color(g),bilateral=g[1]>.4,legCount=Math.floor(g[20]*6);
+    const segN=Math.max(2,Math.floor(2+g[1]*4+g[16]*3));
+    const armor=g[0]*.6+g[2]*.4,jaw=g[22],photo=g[13],toxin=g[11],neural=g[4]*.5+g[7]*.5,motor=g[17];
+    let plan='worm';
+    if(g[16]<th.microbe.sizeMax&&segN<=th.microbe.segMax)plan='microbe';
+    else if(photo>th.plant.photoMin)plan='plant';
+    else if(!bilateral)plan='radialoid';
+    else if(jaw>th.predator.jawMin)plan='predator';
+    else if(g[20]>th.swimmer.waterMin)plan='swimmer';
+    else if(legCount>=th.arthropod.legMin&&armor>th.arthropod.armorMin)plan='arthropod';
+    const spine=[],bodyLen=size*(1.4+g[16]*1.8+(plan==='worm'?1.8:0));
+    for(let i=0;i<segN;i++){
+      const t=segN>1?i/(segN-1):.5;
+      let rr=size*(.45+Math.sin(t*Math.PI)*.7);
+      if(plan==='swimmer')rr=size*(.3+Math.sin(t*Math.PI)*.85);
+      if(plan==='predator'&&t>.68)rr*=1.45;
+      if(plan==='radialoid')rr=size*(.5+(1-Math.abs(t-.5)*2)*.6);
+      if(plan==='plant')rr=size*(.55-t*.32);
+      const x=plan==='plant'?0:(t-.5)*bodyLen,z=plan==='plant'?t*bodyLen*.95+size*.6:size*.9;
+      spine.push({x,y:0,z,r:rr,t});
+    }
+    return{plan,color:col,size,bilateral,segN,legCount,armor,jaw,photo,toxin,neural,motor,muscle:g[1],spine,bodyLen,g,canFly:g[17]>.68&&g[16]<.35};
+  },
+  complexity(g){
+    const m=LifeGfx.build3D(g);let s=m.segN*.5+m.legCount*.4;
+    s+=m.toxin>.5?1.5:0;s+=m.armor>.5?1:0;s+=m.canFly?2:0;s+=m.neural>.7?1:0;
+    s+=(m.plan==='arthropod'||m.plan==='radialoid')?1.5:0;
+    return Math.min(10,s);
+  },
+};
+
+// ---- 3D描画エンジン（Earthと同一）----
+function drawCreature3D(m,sx,sy,scale,yaw,t,cx){
+  const col=m.color,size=m.size,rc=v=>Math.max(0,Math.min(255,Math.floor(v*255)));
+  const cy2=Math.cos(yaw),sn=Math.sin(yaw),P=[];
+  m.spine.forEach((s,i)=>{const amp=m.muscle*size*.6*(m.plan==='plant'?0:1),wob=Math.sin(t*3+i*.7)*amp*(i/m.segN);P.push({x:s.x,y:s.y+wob,z:s.z,r:s.r,col,kind:'body'});});
+  const head=m.spine[m.spine.length-1],tail=m.spine[0];
+  if(m.jaw>.5&&m.plan!=='plant'){P.push({x:head.x+size*.6,y:0,z:head.z-size*.2,r:head.r*.7,col:[col[0]*.8,col[1]*.7,col[2]*.7],kind:'body'});for(let k=0;k<3;k++){const yy=(k-1)*head.r*.4;P.push({x:head.x+size*.9,y:yy,z:head.z-size*.35,r:size*.18,col:[1,1,.9],kind:'tooth'});}}
+  if(m.neural>.4&&m.plan!=='plant'){const eN=m.neural>.9?2:1,er=size*.32;for(let e=0;e<eN;e++){const yy=eN===1?0:(e?1:-1)*head.r*.55;P.push({x:head.x+head.r*.4,y:yy,z:head.z+head.r*.4,r:er,col:[.95,.97,1],kind:'eye',look:0});}}
+  const legs=[];
+  if(m.legCount>0&&(m.plan==='arthropod'||m.plan==='worm'||m.plan==='predator')){for(let s=0;s<m.legCount;s++){const along=(s/Math.max(1,m.legCount-1)-.5)*m.bodyLen*.8;[-1,1].forEach(side=>legs.push({along,side}));}}
+  else if(m.plan==='radialoid'){const n=Math.max(4,m.legCount*2||6);for(let s=0;s<n;s++){const a=(s/n)*Math.PI*2;legs.push({radial:a});}}
+  legs.forEach((lg,li)=>{const walk=Math.sin(t*4+li*1.3)*.5;let bx,by,bz,dirx,diry;if(lg.radial!==undefined){bx=Math.cos(lg.radial)*size*.6;by=Math.sin(lg.radial)*size*.6;bz=size*.7;dirx=Math.cos(lg.radial);diry=Math.sin(lg.radial);}else{bx=lg.along;by=lg.side*size*.7;bz=size*.85;dirx=0;diry=lg.side;}const legLen=size*(.8+m.motor*1.2);P.push({x:bx+dirx*legLen*.5,y:by+diry*legLen*.5+walk*legLen*.3,z:bz-legLen*.4,r:size*.2,col:[col[0]*.8,col[1]*.8,col[2]*.8],kind:'limb'});P.push({x:bx+dirx*legLen,y:by+diry*legLen*.8,z:Math.max(0,size*.2-Math.abs(walk)*legLen*.2),r:size*.16,col:[col[0]*.7,col[1]*.7,col[2]*.7],kind:'limb'});});
+  if(m.toxin>.5){const tn=Math.floor(m.toxin*4)+1;for(let k=0;k<tn;k++){const a=(k/tn)*Math.PI*2;for(let seg=1;seg<=3;seg++){const w=Math.sin(t*2+k+seg)*size*.3*seg;P.push({x:tail.x-seg*size*.4,y:Math.cos(a)*size*.5+w,z:tail.z-seg*size*.25,r:size*.14,col:[.8,.2,1],kind:'limb'});}}}
+  if(m.armor>.5){m.spine.forEach((s)=>{P.push({x:s.x,y:0,z:s.z+s.r*.8,r:s.r*.5,col:[col[0]*.7+.15,col[1]*.7+.12,col[2]*.7+.1],kind:'plate'});if(m.armor>.75)P.push({x:s.x,y:0,z:s.z+s.r*1.3,r:s.r*.22,col:[.9,.85,.7],kind:'spike'});});}
+  if(m.plan==='swimmer'){const w=Math.sin(t*3)*size*.8;P.push({x:tail.x-size*.8,y:w,z:tail.z,r:size*.5,col,kind:'fin'});}
+  if(m.plan==='plant'){const top=head,leafN=4+Math.floor(m.g[16]*4);for(let k=0;k<leafN;k++){const a=(k/leafN)*Math.PI*2,zz=top.z*(.4+.6*(k%2));P.push({x:Math.cos(a)*size*1.2,y:Math.sin(a)*size*1.2,z:zz,r:size*.7,col:[col[0]*.5,Math.min(1,col[1]+.2),col[2]*.4],kind:'leaf',sway:t});}}
+  const midZ=m.spine[Math.floor(m.segN/2)]||head;
+  P.push({x:midZ.x,y:0,z:midZ.z,r:size*.3,col:[col[2],col[1]*.6,col[0]*.5],kind:'nucleus'});
+  if(m.canFly){const flap=Math.sin(t*8)*.5;[-1,1].forEach(side=>{P.push({x:head.x*.2,y:side*size*1.6,z:head.z+size*.3+flap*size,r:size*1.1,col:[Math.min(1,col[0]+.1),Math.min(1,col[1]+.1),Math.min(1,col[2]+.15)],kind:'fin',sway:t+side});});}
+  let minZ=Infinity;P.forEach(p=>{const lz=p.z-p.r;if(lz<minZ)minZ=lz;});P.forEach(p=>p.z-=minZ);
+  P.forEach(p=>{const rx=p.x*cy2-p.y*sn,ry=p.x*sn+p.y*cy2;p._x=sx+rx*scale;p._y=sy-p.z*scale+ry*scale*.5;p._d=ry-p.z*.35;p._r=Math.max(.6,p.r*scale);});
+  P.sort((a,b)=>a._d-b._d);
+  P.forEach(p=>{
+    const[r,g,b]=p.col;
+    if(p.kind==='eye'){cx.beginPath();cx.arc(p._x,p._y,p._r,0,Math.PI*2);cx.fillStyle='rgba(245,248,255,.95)';cx.fill();cx.beginPath();cx.arc(p._x+Math.cos(p.look)*p._r*.3,p._y+Math.sin(p.look)*p._r*.3,p._r*.5,0,Math.PI*2);cx.fillStyle='rgba(15,10,25,.95)';cx.fill();return;}
+    if(p.kind==='leaf'||p.kind==='fin'){cx.save();cx.translate(p._x,p._y);cx.rotate(p.sway?Math.sin(p.sway+p._x)*.2:0);cx.beginPath();cx.ellipse(0,0,p._r,p._r*.55,0,0,Math.PI*2);cx.fillStyle=`rgba(${rc(r)},${rc(g)},${rc(b)},.9)`;cx.fill();cx.strokeStyle=`rgba(${rc(r*.6)},${rc(g*.7)},${rc(b*.6)},.6)`;cx.lineWidth=.7;cx.stroke();cx.restore();return;}
+    const grad=cx.createRadialGradient(p._x-p._r*.35,p._y-p._r*.4,p._r*.1,p._x,p._y,p._r);
+    grad.addColorStop(0,`rgba(${rc(Math.min(1,r+.35))},${rc(Math.min(1,g+.35))},${rc(Math.min(1,b+.35))},1)`);
+    grad.addColorStop(.7,`rgba(${rc(r)},${rc(g)},${rc(b)},1)`);
+    grad.addColorStop(1,`rgba(${rc(r*.4)},${rc(g*.4)},${rc(b*.45)},1)`);
+    cx.beginPath();cx.arc(p._x,p._y,p._r,0,Math.PI*2);cx.fillStyle=grad;cx.fill();
+  });
+}
+
+// ---- 状態 ----
+let creatures=[],currentIdx=0,ratings=[],genCount=0,yaw=0,rafId=null,dragging=false,dragX=0;
+const cv=document.getElementById('cv'),ctx2=cv.getContext('2d');
+let currentRating={bizarre:0,beauty:0,tech:0,unique:0};
+
+// ---- 生物管理 ----
+function newCreature(g){
+  genCount++;
+  const genome=g||Genome.random(),model=LifeGfx.build3D(genome),trophic=LifeGfx.trophic(genome);
+  const complex=LifeGfx.complexity(genome),id='C'+Date.now().toString(36).slice(-5).toUpperCase();
+  creatures.push({id,genome,model,trophic,complex,gen:genCount});
+  currentIdx=creatures.length-1;
+  clearRating();updateInfo();updateGeneBars();updateGenLabel();updateGenCount();
+}
+function mutateCurrentCreature(extreme=false){
+  if(!creatures[currentIdx])return newCreature();
+  const ng=extreme?Genome.extremeMutate(creatures[currentIdx].genome):Genome.mutate(creatures[currentIdx].genome);
+  newCreature(ng);
+}
+function crossCurrentCreature(){
+  if(creatures.length<2){alert('交叉には2個体以上必要');return;}
+  const scored=creatures.map(c=>{const r=ratings.find(r=>r.creatureId===c.id);return{c,score:r?(r.bizarre+r.beauty+r.tech+r.unique)/4:0};}).sort((a,b)=>b.score-a.score);
+  const a=scored[0].c.genome,b=scored[Math.floor(Math.random()*Math.min(3,scored.length))].c.genome;
+  newCreature(Genome.cross(a,b));
+}
+
+// ---- 描画ループ ----
+function render(){
+  if(rafId)cancelAnimationFrame(rafId);
+  function frame(ts){
+    const t=ts*.001,rect=cv.getBoundingClientRect(),W=rect.width,H=rect.height;
+    cv.width=W*devicePixelRatio;cv.height=H*devicePixelRatio;ctx2.scale(devicePixelRatio,devicePixelRatio);
+    ctx2.fillStyle='#000810';ctx2.fillRect(0,0,W,H);
+    ctx2.beginPath();ctx2.ellipse(W*.5,H*.8,W*.2,H*.055,0,0,Math.PI*2);ctx2.fillStyle='rgba(0,0,0,.2)';ctx2.fill();
+    const c=creatures[currentIdx];
+    if(c){if(!dragging)yaw+=.008;const sc=Math.min(W,H)/(c.model.size*6);drawCreature3D(c.model,W*.5,H*.65,sc,yaw,t,ctx2);}
+    rafId=requestAnimationFrame(frame);
+  }
+  rafId=requestAnimationFrame(frame);
+}
+
+// ---- UI更新 ----
+function updateInfo(){
+  const c=creatures[currentIdx];
+  if(!c){document.getElementById('creature-info').textContent='—';return;}
+  const tr=LifeGfx.traits(c.genome);
+  document.getElementById('creature-info').innerHTML=`<b style="color:#aaffcc">${c.id}</b>　${PLAN_NAMES[c.model.plan]||c.model.plan}　${TNAMES[c.trophic]||c.trophic}　複雑:${c.complex.toFixed(1)}<br>速度:${(tr.spd*100).toFixed(0)} 装甲:${(tr.armor*100).toFixed(0)} 攻撃:${(tr.aggro*100).toFixed(0)} 神経:${(tr.neural*100).toFixed(0)}　${c.model.canFly?'✈ ':''}${c.model.toxin>.5?'☠ ':''}${c.model.photo>.6?'🌿 ':''}`;
+}
+function updateGeneBars(){
+  const c=creatures[currentIdx],cont=document.getElementById('gene-bars');
+  if(!c){cont.innerHTML='';return;}
+  cont.innerHTML=GENE_NAMES.map((name,i)=>{const v=c.genome[i],pct=(v*100).toFixed(0),col=v>.65?'#4fc87a':v>.35?'#f0a030':'#446644';return`<div class="gb"><span class="gb-name" title="${name}">${name}</span><div class="gb-bar"><div class="gb-fill" style="width:${pct}%;background:${col}"></div></div><span class="gb-val">${pct}</span></div>`;}).join('');
+}
+function updateGenLabel(){document.getElementById('gen-label').textContent=creatures.length?`${currentIdx+1} / ${creatures.length}`:'— / —';}
+function updateGenCount(){document.getElementById('gen-count').textContent=`評価:${ratings.length}件 世代:${genCount}`;}
+
+// ---- 評価 ----
+function clearRating(){currentRating={bizarre:0,beauty:0,tech:0,unique:0};document.querySelectorAll('.star').forEach(s=>s.classList.remove('on'));document.getElementById('comment').value='';}
+function setStars(key,val){currentRating[key]=val;document.querySelector(`.star-row[data-key="${key}"]`).querySelectorAll('.star').forEach(s=>s.classList.toggle('on',+s.dataset.v<=val));}
+function saveRating(){
+  const c=creatures[currentIdx];if(!c)return;
+  const avg=(['bizarre','beauty','tech','unique'].reduce((s,k)=>s+currentRating[k],0))/4;
+  const entry={creatureId:c.id,plan:c.model.plan,trophic:c.trophic,gen:c.gen,genome:Genome.serialize(c.genome),scores:{...currentRating},avg,comment:document.getElementById('comment').value.trim(),timestamp:new Date().toISOString(),complexity:c.complex};
+  ratings.push(entry);saveToStorage();learnFromRating(entry,c.genome);renderLogList();updateGenCount();mutateCurrentCreature(false);
+}
+function learnFromRating(entry,g){
+  const delta=(entry.avg-2.5)/2.5*.03;
+  for(let i=0;i<GC;i++){ENGINE.bias[i]=Math.max(-.5,Math.min(.5,ENGINE.bias[i]+(g[i]-.5)*delta));if(entry.avg>=4)ENGINE.geneSalience[i]=Math.min(3,ENGINE.geneSalience[i]+g[i]*.05);}
+  ENGINE.version++;
+}
+
+// ---- ログUI ----
+function renderLogList(){
+  const list=document.getElementById('log-list');
+  list.innerHTML=ratings.slice().reverse().map((r,ri)=>{
+    const i=ratings.length-1-ri,isSel=creatures[currentIdx]?.id===r.creatureId;
+    const avgStr=r.avg.toFixed(1);
+    return`<div class="log-entry${isSel?' selected':''}" data-i="${i}"><div class="le-head"><span class="le-name">${r.creatureId} <span style="color:#335533;font-size:8px">${r.plan}</span></span><span style="color:#cc9922;font-size:8px">avg ${avgStr}</span></div>${r.comment?`<div class="le-comment">"${r.comment}"</div>`:''}</div>`;
+  }).join('');
+  document.getElementById('log-count').textContent=`(${ratings.length}件)`;
+  list.querySelectorAll('.log-entry').forEach(el=>{el.addEventListener('click',()=>{const r=ratings[+el.dataset.i];newCreature(Genome.deserialize(r.genome));});});
+}
+
+// ---- ストレージ ----
+function saveToStorage(){try{localStorage.setItem('creatureLab_ratings',JSON.stringify({ratings,engineVersion:ENGINE.version,bias:Array.from(ENGINE.bias),geneSalience:Array.from(ENGINE.geneSalience)}));}catch(e){}}
+function loadFromStorage(){try{const raw=localStorage.getItem('creatureLab_ratings');if(!raw)return;const d=JSON.parse(raw);if(d.ratings)ratings=d.ratings;if(d.bias)ENGINE.bias=new Float32Array(d.bias);if(d.geneSalience)ENGINE.geneSalience=new Float32Array(d.geneSalience);if(d.engineVersion)ENGINE.version=d.engineVersion;renderLogList();updateGenCount();}catch(e){}}
+
+// ---- AI改善（プロンプト生成方式）----
+const aiPanel=document.getElementById('ai-panel');
+
+function showAIPanel(){
+  const sel=document.getElementById('ai-log-select');
+  if(ratings.length===0){sel.innerHTML='<p style="color:#335533;font-size:8px;padding:6px">まだ評価ログがありません。<br>★評価を保存してからお試しください。</p>';aiPanel.classList.add('show');return;}
+  sel.innerHTML=ratings.slice(-30).reverse().map((r,ri)=>{
+    const i=ratings.length-1-ri;
+    const stars='★'.repeat(Math.round(r.avg))+'☆'.repeat(5-Math.round(r.avg));
+    return`<label><input type="checkbox" data-i="${i}" checked> <span><b style="color:#88ccaa">${r.creatureId}</b> ${r.plan}<br>${stars} avg:${r.avg.toFixed(1)}${r.comment?' &ldquo;'+r.comment.slice(0,22)+'…&rdquo;':''}</span></label>`;
+  }).join('');
+  aiPanel.classList.add('show');
+}
+
+function generatePrompt(){
+  const checked=document.querySelectorAll('#ai-log-select input:checked');
+  const selected=Array.from(checked).map(cb=>ratings[+cb.dataset.i]).filter(Boolean);
+  if(selected.length===0){document.getElementById('ai-prompt-out').value='ログを1件以上選択してください';return;}
+  const logLines=selected.map(r=>`- ${r.creatureId}(${r.plan},${r.trophic}): 奇抜=${r.scores.bizarre}/5 美=${r.scores.beauty}/5 技=${r.scores.tech}/5 独自=${r.scores.unique}/5 avg=${r.avg.toFixed(1)}${r.comment?' / コメント:"'+r.comment+'"':''}`).join('
+');
+  const engineLines=['変異率(mutateRate): '+ENGINE.mutateRate,'変異量(mutateAmt): '+ENGINE.mutateAmt,'極端変異率(extremeRate): '+ENGINE.extremeRate,'BodyPlan閾値: '+JSON.stringify(ENGINE.planThresholds),'バイアス上位5: '+GENE_NAMES.map((n,i)=>({n,b:ENGINE.bias[i]})).sort((a,b)=>Math.abs(b.b)-Math.abs(a.b)).slice(0,5).map(x=>x.n+'='+x.b.toFixed(3)).join(', '),'重要度上位5: '+GENE_NAMES.map((n,i)=>({n,s:ENGINE.geneSalience[i]})).sort((a,b)=>b.s-a.s).slice(0,5).map(x=>x.n+'='+x.s.toFixed(2)).join(', ')].join('
+');
+  const prompt='# 生物形態生成エンジン改善依頼
+
+あなたは生物の3D形態を自動生成するゲームエンジンの改善AIです。
+以下の人間による評価ログとエンジン現状を分析し、より奇抜・美しく・多様な生物が生まれるようエンジンパラメータの改善案を提案してください。
+
+## 評価ログ（'+selected.length+'件）
+'+logLines+'
+
+## 現在のエンジンパラメータ
+'+engineLines+'
+
+## 遺伝子の説明（24個）
+'+GENE_NAMES.map((n,i)=>'g['+i+']='+n).join(', ')+'
+
+## BodyPlan決定ロジック
+- microbe: g[16]体格<'+ENGINE.planThresholds.microbe.sizeMax+' かつ 分節≤'+ENGINE.planThresholds.microbe.segMax+'
+- plant:   g[13]光合成>'+ENGINE.planThresholds.plant.photoMin+'
+- radialoid: g[1]筋肉≤0.4（放射対称）
+- predator: g[22]攻撃>'+ENGINE.planThresholds.predator.jawMin+'
+- swimmer:  g[20]水適応>'+ENGINE.planThresholds.swimmer.waterMin+'
+- arthropod: 脚数≥'+ENGINE.planThresholds.arthropod.legMin+' かつ g[0]外皮>'+ENGINE.planThresholds.arthropod.armorMin+'
+- worm: それ以外
+
+## 出力フォーマット（このJSONのみ返してください）
+```json
+{
+  "analysis": "評価傾向の分析（2〜3文）",
+  "suggestions": ["改善提案1", "改善提案2", "改善提案3"],
+  "mutateRate": 0.07,
+  "mutateAmt": 0.22,
+  "extremeRate": 0.35,
+  "planThresholds": {
+    "predator": { "jawMin": 0.6 },
+    "plant": { "photoMin": 0.6 }
+  },
+  "biasAdjust": {
+    "攻撃": 0.05,
+    "光合成": -0.03
+  },
+  "reason": "変更の理由（1文）"
+}
+```
+※ biasAdjustは変化量（＋で増やす、－で減らす）。変更不要な項目は省略可。';
+  document.getElementById('ai-prompt-out').value=prompt;
+}
+
+function applyUpdate(jsonStr){
+  let u;
+  try{u=JSON.parse(jsonStr.replace(/```json|```/g,'').trim());}
+  catch(e){alert('JSONの解析に失敗しました。
+AIの返答から{...}部分だけをコピーして貼り付けてください。
+
+エラー: '+e.message);return;}
+  const log=[];
+  if(u.mutateRate!==undefined){ENGINE.mutateRate=Math.max(.01,Math.min(.5,+u.mutateRate));log.push('変異率→'+ENGINE.mutateRate.toFixed(3));}
+  if(u.mutateAmt!==undefined){ENGINE.mutateAmt=Math.max(.05,Math.min(1,+u.mutateAmt));log.push('変異量→'+ENGINE.mutateAmt.toFixed(3));}
+  if(u.extremeRate!==undefined){ENGINE.extremeRate=Math.max(.1,Math.min(.9,+u.extremeRate));log.push('極端変異率→'+ENGINE.extremeRate.toFixed(3));}
+  if(u.planThresholds)Object.entries(u.planThresholds).forEach(([p,v])=>{if(ENGINE.planThresholds[p]){Object.assign(ENGINE.planThresholds[p],v);log.push(p+'閾値更新');}});
+  if(u.biasAdjust)Object.entries(u.biasAdjust).forEach(([name,delta])=>{const i=GENE_NAMES.indexOf(name);if(i>=0){ENGINE.bias[i]=Math.max(-.5,Math.min(.5,ENGINE.bias[i]+(+delta||0)));log.push(name+'バイアス'+(delta>0?'+':'')+((+delta).toFixed(3)));}});
+  ENGINE.version++;saveToStorage();
+  alert('✅ エンジン v'+ENGINE.version+' に更新しました！
+
+変更内容:
+'+log.join('
+')+'
+
+'+(u.analysis||'')+'
+
+新しい個体を生成します。');
+  aiPanel.classList.remove('show');
+  document.getElementById('ai-paste-in').value='';
+  newCreature();
+}
+window.applyUpdate=applyUpdate;
+
+document.getElementById('ai-close').addEventListener('click',()=>aiPanel.classList.remove('show'));
+document.getElementById('ai-gen-prompt').addEventListener('click',generatePrompt);
+document.getElementById('ai-copy-prompt').addEventListener('click',()=>{
+  const txt=document.getElementById('ai-prompt-out').value;
+  if(!txt||txt.includes('選択してください')){alert('先に「プロンプト生成」を押してください');return;}
+  navigator.clipboard.writeText(txt).then(()=>{const b=document.getElementById('ai-copy-prompt');b.textContent='✅ コピー済み';setTimeout(()=>b.textContent='📋 コピー',2000);}).catch(()=>{document.getElementById('ai-prompt-out').select();document.execCommand('copy');});
+});
+document.getElementById('ai-clear-paste').addEventListener('click',()=>document.getElementById('ai-paste-in').value='');
+document.getElementById('ai-apply').addEventListener('click',()=>{const txt=document.getElementById('ai-paste-in').value.trim();if(!txt){alert('AIの返答JSONを貼り付けてください');return;}applyUpdate(txt);});
+
+// ---- エクスポート ----
+function genGenomeJS(){
+  return`/**\n * Genome.js - CreatureLab v${ENGINE.version} 進化済みエンジン\n * 評価:${ratings.length}件 ${new Date().toLocaleString()}\n * Earthの⚙モジュール設定 > Genome にこのファイルのパスを指定\n */\n(function(){\n  const GC=24,cu=v=>Math.max(0,Math.min(1,v));\n  const BIAS=${JSON.stringify(Array.from(ENGINE.bias).map(v=>+v.toFixed(4)))};\n  const SAL=${JSON.stringify(Array.from(ENGINE.geneSalience).map(v=>+v.toFixed(3)))};\n  window.Genome={SIZE:GC,clamp:cu,\n    random(){const g=new Float32Array(GC);for(let i=0;i<GC;i++)g[i]=cu(Math.random()+BIAS[i]*${ENGINE.biasStrength}*(Math.random()-.3));return g;},\n    mutate(g,rate=${ENGINE.mutateRate},amt=${ENGINE.mutateAmt}){const o=new Float32Array(g);for(let i=0;i<GC;i++)if(Math.random()<rate)o[i]=cu(o[i]+(Math.random()-.5)*amt*(.5+SAL[i]));return o;},\n    distance(a,b){let d=0;for(let i=0;i<GC;i++)d+=Math.abs(a[i]-b[i]);return d/GC;},\n    cross(a,b,{rate=${ENGINE.mutateRate},amt=${ENGINE.mutateAmt},dominant=.5}={}){const g=new Float32Array(GC);for(let i=0;i<GC;i++){let v=Math.random()<dominant?a[i]:b[i];if(Math.random()<rate)v+=(Math.random()-.5)*amt;g[i]=cu(v);}return g;},\n    forEnvironment(temp,isWater,h2s){const g=new Float32Array(GC);for(let i=0;i<GC;i++)g[i]=cu(Math.random()*.5+BIAS[i]*${ENGINE.biasStrength});g[16]=Math.random()*.3;g[12]=.5+Math.random()*.3;if(temp>400){g[18]=.65+Math.random()*.35;g[14]=.6+Math.random()*.4;}else if(isWater){g[20]=.55+Math.random()*.4;g[13]=.35+Math.random()*.35;}else{g[8]=.4+Math.random()*.3;g[12]=.5+Math.random()*.4;}if(h2s>.3)g[14]=Math.max(g[14],.55);return g;},\n    serialize:g=>Array.from(g).map(v=>+v.toFixed(4)),\n    deserialize:a=>{const g=new Float32Array(GC);a.forEach((v,i)=>g[i]=cu(+v||0));return g;},\n  };\n})();`;}
+function genLifeGfxJS(){const th=ENGINE.planThresholds;return`/**\n * LifeGfx.js - CreatureLab v${ENGINE.version} 進化済みエンジン\n * 評価:${ratings.length}件 ${new Date().toLocaleString()}\n */\n(function(){\n  const TH=${JSON.stringify(th)};\n  window.LifeGfx={\n    build2D:g=>typeof buildBodyVis!=='undefined'?buildBodyVis(g):null,\n    build3D(g){const size=3+g[16]*9,col=window.LifeGfx.color(g),bilateral=g[1]>.4,legCount=Math.floor(g[20]*6),segN=Math.max(2,Math.floor(2+g[1]*4+g[16]*3)),armor=g[0]*.6+g[2]*.4,jaw=g[22],photo=g[13],toxin=g[11],neural=g[4]*.5+g[7]*.5,motor=g[17];let plan='worm';if(g[16]<TH.microbe.sizeMax&&segN<=TH.microbe.segMax)plan='microbe';else if(photo>TH.plant.photoMin)plan='plant';else if(!bilateral)plan='radialoid';else if(jaw>TH.predator.jawMin)plan='predator';else if(g[20]>TH.swimmer.waterMin)plan='swimmer';else if(legCount>=TH.arthropod.legMin&&armor>TH.arthropod.armorMin)plan='arthropod';const spine=[],bodyLen=size*(1.4+g[16]*1.8+(plan==='worm'?1.8:0));for(let i=0;i<segN;i++){const t=segN>1?i/(segN-1):.5;let rr=size*(.45+Math.sin(t*Math.PI)*.7);if(plan==='swimmer')rr=size*(.3+Math.sin(t*Math.PI)*.85);if(plan==='predator'&&t>.68)rr*=1.45;if(plan==='radialoid')rr=size*(.5+(1-Math.abs(t-.5)*2)*.6);if(plan==='plant')rr=size*(.55-t*.32);const x=plan==='plant'?0:(t-.5)*bodyLen,z=plan==='plant'?t*bodyLen*.95+size*.6:size*.9;spine.push({x,y:0,z,r:rr,t});}return{plan,color:col,size,bilateral,segN,legCount,armor,jaw,photo,toxin,neural,motor,muscle:g[1],spine,bodyLen,g,canFly:g[17]>.68&&g[16]<.35};},\n    cellType:g=>typeof cellTypeFromGene!=='undefined'?cellTypeFromGene(g):'cell',\n    color(g){const r=g[11]*.7+g[22]*.3,gr=g[13]*.6+g[10]*.3,b=g[4]*.5+g[20]*.4,m=Math.sqrt(r*r+gr*gr+b*b)||1;return[r/m,gr/m,b/m];},\n    trophic(g){const au=g[13]+g[14],he=g[12]+g[22];if(au>.9||(au>.5&&he<.6))return'plant';if(g[22]>.6&&au<.35)return'carnivore';if(g[10]>.5&&au<.45)return'herbivore';if(au>.3&&he>.3)return'omnivore';return'detritivore';},\n    traits(g){return{spd:g[17]*(.3+g[1]*.7)/(.5+g[2]*.5),photo:g[13],chem:g[14],digest:g[8]*.4+g[10]*.6,toxin:g[11],armor:g[0]*.6+g[2]*.4,neural:(g[4]*.5+g[7]*.5)*(.4+g[5]*.6),heatT:g[18],coldT:g[19],waterA:g[20],repro:g[21],aggro:g[22],life:1+g[23]*5,mem:(g[3]+g[9])*.5,eRate:g[12]*.3+g[13]*.25+g[14]*.25+g[15]*.2,apR:.5+g[15]*2+g[6]*.5};},\n    statusValue(g){const tr=window.LifeGfx.traits(g);return 1+g[16]*g[16]*4+tr.aggro*3+tr.neural*2+(g[0]*.6+g[2]*.4)*2+tr.eRate*2;},\n  };\n})();`;}
+
+// ---- Earthからインポート ----
+function importFromEarth(){
+  const raw=localStorage.getItem('creatureLab_earthFavorites')||localStorage.getItem('earth_favorites');
+  if(!raw){alert('Earthのお気に入りデータが見つかりません\n(Earth側で★保存した個体が対象)');return;}
+  try{const favs=JSON.parse(raw),arr=Array.isArray(favs)?favs:Object.values(favs);arr.forEach(f=>{if(f.g)newCreature(Genome.deserialize(f.g));});alert(`${arr.length}個体をインポートしました`);}
+  catch(e){alert('インポートエラー: '+e.message);}
+}
+
+// ---- イベント ----
+document.getElementById('btn-new').addEventListener('click',()=>newCreature());
+document.getElementById('btn-mutate').addEventListener('click',()=>mutateCurrentCreature(false));
+document.getElementById('btn-cross').addEventListener('click',crossCurrentCreature);
+document.getElementById('btn-extreme').addEventListener('click',()=>mutateCurrentCreature(true));
+document.getElementById('btn-ai').addEventListener('click',showAIPanel);
+document.getElementById('btn-import-earth').addEventListener('click',importFromEarth);
+document.getElementById('nav-prev').addEventListener('click',()=>{if(currentIdx>0){currentIdx--;clearRating();updateInfo();updateGeneBars();updateGenLabel();}});
+document.getElementById('nav-next').addEventListener('click',()=>{if(currentIdx<creatures.length-1){currentIdx++;clearRating();updateInfo();updateGeneBars();updateGenLabel();}});
+document.getElementById('nav-rand').addEventListener('click',()=>{if(creatures.length){currentIdx=Math.floor(Math.random()*creatures.length);clearRating();updateInfo();updateGeneBars();updateGenLabel();}});
+document.querySelectorAll('.star-row').forEach(row=>{const key=row.dataset.key;row.querySelectorAll('.star').forEach(s=>{s.addEventListener('click',()=>setStars(key,+s.dataset.v));s.addEventListener('touchend',e=>{e.preventDefault();setStars(key,+s.dataset.v);});});});
+document.getElementById('btn-save').addEventListener('click',saveRating);
+document.getElementById('btn-skip').addEventListener('click',()=>mutateCurrentCreature(false));
+const exportPanel=document.getElementById('export-panel');
+document.getElementById('btn-export').addEventListener('click',()=>exportPanel.classList.add('show'));
+document.getElementById('exp-close').addEventListener('click',()=>exportPanel.classList.remove('show'));
+document.getElementById('exp-genome').addEventListener('click',()=>{document.getElementById('export-code').value=genGenomeJS();document.getElementById('exp-title').textContent='📤 Genome.js';});
+document.getElementById('exp-lifegfx').addEventListener('click',()=>{document.getElementById('export-code').value=genLifeGfxJS();document.getElementById('exp-title').textContent='📤 LifeGfx.js';});
+document.getElementById('exp-copy').addEventListener('click',()=>navigator.clipboard.writeText(document.getElementById('export-code').value).then(()=>alert('コピーしました')));
+document.getElementById('exp-download').addEventListener('click',()=>{const code=document.getElementById('export-code').value,fname=document.getElementById('exp-title').textContent.includes('Genome')?'Genome.js':'LifeGfx.js',blob=new Blob([code],{type:'text/javascript'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=fname;a.click();});
+cv.addEventListener('mousedown',e=>{dragging=true;dragX=e.clientX;});
+window.addEventListener('mouseup',()=>dragging=false);
+cv.addEventListener('mousemove',e=>{if(dragging){yaw+=(e.clientX-dragX)*.012;dragX=e.clientX;}});
+cv.addEventListener('touchstart',e=>{dragging=true;dragX=e.touches[0].clientX;e.preventDefault();},{passive:false});
+window.addEventListener('touchend',()=>dragging=false);
+cv.addEventListener('touchmove',e=>{if(dragging){yaw+=(e.touches[0].clientX-dragX)*.012;dragX=e.touches[0].clientX;}e.preventDefault();},{passive:false});
+
+// ---- 初期化 ----
+loadFromStorage();render();newCreature();
+</script>
+</body>
+</html>

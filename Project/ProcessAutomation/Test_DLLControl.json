@@ -1,0 +1,1031 @@
+{
+    "test": [
+        {
+            "name": "test_normal_get_default_csc_path_./Sources/Common/DLLControl.py",
+            "settings": {
+                "argument_names": [],
+                "argument_types": [],
+                "arguments": [],
+                "check_result": {
+                    "expected": "C:\\WINDOWS\\Microsoft.NET\\Framework\\v4.0.30319\\csc.exe"
+                },
+                "class_name": "",
+                "function_name": "get_default_csc_path",
+                "program_path": "./Sources/Common/DLLControl.py",
+                "result": "result_get_default_csc_path"
+            },
+            "type": "ExecuteProgram"
+        },
+        {
+            "name": "test_value_error_get_default_csc_path_./Sources/Common/DLLControl.py",
+            "settings": {
+                "argument_names": [],
+                "argument_types": [],
+                "arguments": [],
+                "check_result": {
+                    "expected": "C:\\WINDOWS\\Microsoft.NET\\Framework\\v4.0.30319\\csc.exe"
+                },
+                "class_name": "",
+                "function_name": "get_default_csc_path",
+                "program_path": "./Sources/Common/DLLControl.py",
+                "result": "result_get_default_csc_path"
+            },
+            "type": "ExecuteProgram"
+        },
+        {
+            "name": "test_normal_compile_source_to_dll_./Sources/Common/DLLControl.py",
+            "settings": {
+                "argument_names": [
+                    "cs_file_path",
+                    "output_dll_path",
+                    "build_method",
+                    "cs_compiler_path",
+                    "references"
+                ],
+                "argument_types": [
+                    "string",
+                    "string",
+                    "string",
+                    "string",
+                    "string[]"
+                ],
+                "arguments": [
+                    "./Sources/Test/valid_code.cs",
+                    "./mydll.dll",
+                    "csc",
+                    "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Community\\MSBuild\\Current\\Bin\\MSBuild.exe",
+                    [
+                        "System.dll"
+                    ]
+                ],
+                "check_result": {
+                    "expected": false
+                },
+                "class_name": "",
+                "function_name": "compile_source_to_dll",
+                "program_path": "./Sources/Common/DLLControl.py",
+                "result": "result_compile_source_to_dll"
+            },
+            "type": "ExecuteProgram"
+        },
+        {
+            "name": "test_normal_compile_source_to_dll_./Sources/Common/DLLControl.py",
+            "settings": {
+                "argument_names": [
+                    "cs_file_path",
+                    "output_dll_path",
+                    "build_method",
+                    "cs_compiler_path",
+                    "references"
+                ],
+                "argument_types": [
+                    "string",
+                    "string",
+                    "string",
+                    "string",
+                    "string[]"
+                ],
+                "arguments": [
+                    "./dummy.dll",
+                    "./mydll.dll",
+                    "csc",
+                    "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Community\\MSBuild\\Current\\Bin\\MSBuild.exe",
+                    [
+                        "System.dll"
+                    ]
+                ],
+                "check_result": {
+                    "expected": false
+                },
+                "class_name": "",
+                "function_name": "compile_source_to_dll",
+                "program_path": "./Sources/Common/DLLControl.py",
+                "result": "result_compile_source_to_dll"
+            },
+            "type": "ExecuteProgram"
+        },
+        {
+            "name": "test_value_error_compile_source_to_dll_./Sources/Common/DLLControl.py",
+            "settings": {
+                "argument_names": [
+                    "cs_file_path",
+                    "output_dll_path",
+                    "build_method",
+                    "cs_compiler_path",
+                    "references"
+                ],
+                "argument_types": [
+                    "string",
+                    "string",
+                    "string",
+                    "string",
+                    "string[]"
+                ],
+                "arguments": [
+                    1,
+                    true,
+                    null,
+                    1,
+                    "not an array"
+                ],
+                "check_result": {
+                    "expected": {
+                        "error": "execute_functionの呼出先compile_source_to_dllでエラーが発生しました: Unsupported build method: None",
+                        "success": false,
+                        "trace": "Traceback (most recent call last):\n  File \"FunctionControl.py\", line 504, in execute_function\n  File \"D:\\NowWorksGit\\study\\Project\\ProcessAutomation\\./Sources/Common/DLLControl.py\", line 52, in compile_source_to_dll\n    raise ValueError(f\"Unsupported build method: {build_method}\")\nValueError: Unsupported build method: None\n\nThe above exception was the direct cause of the following exception:\n\nTraceback (most recent call last):\n  File \"FunctionControl.py\", line 817, in ExecutePlan\n  File \"FunctionControl.py\", line 698, in ExecuteProgram\n  File \"FunctionControl.py\", line 506, in execute_function\nExternalFunctionError: execute_functionの呼出先compile_source_to_dllでエラーが発生しました: Unsupported build method: None\n"
+                    }
+                },
+                "class_name": "",
+                "function_name": "compile_source_to_dll",
+                "program_path": "./Sources/Common/DLLControl.py",
+                "result": "result_compile_source_to_dll"
+            },
+            "type": "ExecuteProgram"
+        },
+        {
+            "name": "test_value_error_compile_source_to_dll_./Sources/Common/DLLControl.py",
+            "settings": {
+                "argument_names": [
+                    "cs_file_path",
+                    "output_dll_path",
+                    "build_method",
+                    "cs_compiler_path",
+                    "references"
+                ],
+                "argument_types": [
+                    "string",
+                    "string",
+                    "string",
+                    "string",
+                    "string[]"
+                ],
+                "arguments": [
+                    1,
+                    true,
+                    null,
+                    true,
+                    "not an array"
+                ],
+                "check_result": {
+                    "expected": {
+                        "error": "execute_functionの呼出先compile_source_to_dllでエラーが発生しました: Unsupported build method: None",
+                        "success": false,
+                        "trace": "Traceback (most recent call last):\n  File \"FunctionControl.py\", line 504, in execute_function\n  File \"D:\\NowWorksGit\\study\\Project\\ProcessAutomation\\./Sources/Common/DLLControl.py\", line 52, in compile_source_to_dll\n    raise ValueError(f\"Unsupported build method: {build_method}\")\nValueError: Unsupported build method: None\n\nThe above exception was the direct cause of the following exception:\n\nTraceback (most recent call last):\n  File \"FunctionControl.py\", line 817, in ExecutePlan\n  File \"FunctionControl.py\", line 698, in ExecuteProgram\n  File \"FunctionControl.py\", line 506, in execute_function\nExternalFunctionError: execute_functionの呼出先compile_source_to_dllでエラーが発生しました: Unsupported build method: None\n"
+                    }
+                },
+                "class_name": "",
+                "function_name": "compile_source_to_dll",
+                "program_path": "./Sources/Common/DLLControl.py",
+                "result": "result_compile_source_to_dll"
+            },
+            "type": "ExecuteProgram"
+        },
+        {
+            "name": "test_value_error_compile_source_to_dll_./Sources/Common/DLLControl.py",
+            "settings": {
+                "argument_names": [
+                    "cs_file_path",
+                    "output_dll_path",
+                    "build_method",
+                    "cs_compiler_path",
+                    "references"
+                ],
+                "argument_types": [
+                    "string",
+                    "string",
+                    "string",
+                    "string",
+                    "string[]"
+                ],
+                "arguments": [
+                    null,
+                    true,
+                    null,
+                    1,
+                    "not an array"
+                ],
+                "check_result": {
+                    "expected": {
+                        "error": "execute_functionの呼出先compile_source_to_dllでエラーが発生しました: Unsupported build method: None",
+                        "success": false,
+                        "trace": "Traceback (most recent call last):\n  File \"FunctionControl.py\", line 504, in execute_function\n  File \"D:\\NowWorksGit\\study\\Project\\ProcessAutomation\\./Sources/Common/DLLControl.py\", line 52, in compile_source_to_dll\n    raise ValueError(f\"Unsupported build method: {build_method}\")\nValueError: Unsupported build method: None\n\nThe above exception was the direct cause of the following exception:\n\nTraceback (most recent call last):\n  File \"FunctionControl.py\", line 817, in ExecutePlan\n  File \"FunctionControl.py\", line 698, in ExecuteProgram\n  File \"FunctionControl.py\", line 506, in execute_function\nExternalFunctionError: execute_functionの呼出先compile_source_to_dllでエラーが発生しました: Unsupported build method: None\n"
+                    }
+                },
+                "class_name": "",
+                "function_name": "compile_source_to_dll",
+                "program_path": "./Sources/Common/DLLControl.py",
+                "result": "result_compile_source_to_dll"
+            },
+            "type": "ExecuteProgram"
+        },
+        {
+            "name": "test_value_error_compile_source_to_dll_./Sources/Common/DLLControl.py",
+            "settings": {
+                "argument_names": [
+                    "cs_file_path",
+                    "output_dll_path",
+                    "build_method",
+                    "cs_compiler_path",
+                    "references"
+                ],
+                "argument_types": [
+                    "string",
+                    "string",
+                    "string",
+                    "string",
+                    "string[]"
+                ],
+                "arguments": [
+                    null,
+                    true,
+                    null,
+                    true,
+                    "not an array"
+                ],
+                "check_result": {
+                    "expected": {
+                        "error": "execute_functionの呼出先compile_source_to_dllでエラーが発生しました: Unsupported build method: None",
+                        "success": false,
+                        "trace": "Traceback (most recent call last):\n  File \"FunctionControl.py\", line 504, in execute_function\n  File \"D:\\NowWorksGit\\study\\Project\\ProcessAutomation\\./Sources/Common/DLLControl.py\", line 52, in compile_source_to_dll\n    raise ValueError(f\"Unsupported build method: {build_method}\")\nValueError: Unsupported build method: None\n\nThe above exception was the direct cause of the following exception:\n\nTraceback (most recent call last):\n  File \"FunctionControl.py\", line 817, in ExecutePlan\n  File \"FunctionControl.py\", line 698, in ExecuteProgram\n  File \"FunctionControl.py\", line 506, in execute_function\nExternalFunctionError: execute_functionの呼出先compile_source_to_dllでエラーが発生しました: Unsupported build method: None\n"
+                    }
+                },
+                "class_name": "",
+                "function_name": "compile_source_to_dll",
+                "program_path": "./Sources/Common/DLLControl.py",
+                "result": "result_compile_source_to_dll"
+            },
+            "type": "ExecuteProgram"
+        },
+        {
+            "name": "test_normal_load_native_dll_./Sources/Common/DLLControl.py",
+            "settings": {
+                "argument_names": [
+                    "dll_path"
+                ],
+                "argument_types": [
+                    "string"
+                ],
+                "arguments": [
+                    "../../../Tools/diff.dll"
+                ],
+                "check_result": {
+                    "expected": {
+                        "error": "The result cannot write to JSON.",
+                        "result_type": "PyInstallerWinDLL"
+                    }
+                },
+                "class_name": "",
+                "function_name": "load_native_dll",
+                "program_path": "./Sources/Common/DLLControl.py",
+                "result": "result_load_native_dll"
+            },
+            "type": "ExecuteProgram"
+        },
+        {
+            "name": "test_value_error_load_native_dll_./Sources/Common/DLLControl.py",
+            "settings": {
+                "argument_names": [
+                    "dll_path"
+                ],
+                "argument_types": [
+                    "string"
+                ],
+                "arguments": [
+                    1
+                ],
+                "check_result": {
+                    "expected": {
+                        "error": "execute_functionの呼出先load_native_dllでエラーが発生しました: _getfullpathname: path should be string, bytes or os.PathLike, not int",
+                        "success": false,
+                        "trace": "Traceback (most recent call last):\n  File \"FunctionControl.py\", line 504, in execute_function\n  File \"D:\\NowWorksGit\\study\\Project\\ProcessAutomation\\./Sources/Common/DLLControl.py\", line 78, in load_native_dll\n    abs_dll_path = os.path.abspath(dll_path)\n  File \"ntpath.py\", line 527, in abspath\nTypeError: _getfullpathname: path should be string, bytes or os.PathLike, not int\n\nThe above exception was the direct cause of the following exception:\n\nTraceback (most recent call last):\n  File \"FunctionControl.py\", line 817, in ExecutePlan\n  File \"FunctionControl.py\", line 698, in ExecuteProgram\n  File \"FunctionControl.py\", line 506, in execute_function\nExternalFunctionError: execute_functionの呼出先load_native_dllでエラーが発生しました: _getfullpathname: path should be string, bytes or os.PathLike, not int\n"
+                    }
+                },
+                "class_name": "",
+                "function_name": "load_native_dll",
+                "program_path": "./Sources/Common/DLLControl.py",
+                "result": "result_load_native_dll"
+            },
+            "type": "ExecuteProgram"
+        },
+        {
+            "name": "test_normal_is_native_dll_./Sources/Common/DLLControl.py",
+            "settings": {
+                "argument_names": [
+                    "file_path"
+                ],
+                "argument_types": [
+                    "string"
+                ],
+                "arguments": [
+                    "./dummy.dll"
+                ],
+                "check_result": {
+                    "expected": {
+                        "error": "execute_functionの呼出先is_native_dllでエラーが発生しました: [WinError 2] 指定されたファイルが見つかりません。: './dummy.dll'",
+                        "success": false,
+                        "trace": "Traceback (most recent call last):\n  File \"FunctionControl.py\", line 504, in execute_function\n  File \"D:\\NowWorksGit\\study\\Project\\ProcessAutomation\\./Sources/Common/DLLControl.py\", line 87, in is_native_dll\n    pe = pefile.PE(file_path)\n  File \"pefile.py\", line 2777, in __init__\n  File \"pefile.py\", line 2830, in __parse__\nFileNotFoundError: [WinError 2] 指定されたファイルが見つかりません。: './dummy.dll'\n\nThe above exception was the direct cause of the following exception:\n\nTraceback (most recent call last):\n  File \"FunctionControl.py\", line 817, in ExecutePlan\n  File \"FunctionControl.py\", line 698, in ExecuteProgram\n  File \"FunctionControl.py\", line 506, in execute_function\nExternalFunctionError: execute_functionの呼出先is_native_dllでエラーが発生しました: [WinError 2] 指定されたファイルが見つかりません。: './dummy.dll'\n"
+                    }
+                },
+                "class_name": "",
+                "function_name": "is_native_dll",
+                "program_path": "./Sources/Common/DLLControl.py",
+                "result": "result_is_native_dll"
+            },
+            "type": "ExecuteProgram"
+        },
+        {
+            "name": "test_value_error_is_native_dll_./Sources/Common/DLLControl.py",
+            "settings": {
+                "argument_names": [
+                    "file_path"
+                ],
+                "argument_types": [
+                    "string"
+                ],
+                "arguments": [
+                    1
+                ],
+                "check_result": {
+                    "expected": false
+                },
+                "class_name": "",
+                "function_name": "is_native_dll",
+                "program_path": "./Sources/Common/DLLControl.py",
+                "result": "result_is_native_dll"
+            },
+            "type": "ExecuteProgram"
+        },
+        {
+            "name": "test_value_error_is_native_dll_./Sources/Common/DLLControl.py",
+            "settings": {
+                "argument_names": [
+                    "file_path"
+                ],
+                "argument_types": [
+                    "string"
+                ],
+                "arguments": [
+                    null
+                ],
+                "check_result": {
+                    "expected": {
+                        "error": "execute_functionの呼出先is_native_dllでエラーが発生しました: Must supply either name or data",
+                        "success": false,
+                        "trace": "Traceback (most recent call last):\n  File \"FunctionControl.py\", line 504, in execute_function\n  File \"D:\\NowWorksGit\\study\\Project\\ProcessAutomation\\./Sources/Common/DLLControl.py\", line 87, in is_native_dll\n    pe = pefile.PE(file_path)\n  File \"pefile.py\", line 2755, in __init__\nValueError: Must supply either name or data\n\nThe above exception was the direct cause of the following exception:\n\nTraceback (most recent call last):\n  File \"FunctionControl.py\", line 817, in ExecutePlan\n  File \"FunctionControl.py\", line 698, in ExecuteProgram\n  File \"FunctionControl.py\", line 506, in execute_function\nExternalFunctionError: execute_functionの呼出先is_native_dllでエラーが発生しました: Must supply either name or data\n"
+                    }
+                },
+                "class_name": "",
+                "function_name": "is_native_dll",
+                "program_path": "./Sources/Common/DLLControl.py",
+                "result": "result_is_native_dll"
+            },
+            "type": "ExecuteProgram"
+        },
+        {
+            "name": "test_normal_load_dll_./Sources/Common/DLLControl.py",
+            "settings": {
+                "argument_names": [
+                    "file_path"
+                ],
+                "argument_types": [
+                    "string"
+                ],
+                "arguments": [
+                    "./dummy.dll"
+                ],
+                "check_result": {
+                    "expected": {
+                        "error": "execute_functionの呼出先load_dllでエラーが発生しました: [WinError 2] 指定されたファイルが見つかりません。: './dummy.dll'",
+                        "success": false,
+                        "trace": "Traceback (most recent call last):\n  File \"FunctionControl.py\", line 504, in execute_function\n  File \"D:\\NowWorksGit\\study\\Project\\ProcessAutomation\\./Sources/Common/DLLControl.py\", line 93, in load_dll\n    if is_native_dll(file_path):\n  File \"D:\\NowWorksGit\\study\\Project\\ProcessAutomation\\./Sources/Common/DLLControl.py\", line 87, in is_native_dll\n    pe = pefile.PE(file_path)\n  File \"pefile.py\", line 2777, in __init__\n  File \"pefile.py\", line 2830, in __parse__\nFileNotFoundError: [WinError 2] 指定されたファイルが見つかりません。: './dummy.dll'\n\nThe above exception was the direct cause of the following exception:\n\nTraceback (most recent call last):\n  File \"FunctionControl.py\", line 817, in ExecutePlan\n  File \"FunctionControl.py\", line 698, in ExecuteProgram\n  File \"FunctionControl.py\", line 506, in execute_function\nExternalFunctionError: execute_functionの呼出先load_dllでエラーが発生しました: [WinError 2] 指定されたファイルが見つかりません。: './dummy.dll'\n"
+                    }
+                },
+                "class_name": "",
+                "function_name": "load_dll",
+                "program_path": "./Sources/Common/DLLControl.py",
+                "result": "result_load_dll"
+            },
+            "type": "ExecuteProgram"
+        },
+        {
+            "name": "test_value_error_load_dll_./Sources/Common/DLLControl.py",
+            "settings": {
+                "argument_names": [
+                    "file_path"
+                ],
+                "argument_types": [
+                    "string"
+                ],
+                "arguments": [
+                    1
+                ],
+                "check_result": {
+                    "expected": null
+                },
+                "class_name": "",
+                "function_name": "load_dll",
+                "program_path": "./Sources/Common/DLLControl.py",
+                "result": "result_load_dll"
+            },
+            "type": "ExecuteProgram"
+        },
+        {
+            "name": "test_value_error_load_dll_./Sources/Common/DLLControl.py",
+            "settings": {
+                "argument_names": [
+                    "file_path"
+                ],
+                "argument_types": [
+                    "string"
+                ],
+                "arguments": [
+                    null
+                ],
+                "check_result": {
+                    "expected": {
+                        "error": "execute_functionの呼出先load_dllでエラーが発生しました: Must supply either name or data",
+                        "success": false,
+                        "trace": "Traceback (most recent call last):\n  File \"FunctionControl.py\", line 504, in execute_function\n  File \"D:\\NowWorksGit\\study\\Project\\ProcessAutomation\\./Sources/Common/DLLControl.py\", line 93, in load_dll\n    if is_native_dll(file_path):\n  File \"D:\\NowWorksGit\\study\\Project\\ProcessAutomation\\./Sources/Common/DLLControl.py\", line 87, in is_native_dll\n    pe = pefile.PE(file_path)\n  File \"pefile.py\", line 2755, in __init__\nValueError: Must supply either name or data\n\nThe above exception was the direct cause of the following exception:\n\nTraceback (most recent call last):\n  File \"FunctionControl.py\", line 817, in ExecutePlan\n  File \"FunctionControl.py\", line 698, in ExecuteProgram\n  File \"FunctionControl.py\", line 506, in execute_function\nExternalFunctionError: execute_functionの呼出先load_dllでエラーが発生しました: Must supply either name or data\n"
+                    }
+                },
+                "class_name": "",
+                "function_name": "load_dll",
+                "program_path": "./Sources/Common/DLLControl.py",
+                "result": "result_load_dll"
+            },
+            "type": "ExecuteProgram"
+        },
+        {
+            "name": "test_normal_get_dll_function_info_./Sources/Common/DLLControl.py",
+            "settings": {
+                "argument_names": [
+                    "dll_path"
+                ],
+                "argument_types": [
+                    "string"
+                ],
+                "arguments": [
+                    "../../../Tools/diff.dll"
+                ],
+                "check_result": {
+                    "expected": [
+                        {
+                            "argument_names": [],
+                            "argument_types": [],
+                            "class_name": "ConfigSettingDiff.HelpEntry",
+                            "init_argument_names": [],
+                            "init_argument_types": [],
+                            "methods": [
+                                {
+                                    "argument_names": [
+                                        "obj"
+                                    ],
+                                    "argument_types": [
+                                        "Object"
+                                    ],
+                                    "method_name": "Equals"
+                                },
+                                {
+                                    "argument_names": [],
+                                    "argument_types": [],
+                                    "method_name": "GetHashCode"
+                                },
+                                {
+                                    "argument_names": [],
+                                    "argument_types": [],
+                                    "method_name": "GetType"
+                                },
+                                {
+                                    "argument_names": [],
+                                    "argument_types": [],
+                                    "method_name": "ToString"
+                                }
+                            ]
+                        },
+                        {
+                            "argument_names": [],
+                            "argument_types": [],
+                            "class_name": "ConfigSettingDiff.DiffResult",
+                            "init_argument_names": [],
+                            "init_argument_types": [],
+                            "methods": [
+                                {
+                                    "argument_names": [
+                                        "obj"
+                                    ],
+                                    "argument_types": [
+                                        "Object"
+                                    ],
+                                    "method_name": "Equals"
+                                },
+                                {
+                                    "argument_names": [],
+                                    "argument_types": [],
+                                    "method_name": "GetHashCode"
+                                },
+                                {
+                                    "argument_names": [],
+                                    "argument_types": [],
+                                    "method_name": "GetType"
+                                },
+                                {
+                                    "argument_names": [],
+                                    "argument_types": [],
+                                    "method_name": "ToString"
+                                }
+                            ]
+                        },
+                        {
+                            "argument_names": [],
+                            "argument_types": [],
+                            "class_name": "ConfigSettingDiff.Program",
+                            "init_argument_names": [],
+                            "init_argument_types": [],
+                            "methods": [
+                                {
+                                    "argument_names": [
+                                        "args"
+                                    ],
+                                    "argument_types": [
+                                        "String[]"
+                                    ],
+                                    "method_name": "Main"
+                                },
+                                {
+                                    "argument_names": [
+                                        "settings",
+                                        "helpFolder",
+                                        "configFolders"
+                                    ],
+                                    "argument_types": [
+                                        "Dictionary`2",
+                                        "String",
+                                        "String[]"
+                                    ],
+                                    "method_name": "FolderSettingDiff"
+                                },
+                                {
+                                    "argument_names": [
+                                        "obj"
+                                    ],
+                                    "argument_types": [
+                                        "Object"
+                                    ],
+                                    "method_name": "Equals"
+                                },
+                                {
+                                    "argument_names": [],
+                                    "argument_types": [],
+                                    "method_name": "GetHashCode"
+                                },
+                                {
+                                    "argument_names": [],
+                                    "argument_types": [],
+                                    "method_name": "GetType"
+                                },
+                                {
+                                    "argument_names": [],
+                                    "argument_types": [],
+                                    "method_name": "ToString"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                "class_name": "",
+                "function_name": "get_dll_function_info",
+                "program_path": "./Sources/Common/DLLControl.py",
+                "result": "result_get_dll_function_info"
+            },
+            "type": "ExecuteProgram"
+        },
+        {
+            "name": "test_value_error_get_dll_function_info_./Sources/Common/DLLControl.py",
+            "settings": {
+                "argument_names": [
+                    "dll_path"
+                ],
+                "argument_types": [
+                    "string"
+                ],
+                "arguments": [
+                    1
+                ],
+                "check_result": {
+                    "expected": []
+                },
+                "class_name": "",
+                "function_name": "get_dll_function_info",
+                "program_path": "./Sources/Common/DLLControl.py",
+                "result": "result_get_dll_function_info"
+            },
+            "type": "ExecuteProgram"
+        },
+        {
+            "name": "test_normal_load_managed_dll_./Sources/Common/DLLControl.py",
+            "settings": {
+                "argument_names": [
+                    "dll_path"
+                ],
+                "argument_types": [
+                    "string"
+                ],
+                "arguments": [
+                    "../../../Tools/diff.dll"
+                ],
+                "check_result": {
+                    "expected": {
+                        "error": "The result cannot write to JSON.",
+                        "result_type": "RuntimeAssembly"
+                    }
+                },
+                "class_name": "",
+                "function_name": "load_managed_dll",
+                "program_path": "./Sources/Common/DLLControl.py",
+                "result": "result_load_managed_dll"
+            },
+            "type": "ExecuteProgram"
+        },
+        {
+            "name": "test_value_error_load_managed_dll_./Sources/Common/DLLControl.py",
+            "settings": {
+                "argument_names": [
+                    "dll_path"
+                ],
+                "argument_types": [
+                    "string"
+                ],
+                "arguments": [
+                    1
+                ],
+                "check_result": {
+                    "expected": null
+                },
+                "class_name": "",
+                "function_name": "load_managed_dll",
+                "program_path": "./Sources/Common/DLLControl.py",
+                "result": "result_load_managed_dll"
+            },
+            "type": "ExecuteProgram"
+        },
+        {
+            "name": "test_normal_create_instance_./Sources/Common/DLLControl.py",
+            "settings": {
+                "argument_names": [
+                    "assembly",
+                    "class_name"
+                ],
+                "argument_types": [
+                    "Assembly",
+                    "string"
+                ],
+                "arguments": [
+                    "valid_assembly_object_1",
+                    "test_name"
+                ],
+                "check_result": {
+                    "expected": {
+                        "error": "execute_functionの呼出先create_instanceでエラーが発生しました: インスタンスの作成に失敗しました: 'str' object has no attribute 'GetType'",
+                        "success": false,
+                        "trace": "Traceback (most recent call last):\n  File \"D:\\NowWorksGit\\study\\Project\\ProcessAutomation\\./Sources/Common/DLLControl.py\", line 129, in create_instance\n    type = assembly.GetType(class_name)\nAttributeError: 'str' object has no attribute 'GetType'\n\nDuring handling of the above exception, another exception occurred:\n\nTraceback (most recent call last):\n  File \"FunctionControl.py\", line 504, in execute_function\n  File \"D:\\NowWorksGit\\study\\Project\\ProcessAutomation\\./Sources/Common/DLLControl.py\", line 147, in create_instance\n    raise RuntimeError(f\"インスタンスの作成に失敗しました: {e}\")\nRuntimeError: インスタンスの作成に失敗しました: 'str' object has no attribute 'GetType'\n\nThe above exception was the direct cause of the following exception:\n\nTraceback (most recent call last):\n  File \"FunctionControl.py\", line 817, in ExecutePlan\n  File \"FunctionControl.py\", line 698, in ExecuteProgram\n  File \"FunctionControl.py\", line 506, in execute_function\nExternalFunctionError: execute_functionの呼出先create_instanceでエラーが発生しました: インスタンスの作成に失敗しました: 'str' object has no attribute 'GetType'\n"
+                    }
+                },
+                "class_name": "",
+                "function_name": "create_instance",
+                "program_path": "./Sources/Common/DLLControl.py",
+                "result": "result_create_instance"
+            },
+            "type": "ExecuteProgram"
+        },
+        {
+            "name": "test_normal_create_instance_./Sources/Common/DLLControl.py",
+            "settings": {
+                "argument_names": [
+                    "assembly",
+                    "class_name"
+                ],
+                "argument_types": [
+                    "Assembly",
+                    "string"
+                ],
+                "arguments": [
+                    "valid_assembly_object_1",
+                    "Another.ValidClassB"
+                ],
+                "check_result": {
+                    "expected": {
+                        "error": "execute_functionの呼出先create_instanceでエラーが発生しました: インスタンスの作成に失敗しました: 'str' object has no attribute 'GetType'",
+                        "success": false,
+                        "trace": "Traceback (most recent call last):\n  File \"D:\\NowWorksGit\\study\\Project\\ProcessAutomation\\./Sources/Common/DLLControl.py\", line 129, in create_instance\n    type = assembly.GetType(class_name)\nAttributeError: 'str' object has no attribute 'GetType'\n\nDuring handling of the above exception, another exception occurred:\n\nTraceback (most recent call last):\n  File \"FunctionControl.py\", line 504, in execute_function\n  File \"D:\\NowWorksGit\\study\\Project\\ProcessAutomation\\./Sources/Common/DLLControl.py\", line 147, in create_instance\n    raise RuntimeError(f\"インスタンスの作成に失敗しました: {e}\")\nRuntimeError: インスタンスの作成に失敗しました: 'str' object has no attribute 'GetType'\n\nThe above exception was the direct cause of the following exception:\n\nTraceback (most recent call last):\n  File \"FunctionControl.py\", line 817, in ExecutePlan\n  File \"FunctionControl.py\", line 698, in ExecuteProgram\n  File \"FunctionControl.py\", line 506, in execute_function\nExternalFunctionError: execute_functionの呼出先create_instanceでエラーが発生しました: インスタンスの作成に失敗しました: 'str' object has no attribute 'GetType'\n"
+                    }
+                },
+                "class_name": "",
+                "function_name": "create_instance",
+                "program_path": "./Sources/Common/DLLControl.py",
+                "result": "result_create_instance"
+            },
+            "type": "ExecuteProgram"
+        },
+        {
+            "name": "test_value_error_create_instance_./Sources/Common/DLLControl.py",
+            "settings": {
+                "argument_names": [
+                    "assembly",
+                    "class_name"
+                ],
+                "argument_types": [
+                    "Assembly",
+                    "string"
+                ],
+                "arguments": [
+                    null,
+                    true
+                ],
+                "check_result": {
+                    "expected": {
+                        "error": "execute_functionの呼出先create_instanceでエラーが発生しました: インスタンスの作成に失敗しました: 'NoneType' object has no attribute 'GetType'",
+                        "success": false,
+                        "trace": "Traceback (most recent call last):\n  File \"D:\\NowWorksGit\\study\\Project\\ProcessAutomation\\./Sources/Common/DLLControl.py\", line 129, in create_instance\n    type = assembly.GetType(class_name)\nAttributeError: 'NoneType' object has no attribute 'GetType'\n\nDuring handling of the above exception, another exception occurred:\n\nTraceback (most recent call last):\n  File \"FunctionControl.py\", line 504, in execute_function\n  File \"D:\\NowWorksGit\\study\\Project\\ProcessAutomation\\./Sources/Common/DLLControl.py\", line 147, in create_instance\n    raise RuntimeError(f\"インスタンスの作成に失敗しました: {e}\")\nRuntimeError: インスタンスの作成に失敗しました: 'NoneType' object has no attribute 'GetType'\n\nThe above exception was the direct cause of the following exception:\n\nTraceback (most recent call last):\n  File \"FunctionControl.py\", line 817, in ExecutePlan\n  File \"FunctionControl.py\", line 698, in ExecuteProgram\n  File \"FunctionControl.py\", line 506, in execute_function\nExternalFunctionError: execute_functionの呼出先create_instanceでエラーが発生しました: インスタンスの作成に失敗しました: 'NoneType' object has no attribute 'GetType'\n"
+                    }
+                },
+                "class_name": "",
+                "function_name": "create_instance",
+                "program_path": "./Sources/Common/DLLControl.py",
+                "result": "result_create_instance"
+            },
+            "type": "ExecuteProgram"
+        },
+        {
+            "name": "test_value_error_create_instance_./Sources/Common/DLLControl.py",
+            "settings": {
+                "argument_names": [
+                    "assembly",
+                    "class_name"
+                ],
+                "argument_types": [
+                    "Assembly",
+                    "string"
+                ],
+                "arguments": [
+                    null,
+                    123
+                ],
+                "check_result": {
+                    "expected": {
+                        "error": "execute_functionの呼出先create_instanceでエラーが発生しました: インスタンスの作成に失敗しました: 'NoneType' object has no attribute 'GetType'",
+                        "success": false,
+                        "trace": "Traceback (most recent call last):\n  File \"D:\\NowWorksGit\\study\\Project\\ProcessAutomation\\./Sources/Common/DLLControl.py\", line 129, in create_instance\n    type = assembly.GetType(class_name)\nAttributeError: 'NoneType' object has no attribute 'GetType'\n\nDuring handling of the above exception, another exception occurred:\n\nTraceback (most recent call last):\n  File \"FunctionControl.py\", line 504, in execute_function\n  File \"D:\\NowWorksGit\\study\\Project\\ProcessAutomation\\./Sources/Common/DLLControl.py\", line 147, in create_instance\n    raise RuntimeError(f\"インスタンスの作成に失敗しました: {e}\")\nRuntimeError: インスタンスの作成に失敗しました: 'NoneType' object has no attribute 'GetType'\n\nThe above exception was the direct cause of the following exception:\n\nTraceback (most recent call last):\n  File \"FunctionControl.py\", line 817, in ExecutePlan\n  File \"FunctionControl.py\", line 698, in ExecuteProgram\n  File \"FunctionControl.py\", line 506, in execute_function\nExternalFunctionError: execute_functionの呼出先create_instanceでエラーが発生しました: インスタンスの作成に失敗しました: 'NoneType' object has no attribute 'GetType'\n"
+                    }
+                },
+                "class_name": "",
+                "function_name": "create_instance",
+                "program_path": "./Sources/Common/DLLControl.py",
+                "result": "result_create_instance"
+            },
+            "type": "ExecuteProgram"
+        },
+        {
+            "name": "test_normal_get_managed_function_info_./Sources/Common/DLLControl.py",
+            "settings": {
+                "argument_names": [
+                    "assembly"
+                ],
+                "argument_types": [
+                    "Assembly"
+                ],
+                "arguments": [
+                    "valid_assembly_object_1"
+                ],
+                "check_result": {
+                    "expected": []
+                },
+                "class_name": "",
+                "function_name": "get_managed_function_info",
+                "program_path": "./Sources/Common/DLLControl.py",
+                "result": "result_get_managed_function_info"
+            },
+            "type": "ExecuteProgram"
+        },
+        {
+            "name": "test_value_error_get_managed_function_info_./Sources/Common/DLLControl.py",
+            "settings": {
+                "argument_names": [
+                    "assembly"
+                ],
+                "argument_types": [
+                    "Assembly"
+                ],
+                "arguments": [
+                    null
+                ],
+                "check_result": {
+                    "expected": []
+                },
+                "class_name": "",
+                "function_name": "get_managed_function_info",
+                "program_path": "./Sources/Common/DLLControl.py",
+                "result": "result_get_managed_function_info"
+            },
+            "type": "ExecuteProgram"
+        },
+        {
+            "name": "test_normal_get_native_function_info_./Sources/Common/DLLControl.py",
+            "settings": {
+                "argument_names": [
+                    "dll_path"
+                ],
+                "argument_types": [
+                    "string"
+                ],
+                "arguments": [
+                    "../../../Tools/diff.dll"
+                ],
+                "check_result": {
+                    "expected": []
+                },
+                "class_name": "",
+                "function_name": "get_native_function_info",
+                "program_path": "./Sources/Common/DLLControl.py",
+                "result": "result_get_native_function_info"
+            },
+            "type": "ExecuteProgram"
+        },
+        {
+            "name": "test_value_error_get_native_function_info_./Sources/Common/DLLControl.py",
+            "settings": {
+                "argument_names": [
+                    "dll_path"
+                ],
+                "argument_types": [
+                    "string"
+                ],
+                "arguments": [
+                    1
+                ],
+                "check_result": {
+                    "expected": {
+                        "error": "execute_functionの呼出先get_native_function_infoでエラーが発生しました: 'The file is empty'",
+                        "success": false,
+                        "trace": "Traceback (most recent call last):\n  File \"FunctionControl.py\", line 504, in execute_function\n  File \"D:\\NowWorksGit\\study\\Project\\ProcessAutomation\\./Sources/Common/DLLControl.py\", line 199, in get_native_function_info\n    pe = pefile.PE(dll_path)\n  File \"pefile.py\", line 2777, in __init__\n  File \"pefile.py\", line 2832, in __parse__\npefile.PEFormatError: 'The file is empty'\n\nThe above exception was the direct cause of the following exception:\n\nTraceback (most recent call last):\n  File \"FunctionControl.py\", line 817, in ExecutePlan\n  File \"FunctionControl.py\", line 698, in ExecuteProgram\n  File \"FunctionControl.py\", line 506, in execute_function\nExternalFunctionError: execute_functionの呼出先get_native_function_infoでエラーが発生しました: 'The file is empty'\n"
+                    }
+                },
+                "class_name": "",
+                "function_name": "get_native_function_info",
+                "program_path": "./Sources/Common/DLLControl.py",
+                "result": "result_get_native_function_info"
+            },
+            "type": "ExecuteProgram"
+        },
+        {
+            "name": "test_normal_convert_python_to_cs_./Sources/Common/DLLControl.py",
+            "settings": {
+                "argument_names": [
+                    "value",
+                    "cs_type"
+                ],
+                "argument_types": [
+                    "",
+                    ""
+                ],
+                "arguments": [
+                    null,
+                    null
+                ],
+                "check_result": {
+                    "expected": null
+                },
+                "class_name": "",
+                "function_name": "convert_python_to_cs",
+                "program_path": "./Sources/Common/DLLControl.py",
+                "result": "result_convert_python_to_cs"
+            },
+            "type": "ExecuteProgram"
+        },
+        {
+            "name": "test_value_error_convert_python_to_cs_./Sources/Common/DLLControl.py",
+            "settings": {
+                "argument_names": [
+                    "value",
+                    "cs_type"
+                ],
+                "argument_types": [
+                    "",
+                    ""
+                ],
+                "arguments": [
+                    null,
+                    null
+                ],
+                "check_result": {
+                    "expected": null
+                },
+                "class_name": "",
+                "function_name": "convert_python_to_cs",
+                "program_path": "./Sources/Common/DLLControl.py",
+                "result": "result_convert_python_to_cs"
+            },
+            "type": "ExecuteProgram"
+        },
+        {
+            "name": "test_normal_to_dotnet_dict_./Sources/Common/DLLControl.py",
+            "settings": {
+                "argument_names": [
+                    "py_dict"
+                ],
+                "argument_types": [
+                    ""
+                ],
+                "arguments": [
+                    null
+                ],
+                "check_result": {
+                    "expected": {
+                        "error": "execute_functionの呼出先to_dotnet_dictでエラーが発生しました: 'NoneType' object has no attribute 'items'",
+                        "success": false,
+                        "trace": "Traceback (most recent call last):\n  File \"FunctionControl.py\", line 504, in execute_function\n  File \"D:\\NowWorksGit\\study\\Project\\ProcessAutomation\\./Sources/Common/DLLControl.py\", line 259, in to_dotnet_dict\n    for key, value in py_dict.items():\nAttributeError: 'NoneType' object has no attribute 'items'\n\nThe above exception was the direct cause of the following exception:\n\nTraceback (most recent call last):\n  File \"FunctionControl.py\", line 817, in ExecutePlan\n  File \"FunctionControl.py\", line 698, in ExecuteProgram\n  File \"FunctionControl.py\", line 506, in execute_function\nExternalFunctionError: execute_functionの呼出先to_dotnet_dictでエラーが発生しました: 'NoneType' object has no attribute 'items'\n"
+                    }
+                },
+                "class_name": "",
+                "function_name": "to_dotnet_dict",
+                "program_path": "./Sources/Common/DLLControl.py",
+                "result": "result_to_dotnet_dict"
+            },
+            "type": "ExecuteProgram"
+        },
+        {
+            "name": "test_value_error_to_dotnet_dict_./Sources/Common/DLLControl.py",
+            "settings": {
+                "argument_names": [
+                    "py_dict"
+                ],
+                "argument_types": [
+                    ""
+                ],
+                "arguments": [
+                    null
+                ],
+                "check_result": {
+                    "expected": {
+                        "error": "execute_functionの呼出先to_dotnet_dictでエラーが発生しました: 'NoneType' object has no attribute 'items'",
+                        "success": false,
+                        "trace": "Traceback (most recent call last):\n  File \"FunctionControl.py\", line 504, in execute_function\n  File \"D:\\NowWorksGit\\study\\Project\\ProcessAutomation\\./Sources/Common/DLLControl.py\", line 259, in to_dotnet_dict\n    for key, value in py_dict.items():\nAttributeError: 'NoneType' object has no attribute 'items'\n\nThe above exception was the direct cause of the following exception:\n\nTraceback (most recent call last):\n  File \"FunctionControl.py\", line 817, in ExecutePlan\n  File \"FunctionControl.py\", line 698, in ExecuteProgram\n  File \"FunctionControl.py\", line 506, in execute_function\nExternalFunctionError: execute_functionの呼出先to_dotnet_dictでエラーが発生しました: 'NoneType' object has no attribute 'items'\n"
+                    }
+                },
+                "class_name": "",
+                "function_name": "to_dotnet_dict",
+                "program_path": "./Sources/Common/DLLControl.py",
+                "result": "result_to_dotnet_dict"
+            },
+            "type": "ExecuteProgram"
+        },
+        {
+            "name": "test_normal_convert_cs_to_python_./Sources/Common/DLLControl.py",
+            "settings": {
+                "argument_names": [
+                    "obj"
+                ],
+                "argument_types": [
+                    "Object"
+                ],
+                "arguments": [
+                    123
+                ],
+                "check_result": {
+                    "expected": 123
+                },
+                "class_name": "",
+                "function_name": "convert_cs_to_python",
+                "program_path": "./Sources/Common/DLLControl.py",
+                "result": "result_convert_cs_to_python"
+            },
+            "type": "ExecuteProgram"
+        },
+        {
+            "name": "test_value_error_convert_cs_to_python_./Sources/Common/DLLControl.py",
+            "settings": {
+                "argument_names": [
+                    "obj"
+                ],
+                "argument_types": [
+                    "Object"
+                ],
+                "arguments": [
+                    [
+                        "a"
+                    ]
+                ],
+                "check_result": {
+                    "expected": {
+                        "error": "Python.Runtime.PyList can not convert this object type",
+                        "result_type": "Python.Runtime.PyList"
+                    }
+                },
+                "class_name": "",
+                "function_name": "convert_cs_to_python",
+                "program_path": "./Sources/Common/DLLControl.py",
+                "result": "result_convert_cs_to_python"
+            },
+            "type": "ExecuteProgram"
+        }
+    ]
+}
