@@ -46,8 +46,11 @@ const wrapD=d=>((d+1.5)%1)-.5;
 function emit(cat,data){if(typeof api.onEvent==='function')api.onEvent(cat,data);}
 function dist(a,b){const du=wrapD(b.u-a.u),dv=b.v-a.v;return Math.sqrt(du*du+dv*dv);}
 // 繁殖様式: seed=種子 / fission=分裂 / egg=卵生 / live=胎生（赤子で生まれる）
-function birthMode(g){
-  if(trophic(g)==='plant')return 'seed';
+// grade: 進化段階（Evolution.js）。省略時は段階による制限なし
+//   単細胞〜群体（0〜2）は分裂、動物は有羊膜類（8）までは卵生、胎生はそれ以降。植物は陸上植物（7〜）になってから種子
+function birthMode(g,grade){
+  if(trophic(g)==='plant')return grade!=null&&grade<7?'fission':'seed';
+  if(grade!=null){if(grade<=2)return 'fission';if(grade<=8)return 'egg';}
   if(rStage(g).st===0)return 'fission';
   // 神経・体格が大きく陸生ほど胎生寄り。水棲・小型・装甲（節足動物的）は卵生寄り
   const vivi=g[4]*.3+g[5]*.25+g[16]*.3+(1-g[20])*.2+g[7]*.1-g[2]*.15;
@@ -66,8 +69,8 @@ function lifeFactor(g){return 1-.35*g[21];}
 //   ・投資の小さい子は孵化/出生時の発達が低く、蓄えも少なく、幼体期の死亡率が高い
 //   ・大きな体は少数の大きな子を産む（大型ほど一腹の数が少ない）
 // ================================================================
-function clutchSize(g){
-  const f=g[21],bm=birthMode(g);
+function clutchSize(g,grade){
+  const f=g[21],bm=birthMode(g,grade);
   if(bm==='fission')return 1;
   if(bm==='seed')return 1+Math.round(f*f*12);
   if(bm==='live')return 1+Math.round(Math.pow(f,1.5)*7*Math.max(0,1-g[16]));
@@ -81,8 +84,8 @@ function birthSpread(n){return .006+.005*Math.sqrt(n);}
 function breedInterval(g){return (2.5+5*g[16])*(1-.4*g[21]);}
 function broodBudget(g){return .3+.3*g[21]+.15*g[16];}
 // 繁殖計画: 産む数 n、使うエネルギー budget、1匹あたりの投資 perChild、子の質 quality(0..1)、繁殖に必要な蓄え threshold
-function reproPlan(g){
-  const n=clutchSize(g),budget=broodBudget(g),perChild=budget/n;
+function reproPlan(g,grade){
+  const n=clutchSize(g,grade),budget=broodBudget(g),perChild=budget/n;
   return{n,budget,perChild,quality:c01(perChild/.35),threshold:budget+.45};
 }
 // 成長段階係数
@@ -116,8 +119,8 @@ function stageLabel(o){
 // quality: 親の1匹あたり投資から決まる子の質（reproPlan().quality）。省略時は親の遺伝子から計算
 function birth(o,parent,quality){
   if(!o)return o;
-  const mode=birthMode(o.g);o.bmode=mode;o.parentId=parent?parent.id:0;o.dev=0;o.age=0;
-  const q=quality!=null?quality:reproPlan(parent?parent.g:o.g).quality;o.qual=q;
+  const mode=birthMode(o.g,o.grade);o.bmode=mode;o.parentId=parent?parent.id:0;o.dev=0;o.age=0;
+  const q=quality!=null?quality:reproPlan(parent?parent.g:o.g,parent?parent.grade:o.grade).quality;o.qual=q;
   if(mode==='seed'){o.stage='egg';o.incub=2.5+Math.random()*3;o.e=.15+.2*q;}
   // 小さな卵は早く孵るが、未熟な状態で生まれる
   else if(mode==='egg'){o.stage='egg';o.incub=(1.2+o.g[16]*3)*(.6+.4*q)+Math.random()*.5;o.e=.15+.3*q;}
@@ -127,7 +130,7 @@ function birth(o,parent,quality){
   return o;
 }
 // 成長段階が付いていない個体（自然発生・散布・旧セーブ）は成体として扱う
-function ensure(o){if(o.strat==null){if(o.stage==null){o.stage='adult';o.dev=1;}o.bmode=o.bmode||birthMode(o.g);o.strat=chooseStrategy(o);o.act='idle';}}
+function ensure(o){if(o.strat==null){if(o.stage==null){o.stage='adult';o.dev=1;}o.bmode=o.bmode||birthMode(o.g,o.grade);o.strat=chooseStrategy(o);o.act='idle';}}
 
 // ---- 毎ステップ: 発生・成長・幼体の死亡リスク。戻り値 false=死亡 ----
 function develop(o,dt,tr,env){

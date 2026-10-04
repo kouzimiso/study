@@ -229,7 +229,10 @@ class CreatureLayer{
     // 姿勢の演出: 隠れる=身を低く伏せる / 威嚇=体を膨らませて立ち上がる（足は地面に残る）
     const C0=Rig.center(R),gz0=opts.groundZ!=null?opts.groundZ:C0[2]-R.hipH;
     const sxy=opts.puff?1.08:opts.crouch?1.05:1,sz=opts.puff?1.15:opts.crouch?0.62:1;
-    const xf=(sxy!==1||sz!==1)?p=>[C0[0]+(p[0]-C0[0])*sxy,C0[1]+(p[1]-C0[1])*sxy,gz0+(p[2]-gz0)*sz]:p=>p;
+    // 複製描画（群体の細胞など）: 中心まわりに sc 倍して ofs だけずらす
+    const csc=opts.sc||1,cof=opts.ofs||null;
+    const xf0=(sxy!==1||sz!==1)?p=>[C0[0]+(p[0]-C0[0])*sxy,C0[1]+(p[1]-C0[1])*sxy,gz0+(p[2]-gz0)*sz]:p=>p;
+    const xf=(csc!==1||cof)?p=>{const q=xf0(p);return[C0[0]+(q[0]-C0[0])*csc+(cof?cof[0]:0),C0[1]+(q[1]-C0[1])*csc+(cof?cof[1]:0),C0[2]+(q[2]-C0[2])*csc+(cof?cof[2]:0)];}:xf0;
     const pos=a=>xf(Rig.pointAt(R,a,F));
     const camo=opts.camo,ck=opts.camoK||0;
     const tint=c=>{let o=c;
@@ -248,7 +251,7 @@ class CreatureLayer{
     R.renderStrokes.forEach(rs=>{
       const col=tint(strokeCol(R.color,rs.kind));
       const isBody=rs.group==='body'||rs.group==='belly';
-      const rk=(isBody?breath:1)*(opts.puff?1.06:1);
+      const rk=(isBody?breath:1)*(opts.puff?1.06:1)*csc;
       this.setSkin([rs.kind==='wood'?4:(rs.group==='digit'&&sk===2?0:sk),isBody||rs.group==='leg'?juv*(opts.spots||0):0,freq,rs.kind==='leaf'?0.3:wet]);
       const P=rs.nodes.map(n=>pos(n.a));
       for(let k=0;k<rs.nodes.length;k++){
@@ -281,7 +284,7 @@ class CreatureLayer{
       const dirW=v3.norm([fr[0][0]*o.dirL[0]+fr[1][0]*o.dirL[1]+fr[2][0]*o.dirL[2],fr[0][1]*o.dirL[0]+fr[1][1]*o.dirL[1]+fr[2][1]*o.dirL[2],fr[0][2]*o.dirL[0]+fr[1][2]*o.dirL[1]+fr[2][2]*o.dirL[2]]);
       // 幼体の体型（ベビースキーマ）: 頭と目が大きく、鼻先は短く、角・牙・爪・棘は未発達
       const JS={head:1+.5*juv,eye:1+.6*juv,ear:1+.25*juv,muzzle:1-.35*juv,tooth:1-.7*juv,claw:1-.6*juv,spike:1-.8*juv,hoof:1-.3*juv}[o.type]||1;
-      const B=perpFrame(dirW,upRef),s=Math.max(0.05,o.size)*JS,col=tint(organColor(o,R.color));
+      const B=perpFrame(dirW,upRef),s=Math.max(0.05,o.size)*JS*csc,col=tint(organColor(o,R.color));
       const put=(pool,sx,sy,sz,off)=>{const pp=off?v3.add(p,v3.mul(dirW,off)):p;pool.push(T3(v3.mul(B[0],sx)),T3(v3.mul(B[1],sy)),T3(v3.mul(B[2],sz)),T3(pp),col);};
       switch(o.type){
         case'eye':{const bz=blink;this.eye.push(T3(v3.mul(B[0],s)),T3(v3.mul(B[1],s)),T3(v3.mul(B[2],s*bz)),T3(p),bz<1?col:lin([.93,.91,.86]));

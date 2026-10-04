@@ -106,6 +106,7 @@ canvas{display:block;position:fixed;top:0;left:0;touch-action:none}
     <button class="btn g" id="b-addcol">🏴拠点追加(730CP)</button>
     <button class="btn" id="b-dp">🕹移動</button>
     <button class="btn" id="b-log">📋ログ</button>
+    <button class="btn g" id="b-evo">🧬進化</button>
   </div>
 </div>
 
@@ -166,6 +167,14 @@ window.Genome = {
 };</pre>
     </div>
   </div>
+</div>
+<!-- 進化の系譜パネル -->
+<div id="evo-panel" style="position:fixed;inset:0;z-index:57;background:rgba(0,6,12,.97);display:none;flex-direction:column;overflow:hidden">
+  <div style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:rgba(0,0,0,.5);border-bottom:1px solid rgba(120,220,150,.18);flex-shrink:0">
+    <span style="font-size:13px;letter-spacing:.2em;color:#9fe0a8;flex:1">🧬 進化の系譜 — 微生物から魚・トカゲ・ネズミの祖先へ</span>
+    <button id="evo-close" style="padding:6px 14px;background:rgba(20,10,0,.9);border:1px solid rgba(200,169,126,.5);color:#e8c49e;font-family:'Courier New',monospace;font-size:11px;cursor:pointer">← 戻る</button>
+  </div>
+  <div id="evo-body" style="flex:1;overflow-y:auto;padding:12px 14px;max-width:880px;width:100%;margin:0 auto;font-family:'Courier New',monospace"></div>
 </div>
 <div id="detail-view" style="position:fixed;inset:0;z-index:53;background:rgba(0,5,15,.97);display:none;flex-direction:column;align-items:stretch;overflow:hidden">
 
@@ -289,6 +298,7 @@ window.Genome = {
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="CreatureRig.js"></script>
 <script src="CreatureEngine.js"></script>
+<script src="Evolution.js"></script>
 <script src="CreatureRender3D.js"></script>
 <script src="LifeCycle.js"></script>
 <script>
@@ -457,7 +467,7 @@ function orgScale(o){
 function rigFor(o){
   const s=orgScale(o)*Life.growScale(o);
   if(!o._rig||o._rigScale!==s||o._rigView!==builtKey){
-    if(!o.body3d)o.body3d=buildBody3D(o.g);
+    if(!o.body3d)o.body3d=buildBody3D(o.g,o.grade);
     let p=uvToXY(o.u,o.v),hd=Math.random()*6.28;
     // 成長で作り直すときは、今いる場所と向きを引き継ぐ
     if(o._rig&&o._rigView===builtKey){const c=Rig.center(o._rig);p={x:c[0],y:c[1]};if(o._rig.headingDes!=null)hd=o._rig.headingDes;else if(o._rig.heading!=null)hd=o._rig.heading;}
@@ -507,6 +517,10 @@ function stepAndDraw(col,dt,focusOrg,selOrg_){
       spots:(o.bmode==='live'||o.bmode==='egg')?1:0,groundZ:gz(c[0],c[1]),
       crouch:hide,puff:act==='fight',pant:fast||act==='fight'?1:0,
       camo:o._camo,camoK:o._camo?o._hideK*(0.25+Life.stealth(o)*0.55):0});
+    // 群体（進化段階2）: 同じ細胞が寄り集まった姿で描く（ボルボックスや襟鞭毛虫の群体）
+    if(o.grade===2){const n=Evo.colonyCells(o),rr=(R.scale||1)*3.2;
+      for(let k=1;k<n;k++){const a=k*2.399+o.id,el=((k*0.618)%1-.5)*1.6;
+        layer.add(R,{t:time+k*.37,seed:(o.id*.618+k*.13)%1,sc:.85,blob:false,minOrgan:near?0:dc*0.004,ofs:[Math.cos(a)*Math.cos(el)*rr,Math.sin(a)*Math.cos(el)*rr,Math.sin(el)*rr*.8+rr*.4],sel:o===selOrg_});}}
     vis.push(o);
   });
   layer.end();
@@ -543,6 +557,7 @@ function render(col,dt,opts){
     for(let k=0;k<pl.n;k++){const ph=((time*0.25+k/pl.n+pl.seed*0.13)%1);
       a[k*3]=pl.x+Math.sin(k*12.9+time*0.7)*ph*40;a[k*3+1]=pl.z+ph*500;a[k*3+2]=-(pl.y+Math.cos(k*7.3+time*0.6)*ph*40);}
     pl.pts.geometry.attributes.position.needsUpdate=true;});
+  disturbFX();
   // 選択リング
   const so=opts.sel&&opts.sel._rig;
   if(so){const c=Rig.center(so),rr=Math.max(10,so.hipH*1.6+ (so.stats.mass?Math.cbrt(so.stats.mass)*0.8:10));ring.visible=true;ring.scale.set(rr,rr,rr);ring.position.set(c[0],gz(c[0],c[1])+2,-c[1]);}
@@ -551,6 +566,42 @@ function render(col,dt,opts){
   return{canvas:Gfx3D.getCanvas(),visible:vis};
 }
 
+// ---- 局所的な撹乱（火事・洪水）の3D表現 ----
+//   火事: 燃え広がる炎（加算合成の粒子）・立ちのぼる煙・地面を照らす炎の光
+//   洪水: 泥水の水面がせり上がって広がり、引いていく
+let fx=null;
+const hsh=k=>{let h=Math.imul(k^0x9e3779b9,0x85ebca6b);h^=h>>>13;h=Math.imul(h,0xc2b2ae35);return((h^(h>>>16))>>>0)/4294967295;};
+function disturbFX(){
+  if(typeof Disturb==='undefined')return;
+  if(!fx){fx={N:600,S:180};
+    const fg=new THREE.BufferGeometry();fg.setAttribute('position',new THREE.BufferAttribute(new Float32Array(fx.N*3),3));fg.setAttribute('color',new THREE.BufferAttribute(new Float32Array(fx.N*3),3));
+    fx.flame=new THREE.Points(fg,new THREE.PointsMaterial({map:Gfx3D.soft(),size:30,vertexColors:true,transparent:true,blending:THREE.AdditiveBlending,depthWrite:false}));fx.flame.frustumCulled=false;fx.flame.renderOrder=4;scene.add(fx.flame);
+    const sg=new THREE.BufferGeometry();sg.setAttribute('position',new THREE.BufferAttribute(new Float32Array(fx.S*3),3));
+    fx.smoke=new THREE.Points(sg,new THREE.PointsMaterial({map:Gfx3D.soft(),size:170,color:0x3b3631,transparent:true,opacity:.42,depthWrite:false}));fx.smoke.frustumCulled=false;fx.smoke.renderOrder=5;scene.add(fx.smoke);
+    fx.flood=new THREE.Mesh(new THREE.CircleGeometry(1,64),new THREE.MeshStandardMaterial({color:0x3e3020,transparent:true,opacity:.75,roughness:.06,metalness:.35,depthWrite:false}));
+    fx.flood.rotation.x=-Math.PI/2;fx.flood.renderOrder=3;scene.add(fx.flood);
+    fx.glow=new THREE.PointLight(0xff7a2a,0,2200,1);scene.add(fx.glow);}
+  const near=e=>{const p=uvToXY(e.u,e.v);return Math.abs(p.x)<HALF*1.1&&Math.abs(p.y)<HALF*1.1?p:null;};
+  const act=Disturb.active();
+  const fire=act.find(e=>e.type==='fire'&&near(e)),flood=act.find(e=>e.type==='flood'&&near(e));
+  fx.flame.visible=fx.smoke.visible=!!fire;fx.glow.intensity=0;
+  if(fire){const p=near(fire),R=fire.r/SPAN*HALF,env=Math.sin(Math.PI*Math.min(1,fire.life*1.15)),spread=Math.min(1,.25+fire.life*2.2);
+    const a=fx.flame.geometry.attributes.position.array,c=fx.flame.geometry.attributes.color.array;
+    for(let k=0;k<fx.N;k++){const ang=hsh(k)*6.283,rad=Math.sqrt(hsh(k+7e3))*R*spread,x=p.x+Math.cos(ang)*rad,y=p.y+Math.sin(ang)*rad;
+      const ph=(time*(.8+hsh(k+3e3)*.8)+hsh(k+5e3))%1,h=ph*(50+hsh(k+9e3)*90);
+      a[k*3]=x+Math.sin(time*3+k)*4*ph;a[k*3+1]=gz(x,y)+h+4;a[k*3+2]=-y;
+      const t=1-ph,f=env*(.6+.4*hsh(k+11e3));c[k*3]=(1.0)*f*t+.2*f;c[k*3+1]=(.35+.5*t*t)*f*t;c[k*3+2]=.06*f*t*t;}
+    fx.flame.geometry.attributes.position.needsUpdate=true;fx.flame.geometry.attributes.color.needsUpdate=true;
+    const sa=fx.smoke.geometry.attributes.position.array;
+    for(let k=0;k<fx.S;k++){const ang=hsh(k+2e4)*6.283,rad=Math.sqrt(hsh(k+2.1e4))*R*spread,ph=(time*.12+hsh(k+2.2e4))%1,x=p.x+Math.cos(ang)*rad+ph*120,y=p.y+Math.sin(ang)*rad;
+      sa[k*3]=x;sa[k*3+1]=gz(x,y)+80+ph*900;sa[k*3+2]=-y;}
+    fx.smoke.geometry.attributes.position.needsUpdate=true;fx.smoke.material.opacity=.42*env;
+    fx.glow.position.set(p.x,gz(p.x,p.y)+80,-p.y);fx.glow.intensity=3.5*env*(.85+.15*Math.sin(time*17));}
+  fx.flood.visible=!!flood;
+  if(flood){const p=near(flood),R=flood.r/SPAN*HALF,env=Math.sin(Math.PI*Math.min(1,flood.life)),z0=gz(p.x,p.y);
+    fx.flood.scale.set(R*(.4+.6*Math.min(1,flood.life*2.5)),R*(.4+.6*Math.min(1,flood.life*2.5)),1);
+    fx.flood.position.set(p.x,z0+6+env*45,-p.y);fx.flood.material.opacity=.78*env;}
+}
 function project(x,y,z){const v=new THREE.Vector3(x,z,-y).project(camera);return{sx:(v.x*.5+.5)*W,sy:(-v.y*.5+.5)*H,vis:v.z<1};}
 // カメラから点までの視線が地形に遮られていないか（ラベル表示用・高さ格子を数点サンプル）
 function visibleFrom(x,y,z){const c=camera.position,cx=c.x,cy=-c.z,cz=c.y;for(let k=1;k<12;k++){const t=k/12,px=cx+(x-cx)*t,py=cy+(y-cy)*t,pz=cz+(z-cz)*t;
@@ -558,7 +609,7 @@ function visibleFrom(x,y,z){const c=camera.position,cx=c.x,cy=-c.z,cz=c.y;for(le
 function pickUV(sx,sy){if(!terrainMesh)return null;const rc=new THREE.Raycaster();rc.setFromCamera(new THREE.Vector2(sx/W*2-1,-(sy/H)*2+1),camera);
   const hit=rc.intersectObject(terrainMesh,false);if(!hit.length)return null;const p=hit[0].point;return toUV(p.x,-p.z);}
 function invalidate(){builtKey='';}
-return{render,project,visibleFrom,pickUV,uvToXY,toUV,env,invalidate,orgScale,get HALF(){return HALF;},get TS(){return TS;}};
+return{render,project,visibleFrom,pickUV,uvToXY,toUV,env,invalidate,orgScale,gz,get HALF(){return HALF;},get TS(){return TS;}};
 })();
 
 // ================================================================
@@ -599,9 +650,13 @@ function render(state,target,opts){
   // 円を描いて歩かせる（歩容・接地を観察できる）
   if(opts.walk!==false&&R.mode!=='plant'){const rad=Math.max(60,R.hipH*8),a=state.t*0.25;Rig.setGoal(R,Math.cos(a)*rad,Math.sin(a)*rad);}
   Rig.step(R,dt);
-  layer.begin();layer.add(R,{t:state.t,seed:0.37});layer.end();
+  layer.begin();layer.add(R,{t:state.t,seed:0.37});
+  // 群体（進化段階2）: 同じ細胞を寄せ集めて描く
+  if(opts.colony){const rr=(R.scale||1)*3.2;for(let k=1;k<opts.colony;k++){const a=k*2.399,el=((k*0.618)%1-.5)*1.6;
+    layer.add(R,{t:state.t+k*.37,seed:(.37+k*.13)%1,sc:.85,blob:false,ofs:[Math.cos(a)*Math.cos(el)*rr,Math.sin(a)*Math.cos(el)*rr,Math.sin(el)*rr*.8+rr*.4]});}}
+  layer.end();
   const c=Rig.center(R);
-  let ext=40;R.renderStrokes.forEach(rs=>rs.nodes.forEach(n=>{const p=Rig.pointAt(R,n.a);ext=Math.max(ext,Math.hypot(p[0]-c[0],p[1]-c[1],p[2]-c[2])+n.r);}));
+  let ext=opts.minExt!=null?opts.minExt:40;R.renderStrokes.forEach(rs=>rs.nodes.forEach(n=>{const p=Rig.pointAt(R,n.a);ext=Math.max(ext,Math.hypot(p[0]-c[0],p[1]-c[1],p[2]-c[2])+n.r);}));
   const dist=ext*3.2/(opts.zoom||1),yaw=opts.yaw||0;
   camera.aspect=w/h;camera.updateProjectionMatrix();
   camera.position.set(c[0]+Math.sin(yaw)*dist*0.9,c[2]+dist*0.45,-c[1]+Math.cos(yaw)*dist*0.9);camera.lookAt(c[0],c[2]*0.7,-c[1]);
@@ -1434,6 +1489,9 @@ function spawnOrg(u,v,pA,pB,ov){
   const g=mkGenome(pA,pB,ov,VR[idx]>.5?.12:.07);
   const rs=rStage(g);
   const o={id:++orgId,g,u,v,e:.6+Math.random()*.3,age:0,gen:pA?(pA.gen||0)+1:0,alive:true,st:rs.st,gt:rs.gt,rt:0,stage:'adult',dev:1};   // 繁殖で生まれる場合は Life.birth が卵/幼体に設定し直す
+  // 進化段階: 親から受け継ぎ、条件（酸素・遺伝子・陸/水）がそろえば一段進む。自然発生は原核生物(0)から。
+  // 散布・移住で運ばれた系統は元の段階（不明なら世界で到達済みの最高段階）。段階の上限を超える遺伝子は持てない
+  Evo.assign(o,pA,{O2,landPlants:Evo.world.landPlants,onLand:WM[idx]<.5,simY},ov?(ov._grade!=null?ov._grade:Evo.world.max):0);
   // 多細胞系統の継承: 世代ごとに細胞数が増えうるが O2拡散限界/循環系で上限が決まる（MultiScale）
   const mcP=pA&&pA.mc?pA:(pB&&pB.mc?pB:null);
   if(mcP&&typeof MultiScale!=='undefined'){o.mc=MultiScale.inherit(mcP.mc,g);o.multicell=o.mc.cells;}
@@ -1442,6 +1500,30 @@ function spawnOrg(u,v,pA,pB,ov){
 
 function simOrgs(dt){
   const cool=Math.max(0,Math.min(1,1-simY/4.6e9));
+  // 単細胞〜群体（進化段階2まで）は個体数上限の6割までしか増えない（多細胞の系統が増える余地を残す。
+  // 表示上の個体数の上限のための措置で、実際の微生物は桁違いに多い）
+  // 植物も上限の35%まで（動物の系統が進化する余地を残す）
+  let lowN=0,plantN=0;organisms.forEach(o=>{if(o.grade<=2)lowN++;else if(trophic(o.g)==='plant')plantN++;});
+  // 個体数が上限に達しているときは、より進化段階の高い系統の子が、下位段階の個体の枠を引き継ぐ
+  // （上限のための措置。これがないと新しい段階の系統が殖える余地がなく、進化が止まる）
+  let pend=0;
+  const isPl=o=>trophic(o.g)==='plant';
+  // 種類ごとの枠（微生物6割・植物35%）に空きがあるか
+  const kindRoom=o=>!(o.grade<=2&&lowN>=MAXO*.6)&&!(o.grade>2&&isPl(o)&&plantN>=MAXO*.35);
+  const counted=o=>{if(o.grade<=2)lowN++;else if(isPl(o))plantN++;};
+  const roomFor=o=>{if(!kindRoom(o))return false;if(organisms.length-pend<MAXO*.95)return true;if(organisms.length>=MAXO-1)return false;
+    // 生産者（植物・微生物）が最低限の割合を下回ったら、動物の枠を取り戻す（生態系の土台を保つ）
+    if((isPl(o)&&o.grade>2&&plantN<MAXO*.25)||(o.grade<=2&&lowN<MAXO*.15)){
+      for(let k=0;k<12;k++){const q=organisms[Math.floor(Math.random()*organisms.length)];
+        if(q&&q.alive&&q!==o&&q.grade>2&&!isPl(q)&&q.stage!=='egg'){q.alive=false;q._cause='生産者に場所を奪われる';pend++;return true;}}}
+    if(!(o.grade>=3))return false;
+    // 置き換えるのは同じ界（動物どうし・植物どうし）の下位段階だけ。微生物は上限の2割は必ず残す
+    const pl=trophic(o.g)==='plant';
+    for(let k=0;k<12;k++){const q=organisms[Math.floor(Math.random()*organisms.length)];
+      if(!q||!q.alive||q===o||(q.grade||0)>=o.grade||q.stage==='egg'||(trophic(q.g)==='plant')!==pl)continue;
+      if(q.grade<=2&&lowN<=MAXO*.2)continue;
+      q.alive=false;q._cause='より複雑な生物に置き換わる';pend++;if(q.grade<=2)lowN--;return true;}
+    return false;};
   const rem=[];
   organisms.forEach((o,oi)=>{
     if(!o.alive)return;
@@ -1489,6 +1571,7 @@ function simOrgs(dt){
     Life.crowding(o,organisms,dt);eg*=Life.foodFactor(o);
     if(Math.random()<Life.diseaseRate(o)*dt){o._cause='病気（過密）';rem.push(oi);return;}
     eg*=(.45+.55*gm);                                 // 幼体は口も消化管も小さい
+    eg*=Evo.efficiency(o.grade,O2);                    // 進化段階が上がるほど効率よくエネルギーを得る（真核化・多細胞化）
     o.e+=eg*dt;
     const sz=o.g[16];
     // 基礎代謝 + 神経維持ATP(g[5]) + size²ペナルティ + 攻撃コスト（体が小さいほど代謝量も小さい）
@@ -1515,34 +1598,38 @@ function simOrgs(dt){
     const rs=rStage(o.g);o.st=rs.st;o.gt=rs.gt;
     if(o.rt>0)o.rt-=dt;
     // 繁殖: 1回に使うエネルギーは有限。多産なら小さな子をたくさん、少産なら大きな子を少し（Smith & Fretwell 1974）
-    const plan=Life.reproPlan(o.g);
-    if(o.stage==='adult'&&o.e>plan.threshold&&organisms.length<MAXO*.95&&o.rt<=0){
-      if(o.st===0){
+    const plan=Life.reproPlan(o.g,o.grade);
+    if(o.stage==='adult'&&o.e>plan.threshold&&o.rt<=0&&kindRoom(o)){
+      if(o.st===0||o.grade<=2){
         // 無性生殖 → Genome.mutate（分裂: 娘細胞は小さく生まれて育つ。植物は種子をまとめて落とす）
+        // 単細胞〜群体（進化段階2まで）は相手がいなくても分裂で殖える
         o.e-=plan.budget; o.rt=.4;
-        const sd=Life.birthMode(o.g)==='seed'?.03:Life.birthSpread(plan.n)*2;
-        for(let k=0;k<plan.n&&organisms.length<MAXO*.95;k++){
+        const sd=Life.birthMode(o.g,o.grade)==='seed'?.03:Life.birthSpread(plan.n)*2;
+        for(let k=0;k<plan.n;k++){
           const ng=Genome.mutate(o.g, 0.07, 0.22);
-          Life.birth(spawnOrg(((o.u+(Math.random()-.5)*sd)+1)%1,Math.max(.01,Math.min(.99,o.v+(Math.random()-.5)*sd)),null,null,ng),o,plan.quality);
+          if(!roomFor({g:ng,grade:o.grade}))break;   // 枠は子の遺伝子（動物/植物）で判定
+          const ch=Life.birth(spawnOrg(((o.u+(Math.random()-.5)*sd)+1)%1,Math.max(.01,Math.min(.99,o.v+(Math.random()-.5)*sd)),o,null,ng),o,plan.quality);
+          if(ch)counted(ch);
         }
       } else {
         // 有性生殖 → Breeding.cross
         let mate=null,md=.06;
         organisms.forEach((o2,j)=>{if(j===oi||!o2.alive||o2.stage!=='adult')return;const ok=o.st===1&&o2.st===1||(o.gt===0||o2.gt===0||(o.gt===1&&o2.gt===2)||(o.gt===2&&o2.gt===1));if(!ok)return;const du=o.u-o2.u,dv=o.v-o2.v,d=Math.sqrt(du*du+dv*dv);if(d<md){md=d;mate=o2;}});
         const bearer=mate&&(o.gt===1?o:mate);
-        if(mate&&bearer.e>Life.reproPlan(bearer.g).budget+.1){   // 産む側に繁殖予算がなければ見送る
+        if(mate&&bearer.e>Life.reproPlan(bearer.g,bearer.grade).budget+.1){   // 産む側に繁殖予算がなければ見送る
           o.rt=o.gt===1?1.0:.25; mate.rt=.25;
           const dominant=o.gt===1?.65:.5;
           const ng=Breeding.cross(o.g, mate.g, {rate:0.07, amt:0.22, dominant});
           const sp2=o.gt===1?o:mate,oth=sp2===o?mate:o;
           // 産む側が繁殖予算を払う（子の数と1匹あたりの投資は産む側の遺伝子で決まる）。相手は配偶のコストのみ
-          const bp=Life.reproPlan(sp2.g);
+          const bp=Life.reproPlan(sp2.g,sp2.grade);
           sp2.e-=bp.budget; oth.e-=.08;
-          for(let k=0;k<bp.n&&organisms.length<MAXO*.95;k++){
+          for(let k=0;k<bp.n;k++){
             const cg=k===0?ng:Breeding.cross(o.g, mate.g, {rate:0.07, amt:0.22, dominant});
+            if(!roomFor({g:cg,grade:sp2.grade}))break;
             const spr=Life.birthSpread(bp.n)*2;   // 多産ほど広くばらまく
             const ch=spawnOrg(((sp2.u+(Math.random()-.5)*spr)+1)%1,Math.max(.01,Math.min(.99,sp2.v+(Math.random()-.5)*spr)),o,mate,cg);
-            Life.birth(ch,sp2,bp.quality);
+            Life.birth(ch,sp2,bp.quality);if(ch)counted(ch);
           }
         }
       }
@@ -1557,6 +1644,15 @@ function simOrgs(dt){
   // 捕食で死んだ個体（他個体の処理中に alive=false になったもの）を除去
   if(organisms.some(o=>!o.alive)){organisms=organisms.filter(o=>{if(o.alive)return true;if(selOrg===o)selOrg=null;return false;});}
   if(organisms.length===0||Math.random()<.12)tryAbio();
+  // 微生物（生態系の土台）が減りすぎたら、噴出孔や微生物マットから補充する（実際の微生物は桁違いに多い）
+  if(lowN<MAXO*.08&&organisms.length<MAXO-2&&Math.random()<.15){const c=colonies.length?colonies[Math.floor(Math.random()*colonies.length)]:findBest();
+    const m=spawnOrg(((c.u+(Math.random()-.5)*.1)+1)%1,Math.max(.01,Math.min(.99,c.v+(Math.random()-.5)*.1)),null,null,null);if(m&&c.orgs)c.orgs.push(m);}
+  // 従属栄養の系統（動物の祖先）が消えかけたら、従属栄養の微生物を補充する（植物・藻類だけの世界にしない）
+  {let het=0;organisms.forEach(q=>{if(q.alive&&trophic(q.g)!=='plant')het++;});
+   if(het<MAXO*.1&&Math.random()<.15&&colonies.length){const c=colonies[Math.floor(Math.random()*colonies.length)];
+     if(organisms.length>=MAXO-2){const v=organisms.find(q=>q.alive&&trophic(q.g)==='plant'&&q.stage!=='egg');if(v){v.alive=false;v._cause='入れ替わり';organisms.splice(organisms.indexOf(v),1);}}
+     const g=new Float32Array(GC).map(()=>Math.random());g[13]=Math.random()*.2;g[14]=Math.random()*.3;g[10]=.5+Math.random()*.5;
+     const m=spawnOrg(((c.u+(Math.random()-.5)*.1)+1)%1,Math.max(.01,Math.min(.99,c.v+(Math.random()-.5)*.1)),null,null,Object.assign(g,{_grade:0}));if(m)c.orgs.push(m);}}
   if(Math.random()<.04){const ri=Math.floor(Math.random()*N),rj=Math.floor(Math.random()*N),ridx=rj*N+ri;if(OM[ridx]>.01){const dc=OM[ridx]*.04*dt;OM[ridx]-=dc;NM[ridx]=Math.min(1,NM[ridx]+dc*.4);}if(NM[ridx]<.3&&VM[ridx]>.1)NM[ridx]=Math.min(1,NM[ridx]+.002*dt);}
 }
 
@@ -1658,12 +1754,65 @@ function simColonies(dt){
   colonies.forEach(col=>{
     col.orgs=col.orgs.filter(o=>o.alive);
     organisms.forEach(o=>{if(col.orgs.includes(o))return;const du=o.u-col.u,dv=o.v-col.v;if(du*du+dv*dv<.015&&col.orgs.length<40)col.orgs.push(o);});
-    const gp=col.orgs.slice(0,20).map(o=>Array.from(o.g));
+    const gp=col.orgs.slice(0,20).map(o=>Object.assign(Array.from(o.g),{_grade:o.grade}));   // 系統の進化段階も一緒に運ぶ
     col.sT+=dt;if(col.sT>3){col.sT=0;spreadCol(col,gp);}
     col.nsT+=dt;if(col.nsT>6&&!pendingNS){col.nsT=0;checkNS(col,gp);}
   });
 }
-function spreadCol(src,gp){if(!gp.length)return;colonies.forEach(tgt=>{if(tgt===src)return;const du=src.u-tgt.u,dv=src.v-tgt.v,dist=Math.sqrt(du*du+dv*dv);if(Math.random()>Math.max(0,1-dist*2.5))return;const sg=gp[Math.floor(Math.random()*gp.length)];const tgp=tgt.orgs.map(o=>Array.from(o.g));const tg=tgp.length>0?tgp[Math.floor(Math.random()*tgp.length)]:sg;const ng=new Float32Array(GC);for(let i=0;i<GC;i++){let v=Math.random()<.5?sg[i]:tg[i];if(Math.random()<.06)v+=(Math.random()-.5)*.18;ng[i]=Math.max(0,Math.min(1,v));}if(organisms.length<MAXO&&tgt.orgs.length<40){const o=spawnOrg(((tgt.u+(Math.random()-.5)*.04)+1)%1,Math.max(.01,Math.min(.99,tgt.v+(Math.random()-.5)*.04)),null,null,ng);if(o)tgt.orgs.push(o);}});}
+// ================================================================
+// Disturb — 局所的な撹乱（火事・洪水）
+//   ・撹乱で空いた場所に、多産・早熟・広く分散する種がいち早く入り込む → 多産戦略が存続できる
+//     （逃亡種: Hutchinson 1951、中規模撹乱仮説: Connell 1978）
+//   ・火事: 大気の酸素が15%以上で、植生（植物・菌類）がある陸でだけ起きる（酸素15%未満では燃え広がらない:
+//     Belcher & McElwain 2008。最古の山火事の痕跡は約4.2億年前: Glasspool et al. 2004）。
+//     灰が栄養になり、焼け跡は芽吹く。土に潜る・隠れる動物や、火に強い種子は生き残りやすい
+//   ・洪水: 水辺に近い低い陸で起きる。水棲の生物は無事で、陸の生物（特に卵）が流される。泥が栄養を運ぶ
+// ================================================================
+const Disturb=(function(){
+  const events=[],SHOW=7;   // SHOW: 3D表示の秒数（実時間）
+  let timer=15;
+  const tile=(u,v)=>{const i=Math.floor(((u%1)+1)%1*N)%N,j=Math.max(0,Math.min(N-1,Math.floor(v*N)));return{i,j,idx:j*N+i};};
+  function nearWater(i,j){for(let a=-2;a<=2;a++)for(let b=-2;b<=2;b++){const ni=(i+a+N)%N,nj=Math.max(0,Math.min(N-1,j+b));if(WM[nj*N+ni]>.5)return true;}return false;}
+  function pickSite(){
+    // 6割は拠点の近く（観察できるように）、残りは生物のいる場所
+    if(colonies.length&&Math.random()<.6){const c=colonies[Math.floor(Math.random()*colonies.length)];return{u:((c.u+(Math.random()-.5)*.12)+1)%1,v:Math.max(.01,Math.min(.99,c.v+(Math.random()-.5)*.12))};}
+    if(!organisms.length)return null;const o=organisms[Math.floor(Math.random()*organisms.length)];
+    return{u:((o.u+(Math.random()-.5)*.04)+1)%1,v:Math.max(.01,Math.min(.99,o.v+(Math.random()-.5)*.04))};
+  }
+  function trigger(type,u,v,r){
+    const t=tile(u,v);r=r||.02+Math.random()*.02;let killed=0;
+    organisms.forEach(o=>{if(!o.alive)return;const du=((o.u-u+1.5)%1)-.5,dv=o.v-v;if(du*du+dv*dv>r*r)return;
+      const ot=tile(o.u,o.v),wet=WM[ot.idx]>.5,aqua=o.g[20]>.65;
+      let p=0;
+      if(type==='fire'){if(wet)return;
+        p=o.stage==='egg'?(o.bmode==='seed'?.2:.6):o.strat==='hide'?.3:o.strat==='flee'?.45:.65;}   // 種子は火に強く、潜る動物は助かりやすい
+      else{if(wet&&aqua)return;if(aqua)p=.1;else p=o.stage==='egg'?.7:o.strat==='flee'?.35:.5;}
+      if(Math.random()<p){o.alive=false;o._cause=type==='fire'?'山火事':'洪水';killed++;}});
+    // 資源: 火事は微生物マットと菌類を焼き、灰が栄養になる。洪水は泥（栄養・有機物）を運ぶ
+    const R=Math.ceil(r*N)+1;
+    for(let a=-R;a<=R;a++)for(let b=-R;b<=R;b++){const ni=(t.i+a+N)%N,nj=Math.max(0,Math.min(N-1,t.j+b)),k=nj*N+ni;if(WM[k]>.5)continue;
+      if(type==='fire'){MB[k]*=.4;FG[k]*=.3;NM[k]=Math.min(1,NM[k]+.25);}
+      else{NM[k]=Math.min(1,NM[k]+.15);MB[k]=Math.min(1,MB[k]+.08);OM[k]=Math.min(1,OM[k]+.1);}}
+    const e={type,u,v,r,t0:performance.now(),killed,simY};events.push(e);if(events.length>40)events.shift();
+    logEvent('DISTURB',{type:type==='fire'?'山火事':'洪水',killed,simY:Math.round(simY)});
+    if(focusCol){const du=((u-focusCol.u+1.5)%1)-.5,dv=v-focusCol.v;if(Math.abs(du)<.16&&Math.abs(dv)<.16)flash((type==='fire'?'🔥 山火事':'🌊 洪水')+'（'+killed+'体が死亡）\n焼け跡・泥の上で生き物が入れ替わる');}
+    return e;
+  }
+  function step(dt){
+    timer-=dt;if(timer>0)return;timer=12+Math.random()*16;
+    const site=pickSite();if(!site)return;
+    const t=tile(site.u,site.v);if(WM[t.idx]>.5)return;      // 水中では起きない
+    let plants=0;organisms.forEach(o=>{if(o.alive&&trophic(o.g)==='plant'){const du=((o.u-site.u+1.5)%1)-.5,dv=o.v-site.v;if(du*du+dv*dv<.0016)plants++;}});
+    const canFire=O2>=.15&&(plants>=2||FG[t.idx]>.35),canFlood=nearWater(t.i,t.j);
+    const types=[];if(canFire)types.push('fire');if(canFlood)types.push('flood');
+    if(!types.length)return;
+    trigger(types[Math.floor(Math.random()*types.length)],site.u,site.v);
+  }
+  function active(){const now=performance.now();return events.filter(e=>now-e.t0<SHOW*1000).map(e=>Object.assign({},e,{life:(now-e.t0)/(SHOW*1000)}));}
+  return{step,trigger,active,events,reset(){events.length=0;timer=15;}};
+})();
+
+function spreadCol(src,gp){if(!gp.length)return;colonies.forEach(tgt=>{if(tgt===src)return;const du=src.u-tgt.u,dv=src.v-tgt.v,dist=Math.sqrt(du*du+dv*dv);if(Math.random()>Math.max(0,1-dist*2.5))return;const sg=gp[Math.floor(Math.random()*gp.length)];const tgp=tgt.orgs.map(o=>Object.assign(Array.from(o.g),{_grade:o.grade}));const tg=tgp.length>0?tgp[Math.floor(Math.random()*tgp.length)]:sg;const ng=new Float32Array(GC);for(let i=0;i<GC;i++){let v=Math.random()<.5?sg[i]:tg[i];if(Math.random()<.06)v+=(Math.random()-.5)*.18;ng[i]=Math.max(0,Math.min(1,v));}ng._grade=Math.min(sg._grade!=null?sg._grade:0,tg._grade!=null?tg._grade:0);if(organisms.length<MAXO&&tgt.orgs.length<40){const o=spawnOrg(((tgt.u+(Math.random()-.5)*.04)+1)%1,Math.max(.01,Math.min(.99,tgt.v+(Math.random()-.5)*.04)),null,null,ng);if(o)tgt.orgs.push(o);}});}
 // gdist → Genome.distance へ委譲済み（後段ラッパー参照）
 function checkNS(col,gp){
   if(!gp.length)return;
@@ -2110,6 +2259,8 @@ function drawPlanet(){
       ctx.fillStyle=col.color;ctx.font='9px monospace';ctx.fillText(col.name+'('+col.orgs.filter(o=>o.alive).length+')',p.sx+11,p.sy+3);
       col._s={sx:p.sx,sy:p.sy};
     });
+    // 撹乱（火事・洪水）の発生地点
+    Disturb.active().forEach(e=>{const p=Planet3D.project(e.u,e.v);if(!p.vis)return;ctx.globalAlpha=Math.sin(Math.PI*Math.min(1,e.life));ctx.font='16px sans-serif';ctx.textAlign='center';ctx.fillText(e.type==='fire'?'🔥':'🌊',p.sx,p.sy+6);ctx.textAlign='left';ctx.globalAlpha=1;});
     if(colonyMode){ctx.font='bold 13px monospace';ctx.textAlign='center';ctx.fillStyle='rgba(100,255,150,.9)';ctx.fillText('設置場所をタップ',W/2,H*.12);ctx.textAlign='left';}
     return;
   }
@@ -2222,7 +2373,7 @@ function drawRegion2D(){
     const{sx,sy}=iso(wx,wy,gh);
     // v18: 卵・種子は小さな楕円で描く
     if(o.stage==='egg'){ctx.fillStyle=o.bmode==='seed'?'#7a5a32':'#efe6cf';ctx.beginPath();ctx.ellipse(sx,sy-2,2.2,3,0,0,Math.PI*2);ctx.fill();return;}
-    if(!o.body3d)o.body3d=buildBody3D(o.g);
+    if(!o.body3d)o.body3d=buildBody3D(o.g,o.grade);
     // v15d: 多細胞クラスター → 細胞数に応じたスケール拡大・単一3Dモデル（仕様1.7）
     const cellFactor = o.multicell ? Math.pow(o.multicell, 0.35) : 1; // 細胞数^0.35でスケール（急増防止）
     const isSel=o===selOrg, b3=o.body3d;
@@ -2729,6 +2880,8 @@ function registerClusterToRegion(members,info){
   for(let i=0;i<GC;i++)ag[i]/=members.length;
   ag[3]=Math.min(1,ag[3]+.2); ag[16]=Math.min(1,ag[16]+.3); // 接着↑・大型化
   const o=spawnOrg(((microU+(Math.random()-.5)*.03)+1)%1,Math.max(.01,Math.min(.99,microV+(Math.random()-.5)*.03)),null,null,ag);
+  // ミクロ視点で群体/多細胞体が成立した = 多細胞化の進化（分業済みなら単純な多細胞体）
+  if(o){const gr=info&&info.germSoma?3:2;if(o.grade<gr){o.grade=gr;Evo.constrain(o.g,gr);Evo.record(o,gr,simY);}o.body3d=null;}
   if(o){o.multicell=members.length;if(info)o.mc={cells:info.cells,types:info.types,germSoma:info.germSoma,route:info.route,R_um:info.R_um,circ:false};focusCol.orgs.push(o);logEvent('GENETICS',{event:'多細胞生物',cells:members.length,trophic:trophic(ag)});}
 }
 
@@ -3011,10 +3164,15 @@ function drawRegion(){
     // 行動（逃走/反撃/隠れる/狩り）
     const ic=ACT_ICON[o.act];if(ic){ctx.font='11px sans-serif';ctx.textAlign='center';ctx.fillText(ic,p.sx+bw/2+8,p.sy+5);ctx.textAlign='left';}
     if(o===selOrg||o===possessed){
-      const lines=[(PLAN_NAMES_RIG[o.body3d&&o.body3d.plan]||'')+(o.mc?' / '+MultiScale.describe(o.mc):''),rigSummary(R),
+      const lines=['🧬'+Evo.label(o.grade,o.g)+' / '+(PLAN_NAMES_RIG[o.body3d&&o.body3d.plan]||'')+(o.mc?' / '+MultiScale.describe(o.mc):''),rigSummary(R),
         Life.stageLabel(o)+(o.stage==='juv'?' 成熟'+Math.round((o.dev||0)*100)+'%':'')+'  戦略:'+(Life.STRAT_JP[o.strat]||'—')+'  速'+Life.fleePow(o).toFixed(2)+' 攻'+Life.attackPow(o).toFixed(2)+' 防'+Life.defensePow(o).toFixed(2)];
       ctx.font='10px monospace';ctx.textAlign='center';lines.forEach((t,k)=>{ctx.fillStyle='rgba(0,0,0,.55)';const w=ctx.measureText(t).width+8;ctx.fillRect(p.sx-w/2,p.sy-43+k*13,w,13);ctx.fillStyle=k?'#9cf':'#ffe9a8';ctx.fillText(t,p.sx,p.sy-33+k*13);});ctx.textAlign='left';}
   });
+  // 撹乱のラベル
+  Disturb.active().forEach(e=>{const p=Region3D.uvToXY(e.u,e.v);if(Math.abs(p.x)>Region3D.HALF||Math.abs(p.y)>Region3D.HALF)return;
+    const q=Region3D.project(p.x,p.y,Region3D.gz(p.x,p.y)+260);if(!q.vis)return;ctx.font='bold 12px sans-serif';ctx.textAlign='center';
+    const t=(e.type==='fire'?'🔥 山火事':'🌊 洪水')+'  '+e.killed+'体死亡',w=ctx.measureText(t).width+12;ctx.fillStyle='rgba(0,0,0,.55)';ctx.fillRect(q.sx-w/2,q.sy-14,w,19);
+    ctx.fillStyle=e.type==='fire'?'#ffb36b':'#9fd0ff';ctx.fillText(t,q.sx,q.sy);ctx.textAlign='left';});
   // コンパス
   ctx.save();ctx.translate(W-38,58);ctx.rotate(-rvAngle);ctx.fillStyle='rgba(255,80,80,.9)';ctx.beginPath();ctx.moveTo(0,-13);ctx.lineTo(-4,4);ctx.lineTo(4,4);ctx.closePath();ctx.fill();ctx.fillStyle='rgba(200,200,200,.45)';ctx.beginPath();ctx.moveTo(0,13);ctx.lineTo(-4,-4);ctx.lineTo(4,-4);ctx.closePath();ctx.fill();ctx.restore();
   ctx.fillStyle='rgba(200,169,126,.55)';ctx.font='8px monospace';ctx.textAlign='center';ctx.fillText('N',W-38,50);ctx.textAlign='left';
@@ -3314,6 +3472,7 @@ document.getElementById('b-pause').addEventListener('click',()=>{paused=true;doc
 document.getElementById('b-play').addEventListener('click',()=>{paused=false;document.getElementById('b-play').classList.add('on');document.getElementById('b-pause').classList.remove('on');});
 document.getElementById('b-layer').addEventListener('click',()=>{layer=(layer+1)%5;terrainTextureDirty=true;document.getElementById('b-layer').textContent=['地形','温度','微生物','化学','酸素'][layer];});
 document.getElementById('b-reset').addEventListener('click',()=>{
+  Evo.reset();Disturb.reset();
   simY=4.6e9;clkY=4600000000;clkF=0;futureY=0;realtimeMode=false;firedEvents.clear();timeFrozen=false;possessed=null;paused=true;playerSpeed=SPD_VALS[4];organisms.length=0;colonies.length=0;selOrg=null;CP=200;genMax=0;orgId=0;colId=0;knownSp.length=0;pendingNS=null;colonyMode=false;focusCol=null;
   MB.fill(0);VR.fill(0);FG.fill(0);OM.fill(0);PM.fill(0);
   O2=0;globalCO2=.95;globalCH4=.55;photoBiomass=0;peakCluster=0;
@@ -3533,7 +3692,7 @@ document.getElementById('fav-imp').addEventListener('change',e=>{const f=e.targe
 // ================================================================
 let gameLog=[];            // 全ログ（DL用）
 let logPanelVisible=false;
-const LOG_COLORS={TERRAIN:'#c8a97e',MICROBE:'#88cc88',SPAWN:'#88ccff',METABOLISM:'#ccaa66',
+const LOG_COLORS={EVOLUTION:'#9fe0a8',DISTURB:'#ff9f6b',TERRAIN:'#c8a97e',MICROBE:'#88cc88',SPAWN:'#88ccff',METABOLISM:'#ccaa66',
   EXTINCTION:'#ff8866',REPRODUCE:'#cc88ff',GENETICS:'#ffcc44',CLUSTER:'#88ffdd',EVENT:'#ffffaa',ISSUE:'#ff5555'};
 const logStats={};
 
@@ -3655,6 +3814,48 @@ function closeDetailView() {
 }
 
 // v18: 成長段階と生存戦略（成熟度で伸びる実効値を成体値と並べて表示）
+// ================================================================
+// 進化の系譜パネル: 各段階の姿（3D）・到達した時代・次の条件・現在の個体数
+// ================================================================
+// まだ到達していない段階は、脊索動物の系統を想定した参照遺伝子で「どんな姿になるか」を描く
+const EVO_REF=(()=>{const g=new Float32Array(GC).fill(.4);Object.assign(g,{0:.6,1:.75,2:.2,3:.8,4:.7,5:.6,7:.7,9:.7,10:.7,13:.05,14:.1,16:.6,17:.7,20:.3,22:.4});return g;})();
+function evoThumb(cv,g,grade){
+  const x=cv.getContext('2d');x.fillStyle='#07121c';x.fillRect(0,0,cv.width,cv.height);
+  if(!HAS3D())return;
+  // 小さな生物（微生物など）も大きく見えるように、体の大きさに合わせて寄る
+  try{const m=Evo.build(g,grade),st=Preview3D.makeState(m,1);
+    Preview3D.render(st,cv,{walk:false,dt:1/60,yaw:.6,minExt:grade===2?8:2,colony:grade===2?3+Math.round(Math.min(1,g[3])*6):0});
+  }catch(e){console.warn('evoThumb',e);}
+}
+function renderEvoPanel(){
+  const body=document.getElementById('evo-body');if(!body)return;
+  const W0=Evo.world,cnt=new Array(Evo.MAXG+1).fill(0);organisms.forEach(o=>{if(o.alive)cnt[o.grade||0]++;});
+  let h=`<div style="font-size:11px;color:#9ab;line-height:1.7;margin-bottom:10px">各系統は親の進化段階を受け継ぎ、<b>大気の酸素</b>と<b>必要な遺伝子</b>がそろったときに、繁殖のたびに小さな確率で次の段階へ進みます。
+    段階ごとに体の大きさ・神経・筋肉などの上限があり、その段階に達するまでは魚・トカゲ・ネズミのような生物は生まれません。<br>
+    現在の最高段階: <b style="color:#9fe0a8">${Evo.GRADES[W0.max].name}</b>　大気の酸素 <b>${(O2*100).toFixed(1)}%</b>　陸上植物 <b>${W0.landPlants?'あり':'なし'}</b></div>`;
+  Evo.GRADES.forEach((G,k)=>{const f=W0.first[k],done=!!f,next=k===W0.max+1;
+    const req=k>0?Evo.REQ[k].txt:'自然発生（熱水噴出孔など）';
+    h+=`<div style="display:flex;gap:12px;align-items:center;padding:8px;margin-bottom:6px;border:1px solid ${done?'rgba(120,220,150,.35)':next?'rgba(255,220,140,.35)':'rgba(120,140,160,.15)'};border-radius:6px;background:${done?'rgba(20,50,30,.35)':'rgba(10,20,30,.4)'}">
+      <canvas class="evo-th" data-k="${k}" width="132" height="96" style="position:static;display:block;width:132px;height:96px;border-radius:4px;flex-shrink:0;opacity:${done?1:.45}"></canvas>
+      <div style="flex:1;font-size:11px;line-height:1.6">
+        <div><b style="color:${done?'#9fe0a8':next?'#ffe9a8':'#7a8a99'}">${k}. ${G.name}</b> <span style="color:#7a8a99">${G.sub}</span></div>
+        <div style="color:#8ab">地球史: ${G.ago} ／ 例: ${G.rep}</div>
+        <div style="color:${done?'#9fe0a8':'#a99'}">${done?'✓ 到達: '+fmtY(f.simY)+(f.plant?'（植物の系統）':'')+' ／ 生存 '+cnt[k]+'体':(next?'▶ 次の段階: ':'🔒 ')+'条件 — '+req}</div>
+      </div></div>`;});
+  h+=`<div style="font-size:10px;color:#667;line-height:1.6;margin-top:8px">植物の系統はシアノバクテリア → 単細胞藻類 → 群体性藻類 → 海藻（水中のみ）→ 陸上植物（酸素4%以上でオゾン層ができ、陸に接していると上陸）と進みます。<br>
+    根拠: 主要な進化的移行（Maynard Smith & Szathmáry 1995）、動物の出現と酸素（Mills et al. 2014; Sperling et al. 2013）、四肢動物の上陸（Clack 2012）、有羊膜卵（Sumida & Martin 1997）。詳細は設計メモ第7章。</div>`;
+  body.innerHTML=h;
+  // 3Dの姿: 到達済みは最初にその段階へ進んだ系統の遺伝子、未到達は参照遺伝子で描く
+  body.querySelectorAll('canvas.evo-th').forEach(cv=>{const k=+cv.dataset.k,f=W0.first[k];evoThumb(cv,f?Float32Array.from(f.g):EVO_REF,k);});
+}
+document.getElementById('b-evo').addEventListener('click',()=>{document.getElementById('evo-panel').style.display='flex';renderEvoPanel();});
+document.getElementById('evo-close').addEventListener('click',()=>{document.getElementById('evo-panel').style.display='none';});
+// 新しい段階に到達したら通知
+Evo.onAdvance=(grade,o)=>{const G=Evo.GRADES[grade];
+  logEvent('EVOLUTION',{grade,name:Evo.label(grade,o.g),simY:Math.round(simY)});
+  flash('🧬 進化: '+Evo.label(grade,o.g)+'\n'+G.sub+'（地球史では'+G.ago+'）');
+  if(document.getElementById('evo-panel').style.display==='flex')renderEvoPanel();};
+
 function lifeHtml(o,row){
   Life.ensure(o);
   const BM={seed:'🌰種子で殖える',fission:'🦠分裂で殖える',egg:'🥚卵生（多産・高死亡率）',live:'🤱胎生（赤子を産み守る）'};
@@ -3663,6 +3864,7 @@ function lifeHtml(o,row){
   const fA=Life.fleePow(ad),aA=Life.attackPow(ad),dA=Life.defensePow(ad);
   const prog=o.stage==='egg'?(o._eggProg!=null?o._eggProg:0):(o.dev||0);
   return `<div style="border-top:1px solid #0d2010;padding-top:8px;margin-top:6px">
+  <div style="font-size:10px;margin-bottom:4px">進化段階: <b style="color:#9fe0a8">${Evo.label(o.grade,o.g)}</b>（${(o.grade||0)}/${Evo.MAXG}）${o.grade<Evo.MAXG?'<br><span style="color:#667">次の段階の条件: '+Evo.nextReqText(o.grade,o.g)+'</span>':''}</div>
   <div style="font-size:10px;margin-bottom:4px">成長段階: <b style="color:#ffe9a8">${Life.stageLabel(o)}</b>
    ${o.stage==='egg'?'（孵化まで'+Math.round(prog*100)+'%）':o.stage==='juv'?'（成熟度 '+Math.round(prog*100)+'%）':''}
    / 繁殖: <b>${BM[o.bmode||Life.birthMode(o.g)]}</b></div>
@@ -3679,7 +3881,7 @@ function renderDetailStats(o) {
   const g = o.g, tr = traits(g), tc = trophic(g);
   const TNAMES={plant:'🌿植物',herbivore:'🦌草食',carnivore:'🦁肉食',omnivore:'◎雑食',detritivore:'🍂腐食'};
   const PLAN_NAMES={microbe:'微生物',worm:'蠕虫',arthropod:'節足動物',swimmer:'遊泳生物',predator:'捕食者',radialoid:'放射対称生物',plant:'植物型'};
-  const m = o.body3d || buildBody3D(g);
+  const m = o.body3d || buildBody3D(g,o.grade);
   const ti=Math.floor(o.u*N)%N, tj=Math.floor(o.v*N)%N, idx=tj*N+ti;
   const chem = Terrain.chemistryAt(idx);
 
@@ -3770,7 +3972,7 @@ function startDetailAnim() {
     ctx2.beginPath(); ctx2.ellipse(w*.5, h*.78, w*.2, h*.04, 0, 0, Math.PI*2);
     ctx2.fillStyle = 'rgba(0,0,0,.3)'; ctx2.fill();
     const t = (performance.now()-t0)*.001;
-    if (!detOrg.body3d) detOrg.body3d = buildBody3D(detOrg.g);
+    if (!detOrg.body3d) detOrg.body3d = buildBody3D(detOrg.g,detOrg.grade);
     if (HAS3D()) {
       if (!detState || detState.org!==detOrg) { detState = Preview3D.makeState(detOrg.body3d, Region3D.orgScale(detOrg)); detState.org=detOrg; }
       let si=null; try{ si = Preview3D.render(detState, cv2, {yaw:detYaw, zoom:detScale, dt:1/60, showSupport:true}); }catch(e){ console.error(e); }
@@ -4203,7 +4405,7 @@ const Renderer = {
 
   // (org, ctx, sx, sy, scale, yaw, t) -> void  単体生物描画（副作用）
   drawOrganism: (org, cx, sx, sy, sc, yaw, t, sel) =>
-    Model3D.draw(cx, org.body3d || buildBody3D(org.g), {x:sx,y:sy,scale:sc,yaw}, null, t, sel, org),
+    Model3D.draw(cx, org.body3d || buildBody3D(org.g,org.grade), {x:sx,y:sy,scale:sc,yaw}, null, t, sel, org),
 };
 
 window.Clock    = Clock;
@@ -4437,7 +4639,7 @@ function loop(){
     if(terrT > terrInterval){ terrT=0; genTerrain(); terrainTextureDirty=true; }
     const steps = effSpd > 1e9 ? 4 : effSpd > 1e7 ? 3 : effSpd > 1e5 ? 2 : 1;
     const sdt = dt / steps;
-    for(let s=0;s<steps;s++){simMicrobes(sdt);simOrgs(sdt);simColonies(sdt);}
+    for(let s=0;s<steps;s++){simMicrobes(sdt);simOrgs(sdt);simColonies(sdt);Disturb.step(sdt);}
     if(view===V_MICRO)for(let s=0;s<steps;s++)simMV(sdt);
     updateChemistry(dt,effSpd);
     checkEraEvents();
@@ -4506,7 +4708,8 @@ function loop(){
 // 34遺伝子形態（肢ペア・体節・放射腕・角・毛皮模様など）が全ビューで反映される。
 // ゲームの24遺伝子個体は CreatureEngine 内部で padGenome() が34遺伝子へ決定論的に拡張する。
 if(typeof CreatureEngine!=='undefined'){
-  buildBody3D = (g)=>CreatureEngine.build(g);
+  // 見た目は進化段階で制限する（段階を渡さないプレビューは、世界で到達済みの最高段階で描く）
+  buildBody3D = (g,grade)=>Evo.build(g,grade!=null?grade:(g&&g._grade!=null?g._grade:Evo.world.max));
   drawCreature3D = (m,sx,sy,scale,yaw,t,sel,org,cx)=>{ if(m) CreatureEngine.draw(m,sx,sy,scale,yaw||0,t||0,cx||ctx); };
   if(typeof LifeGfx==='object'&&LifeGfx){ try{ LifeGfx.build3D=(g)=>CreatureEngine.build(g); LifeGfx.complexity=(g)=>CreatureEngine.complexity(g); }catch(e){} }
 }
