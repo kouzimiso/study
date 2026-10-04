@@ -23,6 +23,27 @@
 
   const USER_AGENT = 'study-tripscheduler/1.0 (+https://github.com/kouzimiso/study)';
 
+  /**
+   * 複数のAbortSignal（タイムアウト用・呼び出し元のキャンセルボタン用など）を
+   * 1つにまとめる。`AbortSignal.any()`は比較的新しいAPIのため、どの環境でも
+   * 動くようにイベントリスナーで手動合成する。signalが1つも無ければ
+   * undefinedを返す（fetchにsignal:undefinedを渡しても無視されるだけ）。
+   * @param {(AbortSignal|undefined|null)[]} signals
+   * @returns {AbortSignal|undefined}
+   */
+  function combineSignals(signals) {
+    const valid = signals.filter(Boolean);
+    if (valid.length === 0) return undefined;
+    if (valid.length === 1) return valid[0];
+    if (typeof AbortController === 'undefined') return valid[0];
+    const controller = new AbortController();
+    valid.forEach((s) => {
+      if (s.aborted) controller.abort(s.reason);
+      else s.addEventListener('abort', () => controller.abort(s.reason), { once: true });
+    });
+    return controller.signal;
+  }
+
 /**
  * スポット種別の定義。`selectors` は Overpass QL の `node[...]` 部分（複数可、OR相当）。
  */
@@ -111,6 +132,10 @@ function classifySpotTags(tags, types) {
  * なお `[out:json][timeout:25]` でサーバー側に25秒の処理猶予を伝えている
  * ため、クライアント側のタイムアウトをそれより短くすると、サーバーが
  * まだ処理中でも「signal timed out」として先に失敗扱いになってしまう。
+ * `options.signal` を渡すと（例：UIの「キャンセル」ボタン）、タイムアウト
+ * 前でもユーザーの意思で中断できる。両方を1つのsignalに合成して全ミラーに
+ * 共有するので、どちらが先に発火してもすべてのミラーへのリクエストが
+ * まとめて中断される。
  */
 async function fetchOverpassRaw(query, options = {}) {
   const fetchImpl = options.fetchImpl || globalThis.fetch;
@@ -118,6 +143,8 @@ async function fetchOverpassRaw(query, options = {}) {
   const endpoints = options.endpoints || DEFAULT_ENDPOINTS;
   const timeoutMs = options.timeoutMs || 20000;
   const isBrowser = typeof window !== 'undefined';
+  const timeoutSignal = typeof AbortSignal !== 'undefined' && AbortSignal.timeout ? AbortSignal.timeout(timeoutMs) : undefined;
+  const signal = combineSignals([options.signal, timeoutSignal]);
 
   const attempts = endpoints.map((endpoint) =>
     (async () => {
@@ -133,7 +160,7 @@ async function fetchOverpassRaw(query, options = {}) {
           // Node.js環境（CLI/テスト）でのみ付与する。
           headers: isBrowser ? undefined : { 'content-type': 'text/plain', 'user-agent': USER_AGENT },
           body: query,
-          signal: typeof AbortSignal !== 'undefined' && AbortSignal.timeout ? AbortSignal.timeout(timeoutMs) : undefined,
+          signal,
         });
         if (!res.ok) {
           throw new Error(`overpass error ${res.status} (${endpoint})`);

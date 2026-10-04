@@ -16,9 +16,28 @@
   const ENDPOINT = 'https://nominatim.openstreetmap.org/search';
   const USER_AGENT = 'study-tripscheduler/1.0 (+https://github.com/kouzimiso/study)';
 
+  /**
+   * 複数のAbortSignal（タイムアウト用・呼び出し元のキャンセルボタン用など）を
+   * 1つにまとめる（`src/overpassSpots.js` の同名関数と同じロジック）。
+   * @param {(AbortSignal|undefined|null)[]} signals
+   * @returns {AbortSignal|undefined}
+   */
+  function combineSignals(signals) {
+    const valid = signals.filter(Boolean);
+    if (valid.length === 0) return undefined;
+    if (valid.length === 1) return valid[0];
+    if (typeof AbortController === 'undefined') return valid[0];
+    const controller = new AbortController();
+    valid.forEach((s) => {
+      if (s.aborted) controller.abort(s.reason);
+      else s.addEventListener('abort', () => controller.abort(s.reason), { once: true });
+    });
+    return controller.signal;
+  }
+
 /**
  * @param {string} query 地名・住所
- * @param {{fetchImpl?: typeof fetch, countryCodes?: string, timeoutMs?: number}} [options]
+ * @param {{fetchImpl?: typeof fetch, countryCodes?: string, timeoutMs?: number, signal?: AbortSignal}} [options]
  * @returns {Promise<{lat:number, lng:number, name:string}|null>}
  */
 async function geocodeOnce(query, options = {}) {
@@ -32,6 +51,8 @@ async function geocodeOnce(query, options = {}) {
   });
   if (options.countryCodes) params.set('countrycodes', options.countryCodes);
 
+  const timeoutSignal = typeof AbortSignal !== 'undefined' && AbortSignal.timeout ? AbortSignal.timeout(options.timeoutMs || 8000) : undefined;
+
   const res = await fetchImpl(`${ENDPOINT}?${params.toString()}`, {
     // User-Agent はブラウザのfetchでは "forbidden header name" で設定できない
     // （設定してもブラウザに無視される）。Node.js環境（CLI/テスト）でのみ送る。
@@ -39,7 +60,7 @@ async function geocodeOnce(query, options = {}) {
       typeof window === 'undefined'
         ? { Accept: 'application/json', 'User-Agent': USER_AGENT }
         : { Accept: 'application/json' },
-    signal: typeof AbortSignal !== 'undefined' && AbortSignal.timeout ? AbortSignal.timeout(options.timeoutMs || 8000) : undefined,
+    signal: combineSignals([options.signal, timeoutSignal]),
   });
   if (!res.ok) return null;
   const data = await res.json();
@@ -54,7 +75,7 @@ async function geocodeOnce(query, options = {}) {
 /**
  * 「日本国内向けの絞り込み」→「"<query> 日本"で再試行」の順に試す。
  * @param {string} query
- * @param {{fetchImpl?: typeof fetch, timeoutMs?: number}} [options]
+ * @param {{fetchImpl?: typeof fetch, timeoutMs?: number, signal?: AbortSignal}} [options]
  * @returns {Promise<{lat:number, lng:number, name:string}|null>}
  */
 async function geocodeLocation(query, options = {}) {
@@ -68,7 +89,9 @@ async function geocodeLocation(query, options = {}) {
       const result = await attempt();
       if (result) return result;
     } catch (err) {
-      // 次の候補を試す
+      // ユーザーによるキャンセル（またはタイムアウト）は次の候補を試さず、
+      // そのまま呼び出し元に伝える。それ以外のエラーは次の候補を試す。
+      if (err && err.name === 'AbortError') throw err;
     }
   }
   return null;

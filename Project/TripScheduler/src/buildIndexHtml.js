@@ -215,7 +215,10 @@ function buildIndexHtml(data, options = {}) {
           <label style="display:flex;align-items:center;gap:4px;white-space:nowrap;"><input type="checkbox" id="dp-cat-onsen" /> 温泉・銭湯</label>
         </div>
       </div>
-      <button class="btn" id="dp-go" type="button">🔍 検索してスケジュールを作る</button>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+        <button class="btn" id="dp-go" type="button">🔍 検索してスケジュールを作る</button>
+        <button class="btn secondary" id="dp-cancel" type="button" style="display:none;">✕ キャンセル</button>
+      </div>
       <p id="dp-status" class="hint"></p>
     </div>
     <div id="dp-map-wrap" class="route-card" style="display:none;">
@@ -668,7 +671,17 @@ function buildIndexHtml(data, options = {}) {
       delete locInput.dataset.lng;
     });
 
-    document.getElementById('dp-go').addEventListener('click', async () => {
+    const goBtn = document.getElementById('dp-go');
+    const cancelBtn = document.getElementById('dp-cancel');
+    let activeAbortController = null;
+    let cancelledByUser = false;
+
+    cancelBtn.addEventListener('click', () => {
+      cancelledByUser = true;
+      if (activeAbortController) activeAbortController.abort();
+    });
+
+    goBtn.addEventListener('click', async () => {
       const radiusKm = parseFloat(document.getElementById('dp-radius').value) || 2;
       const days = Math.max(1, Math.min(7, parseInt(document.getElementById('dp-days').value, 10) || 1));
       const mode = document.getElementById('dp-mode').value;
@@ -683,111 +696,128 @@ function buildIndexHtml(data, options = {}) {
       if (types.length === 0) { setStatus('スポットの種類を1つ以上選んでください', true); return; }
 
       resultEl.innerHTML = '';
+      cancelledByUser = false;
+      // タイムアウトはあくまで保険で、本命は「キャンセル」ボタン。
+      // ユーザーがどれくらい待つかを自分で決められるようにする。
+      activeAbortController = new AbortController();
+      goBtn.disabled = true;
+      cancelBtn.style.display = 'inline-block';
 
-      let center;
-      if (locInput.dataset.lat && locInput.dataset.lng) {
-        center = { lat: parseFloat(locInput.dataset.lat), lng: parseFloat(locInput.dataset.lng), name: '現在地' };
-      } else {
-        const query = locInput.value.trim();
-        if (!query) { setStatus('地点を入力するか、現在地を使ってください', true); return; }
-        setStatus('地点を検索中…（Nominatimへ問い合わせています）');
-        let geo;
+      try {
+        let center;
+        if (locInput.dataset.lat && locInput.dataset.lng) {
+          center = { lat: parseFloat(locInput.dataset.lat), lng: parseFloat(locInput.dataset.lng), name: '現在地' };
+        } else {
+          const query = locInput.value.trim();
+          if (!query) { setStatus('地点を入力するか、現在地を使ってください', true); return; }
+          setStatus('地点を検索中…（Nominatimへ問い合わせています）');
+          let geo;
+          try {
+            geo = await TripSchedulerGeocode.geocodeLocation(query, { signal: activeAbortController.signal });
+          } catch (err) {
+            if (cancelledByUser) { setStatus('検索をキャンセルしました。', true); return; }
+            setStatus('地点検索でエラーが発生しました: ' + err.message, true);
+            return;
+          }
+          if (!geo) { setStatus('「' + query + '」が見つかりませんでした。別の表記で試してください。', true); return; }
+          center = { lat: geo.lat, lng: geo.lng, name: geo.name };
+        }
+
+        setStatus('周辺のスポットを検索中…（OpenStreetMap Overpass APIへ問い合わせています。混雑時は最大20秒ほどかかります。待てない場合は「キャンセル」で中断できます）');
+        let spots;
         try {
-          geo = await TripSchedulerGeocode.geocodeLocation(query);
+          spots = await TripSchedulerOverpassSpots.findSpotsAround(
+            center.lat, center.lng, Math.round(radiusKm * 1000), types,
+            { signal: activeAbortController.signal }
+          );
         } catch (err) {
-          setStatus('地点検索でエラーが発生しました: ' + err.message, true);
+          if (cancelledByUser) { setStatus('検索をキャンセルしました。', true); return; }
+          const isTimeout = /timed out|AbortError/i.test((err && err.name) || '') || /timed out/i.test((err && err.message) || '');
+          setStatus(
+            'Overpass APIへの接続に失敗しました（' + err.message + '）。' +
+            (isTimeout
+              ? '複数のOverpassミラーすべてが混雑等で20秒以内に応答しませんでした。' +
+                '少し時間をおいて再試行するか、検索半径を狭めてみてください。'
+              : '広告ブロッカーやセキュリティ系の拡張機能（uBlock Origin等）が ' +
+                'overpass-api.de 系のドメインをブロックしていないか確認してください' +
+                '（一度シークレットウィンドウで試すと切り分けられます）。') +
+            '詳細はブラウザの開発者ツール（F12）のConsoleタブにも出力しています。',
+            true
+          );
           return;
         }
-        if (!geo) { setStatus('「' + query + '」が見つかりませんでした。別の表記で試してください。', true); return; }
-        center = { lat: geo.lat, lng: geo.lng, name: geo.name };
-      }
 
-      setStatus('周辺のスポットを検索中…（OpenStreetMap Overpass APIへ問い合わせています。混雑時は最大20秒ほどかかります）');
-      let spots;
-      try {
-        spots = await TripSchedulerOverpassSpots.findSpotsAround(center.lat, center.lng, Math.round(radiusKm * 1000), types);
-      } catch (err) {
-        const isTimeout = /timed out|AbortError/i.test((err && err.name) || '') || /timed out/i.test((err && err.message) || '');
-        setStatus(
-          'Overpass APIへの接続に失敗しました（' + err.message + '）。' +
-          (isTimeout
-            ? '複数のOverpassミラーすべてが混雑等で20秒以内に応答しませんでした。' +
-              '少し時間をおいて再試行するか、検索半径を狭めてみてください。'
-            : '広告ブロッカーやセキュリティ系の拡張機能（uBlock Origin等）が ' +
-              'overpass-api.de 系のドメインをブロックしていないか確認してください' +
-              '（一度シークレットウィンドウで試すと切り分けられます）。') +
-          '詳細はブラウザの開発者ツール（F12）のConsoleタブにも出力しています。',
-          true
-        );
-        return;
-      }
-
-      if (spots.length === 0) {
-        setStatus('半径' + radiusKm + 'km以内にスポットが見つかりませんでした。半径を広げるか種類を増やしてみてください。');
-        return;
-      }
-
-      const remaining = spots.slice();
-      const allEvents = [];
-      const usedCounts = [];
-      const dayWaypoints = [];
-      const baseDate = startDateInput || new Date().toISOString().slice(0, 10);
-
-      for (let i = 0; i < days; i++) {
-        const date = addDaysISO(baseDate, i);
-        const daySpots = TripSchedulerDynamicScheduler.selectSpotsForDay(remaining, {});
-        daySpots.forEach((s) => {
-          const idx = remaining.findIndex((r) => r.id === s.id);
-          if (idx >= 0) remaining.splice(idx, 1);
-        });
-        usedCounts.push(daySpots.length);
-        const events = TripSchedulerDynamicScheduler.buildDynamicDaySchedule(center, date, daySpots, {
-          startTime: i === 0 ? startTime : '09:00',
-          mode,
-        });
-        allEvents.push(...events);
-
-        // 地図にルートを描くための、その日の巡回順（中心→スポット→…→中心）。
-        // buildDynamicDaySchedule()の内部で使っている順序決定ロジックと同じ
-        // orderSpotsGreedy()を使うことで、表示されるルートと時間割の順序を一致させる。
-        const ordered = TripSchedulerDynamicScheduler.orderSpotsGreedy(center, daySpots);
-        if (ordered.length > 0) {
-          dayWaypoints.push([
-            { lat: center.lat, lng: center.lng },
-            ...ordered.map((s) => ({ lat: s.lat, lng: s.lng })),
-            { lat: center.lat, lng: center.lng },
-          ]);
-        } else {
-          dayWaypoints.push([]);
+        if (spots.length === 0) {
+          setStatus('半径' + radiusKm + 'km以内にスポットが見つかりませんでした。半径を広げるか種類を増やしてみてください。');
+          return;
         }
+
+        const remaining = spots.slice();
+        const allEvents = [];
+        const usedCounts = [];
+        const dayWaypoints = [];
+        const baseDate = startDateInput || new Date().toISOString().slice(0, 10);
+
+        for (let i = 0; i < days; i++) {
+          const date = addDaysISO(baseDate, i);
+          const daySpots = TripSchedulerDynamicScheduler.selectSpotsForDay(remaining, {});
+          daySpots.forEach((s) => {
+            const idx = remaining.findIndex((r) => r.id === s.id);
+            if (idx >= 0) remaining.splice(idx, 1);
+          });
+          usedCounts.push(daySpots.length);
+          const events = TripSchedulerDynamicScheduler.buildDynamicDaySchedule(center, date, daySpots, {
+            startTime: i === 0 ? startTime : '09:00',
+            mode,
+          });
+          allEvents.push(...events);
+
+          // 地図にルートを描くための、その日の巡回順（中心→スポット→…→中心）。
+          // buildDynamicDaySchedule()の内部で使っている順序決定ロジックと同じ
+          // orderSpotsGreedy()を使うことで、表示されるルートと時間割の順序を一致させる。
+          const ordered = TripSchedulerDynamicScheduler.orderSpotsGreedy(center, daySpots);
+          if (ordered.length > 0) {
+            dayWaypoints.push([
+              { lat: center.lat, lng: center.lng },
+              ...ordered.map((s) => ({ lat: s.lat, lng: s.lng })),
+              { lat: center.lat, lng: center.lng },
+            ]);
+          } else {
+            dayWaypoints.push([]);
+          }
+        }
+
+        if (allEvents.length === 0) {
+          setStatus('スケジュールを生成できるスポットがありませんでした。半径や種類を見直してください。');
+          return;
+        }
+
+        setStatus('✅ 周辺' + spots.length + '件のスポットから ' + days + '日分のスケジュールを作成しました（使用: ' + usedCounts.join('件 / ') + '件）');
+        resultEl.innerHTML = buildDayCardsHtml(allEvents);
+        safeRun(() => renderPlannerMap(center, spots, allEvents, dayWaypoints, mode), 'planner');
+
+        // この検索結果を「ルートカタログ」タブの検索履歴に自動追加する
+        // （検索するたびに増えていく方式。この端末のブラウザにのみ保存）。
+        saveSearchHistoryEntry({
+          id: 'search-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8),
+          searchedAt: new Date().toISOString(),
+          centerName: center.name || locInput.value.trim() || '検索地点',
+          centerLat: center.lat,
+          centerLng: center.lng,
+          radiusKm,
+          days,
+          mode,
+          types,
+          totalSpots: spots.length,
+          usedCounts,
+        });
+        safeRun(renderRoutes, 'routes');
+        if (leafletMap) safeRun(renderSearchHistoryMarkers, 'map');
+      } finally {
+        goBtn.disabled = false;
+        cancelBtn.style.display = 'none';
+        activeAbortController = null;
       }
-
-      if (allEvents.length === 0) {
-        setStatus('スケジュールを生成できるスポットがありませんでした。半径や種類を見直してください。');
-        return;
-      }
-
-      setStatus('✅ 周辺' + spots.length + '件のスポットから ' + days + '日分のスケジュールを作成しました（使用: ' + usedCounts.join('件 / ') + '件）');
-      resultEl.innerHTML = buildDayCardsHtml(allEvents);
-      safeRun(() => renderPlannerMap(center, spots, allEvents, dayWaypoints, mode), 'planner');
-
-      // この検索結果を「ルートカタログ」タブの検索履歴に自動追加する
-      // （検索するたびに増えていく方式。この端末のブラウザにのみ保存）。
-      saveSearchHistoryEntry({
-        id: 'search-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8),
-        searchedAt: new Date().toISOString(),
-        centerName: center.name || locInput.value.trim() || '検索地点',
-        centerLat: center.lat,
-        centerLng: center.lng,
-        radiusKm,
-        days,
-        mode,
-        types,
-        totalSpots: spots.length,
-        usedCounts,
-      });
-      safeRun(renderRoutes, 'routes');
-      if (leafletMap) safeRun(renderSearchHistoryMarkers, 'map');
     });
   }
 
