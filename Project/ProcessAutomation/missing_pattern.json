@@ -1,0 +1,118 @@
+{
+  "test": [
+    {
+      "function_match": "convert_python_to_cs",
+      "argument_match": "value",
+      "value_list": [
+        "please set value"
+      ],
+      "type": "unknown"
+    },
+    {
+      "function_match": "convert_python_to_cs",
+      "argument_match": "value",
+      "value_list": [
+        "please set value"
+      ],
+      "type": "unknown"
+    },
+    {
+      "function_match": "convert_python_to_cs",
+      "argument_match": "cs_type",
+      "value_list": [
+        "please set value"
+      ],
+      "type": "unknown"
+    },
+    {
+      "function_match": "convert_python_to_cs",
+      "argument_match": "cs_type",
+      "value_list": [
+        "please set value"
+      ],
+      "type": "unknown"
+    },
+    {
+      "function_match": "to_dotnet_dict",
+      "argument_match": "py_dict",
+      "value_list": [
+        "please set value"
+      ],
+      "type": "unknown"
+    },
+    {
+      "function_match": "to_dotnet_dict",
+      "argument_match": "py_dict",
+      "value_list": [
+        "please set value"
+      ],
+      "type": "unknown"
+    }
+  ],
+  "test_dll": [
+    {
+      "function_match": "Main",
+      "argument_match": "args",
+      "value_list": [
+        "please set value"
+      ],
+      "type": "String[]"
+    },
+    {
+      "function_match": "Main",
+      "argument_match": "args",
+      "value_list": [
+        "please set value"
+      ],
+      "type": "String[]"
+    },
+    {
+      "function_match": "FolderSettingDiff",
+      "argument_match": "settings",
+      "value_list": [
+        "please set value"
+      ],
+      "type": "Dictionary`2"
+    },
+    {
+      "function_match": "FolderSettingDiff",
+      "argument_match": "settings",
+      "value_list": [
+        "please set value"
+      ],
+      "type": "Dictionary`2"
+    },
+    {
+      "function_match": "FolderSettingDiff",
+      "argument_match": "helpFolder",
+      "value_list": [
+        "please set value"
+      ],
+      "type": "String"
+    },
+    {
+      "function_match": "FolderSettingDiff",
+      "argument_match": "helpFolder",
+      "value_list": [
+        "please set value"
+      ],
+      "type": "String"
+    },
+    {
+      "function_match": "FolderSettingDiff",
+      "argument_match": "configFolders",
+      "value_list": [
+        "please set value"
+      ],
+      "type": "String[]"
+    },
+    {
+      "function_match": "FolderSettingDiff",
+      "argument_match": "configFolders",
+      "value_list": [
+        "please set value"
+      ],
+      "type": "String[]"
+    }
+  ]
+}
