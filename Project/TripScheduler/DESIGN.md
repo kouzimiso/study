@@ -139,27 +139,38 @@ Google Popular Times等の公式APIは提供されていないため、まずは
 ## 5. UI／出力
 
 - **現地プラン作成ビュー**（実装済み、メインタブ）：`index.html`
-  （`src/buildIndexHtml.js` で生成）の1つ目のタブ。地点を指定して動的に
-  スポットを検索し、日ごとにカード形式で時間割を表示する。選ばれた
-  立ち寄り先を結ぶ移動ルートは、`src/routeLine.js`（OSRM）が取得した
-  経路ジオメトリを日ごとに色分けして地図に重ねる（OSRM失敗時は直線
-  （破線）で近似表示）。旧来の固定データ（`data/silver-week-2026.json`）
-  をそのまま表示する「旅程」タブは、このタブが同じカードUIで動的に
-  旅程を作れるようになったため廃止した。楽天ホテル検索タブと合わせて、
-  外部API（楽天／Overpass／OSRM／Nominatim）に `fetch()` する2タブは
-  `file://` で開くと `Origin: null` になり `HTTP_REFERRER_NOT_ALLOWED`
-  やCORS拒否で失敗する（詳細は後述）
+  （`src/buildIndexHtml.js` で生成）の1つ目のタブ。ルートプランナー
+  スタイルに刷新：出発地〜目的地を指定→OSRM（`src/routeLine.js`）で
+  ルートを計算→そのルート沿い（許容距離以内）のスポットを
+  `findSpotsInBbox()` で検索→`routeProgressRatio()`で出発地からの順番に
+  並べた候補をチェックリストで提示→選んだものだけでプレビュー
+  （`buildRouteSchedule()`）と地図（ルート線＋候補マーカー、OSRM失敗時は
+  直線近似）を更新→名前を付けて「登録する」で「ルートカタログ」タブに
+  追加、という流れ。旧来の「地点＋検索半径＋日数」で単一地点を起点に
+  自動選定して戻ってくる方式（`buildDynamicDaySchedule()`/
+  `selectSpotsForDay()`/`orderSpotsGreedy()`）は、出発地と目的地が異なる
+  ルートを扱えなかったため置き換えた。旧来の固定データ
+  （`data/silver-week-2026.json`）をそのまま表示する「旅程」タブは、
+  このタブが同じカードUIで動的に旅程を作れるようになったため廃止した。
+  楽天ホテル検索タブと合わせて、外部API（楽天／Overpass／OSRM／
+  Nominatim）に `fetch()` する2タブは `file://` で開くと `Origin: null`
+  になり `HTTP_REFERRER_NOT_ALLOWED` やCORS拒否で失敗する（詳細は後述）
 - **ルートカタログビュー**（実装済み）：`index.html` の2つ目のタブ。
+  「現地プラン作成」タブで**登録するたびに1件追加される作成済みルート**
+  （出発地→目的地・移動手段・距離/時間・立ち寄り先の種類別件数）を、
   `data/routes.json` の手動登録Route（訪問履歴から「未訪問」「前回訪問
-  からN日」を計算してバッジ表示）に加えて、「現地プラン作成」タブで
-  **検索するたびに1件追記される検索履歴**を表示する。検索履歴はこの
-  端末のブラウザのlocalStorageにのみ保存（`tripscheduler_searchHistory`
-  キー、最大200件）され、1件ずつ、または一括で削除できる
+  からN日」を計算してバッジ表示）と並べて表示する。作成済みルートは
+  この端末のブラウザのlocalStorageにのみ保存（`tripscheduler_customRoutes`
+  キー、最大200件）され、1件ずつ削除できる。複数の作成済みルートに
+  チェックを入れ開始日を指定すると、チェックした順に1ルート=1日として
+  並べた複数日の旅程を生成できる（「ルートを組み合わせる」機能。
+  `buildRouteSchedule()`を日ごとに呼ぶだけで、新しい時間割生成ロジックは
+  増やしていない）
 - **地図ビュー**（実装済み）：`index.html` の3つ目のタブ。Leaflet
   （CDN読み込み）で各Routeの `searchCenter`（色は`crowdRisk`）と、
-  検索履歴の中心座標（青い四角）をまとめてマーカー表示。
-  `RestaurantFinder/src/mapExport.js` と同じ発想（スコア/リスクに応じた
-  色分け）
+  作成済みルートの経路線（青線、`coords`を保存済みなのでOSRM再問い合わせ
+  不要）をまとめて表示。`RestaurantFinder/src/mapExport.js` と同じ発想
+  （スコア/リスクに応じた色分け）
 - **楽天ホテル検索**（実装済み、ライブ検証済み）：`index.html` の4つ目の
   タブ。ブラウザから直接 `openapi.rakuten.co.jp` を叩く。APIキーは
   localStorageにのみ保存しサーバーには送らない（`Project/Maps/index.html`
@@ -232,7 +243,8 @@ data/silver-week-2026.json（イベント配列 + category + routeId）
 | 5 | 混雑ピーク時間帯を避ける制約の `planTrip.js` への組み込み（現状は開始時刻固定） | 未着手 |
 | 6 | Webタイムライン UI | ✅ `index.html`（`src/buildIndexHtml.js`）として今回実施。ただし訪問履歴の保存先は今もローカルのJSONファイルで、Cloudflare Workers + D1でのオンライン化は未着手 |
 | 7 | 地点を指定して動的にRoute相当のプランを生成（`data/routes.json`の事前定義に頼らない） | ✅ `index.html` 「現地プラン作成」タブとして今回実施。`src/geocode.js`（Nominatim）・`src/overpassSpots.js`（Overpass、観光/飲食/Wifi電源/温泉を横断検索）・`src/dynamicScheduler.js`（最近傍法での巡回順決定＋直線距離からの移動時間概算）。UIと各ロジックはモックテスト・Playwrightで検証済みだが、Overpass APIへのライブ接続はこのセッションの実行環境では未確認（Nominatim側は確認済み） |
-| 8 | ① 地図にルートプランナーのような経路線を表示 ② 固定の「旅程」タブを廃止し「現地プラン作成」に一本化 ③ ルートカタログを検索するたびに増える方式に変更 | ✅ ①`src/routeLine.js`（OSRM、失敗時は直線近似にフォールバック）で今回実施 ②「旅程」タブと`renderItinerary()`を削除（`data/silver-week-2026.json`とそれを使うCLI`planTrip.js`/`generateIcs.js`/`toGanttPlanList.js`自体は維持） ③「現地プラン作成」タブでの検索ごとに`localStorage`（`tripscheduler_searchHistory`）へ1件追記し、「ルートカタログ」「地図」タブに反映。Playwrightで複数回検索→履歴蓄積→複数日のルート線描画まで確認済みだが、OSRM/Overpass/Nominatimへのライブ接続はこのセッションでは未確認 |
+| 8 | ① 地図にルートプランナーのような経路線を表示 ② 固定の「旅程」タブを廃止し「現地プラン作成」に一本化 ③ ルートカタログを検索するたびに増える方式に変更 | ✅ ①`src/routeLine.js`（OSRM、失敗時は直線近似にフォールバック）で今回実施 ②「旅程」タブと`renderItinerary()`を削除（`data/silver-week-2026.json`とそれを使うCLI`planTrip.js`/`generateIcs.js`/`toGanttPlanList.js`自体は維持） ③「現地プラン作成」タブでの検索ごとに`localStorage`（`tripscheduler_searchHistory`）へ1件追記し、「ルートカタログ」「地図」タブに反映。Playwrightで複数回検索→履歴蓄積→複数日のルート線描画まで確認済みだが、OSRM/Overpass/Nominatimへのライブ接続はこのセッションでは未確認（※Phase 9で「検索履歴」はより明示的な「作成したルート」に置き換えた） |
+| 9 | 「現地プラン作成」を本来の意味でのルートプランナーに刷新：出発地〜目的地を指定し、ルート沿いの候補から選んで名前を付けて登録する。登録したルートはルートカタログに蓄積され、複数ルートを組み合わせて複数日の旅程にできる | ✅ `src/overpassSpots.js`に`findSpotsInBbox()`（bbox検索）、`src/routeLine.js`に`distanceToRouteMeters()`/`routeProgressRatio()`（ルート沿い判定・順序付け）を追加。`src/dynamicScheduler.js`は`buildRouteSchedule()`（出発地≠目的地に対応した時間割生成）に刷新し、旧`selectSpotsForDay()`/`orderSpotsGreedy()`/`buildDynamicDaySchedule()`（単一地点を起点に戻る前提）は削除。「ルートカタログ」タブの検索履歴（Phase 8）は、ユーザーが明示的に名前を付けて登録する「作成したルート」（`tripscheduler_customRoutes`）に置き換え、複数選択→開始日指定→組み合わせ旅程生成（1ルート=1日）の機能を追加。全89ユニットテスト通過、Playwrightでルート検索→候補選択→プレビュー更新→登録→複数ルート登録→ルートカタログへの反映→組み合わせ旅程生成→地図描画の一連のシナリオ、およびキャンセルボタンの動作を確認済み（ライブAPI接続はこのセッションでは未確認） |
 
 Phase 2・4（自動反映の残り）は既存の `RestaurantFinder` と `Maps` の
 コードをライブラリとして共通化する（例：`Project/shared/` に切り出す）
@@ -254,15 +266,30 @@ Phase 2・4（自動反映の残り）は既存の `RestaurantFinder` と `Maps`
   一致でしか多様性を判定していないため、隣接する方角（北と北西など）
   が2日連続で選ばれることがある。緯度経度から実際の距離・方位角を
   計算する方式に置き換えれば精度が上がる
-- Routeカタログは現状 `data/routes.json` に手動で8件登録しているのみ。
-  「無数に登録」していくには、既存の観光メディア記事（るるぶ・じゃらん
-  等）からのルート抽出を半自動化するか、地域ごとにユーザー自身が
-  追記していく運用が現実的
+- `data/routes.json` の手動登録8件は今も既存のCLIパイプライン
+  （`selectRoutes.js`/`buildDaySchedule.js`/`planTrip.js`等）が前提とする
+  スキーマ（`searchCenter`単一地点＋`accessFromOfuna`等）のまま変更して
+  いない。Phase 9で追加した「現地プラン作成」タブからの登録
+  （`tripscheduler_customRoutes`、出発地≠目的地・stops配列を持つ別スキーマ）
+  とは別物で、カタログ表示上は並べて見せているだけ。2つのスキーマを
+  統一する、またはCLIパイプライン側も新スキーマに対応させるのは今後の
+  課題（統一すると日帰り以外のRouteやVisitHistoryローテーションとの
+  接続もしやすくなるはず）
 - 日帰りではなく1泊以上のRoute（今回は扱っていない）を組み込む場合、
   ホテル空室（Maps/rakuten.js）との接続が必須になる
-- 「現地プラン作成」タブの巡回順決定（`orderSpotsGreedy()`）は最近傍法の
-  近似解で、スポット数が増えると遠回りが生じやすい。カテゴリごとの上限
-  件数（`DEFAULT_MAX_BY_TYPE`）も固定値で、ユーザーが調整できない
+- 「現地プラン作成」タブの立ち寄り先の順序は、OSRMルート上の投影位置
+  （`routeProgressRatio()`）で決めている。出発地〜目的地という直線的な
+  移動を前提にした単純な並べ方のため、Phase 7以前の最近傍法
+  （`orderSpotsGreedy()`、巡回セールスマン問題の近似解）と比べると
+  「大きく外れた場所にある候補を無理に挟んでしまう」ことは起きにくいが、
+  並び替え自体はできない（ユーザーが手でドラッグして順序を変える機能は
+  今回実装していない）
+- 出発地と目的地が同じ地点（周遊・往復ルート）は現状うまく扱えない。
+  OSRMは同一地点間のルートに対して有意な経路ジオメトリ（2点以上の座標）
+  を返さないことが多く、その場合`routeProgressRatio()`/
+  `distanceToRouteMeters()`の前提（2点以上のcoords）が崩れ、候補スポットが
+  一切見つからなくなる。周遊ルートを作りたい場合は、目的地に出発地とは
+  別の経由上の地点（例：ループの反対側）を指定する運用で回避するしかない
 - 動的検索したスポットは営業時間判定（`travel-route-planner.html` にある
   曜日・時刻ベースの開店チェック）を今回は実装していない。Overpassの
   `opening_hours` タグは取得しているが表示のみで、スケジュール生成には

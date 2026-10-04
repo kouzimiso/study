@@ -42,6 +42,86 @@
     return `${endpoint}/route/v1/${profile}/${coords}?overview=full&geometries=geojson`;
   }
 
+  // ─── 経路（coords、[lng,lat]の配列）に対する位置関係の計算 ───
+  // `Test/travel-route-planner.html` の ptD/segD/distToRoute/routePct を
+  // 踏襲した簡易な等長方位図法近似（短距離の経路沿い判定・順序付けには
+  // 十分な精度。緯度によるcos補正はしていない点も含めて元実装と同じ）。
+
+  function ptDistMeters(lng1, lat1, lng2, lat2) {
+    return Math.sqrt((lng1 - lng2) ** 2 + (lat1 - lat2) ** 2) * 111320;
+  }
+
+  /**
+   * 点(lng,lat)を線分(lng1,lat1)-(lng2,lat2)に投影した位置のパラメータt
+   * （0=線分の始点側、1=終点側。線分の外側に投影される場合は0または1に
+   * クランプする）。
+   */
+  function projectParam(lng, lat, lng1, lat1, lng2, lat2) {
+    const dx = lng2 - lng1;
+    const dy = lat2 - lat1;
+    if (!dx && !dy) return 0;
+    return Math.max(0, Math.min(1, ((lng - lng1) * dx + (lat - lat1) * dy) / (dx * dx + dy * dy)));
+  }
+
+  function segDistMeters(lng, lat, lng1, lat1, lng2, lat2) {
+    const t = projectParam(lng, lat, lng1, lat1, lng2, lat2);
+    return ptDistMeters(lng, lat, lng1 + t * (lng2 - lng1), lat1 + t * (lat2 - lat1));
+  }
+
+  /**
+   * 地点(lat,lng)から経路(coords、[lng,lat]の配列)への最短距離（メートル）。
+   * 経路沿いのスポット検索で「経路から何m以内か」を判定するのに使う。
+   * @param {number} lat
+   * @param {number} lng
+   * @param {[number,number][]} coords fetchRouteLine()が返すcoords形式（[lng,lat]）
+   * @returns {number} coordsが空/1点なら Infinity
+   */
+  function distanceToRouteMeters(lat, lng, coords) {
+    if (!coords || coords.length < 2) return Infinity;
+    let min = Infinity;
+    for (let i = 0; i < coords.length - 1; i++) {
+      const d = segDistMeters(lng, lat, coords[i][0], coords[i][1], coords[i + 1][0], coords[i + 1][1]);
+      if (d < min) min = d;
+    }
+    return min;
+  }
+
+  /**
+   * 地点(lat,lng)が経路(coords)上のどのあたりか（出発地点側=0 〜 目的地側=1）。
+   * 経路沿いのスポットを「出発地点からの順番」に並べるのに使う。
+   * @param {number} lat
+   * @param {number} lng
+   * @param {[number,number][]} coords
+   * @returns {number} 0〜1（coordsが2点未満なら0）
+   */
+  function routeProgressRatio(lat, lng, coords) {
+    if (!coords || coords.length < 2) return 0;
+    const segLens = [];
+    let total = 0;
+    for (let i = 0; i < coords.length - 1; i++) {
+      const d = ptDistMeters(coords[i][0], coords[i][1], coords[i + 1][0], coords[i + 1][1]);
+      segLens.push(d);
+      total += d;
+    }
+    let bestDist = Infinity;
+    let bestProgress = 0;
+    let cumulative = 0;
+    for (let i = 0; i < coords.length - 1; i++) {
+      const [lng1, lat1] = coords[i];
+      const [lng2, lat2] = coords[i + 1];
+      const t = projectParam(lng, lat, lng1, lat1, lng2, lat2);
+      const d = ptDistMeters(lng, lat, lng1 + t * (lng2 - lng1), lat1 + t * (lat2 - lat1));
+      if (d < bestDist) {
+        bestDist = d;
+        // セグメント内の投影位置tをそのまま使うことで、座標点が少ない
+        // （直線に近い）経路でも正確な位置を返す。
+        bestProgress = cumulative + t * segLens[i];
+      }
+      cumulative += segLens[i];
+    }
+    return total > 0 ? bestProgress / total : 0;
+  }
+
   function straightLineFallback(points) {
     let distanceMeters = 0;
     for (let i = 0; i < points.length - 1; i++) {
@@ -96,5 +176,5 @@
     }
   }
 
-  return { OSRM_PROFILE, buildOsrmUrl, fetchRouteLine };
+  return { OSRM_PROFILE, buildOsrmUrl, fetchRouteLine, distanceToRouteMeters, routeProgressRatio };
 });

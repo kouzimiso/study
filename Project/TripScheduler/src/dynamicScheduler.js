@@ -1,10 +1,11 @@
 'use strict';
 
 /**
- * 動的に取得したスポット（src/overpassSpots.js の findSpotsAround() の戻り値）から、
- * 中心地点を起点にした1日分のタイムライン（TripSchedulerのイベント配列形式）を
- * 自動生成する。`buildDaySchedule.js` は事前定義されたRoute用、こちらは
- * 「地点を指定したら動的に周辺スポットから組む」用。
+ * 出発地〜目的地（from→to）と、その間に選んだ立ち寄り先（stops）から、
+ * 1日分のタイムライン（TripSchedulerのイベント配列形式）を自動生成する。
+ * `buildDaySchedule.js` は事前定義されたRoute（`data/routes.json`）用、
+ * こちらは「ルートプランナーのように出発地〜目的地を指定し、その沿線の
+ * 候補から選んだ立ち寄り先」を時間割に展開する用。
  * Node.js/ブラウザ両対応のUMD形式（依存する2モジュールもブラウザでは
  * window.TripSchedulerBuildDaySchedule / window.TripSchedulerOverpassSpots
  * として先に読み込んでおく必要がある）。
@@ -23,7 +24,6 @@
 
   const TRAVEL_SPEED_KMH = { walk: 4, bike: 12, car: 25 };
   const STAY_MINUTES = { sightseeing: 60, food: 60, wifi: 45, onsen: 90 };
-  const DEFAULT_MAX_BY_TYPE = { sightseeing: 3, food: 1, wifi: 1, onsen: 1 };
 
 /**
  * @param {number} distanceMeters
@@ -36,84 +36,35 @@ function estimateTravelMinutes(distanceMeters, mode = 'car') {
   return Math.max(5, Math.round(hours * 60));
 }
 
-/**
- * カテゴリごとの上限件数を守りつつ、中心から近い順にスポットを選ぶ。
- * @param {object[]} spots findSpotsAround() の戻り値
- * @param {{maxByType?: Record<string, number>}} [options]
- * @returns {object[]}
- */
-function selectSpotsForDay(spots, options = {}) {
-  const maxByType = { ...DEFAULT_MAX_BY_TYPE, ...(options.maxByType || {}) };
-  const countByType = {};
-  const selected = [];
-
-  [...spots]
-    .sort((a, b) => a.distanceMeters - b.distanceMeters)
-    .forEach((spot) => {
-      const max = maxByType[spot.type] ?? 0;
-      const count = countByType[spot.type] || 0;
-      if (count >= max) return;
-      selected.push(spot);
-      countByType[spot.type] = count + 1;
-    });
-
-  return selected;
-}
-
-/**
- * 中心地点から最近傍法で巡回順序を決める（厳密なTSPではなく実用十分な近似）。
- * @param {{lat:number, lng:number}} center
- * @param {object[]} spots
- * @returns {object[]}
- */
-function orderSpotsGreedy(center, spots) {
-  const remaining = [...spots];
-  const ordered = [];
-  let current = center;
-  while (remaining.length) {
-    let bestIdx = 0;
-    let bestDist = Infinity;
-    remaining.forEach((spot, idx) => {
-      const d = haversineMeters(current.lat, current.lng, spot.lat, spot.lng);
-      if (d < bestDist) {
-        bestDist = d;
-        bestIdx = idx;
-      }
-    });
-    const next = remaining.splice(bestIdx, 1)[0];
-    ordered.push(next);
-    current = next;
-  }
-  return ordered;
-}
-
 function makeEvent(date, start, end, title, location, description, category, spotId) {
   return { date, start, end, title, location, description, category, spotId: spotId || undefined };
 }
 
 /**
- * 中心地点と選定済みスポットから、1日分のタイムラインを生成する。
- * 「中心→スポット1→スポット2→…→中心に戻る」の順に、移動時間を直線距離から
- * 概算（`mode`の速度換算）し、各スポットの滞在時間（種別ごとの目安）を積む。
+ * 出発地〜目的地と、ルート上の順序で並んだ立ち寄り先（stops）から、1日分の
+ * タイムラインを生成する。「出発地→スポット1→…→スポットN→目的地」の順に、
+ * 移動時間を直線距離から概算（`mode`の速度換算）し、各スポットの滞在時間
+ * （種別ごとの目安）を積む。出発地と目的地が同じ地点に戻ってくる前提は
+ * 置かない（往復ルートなら呼び出し側で from===to を渡せばよい）。
  *
- * @param {{lat:number, lng:number, name?:string}} center
+ * @param {{lat:number, lng:number, name?:string}} from
+ * @param {{lat:number, lng:number, name?:string}} to
  * @param {string} date "YYYY-MM-DD"
- * @param {object[]} spots selectSpotsForDay() 等で選んだスポット配列
- * @param {{startTime?: string, mode?: 'walk'|'bike'|'car', returnToCenter?: boolean}} [options]
+ * @param {object[]} stops ルート上の順序で並んだ立ち寄り先配列
+ *   （`id`/`name`/`lat`/`lng`/`type`/`hours`を持つ）
+ * @param {{startTime?: string, mode?: 'walk'|'bike'|'car'}} [options]
  * @returns {object[]} TripSchedulerのイベント配列形式
  */
-function buildDynamicDaySchedule(center, date, spots, options = {}) {
+function buildRouteSchedule(from, to, date, stops, options = {}) {
   const startTime = options.startTime || '09:00';
   const mode = options.mode || 'car';
-  const returnToCenter = options.returnToCenter !== false;
-  const ordered = orderSpotsGreedy(center, spots);
 
   const events = [];
   let cursor = startTime;
-  let currentPoint = center;
-  let currentLabel = center.name || '出発地点';
+  let currentPoint = from;
+  let currentLabel = from.name || '出発地点';
 
-  ordered.forEach((spot) => {
+  (stops || []).forEach((spot) => {
     const dist = haversineMeters(currentPoint.lat, currentPoint.lng, spot.lat, spot.lng);
     const travelMin = estimateTravelMinutes(dist, mode);
     events.push(
@@ -130,21 +81,17 @@ function buildDynamicDaySchedule(center, date, spots, options = {}) {
     currentLabel = spot.name;
   });
 
-  if (returnToCenter && ordered.length > 0) {
-    const backDist = haversineMeters(currentPoint.lat, currentPoint.lng, center.lat, center.lng);
-    const backMin = estimateTravelMinutes(backDist, mode);
-    events.push(
-      makeEvent(date, cursor, addMinutes(cursor, backMin), `${currentLabel}→${center.name || '出発地点'} 移動`, '', '', 'move', null)
-    );
-  }
+  const finalDist = haversineMeters(currentPoint.lat, currentPoint.lng, to.lat, to.lng);
+  const finalMin = estimateTravelMinutes(finalDist, mode);
+  events.push(
+    makeEvent(date, cursor, addMinutes(cursor, finalMin), `${currentLabel}→${to.name || '目的地'} 移動`, '', '', 'move', null)
+  );
 
   return events;
 }
 
   return {
     estimateTravelMinutes,
-    selectSpotsForDay,
-    orderSpotsGreedy,
-    buildDynamicDaySchedule,
+    buildRouteSchedule,
   };
 });

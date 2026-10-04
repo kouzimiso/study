@@ -140,6 +140,15 @@ function buildIndexHtml(data, options = {}) {
   .result-item { padding:8px 0; border-top:1px solid var(--panel-border); font-size:13px; }
   .row { display:flex; gap:10px; flex-wrap:wrap; }
   .row .field { flex:1 1 140px; }
+  .candidate-row { display:flex; gap:10px; align-items:flex-start; padding:9px 0;
+    border-top:1px solid var(--panel-border); cursor:pointer; }
+  .candidate-row:first-child { border-top:none; }
+  .candidate-row input[type="checkbox"] { margin-top:3px; flex:0 0 auto; }
+  .candidate-row .name { font-size:13px; }
+  .candidate-row .meta { font-size:11px; color:var(--text-muted); margin-top:2px; }
+  .route-combine-row { display:flex; gap:10px; align-items:center; padding:9px 0;
+    border-top:1px solid var(--panel-border); }
+  .route-combine-row:first-child { border-top:none; }
 </style>
 </head>
 <body>
@@ -176,24 +185,31 @@ function buildIndexHtml(data, options = {}) {
       </p>
     </div>
     <div class="route-card">
-      <h3>地点から動的にプランを作る</h3>
+      <h3>出発地から目的地までのルートを作る</h3>
       <p class="notes">
-        地名を入力すると、その周辺のOpenStreetMap上の観光地・飲食店・Wifi/電源カフェ・
-        温泉銭湯を検索し、1日あたりの立ち寄り先を自動で選んで時間割を組みます
-        （APIキー不要、ブラウザから直接OSMに問い合わせます）。
+        出発地・目的地を入力すると、その間の道なりルート（OSRM）沿いにある
+        OpenStreetMap上の観光地・飲食店・Wifi/電源カフェ・温泉銭湯を検索します。
+        候補から好きなものだけを選んで、名前を付けて「ルートカタログ」に
+        登録できます（登録したルートは後で組み合わせて複数日の旅程にできます）。
+        APIキー不要、ブラウザから直接OSM/OSRMに問い合わせます。
       </p>
       <div class="row">
         <div class="field" style="flex:2 1 200px;">
-          <label>地点（地名・駅名など）</label>
-          <input id="dp-location" type="text" placeholder="例：鎌倉駅" />
+          <label>出発地</label>
+          <input id="dp-from" type="text" placeholder="例：大船駅" />
         </div>
         <div class="field" style="flex:0 0 auto;align-self:flex-end;">
           <button class="btn secondary" id="dp-use-gps" type="button">📍 現在地を使う</button>
         </div>
       </div>
       <div class="row">
-        <div class="field"><label>検索半径(km)</label><input id="dp-radius" type="number" value="2" min="0.5" max="10" step="0.5" /></div>
-        <div class="field"><label>日数</label><input id="dp-days" type="number" value="1" min="1" max="7" step="1" /></div>
+        <div class="field" style="flex:2 1 200px;">
+          <label>目的地</label>
+          <input id="dp-to" type="text" placeholder="例：鎌倉駅" />
+        </div>
+      </div>
+      <div class="row">
+        <div class="field"><label>ルートからの許容距離(km)</label><input id="dp-corridor" type="number" value="0.3" min="0.1" max="3" step="0.1" /></div>
         <div class="field"><label>移動手段</label>
           <select id="dp-mode" style="width:100%;padding:8px;border-radius:8px;background:#0B1011;color:#EAF3EE;border:1px solid #283835;">
             <option value="walk">徒歩</option>
@@ -201,10 +217,6 @@ function buildIndexHtml(data, options = {}) {
             <option value="car" selected>車</option>
           </select>
         </div>
-      </div>
-      <div class="row">
-        <div class="field"><label>開始日</label><input id="dp-start-date" type="date" /></div>
-        <div class="field"><label>1日目の開始時刻</label><input id="dp-start-time" type="time" value="09:00" /></div>
       </div>
       <div class="field">
         <label>検索するスポットの種類</label>
@@ -216,17 +228,36 @@ function buildIndexHtml(data, options = {}) {
         </div>
       </div>
       <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-        <button class="btn" id="dp-go" type="button">🔍 検索してスケジュールを作る</button>
+        <button class="btn" id="dp-go" type="button">🔍 ルート沿いのスポットを探す</button>
         <button class="btn secondary" id="dp-cancel" type="button" style="display:none;">✕ キャンセル</button>
       </div>
       <p id="dp-status" class="hint"></p>
     </div>
     <div id="dp-map-wrap" class="route-card" style="display:none;">
-      <h3>検索結果マップ</h3>
+      <h3>ルートと候補スポットのマップ</h3>
       <div id="dp-map" style="height:360px;border-radius:12px;"></div>
       <p id="dp-map-note" class="hint"></p>
     </div>
-    <div id="dp-result"></div>
+    <div id="dp-candidates-wrap" class="route-card" style="display:none;">
+      <h3>候補スポット（チェックしたものがルートに入ります）</h3>
+      <p class="notes">選んだ立ち寄り先は出発地からの順番に自動で並びます（並び替えはできません）。</p>
+      <div id="dp-candidates"></div>
+    </div>
+    <div id="dp-preview-wrap" class="route-card" style="display:none;">
+      <h3>プレビュー（実際の日付は、組み合わせて旅程にする時に指定します）</h3>
+      <div id="dp-result"></div>
+    </div>
+    <div id="dp-register-wrap" class="route-card" style="display:none;">
+      <h3>このルートをカタログに登録する</h3>
+      <div class="row">
+        <div class="field" style="flex:2 1 200px;">
+          <label>ルート名</label>
+          <input id="dp-route-name" type="text" placeholder="例：大船→鎌倉 観光ルート" />
+        </div>
+      </div>
+      <button class="btn" id="dp-register" type="button">📌 ルートとして登録する</button>
+      <p id="dp-register-status" class="hint"></p>
+    </div>
   </section>
   <section id="tab-hotel" class="tab">
     <div class="route-card">
@@ -271,6 +302,14 @@ function buildIndexHtml(data, options = {}) {
   const CROWD_LABEL = ${JSON.stringify(CROWD_RISK_LABEL)};
   const CATEGORY_LABEL = { move:'移動', sightseeing:'観光', food:'食事', onsen:'温泉', work:'Wifi/電源' };
   const CATEGORY_COLOR = { move:'#8CA39B', sightseeing:'#45B08C', food:'#E8C22C', onsen:'#5EA8E8', work:'#B98AE0' };
+  const MODE_LABEL = { walk: '徒歩', bike: '自転車', car: '車' };
+  const DAY_LINE_COLORS = ['#45B08C', '#5EA8E8', '#E8C22C', '#B98AE0', '#C1503A', '#E8955B', '#8CA39B'];
+  // OpenStreetMap公式タイルは利用ポリシーが厳格化され、ブラウザからの直接
+  // アクセスが「Access blocked」で拒否されることが増えたため、日本国内限定の
+  // アプリであることを踏まえ、無料・APIキー不要・出典明記のみで使える
+  // 国土地理院（GSI）の淡色地図タイルを使う（複数の地図で共通）。
+  const GSI_TILE_URL = 'https://cyberjapandata.gsi.go.jp/xyz/pale/{z}/{x}/{y}.png';
+  const GSI_ATTRIBUTION = '地図: <a href="https://maps.gsi.go.jp/development/ichiran.html" target="_blank" rel="noopener">国土地理院</a>';
 
   function escapeHtml(str) {
     return String(str == null ? '' : str)
@@ -278,44 +317,37 @@ function buildIndexHtml(data, options = {}) {
       .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
   }
 
-  // ─── 検索履歴（ルートカタログの自動追加分）───
-  // 「現地プラン作成」タブで検索するたびに1件追加される。サーバーを
+  // ─── 作成したルート（ルートカタログの新規登録分）───
+  // 「現地プラン作成」タブで出発地〜目的地を指定して候補スポットを選び、
+  // 名前を付けて「登録する」を押すたびに1件追加される。サーバーを
   // 持たないページなので、この端末のブラウザのlocalStorageにのみ保存する
   // （他の端末・他のブラウザとは共有されない）。
-  const SEARCH_HISTORY_KEY = 'tripscheduler_searchHistory';
-  const SEARCH_HISTORY_LIMIT = 200;
+  const CUSTOM_ROUTES_KEY = 'tripscheduler_customRoutes';
+  const CUSTOM_ROUTES_LIMIT = 200;
 
-  function loadSearchHistory() {
+  function loadCustomRoutes() {
     try {
-      const raw = JSON.parse(localStorage.getItem(SEARCH_HISTORY_KEY) || '[]');
+      const raw = JSON.parse(localStorage.getItem(CUSTOM_ROUTES_KEY) || '[]');
       return Array.isArray(raw) ? raw : [];
     } catch (err) {
       return [];
     }
   }
 
-  function saveSearchHistoryEntry(entry) {
-    const list = loadSearchHistory();
-    list.unshift(entry);
+  function saveCustomRoute(route) {
+    const list = loadCustomRoutes();
+    list.unshift(route);
     try {
-      localStorage.setItem(SEARCH_HISTORY_KEY, JSON.stringify(list.slice(0, SEARCH_HISTORY_LIMIT)));
+      localStorage.setItem(CUSTOM_ROUTES_KEY, JSON.stringify(list.slice(0, CUSTOM_ROUTES_LIMIT)));
     } catch (err) {
-      // localStorageが使えない（プライベートモード等）場合は履歴への追加のみ諦める
+      // localStorageが使えない（プライベートモード等）場合は登録のみ諦める
     }
   }
 
-  function deleteSearchHistoryEntry(id) {
-    const list = loadSearchHistory().filter((e) => e.id !== id);
+  function deleteCustomRoute(id) {
+    const list = loadCustomRoutes().filter((r) => r.id !== id);
     try {
-      localStorage.setItem(SEARCH_HISTORY_KEY, JSON.stringify(list));
-    } catch (err) {
-      // 無視
-    }
-  }
-
-  function clearSearchHistory() {
-    try {
-      localStorage.removeItem(SEARCH_HISTORY_KEY);
+      localStorage.setItem(CUSTOM_ROUTES_KEY, JSON.stringify(list));
     } catch (err) {
       // 無視
     }
@@ -348,22 +380,83 @@ function buildIndexHtml(data, options = {}) {
     }).join('');
   }
 
-  function buildSearchHistoryCardHtml(entry) {
-    const typeLabels = (entry.types || []).map((t) => CATEGORY_LABEL[t] || t).join('・');
-    const usedTotal = (entry.usedCounts || []).reduce((sum, n) => sum + n, 0);
-    return '<div class="route-card" data-search-id="' + escapeHtml(entry.id) + '">' +
-      '<h3>📍 ' + escapeHtml(entry.centerName || '検索地点') + '</h3>' +
-      '<span class="badge" style="background:#5EA8E822;color:#5EA8E8;">現地プラン作成の検索履歴</span>' +
-      '<p class="notes">' +
-        escapeHtml(new Date(entry.searchedAt).toLocaleString('ja-JP')) + ' / 半径' + escapeHtml(entry.radiusKm) + 'km / ' +
-        escapeHtml(entry.days) + '日分 / ' + escapeHtml({ walk: '徒歩', bike: '自転車', car: '車' }[entry.mode] || entry.mode) +
+  function routeCoordsOrStraight(route) {
+    return route.coords || [[route.from.lng, route.from.lat], [route.to.lng, route.to.lat]];
+  }
+
+  function formatRouteDistanceDuration(route) {
+    const parts = [];
+    if (typeof route.distanceMeters === 'number') parts.push((route.distanceMeters / 1000).toFixed(1) + 'km');
+    if (typeof route.durationSeconds === 'number') parts.push('約' + Math.round(route.durationSeconds / 60) + '分');
+    if (parts.length === 0) return '';
+    return parts.join(' / ') + (route.real === false ? '（直線近似）' : '');
+  }
+
+  function buildCustomRouteCardHtml(route) {
+    const stopsByType = {};
+    (route.stops || []).forEach((s) => { stopsByType[s.type] = (stopsByType[s.type] || 0) + 1; });
+    const stopBadges = Object.keys(stopsByType).map((t) =>
+      '<span class="badge" style="background:' + (CATEGORY_COLOR[t] || '#8CA39B') + '22;color:' + (CATEGORY_COLOR[t] || '#8CA39B') + ';">' +
+        escapeHtml(CATEGORY_LABEL[t] || t) + ' ' + stopsByType[t] + '</span>'
+    ).join('');
+    const distDuration = formatRouteDistanceDuration(route);
+    return '<div class="route-card" data-custom-route-id="' + escapeHtml(route.id) + '">' +
+      '<div style="display:flex;justify-content:space-between;gap:8px;align-items:flex-start;">' +
+        '<h3 style="flex:1;margin:0;">' + escapeHtml(route.name) + '</h3>' +
+        '<label style="display:flex;align-items:center;gap:4px;font-size:11px;white-space:nowrap;">' +
+          '<input type="checkbox" data-combine-id="' + escapeHtml(route.id) + '" /> 旅程に組み込む' +
+        '</label>' +
+      '</div>' +
+      '<p class="notes">' + escapeHtml((route.from && route.from.name) || '') + ' → ' + escapeHtml((route.to && route.to.name) || '') +
+        '（' + escapeHtml(MODE_LABEL[route.mode] || route.mode) + '）' +
+        (distDuration ? ' ・ ' + escapeHtml(distDuration) : '') +
       '</p>' +
-      '<p class="notes">対象: ' + escapeHtml(typeLabels) + ' / 周辺' + escapeHtml(entry.totalSpots) + '件中' + escapeHtml(usedTotal) + '件を採用</p>' +
-      '<button class="btn secondary" data-del-search-id="' + escapeHtml(entry.id) + '" style="font-size:11px;padding:4px 10px;">この履歴を削除</button>' +
+      (stopBadges || '<p class="notes" style="color:var(--text-muted);">立ち寄り先なし（直行ルート）</p>') +
+      '<p class="notes" style="font-size:11px;">登録: ' + escapeHtml(new Date(route.createdAt).toLocaleString('ja-JP')) + '</p>' +
+      '<button class="btn secondary" data-del-custom-route-id="' + escapeHtml(route.id) + '" style="font-size:11px;padding:4px 10px;">このルートを削除</button>' +
     '</div>';
   }
 
+  let combineOrder = [];
+
+  function combineSelectedRoutes() {
+    const statusEl = document.getElementById('routes-combine-status');
+    const customRoutes = loadCustomRoutes();
+    const selected = combineOrder.map((id) => customRoutes.find((r) => r.id === id)).filter(Boolean);
+    if (selected.length === 0) {
+      statusEl.style.color = '#C1503A';
+      statusEl.textContent = '「旅程に組み込む」にチェックしたルートを1つ以上選んでください。';
+      return;
+    }
+    statusEl.style.color = '';
+    statusEl.textContent = '';
+
+    const startDateInput = document.getElementById('routes-combine-start-date').value;
+    const baseDate = startDateInput || new Date().toISOString().slice(0, 10);
+
+    const allEvents = [];
+    selected.forEach((route, i) => {
+      const date = addDaysISO(baseDate, i);
+      const events = TripSchedulerDynamicScheduler.buildRouteSchedule(route.from, route.to, date, route.stops || [], {
+        startTime: '09:00',
+        mode: route.mode,
+      });
+      allEvents.push(...events);
+    });
+
+    document.getElementById('routes-combine-result').innerHTML =
+      '<h3 style="font-size:13px;margin:14px 0 6px;">組み合わせた旅程（' + selected.length + '日分、' + escapeHtml(baseDate) + '〜）</h3>' +
+      buildDayCardsHtml(allEvents);
+
+    safeRun(() => renderCombineMap(selected), 'routes');
+  }
+
   function renderRoutes() {
+    const customRoutes = loadCustomRoutes();
+    const customHtml = customRoutes.length
+      ? customRoutes.map(buildCustomRouteCardHtml).join('')
+      : '<p class="hint">まだルートが登録されていません。「現地プラン作成」タブでルートを作って登録してみてください。</p>';
+
     const curatedHtml = DATA.routes.map((route) => {
       const riskColor = CROWD_COLOR[route.crowdRisk] || '#8CA39B';
       const riskLabel = CROWD_LABEL[route.crowdRisk] || route.crowdRisk || '';
@@ -380,76 +473,107 @@ function buildIndexHtml(data, options = {}) {
       '</div>';
     }).join('');
 
-    const history = loadSearchHistory();
-    const historyHtml = history.length
-      ? '<h2 style="font-size:14px;margin:18px 0 10px;color:var(--text-muted);">🔎 現地プラン作成の検索履歴（' + history.length + '件・この端末のブラウザにのみ保存）' +
-          '<button class="btn secondary" id="routes-clear-history" style="font-size:11px;padding:3px 8px;margin-left:8px;">すべて削除</button>' +
-        '</h2>' +
-        history.map(buildSearchHistoryCardHtml).join('')
-      : '';
+    document.getElementById('tab-routes').innerHTML =
+      '<h2 style="font-size:15px;margin:0 0 4px;">作成したルート（' + customRoutes.length + '件）</h2>' +
+      '<p class="hint">「旅程に組み込む」にチェックした複数のルートを、1ルート=1日として組み合わせ、複数日の旅程にできます。</p>' +
+      '<div class="row" style="align-items:flex-end;">' +
+        '<div class="field"><label>旅程の開始日</label><input id="routes-combine-start-date" type="date" /></div>' +
+        '<div class="field" style="flex:0 0 auto;"><button class="btn" id="routes-combine-go" type="button">🧭 選択したルートを旅程にする</button></div>' +
+      '</div>' +
+      '<p id="routes-combine-status" class="hint"></p>' +
+      '<div id="routes-combine-result"></div>' +
+      '<div id="routes-combine-map-wrap" class="route-card" style="display:none;"><h3>組み合わせたルートのマップ</h3><div id="routes-combine-map" style="height:360px;border-radius:12px;"></div></div>' +
+      customHtml +
+      '<h2 style="font-size:15px;margin:22px 0 4px;color:var(--text-muted);">手動登録のRouteカタログ（' + DATA.routes.length + '件）</h2>' +
+      curatedHtml;
 
-    document.getElementById('tab-routes').innerHTML = curatedHtml + historyHtml;
-
-    document.querySelectorAll('[data-del-search-id]').forEach((btn) => {
+    document.querySelectorAll('[data-del-custom-route-id]').forEach((btn) => {
       btn.addEventListener('click', () => {
-        deleteSearchHistoryEntry(btn.getAttribute('data-del-search-id'));
+        const id = btn.getAttribute('data-del-custom-route-id');
+        deleteCustomRoute(id);
+        combineOrder = combineOrder.filter((x) => x !== id);
         renderRoutes();
-        if (leafletMap) renderSearchHistoryMarkers();
+        if (leafletMap) safeRun(renderCustomRoutesOnMap, 'map');
       });
     });
-    const clearBtn = document.getElementById('routes-clear-history');
-    if (clearBtn) {
-      clearBtn.addEventListener('click', () => {
-        if (!confirm('検索履歴をすべて削除しますか？（手動登録のRouteカタログは消えません）')) return;
-        clearSearchHistory();
-        renderRoutes();
-        if (leafletMap) renderSearchHistoryMarkers();
+    document.querySelectorAll('[data-combine-id]').forEach((cb) => {
+      const id = cb.getAttribute('data-combine-id');
+      if (combineOrder.includes(id)) cb.checked = true;
+      cb.addEventListener('change', () => {
+        if (cb.checked) { if (!combineOrder.includes(id)) combineOrder.push(id); }
+        else { combineOrder = combineOrder.filter((x) => x !== id); }
       });
-    }
+    });
+    document.getElementById('routes-combine-go').addEventListener('click', combineSelectedRoutes);
   }
 
   let leafletMap = null;
-  let searchHistoryLayer = null;
+  let customRoutesLayer = null;
+  let combineMap = null;
 
-  function renderSearchHistoryMarkers() {
+  function renderCustomRoutesOnMap() {
     if (!leafletMap) return;
-    if (searchHistoryLayer) leafletMap.removeLayer(searchHistoryLayer);
-    searchHistoryLayer = L.layerGroup();
-    loadSearchHistory().forEach((entry) => {
-      if (typeof entry.centerLat !== 'number' || typeof entry.centerLng !== 'number') return;
-      const marker = L.rectangle(
-        [[entry.centerLat - 0.003, entry.centerLng - 0.003], [entry.centerLat + 0.003, entry.centerLng + 0.003]],
-        { color: '#5EA8E8', fillColor: '#5EA8E8', fillOpacity: 0.7, weight: 1.5 }
+    if (customRoutesLayer) leafletMap.removeLayer(customRoutesLayer);
+    customRoutesLayer = L.layerGroup();
+    loadCustomRoutes().forEach((route) => {
+      const latlngs = routeCoordsOrStraight(route).map((c) => [c[1], c[0]]);
+      const line = L.polyline(latlngs, {
+        color: '#5EA8E8', weight: 3, opacity: 0.8, dashArray: route.real === false ? '6,6' : null,
+      });
+      line.bindPopup(
+        '<strong>' + escapeHtml(route.name) + '</strong>（作成したルート）<br/>' +
+        '<span style="font-size:11px;color:#555;">' + escapeHtml((route.from && route.from.name) || '') + ' → ' + escapeHtml((route.to && route.to.name) || '') + '</span>'
       );
-      marker.bindPopup(
-        '<strong>' + escapeHtml(entry.centerName || '検索地点') + '</strong>（検索履歴）<br/>' +
-        '<span style="font-size:11px;color:#555;">' + escapeHtml(new Date(entry.searchedAt).toLocaleString('ja-JP')) + '</span>'
-      );
-      searchHistoryLayer.addLayer(marker);
+      customRoutesLayer.addLayer(line);
     });
-    searchHistoryLayer.addTo(leafletMap);
+    customRoutesLayer.addTo(leafletMap);
+  }
+
+  function renderCombineMap(routes) {
+    const wrap = document.getElementById('routes-combine-map-wrap');
+    wrap.style.display = 'block';
+    if (!combineMap) {
+      combineMap = L.map('routes-combine-map');
+      L.tileLayer(GSI_TILE_URL, { attribution: GSI_ATTRIBUTION, maxZoom: 18 }).addTo(combineMap);
+    } else {
+      combineMap.eachLayer((layer) => { if (!(layer instanceof L.TileLayer)) combineMap.removeLayer(layer); });
+    }
+    setTimeout(() => combineMap.invalidateSize(), 0);
+
+    const bounds = [];
+    routes.forEach((route, idx) => {
+      const color = DAY_LINE_COLORS[idx % DAY_LINE_COLORS.length];
+      const latlngs = routeCoordsOrStraight(route).map((c) => [c[1], c[0]]);
+      L.polyline(latlngs, { color, weight: 4, opacity: 0.8, dashArray: route.real === false ? '7,7' : null })
+        .addTo(combineMap)
+        .bindPopup((idx + 1) + '日目: ' + escapeHtml(route.name));
+      latlngs.forEach((ll) => bounds.push(ll));
+      (route.stops || []).forEach((s) => {
+        L.circleMarker([s.lat, s.lng], { radius: 7, color, fillColor: color, fillOpacity: 0.85, weight: 2 })
+          .addTo(combineMap)
+          .bindPopup(escapeHtml(s.name));
+        bounds.push([s.lat, s.lng]);
+      });
+    });
+    if (bounds.length) combineMap.fitBounds(bounds, { padding: [40, 40] });
   }
 
   function renderMap() {
     const withCenter = DATA.routes.filter((r) => r.searchCenter);
     const map = L.map('map');
     leafletMap = map;
-    // OpenStreetMap公式タイル（{s}.tile.openstreetmap.org）は利用ポリシーが厳格化され、
-    // ブラウザからの直接アクセスが「Access blocked」で拒否されることが増えたため、
-    // 日本国内限定のアプリであることを踏まえ、無料・APIキー不要・出典明記のみで使える
-    // 国土地理院（GSI）の淡色地図タイルを使う。
-    L.tileLayer('https://cyberjapandata.gsi.go.jp/xyz/pale/{z}/{x}/{y}.png', {
-      attribution: '地図: <a href="https://maps.gsi.go.jp/development/ichiran.html" target="_blank" rel="noopener">国土地理院</a>',
-      maxZoom: 18,
-    }).addTo(map);
+    L.tileLayer(GSI_TILE_URL, { attribution: GSI_ATTRIBUTION, maxZoom: 18 }).addTo(map);
 
-    const history = loadSearchHistory();
-    const boundPoints = withCenter.map((r) => [r.searchCenter.lat, r.searchCenter.lng])
-      .concat(history.filter((h) => typeof h.centerLat === 'number').map((h) => [h.centerLat, h.centerLng]));
+    const customRoutes = loadCustomRoutes();
+    const boundPoints = withCenter.map((r) => [r.searchCenter.lat, r.searchCenter.lng]);
+    customRoutes.forEach((route) => {
+      if (route.from) boundPoints.push([route.from.lat, route.from.lng]);
+      if (route.to) boundPoints.push([route.to.lat, route.to.lng]);
+    });
 
     if (boundPoints.length === 0) {
       map.setView([35.3556, 139.5309], 10);
-      renderSearchHistoryMarkers();
+      renderCustomRoutesOnMap();
       return;
     }
     withCenter.forEach((route) => {
@@ -464,7 +588,7 @@ function buildIndexHtml(data, options = {}) {
         '<span style="font-size:11px;color:#555;">' + escapeHtml(tags) + '</span>'
       );
     });
-    renderSearchHistoryMarkers();
+    renderCustomRoutesOnMap();
     map.fitBounds(L.latLngBounds(boundPoints), { padding: [40, 40] });
   }
 
@@ -551,8 +675,9 @@ function buildIndexHtml(data, options = {}) {
     });
   }
 
-  // ─── 現地プラン作成タブ：地点を指定し、OSM上の周辺スポットから動的に
-  // スケジュールを組む（Test/travel-route-planner.html の考え方を踏襲）───
+  // ─── 現地プラン作成タブ：出発地〜目的地のルート沿いのスポットから、
+  // 選んだものだけでルートを組んで名前を付けて登録する
+  // （Test/travel-route-planner.html の考え方を踏襲）───
   let dpMap = null;
 
   function addDaysISO(dateStr, days) {
@@ -561,86 +686,16 @@ function buildIndexHtml(data, options = {}) {
     return d.toISOString().slice(0, 10);
   }
 
-  const DAY_LINE_COLORS = ['#45B08C', '#5EA8E8', '#E8C22C', '#B98AE0', '#C1503A', '#E8955B', '#8CA39B'];
-
-  /**
-   * @param {{lat:number,lng:number,name?:string}} center
-   * @param {object[]} spots findSpotsAround()が返した全候補（採用/不採用を含む）
-   * @param {object[]} events buildDynamicDaySchedule()が返したイベント配列（複数日分）
-   * @param {{lat:number,lng:number}[][]} dayWaypoints 日ごとの巡回順（中心→スポット→…→中心）の座標配列
-   * @param {'walk'|'bike'|'car'} mode
-   */
-  async function renderPlannerMap(center, spots, events, dayWaypoints, mode) {
-    const mapWrap = document.getElementById('dp-map-wrap');
-    mapWrap.style.display = 'block';
-    if (!dpMap) {
-      dpMap = L.map('dp-map');
-      L.tileLayer('https://cyberjapandata.gsi.go.jp/xyz/pale/{z}/{x}/{y}.png', {
-        attribution: '地図: <a href="https://maps.gsi.go.jp/development/ichiran.html" target="_blank" rel="noopener">国土地理院</a>',
-        maxZoom: 18,
-      }).addTo(dpMap);
-    } else {
-      dpMap.eachLayer((layer) => { if (!(layer instanceof L.TileLayer)) dpMap.removeLayer(layer); });
-    }
-    setTimeout(() => dpMap.invalidateSize(), 0);
-
-    const noteEl = document.getElementById('dp-map-note');
-    noteEl.textContent = '経路を計算中…';
-
-    const usedSpotIds = new Set(events.filter((e) => e.spotId).map((e) => e.spotId));
-    const bounds = [[center.lat, center.lng]];
-    L.marker([center.lat, center.lng]).addTo(dpMap)
-      .bindPopup('<strong>' + escapeHtml(center.name || '出発地点') + '</strong>（出発地点）');
-
-    spots.forEach((spot) => {
-      const used = usedSpotIds.has(spot.id);
-      const color = used ? (CATEGORY_COLOR[spot.type] || '#45B08C') : '#4A5A55';
-      const marker = L.circleMarker([spot.lat, spot.lng], {
-        radius: used ? 9 : 5, color, fillColor: color, fillOpacity: used ? 0.9 : 0.35, weight: used ? 2 : 1,
-      }).addTo(dpMap);
-      marker.bindPopup(
-        '<strong>' + escapeHtml(spot.name) + '</strong><br/>' +
-        escapeHtml(CATEGORY_LABEL[spot.type] || spot.type) + (used ? '（スケジュールに採用）' : '')
-      );
-      bounds.push([spot.lat, spot.lng]);
-    });
-
-    dpMap.fitBounds(bounds, { padding: [40, 40] });
-
-    // 日ごとの巡回ルートをOSRM（失敗時は直線近似）で描画する
-    // （Test/travel-route-planner.htmlのルート表示を踏襲）。
-    let anyFallback = false;
-    let anyReal = false;
-    for (let dayIdx = 0; dayIdx < (dayWaypoints || []).length; dayIdx++) {
-      const points = dayWaypoints[dayIdx];
-      if (!points || points.length < 2) continue;
-      let line;
-      try {
-        line = await TripSchedulerRouteLine.fetchRouteLine(points, mode);
-      } catch (err) {
-        line = { coords: points.map((p) => [p.lng, p.lat]), real: false };
-      }
-      if (line.real) anyReal = true; else anyFallback = true;
-      const latlngs = line.coords.map((c) => [c[1], c[0]]);
-      const color = DAY_LINE_COLORS[dayIdx % DAY_LINE_COLORS.length];
-      L.polyline(latlngs, {
-        color, weight: 4, opacity: 0.75, dashArray: line.real ? null : '7,7',
-      }).addTo(dpMap).bindPopup((dayIdx + 1) + '日目の移動ルート' + (line.real ? '' : '（直線近似）'));
-    }
-
-    if (anyFallback && anyReal) {
-      noteEl.textContent = '一部の日は道路ルートAPI（OSRM）が応答しなかったため、直線（破線）で近似表示しています。';
-    } else if (anyFallback && !anyReal) {
-      noteEl.textContent = '道路ルートAPI（OSRM）に接続できなかったため、すべて直線（破線）で近似表示しています。';
-    } else {
-      noteEl.textContent = '';
-    }
-  }
-
   function initPlannerTab() {
     const statusEl = document.getElementById('dp-status');
+    const fromInput = document.getElementById('dp-from');
+    const toInput = document.getElementById('dp-to');
+    const candidatesWrap = document.getElementById('dp-candidates-wrap');
+    const candidatesEl = document.getElementById('dp-candidates');
+    const previewWrap = document.getElementById('dp-preview-wrap');
     const resultEl = document.getElementById('dp-result');
-    const locInput = document.getElementById('dp-location');
+    const registerWrap = document.getElementById('dp-register-wrap');
+    const registerStatusEl = document.getElementById('dp-register-status');
 
     if (location.protocol === 'file:') {
       document.getElementById('dp-file-warning').style.display = 'block';
@@ -656,9 +711,9 @@ function buildIndexHtml(data, options = {}) {
       setStatus('現在地を取得中…');
       navigator.geolocation.getCurrentPosition(
         (pos) => {
-          locInput.value = '現在地';
-          locInput.dataset.lat = pos.coords.latitude;
-          locInput.dataset.lng = pos.coords.longitude;
+          fromInput.value = '現在地';
+          fromInput.dataset.lat = pos.coords.latitude;
+          fromInput.dataset.lng = pos.coords.longitude;
           setStatus('現在地を取得しました（' + pos.coords.latitude.toFixed(4) + ', ' + pos.coords.longitude.toFixed(4) + '）');
         },
         () => setStatus('現在地の取得に失敗しました。地名を入力してください。', true),
@@ -666,9 +721,9 @@ function buildIndexHtml(data, options = {}) {
       );
     });
 
-    locInput.addEventListener('input', () => {
-      delete locInput.dataset.lat;
-      delete locInput.dataset.lng;
+    fromInput.addEventListener('input', () => {
+      delete fromInput.dataset.lat;
+      delete fromInput.dataset.lng;
     });
 
     const goBtn = document.getElementById('dp-go');
@@ -681,12 +736,120 @@ function buildIndexHtml(data, options = {}) {
       if (activeAbortController) activeAbortController.abort();
     });
 
+    // 検索して作成中のルートの状態（「登録する」まではここだけに保持する）
+    let currentFrom = null;
+    let currentTo = null;
+    let currentMode = 'car';
+    let currentCoords = null; // [[lng,lat], ...]
+    let currentReal = true;
+    let currentDistanceMeters = null;
+    let currentDurationSeconds = null;
+    let candidates = []; // routeProgressRatio順（出発地点に近い順）にソート済み
+    const selectedIds = new Set();
+    const candidateMarkers = new Map(); // spotId -> leaflet marker
+
+    async function resolvePoint(input, label) {
+      if (input.dataset.lat && input.dataset.lng) {
+        return { lat: parseFloat(input.dataset.lat), lng: parseFloat(input.dataset.lng), name: '現在地' };
+      }
+      const query = input.value.trim();
+      if (!query) throw new Error(label + 'を入力するか、現在地を使ってください');
+      const geo = await TripSchedulerGeocode.geocodeLocation(query, { signal: activeAbortController.signal });
+      if (!geo) throw new Error('「' + query + '」が見つかりませんでした。別の表記で試してください。');
+      return { lat: geo.lat, lng: geo.lng, name: geo.name };
+    }
+
+    function updatePreview() {
+      const ordered = candidates.filter((s) => selectedIds.has(s.id));
+      const previewDate = new Date().toISOString().slice(0, 10);
+      const events = TripSchedulerDynamicScheduler.buildRouteSchedule(currentFrom, currentTo, previewDate, ordered, {
+        startTime: '09:00',
+        mode: currentMode,
+      });
+      resultEl.innerHTML = buildDayCardsHtml(events);
+      previewWrap.style.display = 'block';
+    }
+
+    function updateCandidateMarkerStyle(id, selected) {
+      const marker = candidateMarkers.get(id);
+      if (!marker) return;
+      const spot = candidates.find((s) => s.id === id);
+      const color = selected ? (CATEGORY_COLOR[spot.type] || '#45B08C') : '#4A5A55';
+      marker.setStyle({ radius: selected ? 9 : 5, color, fillColor: color, fillOpacity: selected ? 0.9 : 0.35, weight: selected ? 2 : 1 });
+    }
+
+    function renderCandidates() {
+      candidatesEl.innerHTML = candidates.map((spot) => {
+        const color = CATEGORY_COLOR[spot.type] || '#45B08C';
+        return '<label class="candidate-row">' +
+          '<input type="checkbox" data-spot-id="' + escapeHtml(spot.id) + '" ' + (selectedIds.has(spot.id) ? 'checked' : '') + ' />' +
+          '<span style="flex:1;">' +
+            '<span class="name"><span class="badge" style="background:' + color + '22;color:' + color + ';">' +
+              escapeHtml(CATEGORY_LABEL[spot.type] || spot.type) + '</span> ' + escapeHtml(spot.name) + '</span>' +
+            '<span class="meta">' + (spot.hours ? '営業時間: ' + escapeHtml(spot.hours) : '営業時間不明') + '</span>' +
+          '</span>' +
+        '</label>';
+      }).join('');
+
+      candidatesEl.querySelectorAll('[data-spot-id]').forEach((cb) => {
+        cb.addEventListener('change', () => {
+          const id = cb.getAttribute('data-spot-id');
+          if (cb.checked) selectedIds.add(id); else selectedIds.delete(id);
+          updateCandidateMarkerStyle(id, cb.checked);
+          updatePreview();
+        });
+      });
+    }
+
+    function renderSearchMap() {
+      const mapWrap = document.getElementById('dp-map-wrap');
+      mapWrap.style.display = 'block';
+      if (!dpMap) {
+        dpMap = L.map('dp-map');
+        L.tileLayer(GSI_TILE_URL, { attribution: GSI_ATTRIBUTION, maxZoom: 18 }).addTo(dpMap);
+      } else {
+        dpMap.eachLayer((layer) => { if (!(layer instanceof L.TileLayer)) dpMap.removeLayer(layer); });
+      }
+      setTimeout(() => dpMap.invalidateSize(), 0);
+      candidateMarkers.clear();
+
+      const bounds = [];
+      L.marker([currentFrom.lat, currentFrom.lng]).addTo(dpMap)
+        .bindPopup('<strong>' + escapeHtml(currentFrom.name || '出発地') + '</strong>（出発地）');
+      bounds.push([currentFrom.lat, currentFrom.lng]);
+      L.marker([currentTo.lat, currentTo.lng]).addTo(dpMap)
+        .bindPopup('<strong>' + escapeHtml(currentTo.name || '目的地') + '</strong>（目的地）');
+      bounds.push([currentTo.lat, currentTo.lng]);
+
+      const latlngs = (currentCoords || []).map((c) => [c[1], c[0]]);
+      if (latlngs.length >= 2) {
+        L.polyline(latlngs, { color: '#45B08C', weight: 4, opacity: 0.75, dashArray: currentReal ? null : '7,7' }).addTo(dpMap);
+        latlngs.forEach((ll) => bounds.push(ll));
+      }
+
+      candidates.forEach((spot) => {
+        const selected = selectedIds.has(spot.id);
+        const color = selected ? (CATEGORY_COLOR[spot.type] || '#45B08C') : '#4A5A55';
+        const marker = L.circleMarker([spot.lat, spot.lng], {
+          radius: selected ? 9 : 5, color, fillColor: color, fillOpacity: selected ? 0.9 : 0.35, weight: selected ? 2 : 1,
+        }).addTo(dpMap);
+        marker.bindPopup(
+          '<strong>' + escapeHtml(spot.name) + '</strong><br/>' + escapeHtml(CATEGORY_LABEL[spot.type] || spot.type)
+        );
+        candidateMarkers.set(spot.id, marker);
+        bounds.push([spot.lat, spot.lng]);
+      });
+
+      if (bounds.length) dpMap.fitBounds(bounds, { padding: [40, 40] });
+
+      document.getElementById('dp-map-note').textContent = currentReal
+        ? ''
+        : '道路ルートAPI（OSRM）に接続できなかったため、直線（破線）で近似表示しています。';
+    }
+
     goBtn.addEventListener('click', async () => {
-      const radiusKm = parseFloat(document.getElementById('dp-radius').value) || 2;
-      const days = Math.max(1, Math.min(7, parseInt(document.getElementById('dp-days').value, 10) || 1));
+      const corridorKm = parseFloat(document.getElementById('dp-corridor').value) || 0.3;
       const mode = document.getElementById('dp-mode').value;
-      const startDateInput = document.getElementById('dp-start-date').value;
-      const startTime = document.getElementById('dp-start-time').value || '09:00';
 
       const types = [];
       if (document.getElementById('dp-cat-sightseeing').checked) types.push('sightseeing');
@@ -695,6 +858,10 @@ function buildIndexHtml(data, options = {}) {
       if (document.getElementById('dp-cat-onsen').checked) types.push('onsen');
       if (types.length === 0) { setStatus('スポットの種類を1つ以上選んでください', true); return; }
 
+      candidatesWrap.style.display = 'none';
+      previewWrap.style.display = 'none';
+      registerWrap.style.display = 'none';
+      candidatesEl.innerHTML = '';
       resultEl.innerHTML = '';
       cancelledByUser = false;
       // タイムアウトはあくまで保険で、本命は「キャンセル」ボタン。
@@ -704,32 +871,41 @@ function buildIndexHtml(data, options = {}) {
       cancelBtn.style.display = 'inline-block';
 
       try {
-        let center;
-        if (locInput.dataset.lat && locInput.dataset.lng) {
-          center = { lat: parseFloat(locInput.dataset.lat), lng: parseFloat(locInput.dataset.lng), name: '現在地' };
-        } else {
-          const query = locInput.value.trim();
-          if (!query) { setStatus('地点を入力するか、現在地を使ってください', true); return; }
-          setStatus('地点を検索中…（Nominatimへ問い合わせています）');
-          let geo;
-          try {
-            geo = await TripSchedulerGeocode.geocodeLocation(query, { signal: activeAbortController.signal });
-          } catch (err) {
-            if (cancelledByUser) { setStatus('検索をキャンセルしました。', true); return; }
-            setStatus('地点検索でエラーが発生しました: ' + err.message, true);
-            return;
-          }
-          if (!geo) { setStatus('「' + query + '」が見つかりませんでした。別の表記で試してください。', true); return; }
-          center = { lat: geo.lat, lng: geo.lng, name: geo.name };
+        let from;
+        let to;
+        try {
+          setStatus('出発地・目的地を検索中…（Nominatimへ問い合わせています）');
+          from = await resolvePoint(fromInput, '出発地');
+          to = await resolvePoint(toInput, '目的地');
+        } catch (err) {
+          if (cancelledByUser) { setStatus('検索をキャンセルしました。', true); return; }
+          setStatus(err.message, true);
+          return;
         }
 
-        setStatus('周辺のスポットを検索中…（OpenStreetMap Overpass APIへ問い合わせています。混雑時は最大20秒ほどかかります。待てない場合は「キャンセル」で中断できます）');
-        let spots;
+        setStatus('ルートを計算中…（OSRMへ問い合わせています）');
+        let route;
         try {
-          spots = await TripSchedulerOverpassSpots.findSpotsAround(
-            center.lat, center.lng, Math.round(radiusKm * 1000), types,
-            { signal: activeAbortController.signal }
-          );
+          route = await TripSchedulerRouteLine.fetchRouteLine([from, to], mode, { signal: activeAbortController.signal });
+        } catch (err) {
+          if (cancelledByUser) { setStatus('検索をキャンセルしました。', true); return; }
+          setStatus('ルートの計算に失敗しました: ' + err.message, true);
+          return;
+        }
+        if (cancelledByUser) { setStatus('検索をキャンセルしました。', true); return; }
+
+        setStatus('ルート沿いのスポットを検索中…（OpenStreetMap Overpass APIへ問い合わせています。混雑時は最大20秒ほどかかります。待てない場合は「キャンセル」で中断できます）');
+        const lats = route.coords.map((c) => c[1]);
+        const lngs = route.coords.map((c) => c[0]);
+        const marginDeg = corridorKm / 111 + 0.01;
+        const bbox = [
+          Math.min(...lats) - marginDeg, Math.min(...lngs) - marginDeg,
+          Math.max(...lats) + marginDeg, Math.max(...lngs) + marginDeg,
+        ];
+
+        let rawSpots;
+        try {
+          rawSpots = await TripSchedulerOverpassSpots.findSpotsInBbox(bbox, types, { signal: activeAbortController.signal });
         } catch (err) {
           if (cancelledByUser) { setStatus('検索をキャンセルしました。', true); return; }
           const isTimeout = /timed out|AbortError/i.test((err && err.name) || '') || /timed out/i.test((err && err.message) || '');
@@ -737,7 +913,7 @@ function buildIndexHtml(data, options = {}) {
             'Overpass APIへの接続に失敗しました（' + err.message + '）。' +
             (isTimeout
               ? '複数のOverpassミラーすべてが混雑等で20秒以内に応答しませんでした。' +
-                '少し時間をおいて再試行するか、検索半径を狭めてみてください。'
+                '少し時間をおいて再試行するか、ルートからの許容距離を狭めてみてください。'
               : '広告ブロッカーやセキュリティ系の拡張機能（uBlock Origin等）が ' +
                 'overpass-api.de 系のドメインをブロックしていないか確認してください' +
                 '（一度シークレットウィンドウで試すと切り分けられます）。') +
@@ -747,77 +923,80 @@ function buildIndexHtml(data, options = {}) {
           return;
         }
 
-        if (spots.length === 0) {
-          setStatus('半径' + radiusKm + 'km以内にスポットが見つかりませんでした。半径を広げるか種類を増やしてみてください。');
-          return;
+        const corridorMeters = corridorKm * 1000;
+        candidates = rawSpots
+          .map((spot) => ({ ...spot, distanceToRouteMeters: TripSchedulerRouteLine.distanceToRouteMeters(spot.lat, spot.lng, route.coords) }))
+          .filter((spot) => spot.distanceToRouteMeters <= corridorMeters)
+          .map((spot) => ({ ...spot, progress: TripSchedulerRouteLine.routeProgressRatio(spot.lat, spot.lng, route.coords) }))
+          .sort((a, b) => a.progress - b.progress);
+
+        currentFrom = from;
+        currentTo = to;
+        currentMode = mode;
+        currentCoords = route.coords;
+        currentReal = route.real;
+        currentDistanceMeters = route.distanceMeters;
+        currentDurationSeconds = route.durationSeconds;
+        selectedIds.clear();
+
+        if (candidates.length === 0) {
+          setStatus(
+            'ルートから' + corridorKm + 'km以内にスポットが見つかりませんでした。' +
+            '許容距離を広げるか種類を増やしてみてください（ルート自体は検索できたので、立ち寄り先無しで登録することもできます）。'
+          );
+        } else {
+          setStatus('✅ ルート沿いに' + candidates.length + '件の候補スポットが見つかりました。下のリストから選んでください。');
+          candidatesWrap.style.display = 'block';
+          renderCandidates();
+          updatePreview();
         }
-
-        const remaining = spots.slice();
-        const allEvents = [];
-        const usedCounts = [];
-        const dayWaypoints = [];
-        const baseDate = startDateInput || new Date().toISOString().slice(0, 10);
-
-        for (let i = 0; i < days; i++) {
-          const date = addDaysISO(baseDate, i);
-          const daySpots = TripSchedulerDynamicScheduler.selectSpotsForDay(remaining, {});
-          daySpots.forEach((s) => {
-            const idx = remaining.findIndex((r) => r.id === s.id);
-            if (idx >= 0) remaining.splice(idx, 1);
-          });
-          usedCounts.push(daySpots.length);
-          const events = TripSchedulerDynamicScheduler.buildDynamicDaySchedule(center, date, daySpots, {
-            startTime: i === 0 ? startTime : '09:00',
-            mode,
-          });
-          allEvents.push(...events);
-
-          // 地図にルートを描くための、その日の巡回順（中心→スポット→…→中心）。
-          // buildDynamicDaySchedule()の内部で使っている順序決定ロジックと同じ
-          // orderSpotsGreedy()を使うことで、表示されるルートと時間割の順序を一致させる。
-          const ordered = TripSchedulerDynamicScheduler.orderSpotsGreedy(center, daySpots);
-          if (ordered.length > 0) {
-            dayWaypoints.push([
-              { lat: center.lat, lng: center.lng },
-              ...ordered.map((s) => ({ lat: s.lat, lng: s.lng })),
-              { lat: center.lat, lng: center.lng },
-            ]);
-          } else {
-            dayWaypoints.push([]);
-          }
-        }
-
-        if (allEvents.length === 0) {
-          setStatus('スケジュールを生成できるスポットがありませんでした。半径や種類を見直してください。');
-          return;
-        }
-
-        setStatus('✅ 周辺' + spots.length + '件のスポットから ' + days + '日分のスケジュールを作成しました（使用: ' + usedCounts.join('件 / ') + '件）');
-        resultEl.innerHTML = buildDayCardsHtml(allEvents);
-        safeRun(() => renderPlannerMap(center, spots, allEvents, dayWaypoints, mode), 'planner');
-
-        // この検索結果を「ルートカタログ」タブの検索履歴に自動追加する
-        // （検索するたびに増えていく方式。この端末のブラウザにのみ保存）。
-        saveSearchHistoryEntry({
-          id: 'search-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8),
-          searchedAt: new Date().toISOString(),
-          centerName: center.name || locInput.value.trim() || '検索地点',
-          centerLat: center.lat,
-          centerLng: center.lng,
-          radiusKm,
-          days,
-          mode,
-          types,
-          totalSpots: spots.length,
-          usedCounts,
-        });
-        safeRun(renderRoutes, 'routes');
-        if (leafletMap) safeRun(renderSearchHistoryMarkers, 'map');
+        registerWrap.style.display = 'block';
+        safeRun(renderSearchMap, 'planner');
       } finally {
         goBtn.disabled = false;
         cancelBtn.style.display = 'none';
         activeAbortController = null;
       }
+    });
+
+    document.getElementById('dp-register').addEventListener('click', () => {
+      if (!currentFrom || !currentTo) {
+        registerStatusEl.style.color = '#C1503A';
+        registerStatusEl.textContent = '先にルートを検索してください。';
+        return;
+      }
+      const name = document.getElementById('dp-route-name').value.trim();
+      if (!name) {
+        registerStatusEl.style.color = '#C1503A';
+        registerStatusEl.textContent = 'ルート名を入力してください。';
+        return;
+      }
+
+      const orderedStops = candidates
+        .filter((s) => selectedIds.has(s.id))
+        .map((s) => ({ id: s.id, name: s.name, type: s.type, lat: s.lat, lng: s.lng, hours: s.hours }));
+
+      saveCustomRoute({
+        id: 'route-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8),
+        name,
+        createdAt: new Date().toISOString(),
+        from: currentFrom,
+        to: currentTo,
+        mode: currentMode,
+        distanceMeters: currentDistanceMeters,
+        durationSeconds: currentDurationSeconds,
+        real: currentReal,
+        coords: currentCoords,
+        stops: orderedStops,
+      });
+
+      registerStatusEl.style.color = '';
+      registerStatusEl.textContent =
+        '✅「' + name + '」として登録しました（ルートカタログタブで確認できます）。' +
+        '立ち寄り先の選び方を変えて、別の名前でもう一度登録することもできます。';
+      document.getElementById('dp-route-name').value = '';
+      safeRun(renderRoutes, 'routes');
+      if (leafletMap) safeRun(renderCustomRoutesOnMap, 'map');
     });
   }
 
