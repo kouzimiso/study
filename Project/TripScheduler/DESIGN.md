@@ -264,6 +264,17 @@ Phase 2・4（自動反映の残り）は既存の `RestaurantFinder` と `Maps`
   直接開いていたことと判明（`file://`はOrigin:nullとして送られ、
   `overpass-api.de`等がCORSヘッダーを返さずブロックされる）。対応として
   `file://`検出時にページ内へ警告（ローカルサーバー起動を促す）を表示する
-  ようにした（`src/buildIndexHtml.js`の`#dp-file-warning`）。ネットワーク
-  到達性が原因の失敗（タイムアウト等）とは別の問題だったため、
-  エンドポイント分散・タイムアウト短縮だけでは解決しない
+  ようにした（`src/buildIndexHtml.js`の`#dp-file-warning`）他、Windowsで
+  ワンクリックでローカルサーバーを起動できる`start-local-server.bat`を
+  追加した
+- `http://localhost`経由に直しても、今度は4つのOverpassミラー全てで
+  `signal timed out`が発生。これはCORS拒否ではなく、クライアント側の
+  `AbortSignal.timeout()`がサーバーより先に切れていたことが原因
+  （一度`timeoutMs`を15000→10000に短縮したのが逆効果だった。Overpass
+  クエリは`[timeout:25]`でサーバーに25秒の処理猶予を伝えているため、
+  クライアント側がそれより短いと、サーバーが処理中でも先に失敗扱いに
+  なる）。対応として `src/overpassSpots.js` の `fetchOverpassRaw()` を
+  直列リトライから `Promise.any()` による並列問い合わせに変更し
+  （4ミラーを同時に試し、最初に成功したものを使う）、1ミラーあたりの
+  タイムアウトを20000msに戻した。これにより合計の最悪待ち時間が
+  「ミラー数×タイムアウト」から「タイムアウト1回分」に短縮される

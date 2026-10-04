@@ -548,17 +548,21 @@ function buildIndexHtml(data, options = {}) {
         center = { lat: geo.lat, lng: geo.lng, name: geo.name };
       }
 
-      setStatus('周辺のスポットを検索中…（OpenStreetMap Overpass APIへ問い合わせています）');
+      setStatus('周辺のスポットを検索中…（OpenStreetMap Overpass APIへ問い合わせています。混雑時は最大20秒ほどかかります）');
       let spots;
       try {
         spots = await TripSchedulerOverpassSpots.findSpotsAround(center.lat, center.lng, Math.round(radiusKm * 1000), types);
       } catch (err) {
+        const isTimeout = /timed out|AbortError/i.test((err && err.name) || '') || /timed out/i.test((err && err.message) || '');
         setStatus(
           'Overpass APIへの接続に失敗しました（' + err.message + '）。' +
-          '広告ブロッカーやセキュリティ系の拡張機能（uBlock Origin等）が ' +
-          'overpass-api.de 系のドメインをブロックしていないか確認してください' +
-          '（一度シークレットウィンドウで試すと切り分けられます）。詳細は' +
-          'ブラウザの開発者ツール（F12）のConsoleタブにも出力しています。',
+          (isTimeout
+            ? '複数のOverpassミラーすべてが混雑等で20秒以内に応答しませんでした。' +
+              '少し時間をおいて再試行するか、検索半径を狭めてみてください。'
+            : '広告ブロッカーやセキュリティ系の拡張機能（uBlock Origin等）が ' +
+              'overpass-api.de 系のドメインをブロックしていないか確認してください' +
+              '（一度シークレットウィンドウで試すと切り分けられます）。') +
+          '詳細はブラウザの開発者ツール（F12）のConsoleタブにも出力しています。',
           true
         );
         return;
