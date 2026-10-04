@@ -108,9 +108,12 @@ ${skippedCount > 0 ? `<div class="empty-notice">${skippedCount}件は座標情�
   }
 
   const map = L.map('map');
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '&copy; OpenStreetMap contributors',
-    maxZoom: 19,
+  // OpenStreetMap公式タイルはポリシー厳格化によりブラウザからの直接アクセスが
+  // 「Access blocked」で拒否されることが増えたため、日本国内限定の用途であることを
+  // 踏まえ、無料・APIキー不要・出典明記のみで使える国土地理院（GSI）タイルを使う。
+  L.tileLayer('https://cyberjapandata.gsi.go.jp/xyz/pale/{z}/{x}/{y}.png', {
+    attribution: '地図: <a href="https://maps.gsi.go.jp/development/ichiran.html" target="_blank" rel="noopener">国土地理院</a>',
+    maxZoom: 18,
   }).addTo(map);
 
   if (points.length === 0) {

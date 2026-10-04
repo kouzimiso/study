@@ -247,8 +247,13 @@ function buildIndexHtml(data, options = {}) {
     const withCenter = DATA.routes.filter((r) => r.searchCenter);
     const map = L.map('map');
     leafletMap = map;
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; OpenStreetMap contributors', maxZoom: 19,
+    // OpenStreetMap公式タイル（{s}.tile.openstreetmap.org）は利用ポリシーが厳格化され、
+    // ブラウザからの直接アクセスが「Access blocked」で拒否されることが増えたため、
+    // 日本国内限定のアプリであることを踏まえ、無料・APIキー不要・出典明記のみで使える
+    // 国土地理院（GSI）の淡色地図タイルを使う。
+    L.tileLayer('https://cyberjapandata.gsi.go.jp/xyz/pale/{z}/{x}/{y}.png', {
+      attribution: '地図: <a href="https://maps.gsi.go.jp/development/ichiran.html" target="_blank" rel="noopener">国土地理院</a>',
+      maxZoom: 18,
     }).addTo(map);
     if (withCenter.length === 0) {
       map.setView([35.3556, 139.5309], 10);

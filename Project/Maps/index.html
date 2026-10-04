@@ -26,6 +26,10 @@
   html,body{margin:0;height:100%;background:var(--bg-deep);color:var(--text-primary);
     font-family:'Zen Kaku Gothic New', system-ui, sans-serif;}
   #map{position:absolute; inset:0;}
+  /* 国土地理院タイルは明るい配色のため、CARTOダークタイル相当の見た目に
+     なるようタイル画像だけを反転する（マーカー/オーバーレイ要素は
+     別ペインのため影響を受けない）。 */
+  .leaflet-tile-pane{ filter: invert(92%) hue-rotate(180deg) brightness(95%) contrast(90%); }
 
   .brand{
     position:absolute; top:16px; left:16px; z-index:1000;
@@ -290,9 +294,14 @@ window.addEventListener('error', (e) => {
 });
 
 L.control.zoom({ position: 'bottomright' }).addTo(map);
-L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-  attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-  maxZoom: 19,
+// CARTOの無料ダークタイル(basemaps.cartocdn.com)はAPIキー必須化が進み、
+// ブラウザからの直接アクセスが「API KEY REQUIRED」の透かし表示に置き換わった。
+// 日本全国を対象とするアプリであることを踏まえ、無料・APIキー不要・出典明記のみで
+// 使える国土地理院（GSI）タイルに切り替え、CSSフィルター（leaflet-tile-pane への
+// invert）でダークテーマの見た目を維持する。
+L.tileLayer('https://cyberjapandata.gsi.go.jp/xyz/std/{z}/{x}/{y}.png', {
+  attribution: '地図: <a href="https://maps.gsi.go.jp/development/ichiran.html" target="_blank" rel="noopener">国土地理院</a>',
+  maxZoom: 18,
 }).addTo(map);
 
 const vacancyLayer = L.layerGroup().addTo(map);
