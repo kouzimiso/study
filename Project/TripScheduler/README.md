@@ -46,6 +46,9 @@ npm run build:html   # index.html を生成（デフォルトで同梱済み）
   訪問履歴によるローテーションを含む）
 - `index.html` / `src/buildIndexHtml.js` — 上記のHTML GUI本体と、
   データから生成するビルドスクリプト
+- `start-local-server.bat` — Windowsで `index.html` を `file://` でなく
+  `http://localhost:8080/` 経由で開くためのワンクリック起動バッチ
+  （楽天ホテル検索・現地プラン作成タブを動かすのに必要）
 - `data/routes.json` — 大船から日帰り圏の行き先パターン（観光地・
   温泉・絶景ドライブ）のカタログ
 - `data/visitHistory.json` — 訪問済みRouteの記録
@@ -202,6 +205,13 @@ npx serve .
 # または
 python -m http.server 8000
 ```
+
+Windowsの場合は [`start-local-server.bat`](./start-local-server.bat) を
+ダブルクリックするだけでよい。Python（`python`/`py`）またはNode.js（`npx`）
+のどちらかが入っていれば自動検出してサーバーを起動し、
+`http://localhost:8080/index.html` をブラウザで自動的に開く（ポート番号は
+バッチファイル先頭の `PORT` を書き換えれば変更できる）。終了する場合は、
+起動と同時に開く別ウィンドウ（サーバー用コンソール）を閉じればよい。
 
 あるいはGitHub Pages等で公開して、そのURL上で開く（楽天ホテル検索タブの
 `HTTP_REFERRER_NOT_ALLOWED`対策と同じ理由で、いずれにせよ`file://`は
