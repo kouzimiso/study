@@ -1447,7 +1447,7 @@ function simOrgs(dt){
     if(!o.alive)return;
     const tr=traits(o.g);
     o.age+=dt*effectiveSpeed(simY, playerSpeed)*0.000001;
-    if(o.age>tr.life){rem.push(oi);return;}
+    if(o.age>tr.life*Life.lifeFactor(o.g)){rem.push(oi);return;}   // 多産ほど短命（繁殖のコスト）
     const ti=Math.floor(o.u*N)%N,tj=Math.floor(o.v*N)%N,idx=tj*N+ti;
     const nu=NM[idx],w=WM[idx],vo=VM[idx],or2=OM[idx],mb=MB[idx],fg=FG[idx],vr=VR[idx];
     // ---- v18 発生・成長（卵/種子 → 幼体 → 成体） ----
@@ -1469,7 +1469,10 @@ function simOrgs(dt){
       photoBiomass+=photoE*dt;                        // → O2生成へ寄与（酸素革命）
     }
     else if(tc==='detritivore'){eg=mb*.15+fg*.12+or2*.08;MB[idx]=Math.max(0,MB[idx]-eg*dt*.2);FG[idx]=Math.max(0,FG[idx]-eg*dt*.15);}
-    else if(tc==='herbivore'){eg=mb*.13+fg*.10+or2*.07+chemoE*.3;MB[idx]=Math.max(0,MB[idx]-eg*dt*.15);}
+    else if(tc==='herbivore'){
+      // 餌のすみ分け: 小型は細かい餌（微生物マット MB）、大型は粗い餌（菌類 FG）が得意（Life.dietWeights）
+      const dw=Life.dietWeights(o.g),eM=mb*.13*dw.fine*1.2,eF=fg*.10*dw.coarse*1.2;
+      eg=eM+eF+or2*.07+chemoE*.3;MB[idx]=Math.max(0,MB[idx]-eM*dt*.6);FG[idx]=Math.max(0,FG[idx]-eF*dt*.6);}
     else if(tc==='carnivore'){
       eg=mb*.04+chemoE*.2;
       // v18: 感覚範囲で獲物を探して追跡し、接触したら力比べ（獲物は逃走/反撃/隠れるで抵抗）
@@ -1482,11 +1485,14 @@ function simOrgs(dt){
     if(tc!=='carnivore'&&tc!=='omnivore'){o.mvU=o.mvV=0;}
     eg*=(1+o.g[6]*.25);                               // g[6] 走化性精度 → 採餌効率
     eg*=(1-vr*.3);
+    // 密度依存: 同種が混み合うほど餌の取り分が減り、病気が広がる（種内競争＞種間競争 → 共存）
+    Life.crowding(o,organisms,dt);eg*=Life.foodFactor(o);
+    if(Math.random()<Life.diseaseRate(o)*dt){o._cause='病気（過密）';rem.push(oi);return;}
     eg*=(.45+.55*gm);                                 // 幼体は口も消化管も小さい
     o.e+=eg*dt;
     const sz=o.g[16];
     // 基礎代謝 + 神経維持ATP(g[5]) + size²ペナルティ + 攻撃コスト（体が小さいほど代謝量も小さい）
-    o.e-=(0.004+tr.eRate*.012+sz*sz*.004+tr.aggro*.002+tr.neural*o.g[5]*.006)*(.5+.5*gm)*dt;
+    o.e-=(0.004+tr.eRate*.012+sz*sz*.004+tr.aggro*.002+tr.neural*o.g[5]*.006)*(.5+.5*gm)*Life.metabolicFactor(o.g)*dt;   // 外温性（変温）は維持費が小さい
     // ---- v14 熱ストレス（指数関数・遺伝子で最適温度が変化。好熱菌は高温を"好む"） ----
     const tPref = 12 + o.g[18]*o.g[18]*340 + o.g[14]*o.g[14]*260;   // 耐熱/化学合成で好適温↑ (最大~600°C)
     const tWidth= 22 + o.g[18]*170 + o.g[19]*130 + o.g[14]*140;      // 許容幅
@@ -1500,6 +1506,7 @@ function simOrgs(dt){
     }else{
       // v18: 生存戦略（逃走/隠れる/反撃）・狩りの追跡・幼体の親への追従 → なければ放浪
       const busy=Life.respond(o,tr,dt,organisms)||o.act==='hunt';
+      o._moving=!busy||!!(o.mvU||o.mvV);   // 動いている個体は捕食者に見つかりやすい
       if(busy&&(o.mvU||o.mvV)){o.u=((o.u+o.mvU)+1)%1;o.v=Math.max(.01,Math.min(.99,o.v+o.mvV));}
       else if(!busy){const a=n2d(o.u*4,o.v*4+o.age*.4,1,oi*7)*Math.PI*2,sp=tr.spd*(.35+.65*gm)*.002*dt;o.u=((o.u+Math.cos(a)*sp)+1)%1;o.v=Math.max(.01,Math.min(.99,o.v+Math.sin(a)*sp*.5));}
     }
@@ -1507,30 +1514,35 @@ function simOrgs(dt){
     o.e=Math.min(Life.eCap(o),o.e);
     const rs=rStage(o.g);o.st=rs.st;o.gt=rs.gt;
     if(o.rt>0)o.rt-=dt;
-    if(o.stage==='adult'&&o.e>.7+LifeGfx.traits(o.g).repro*.35&&organisms.length<MAXO*.95&&o.rt<=0){
+    // 繁殖: 1回に使うエネルギーは有限。多産なら小さな子をたくさん、少産なら大きな子を少し（Smith & Fretwell 1974）
+    const plan=Life.reproPlan(o.g);
+    if(o.stage==='adult'&&o.e>plan.threshold&&organisms.length<MAXO*.95&&o.rt<=0){
       if(o.st===0){
-        // 無性生殖 → Genome.mutate（分裂: 娘細胞は小さく生まれて育つ。植物は種子を落とす）
-        o.e-=.25; o.rt=.4;
-        const ng=Genome.mutate(o.g, 0.07, 0.22);
-        const sd=Life.birthMode(ng)==='seed'?.03:.01;
-        Life.birth(spawnOrg(((o.u+(Math.random()-.5)*sd)+1)%1,Math.max(.01,Math.min(.99,o.v+(Math.random()-.5)*sd)),null,null,ng),o);
+        // 無性生殖 → Genome.mutate（分裂: 娘細胞は小さく生まれて育つ。植物は種子をまとめて落とす）
+        o.e-=plan.budget; o.rt=.4;
+        const sd=Life.birthMode(o.g)==='seed'?.03:Life.birthSpread(plan.n)*2;
+        for(let k=0;k<plan.n&&organisms.length<MAXO*.95;k++){
+          const ng=Genome.mutate(o.g, 0.07, 0.22);
+          Life.birth(spawnOrg(((o.u+(Math.random()-.5)*sd)+1)%1,Math.max(.01,Math.min(.99,o.v+(Math.random()-.5)*sd)),null,null,ng),o,plan.quality);
+        }
       } else {
         // 有性生殖 → Breeding.cross
         let mate=null,md=.06;
         organisms.forEach((o2,j)=>{if(j===oi||!o2.alive||o2.stage!=='adult')return;const ok=o.st===1&&o2.st===1||(o.gt===0||o2.gt===0||(o.gt===1&&o2.gt===2)||(o.gt===2&&o2.gt===1));if(!ok)return;const du=o.u-o2.u,dv=o.v-o2.v,d=Math.sqrt(du*du+dv*dv);if(d<md){md=d;mate=o2;}});
-        if(mate){
-          const c=o.gt===1?.4:.18; o.e-=c; mate.e-=.12;
+        const bearer=mate&&(o.gt===1?o:mate);
+        if(mate&&bearer.e>Life.reproPlan(bearer.g).budget+.1){   // 産む側に繁殖予算がなければ見送る
           o.rt=o.gt===1?1.0:.25; mate.rt=.25;
           const dominant=o.gt===1?.65:.5;
           const ng=Breeding.cross(o.g, mate.g, {rate:0.07, amt:0.22, dominant});
-          const sp2=o.gt===1?o:mate;
-          // 卵生は一度に複数の卵（多産・高死亡率）、胎生は1頭の赤子を産む（親の投資大）
-          const bm=Life.birthMode(ng),clutch=bm==='egg'?1+Math.floor(Math.random()*(2+o.g[21]*2)):1;
-          if(bm==='live'){sp2.e-=.15;}
-          for(let k=0;k<clutch&&organisms.length<MAXO*.95;k++){
+          const sp2=o.gt===1?o:mate,oth=sp2===o?mate:o;
+          // 産む側が繁殖予算を払う（子の数と1匹あたりの投資は産む側の遺伝子で決まる）。相手は配偶のコストのみ
+          const bp=Life.reproPlan(sp2.g);
+          sp2.e-=bp.budget; oth.e-=.08;
+          for(let k=0;k<bp.n&&organisms.length<MAXO*.95;k++){
             const cg=k===0?ng:Breeding.cross(o.g, mate.g, {rate:0.07, amt:0.22, dominant});
-            const ch=spawnOrg(((sp2.u+(Math.random()-.5)*.012)+1)%1,Math.max(.01,Math.min(.99,sp2.v+(Math.random()-.5)*.012)),o,mate,cg);
-            Life.birth(ch,sp2);
+            const spr=Life.birthSpread(bp.n)*2;   // 多産ほど広くばらまく
+            const ch=spawnOrg(((sp2.u+(Math.random()-.5)*spr)+1)%1,Math.max(.01,Math.min(.99,sp2.v+(Math.random()-.5)*spr)),o,mate,cg);
+            Life.birth(ch,sp2,bp.quality);
           }
         }
       }
