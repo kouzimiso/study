@@ -81,13 +81,15 @@ th{color:var(--blue);font-weight:600}
 <!-- ===================== 3Dビューア ===================== -->
 <section id="tab-view">
   <div class="split">
-    <div class="stage" id="view-stage"><canvas id="view-canvas"></canvas><div class="hint">ドラッグ: 回転 / ホイール・ピンチ: ズーム</div></div>
+    <div class="stage" id="view-stage"><canvas id="view-canvas"></canvas><div id="v-labels" style="position:absolute;inset:0;pointer-events:none;font-size:11px"></div><div class="hint">ドラッグ: 回転 / ホイール・ピンチ: ズーム</div></div>
     <div class="side">
       <label>遺伝子プリセット</label>
       <select id="v-preset"></select>
       <div class="row"><button class="btn" id="v-random">ランダム遺伝子</button></div>
       <label>表示</label>
-      <div class="seg" id="v-mode"><button data-v="single" class="on">1体</button><button data-v="lineup">成長の並び（卵→成体）</button><button data-v="evo">進化の並び（微生物→祖先）</button></div>
+      <div class="seg" id="v-mode"><button data-v="single" class="on">1体</button><button data-v="lineup">成長の並び（卵→成体）</button><button data-v="evo">進化の並び（微生物→祖先）</button><button data-v="zoo">図鑑（全体制）</button></div>
+      <label>体制（アーキタイプ）</label>
+      <select id="v-arch"><option value="auto">自動（遺伝子・進化段階から）</option></select>
       <label>進化段階（Evolution.js）</label>
       <select id="v-grade"><option value="none">制限なし（遺伝子そのまま）</option></select>
       <label>成長段階</label>
@@ -360,15 +362,17 @@ test('トレードオフがない仮想種は最大勢力になり、同じ餌�
 group('進化段階（Evolution.js）— 微生物から魚・トカゲ・ネズミの祖先へ');
 const EREF=()=>genome({0:.6,1:.75,2:.2,3:.8,4:.7,5:.6,7:.7,9:.7,10:.7,13:.05,14:.1,16:.6,17:.7,20:.3,22:.4});
 const evoModel=(g,k)=>Evo.build(Evo.constrain(Float32Array.from(g),k),k);
-const parts=m=>({legs:m.strokes.filter(x=>x.group==='leg').length,arms:m.strokes.filter(x=>x.group==='arm').length,fins:m.organs.filter(x=>x.type==='fin').length,eyes:m.organs.filter(x=>x.type==='eye').length});
+const parts=m=>({legs:m.strokes.filter(x=>x.group==='leg').length,arms:m.strokes.filter(x=>x.group==='arm'&&x.depth===1).length,fins:m.organs.filter(x=>x.type==='fin').length,eyes:m.organs.filter(x=>x.type==='eye').length});
 test('段階0〜2（原核生物・真核単細胞・群体）は微生物の姿',()=>{[0,1,2].forEach(k=>{const m=evoModel(EREF(),k);assert(m.plan==='microbe','段階'+k+': '+m.plan);});});
-test('段階3（海綿・平板動物型）は眼も肢もない多細胞の体',()=>{const m=evoModel(EREF(),3),p=parts(m);assert(m.plan!=='microbe'&&p.legs===0&&p.eyes===0,m.plan+' '+JSON.stringify(p));});
-test('段階4（刺胞動物型）は放射相称で触手がある',()=>{const m=evoModel(EREF(),4),p=parts(m);assert(m.plan==='radialoid'&&p.arms>=4&&p.eyes===0,m.plan+' '+JSON.stringify(p));});
+test('段階3（海綿・平板動物型）は眼も肢もない多細胞の体',()=>{const m=evoModel(EREF(),3),p=parts(m);assert(m.plan==='sponge'&&p.legs===0&&p.eyes===0,m.plan+' '+JSON.stringify(p));});
+test('段階4（刺胞動物）はクラゲ・イソギンチャク・サンゴのどれかで、眼がない',()=>{const m=evoModel(EREF(),4),p=parts(m);
+  assert(['jellyfish','anemone','coral'].includes(m.plan)&&p.eyes===0,m.plan+' '+JSON.stringify(p));
+  const j=evoModel(EREF(),4);assert(j.plan==='jellyfish'&&j.strokes.filter(x=>x.group==='cilia').length>=8&&j.organs.some(o=>o.type==='bell'),'泳ぐ系統はクラゲ（傘と触手）');});
 test('段階5（左右相称動物）は肢のない蠕虫',()=>{const m=evoModel(EREF(),5),p=parts(m);assert(m.plan==='worm'&&p.legs===0,m.plan+' '+JSON.stringify(p));});
-test('段階6（カンブリア爆発）は原始的な魚（ひれ・肢なし）、装甲の系統は節足動物',()=>{const f=evoModel(EREF(),6),a=evoModel(genome({0:.6,1:.75,2:.6,3:.8,4:.7,5:.6,7:.7,9:.7,10:.7,16:.5,17:.6}),6);
-  assert(f.plan==='swimmer'&&parts(f).legs===0&&parts(f).fins>0&&a.plan==='arthropod',f.plan+'/'+a.plan);});
-test('段階7（四肢動物の祖先）は2〜4本の肢を持ち、段階8（有羊膜類）は陸上の四足',()=>{const a=parts(evoModel(EREF(),7)),b=evoModel(EREF(),8),pb=parts(b);
-  assert(a.legs>=2&&a.legs<=4&&pb.legs===4&&pb.fins===0&&b.plan!=='swimmer',JSON.stringify({a,pb,plan:b.plan}));});
+test('段階6（カンブリア爆発）は魚（ひれ・肢なし）、装甲の系統はカニ・エビ（はさみ）',()=>{const f=evoModel(EREF(),6),a=evoModel(genome({0:.6,1:.75,2:.6,3:.8,4:.7,5:.6,7:.7,9:.7,10:.7,16:.5,17:.6}),6);
+  assert(f.plan==='fish'&&parts(f).legs===0&&parts(f).fins>0&&a.plan==='crab'&&a.organs.some(o=>o.type==='pincer'),f.plan+'/'+a.plan);});
+test('段階7（四肢動物の祖先）はカエル・イモリ型の4本足、段階8（有羊膜類）はトカゲ型の陸上の四足',()=>{const a=evoModel(EREF(),7),pa=parts(a),b=evoModel(EREF(),8),pb=parts(b);
+  assert(['frog','salamander'].includes(a.plan)&&pa.legs===4&&b.plan==='lizard'&&pb.legs===4&&pb.fins===0,JSON.stringify({a:a.plan,pa,b:b.plan,pb}));});
 test('ランダムな遺伝子でも、その段階を超える姿にはならない（50個体×各段階）',()=>withRandom(()=>{
   for(let i=0;i<50;i++){const g=new Float32Array(24).map(()=>Math.random());if(trophic(g)==='plant')continue;
     for(let k=0;k<=8;k++){const m=evoModel(g,k),p=parts(m);
@@ -376,7 +380,7 @@ test('ランダムな遺伝子でも、その段階を超える姿にはなら�
       else assert(m.plan!=='microbe','段階'+k+'で微生物の姿');
       if(k<=5)assert(p.legs===0,'段階'+k+'で肢 '+p.legs);
       if(k<=4)assert(p.eyes===0,'段階'+k+'で眼 '+p.eyes);
-      if(k>=7&&k<=8)assert(p.legs<=4,'段階'+k+'で肢 '+p.legs);}}},seeded(77)));
+      if(k>=7&&k<=8&&!['insect','spider','crab'].includes(m.plan))assert(p.legs<=4,'段階'+k+'で肢 '+p.legs+'（'+m.plan+'）');}}},seeded(77)));
 test('遺伝子の上限: 原核生物は小さく（体格≤0.06）、制限なし（段階9）では変わらない',()=>{const g=genome({16:.9,4:.9,1:.9});const a=Evo.constrain(Float32Array.from(g),0),b=Evo.constrain(Float32Array.from(g),9);
   assert(a[16]<=.06+1e-6&&a[4]<=.2+1e-6&&b[16]===g[16]&&b[4]===g[4],JSON.stringify([a[16],a[4],b[16],g[16]]));});
 test('次の段階の条件: 酸素が足りなければ進めない（左右相称動物には酸素2%）',()=>{const g=Evo.constrain(EREF(),4);
@@ -398,13 +402,51 @@ test('進化段階による繁殖様式: 単細胞〜群体は分裂、有羊膜
 test('段階が上がるほどエネルギーの使い方がうまい（真核化の利得には酸素が要る）',()=>{
   assert(Evo.efficiency(1,0)===1&&Evo.efficiency(1,.05)>1.2&&Evo.efficiency(8,.2)>Evo.efficiency(4,.2));});
 
+group('生物の体制（アーキタイプ）— クラゲ・魚・カニ・昆虫・カエル・トカゲ・鳥・哺乳類・樹木・キノコ…');
+const ARCH_KEYS=Object.keys(CreatureEngine.ARCH);
+const rigOf=m=>Rig.create(m,{scale:1,x:0,y:0,heading:0,env:()=>({z:0,n:[0,0,1],water:null})});
+test('すべての体制（'+ARCH_KEYS.length+'種）が作れて、物理リグで1秒動かせる',()=>withRandom(()=>{const g=EREF();
+  ARCH_KEYS.forEach(k=>{const m=CreatureEngine.build(g,{arch:k});assert(m.plan===k,k+'→'+m.plan);const R=rigOf(m);Rig.setGoal(R,30,0);for(let i=0;i<30;i++)Rig.step(R,1/30);
+    assert(Rig.center(R).every(Number.isFinite),k+': 座標が数値でない');});},seeded(3)));
+test('動き方が体制に合う（固着・浮遊・這う・脚で歩く）',()=>{const g=EREF(),mode=k=>rigOf(CreatureEngine.build(g,{arch:k})).mode;
+  ['tree','grass','flower','cactus','fern','mushroom','anemone','coral','sponge'].forEach(k=>assert(mode(k)==='plant',k+' は固着: '+mode(k)));
+  assert(mode('jellyfish')==='float','クラゲは浮遊: '+mode('jellyfish'));
+  ['snake','snail','worm'].forEach(k=>assert(mode(k)==='chain',k+' は這う: '+mode(k)));
+  ['octopus','starfish','crab','insect','spider','frog','lizard','turtle','crocodile','bird','mammal'].forEach(k=>assert(mode(k)==='legged',k+' は脚/腕で歩く: '+mode(k)));});
+test('脚の数: 昆虫6・クモ8・カニ8・鳥2・四足動物4・ヘビ0、タコ8腕・ヒトデ5腕',()=>{const g=EREF(),P=k=>parts(CreatureEngine.build(g,{arch:k}));
+  const want={insect:6,spider:8,crab:8,bird:2,frog:4,lizard:4,turtle:4,crocodile:4,mammal:4,snake:0};
+  for(const k in want)assert(P(k).legs===want[k],k+' の脚 '+P(k).legs);
+  assert(P('octopus').arms===8&&P('starfish').arms===5,'腕 '+P('octopus').arms+'/'+P('starfish').arms);});
+test('体制ごとの特徴的な器官がある',()=>{const g=EREF(),has=(k,t)=>CreatureEngine.build(g,{arch:k}).organs.some(o=>o.type===t);
+  const want={snail:'shell',turtle:'carapace',bird:'beak',insect:'antenna',crab:'pincer',mushroom:'cap',jellyfish:'bell',tree:'foliage',flower:'flower',snake:'tongue',coral:'polyp'};
+  for(const k in want)assert(has(k,want[k]),k+' に '+want[k]+' がない');
+  assert(has('bird','wing'),'鳥に翼がない');
+  const fr=CreatureEngine.build(g,{arch:'frog'});assert(!fr.strokes.some(x=>x.group==='tail'),'カエルに尾がある');});
+test('飛べるのは翼のある鳥・昆虫だけ',()=>{const fast=genome({17:.9,16:.3,4:.7,7:.7,2:.6,0:.6});
+  assert(CreatureEngine.build(fast,{arch:'bird'}).canFly&&CreatureEngine.build(fast,{arch:'insect'}).canFly,'速い鳥・昆虫が飛べない');
+  ['lizard','mammal','fish','frog'].forEach(k=>assert(!CreatureEngine.build(fast,{arch:k}).canFly,k+' が飛ぶ'));});
+test('遺伝子だけで（段階の制限なし）20種類以上の体制が現れる（ランダム3000個体）',()=>withRandom(()=>{const c={};
+  for(let i=0;i<3000;i++){const g=new Float32Array(24).map(()=>Math.random());c[CreatureEngine.build(g).plan]=1;}
+  const n=Object.keys(c).length;assert(n>=20,n+' 種類: '+Object.keys(c).join(','));},seeded(11)));
+test('進化段階で現れる体制が限られる（段階4: 刺胞動物、6: 海の動物、7: 両生類・昆虫・クモ、9: 鳥・哺乳類…）',()=>withRandom(()=>{
+  const ok={3:['sponge','mushroom','seaweed'],4:['jellyfish','anemone','coral','mushroom','seaweed'],5:['worm','mushroom','seaweed'],
+    6:['fish','shark','crab','snail','octopus','starfish','mushroom','seaweed'],7:['frog','salamander','insect','spider','crab','mushroom','grass','fern','tree','seaweed'],
+    8:['lizard','insect','spider','crab','mushroom','grass','fern','tree','seaweed']};
+  const seen={};
+  for(let i=0;i<300;i++){const g=new Float32Array(24).map(()=>Math.random());
+    for(const k in ok){const gk=Evo.constrain(Float32Array.from(g),+k),m=Evo.build(gk,+k);if(m.plan==='microbe')continue;
+      assert(ok[k].includes(m.plan),'段階'+k+'で '+m.plan);seen[k+m.plan]=1;}}
+  ['4jellyfish','6fish','6crab','7frog','7insect','8lizard'].forEach(x=>assert(seen[x],x+' が一度も現れない'));
+  const nine={};for(let i=0;i<600;i++){const g=new Float32Array(24).map(()=>Math.random());nine[Evo.build(Evo.constrain(g,9),9).plan]=1;}
+  ['bird','mammal','snake','turtle','crocodile','flower','cactus'].forEach(x=>assert(nine[x],'段階9で '+x+' が現れない'));},seeded(13)));
+
 group('3D描画（CreatureRender3D.js / CreatureRig.js / CreatureEngine.js）');
 test('全プリセットで形態を生成し、物理リグを作って1秒動かせる',()=>{PRESET_KEYS.forEach(k=>{const m=CreatureEngine.build(PRESETS[k].g());
   const R=Rig.create(m,{scale:1,x:0,y:0,heading:0,env:()=>({z:0,n:[0,0,1],water:null})});Rig.setGoal(R,40,0);for(let i=0;i<30;i++)Rig.step(R,1/30);
   const c=Rig.center(R);assert(c.every(Number.isFinite),k+': 座標が数値でない');});});
-test('皮膚の種類が形質から決まる（水棲=湿った皮膚 / 装甲=甲板 / 中大型の陸生=毛皮）',()=>{if(!HAS3D)throw new Error('THREE が読み込めない');
+test('皮膚の種類が体制から決まる（魚=鱗 / カニ=甲板 / 哺乳類=毛皮）',()=>{if(!HAS3D)throw new Error('THREE が読み込めない');
   const kind=k=>Gfx3D.skinKind(Rig.create(CreatureEngine.build(PRESETS[k].g()),{scale:1,x:0,y:0,heading:0,env:()=>({z:0,n:[0,0,1],water:null})}));
-  assert(kind('fish')===0,'fish '+kind('fish'));assert(kind('crab')===0||kind('crab')===3,'crab '+kind('crab'));assert(kind('rhino')===3,'rhino '+kind('rhino'));assert(kind('gazelle')===2,'gazelle '+kind('gazelle'));});
+  assert(kind('fish')===1,'fish '+kind('fish'));assert(kind('crab')===3,'crab '+kind('crab'));assert(kind('rhino')===2,'rhino '+kind('rhino'));assert(kind('gazelle')===2,'gazelle '+kind('gazelle'));});
 test('全皮膚種類・卵・寒天卵・種子・幼体のシェーダーがエラーなく描画できる',()=>{if(!HAS3D)throw new Error('THREE が読み込めない');
   const errs=[],oe=console.error,ow=console.warn;console.error=(...a)=>{errs.push(a.join(' '));};console.warn=(...a)=>{if(/shader|program/i.test(a.join(' ')))errs.push(a.join(' '));};
   try{const cv=document.createElement('canvas');cv.width=320;cv.height=200;const r=new THREE.WebGLRenderer({canvas:cv});r.shadowMap.enabled=true;
@@ -413,6 +455,8 @@ test('全皮膚種類・卵・寒天卵・種子・幼体のシェーダーが�
     const layer=new Gfx3D.CreatureLayer(sc,4000);layer.begin();
     PRESET_KEYS.forEach((k,i)=>{const R=Rig.create(CreatureEngine.build(PRESETS[k].g()),{scale:.6,x:i*30-120,y:0,heading:0,env:()=>({z:0,n:[0,0,1],water:null})});
       [0,1,2,3,4].forEach(sk=>layer.add(R,{t:1,seed:.3,juv:.7,spots:1,skin:sk,crouch:sk===1,puff:sk===2}));});
+    Object.keys(CreatureEngine.ARCH).forEach((k,i)=>{const R=Rig.create(CreatureEngine.build(PRESETS.gazelle.g(),{arch:k}),{scale:.5,x:i*20-280,y:60,heading:0,env:()=>({z:0,n:[0,0,1],water:null})});
+      if(k==='bird')R.canFly=true;layer.add(R,{t:1.3,seed:.4});});
     const o=makeOrg(PRESETS.lizard.g(),'egg'),s=makeOrg(PRESETS.plant.g(),'egg');s.bmode='seed';
     layer.addEgg(o,[0,40,0],4,.9,1,false);layer.addEgg(o,[10,40,0],4,.5,1,true);layer.addEgg(s,[20,40,0],3,.8,1,false);
     layer.end();r.render(sc,cam);const gl=r.getContext();const e=gl.getError();
@@ -444,7 +488,7 @@ async function runTests(){
 // ================================================================
 // 3Dビューア
 // ================================================================
-const VW={grade:'none',ready:false,stage:'juv',mode:'single',act:'idle',env:'land',skin:'auto',preset:'gazelle',g:null,scale:1,prog:.15,
+const VW={arch:'auto',grade:'none',ready:false,stage:'juv',mode:'single',act:'idle',env:'land',skin:'auto',preset:'gazelle',g:null,scale:1,prog:.15,
   play:false,yaw:.7,pitch:.38,dist:0,subjects:[],t:0};
 let vr,vscene,vcam,vlayer,vground,vwater,vsun;
 function initViewer(){
@@ -472,7 +516,8 @@ const groundZ=()=>VW.env==='water'?-80:0;
 const envFn=()=>({z:groundZ(),n:[0,0,1],water:VW.env==='water'?0:null});
 // 表示する個体（1体 or 成長の並び）を作り直す
 function buildSubjects(){
-  const g=VW.g,gr=VW.grade==='none'?null:+VW.grade;VW.model=gr==null?CreatureEngine.build(g):Evo.build(g,gr);
+  const g=VW.g,gr=VW.grade==='none'?null:+VW.grade;
+  VW.model=VW.arch!=='auto'?CreatureEngine.build(g,{arch:VW.arch}):gr==null?CreatureEngine.build(g):Evo.build(g,gr);
   const mk=(stage,prog,x)=>{const o=makeOrg(g,stage==='egg'?'egg':stage,stage==='juv'?prog:1);if(stage==='egg'){o._prog=prog;}
     if(o.bmode==='seed'&&stage==='egg')o.bmode='seed';return{o,x,rig:null,rs:-1};};
   if(VW.mode==='lineup'){
@@ -482,6 +527,13 @@ function buildSubjects(){
     const R=Rig.create(VW.model,{scale:VW.scale,x:0,y:0,heading:0,env:envFn});const c=Rig.center(R);let e=4;
     R.renderStrokes.forEach(rs=>rs.nodes.forEach(n=>{const p=Rig.pointAt(R,n.a);e=Math.max(e,Math.hypot(p[0]-c[0],p[1]-c[1])+n.r);}));
     VW.adultExt=e;const gap=e*2.4;VW.subjects=list.map((a,i)=>mk(a[0],a[1],(i-(list.length-1)/2)*gap));
+  }else if(VW.mode==='zoo'){
+    // 図鑑: すべての体制を同じ遺伝子で作り、大きさをそろえて格子状に並べる
+    const keys=Object.keys(CreatureEngine.ARCH),cols=6,cell=60;VW.adultExt=cell*.5;
+    VW.subjects=keys.map((k,i)=>{const m=CreatureEngine.build(g,{arch:k});
+      const R=Rig.create(m,{scale:1,x:0,y:0,heading:0,env:envFn}),c=Rig.center(R);let e=2;
+      R.renderStrokes.forEach(rs=>rs.nodes.forEach(n=>{const p=Rig.pointAt(R,n.a);e=Math.max(e,Math.hypot(p[0]-c[0],p[1]-c[1],p[2]-c[2])+n.r);}));
+      const o=makeOrg(g,'adult',1);return{o,x:((i%cols)-(cols-1)/2)*cell,y:(Math.floor(i/cols)-(Math.ceil(keys.length/cols)-1)/2)*cell*1.1,rig:null,rs:-1,model:m,fixScale:Math.min(4,cell*.38/e),label:CreatureEngine.ARCH[k].name};});
   }else if(VW.mode==='evo'){
     // 進化の並び: 段階0（原核生物）〜8（有羊膜類）。段階の上限で遺伝子を抑えてから姿を作る
     const list=[];let e=6;
@@ -496,8 +548,8 @@ function buildSubjects(){
 }
 function subjectRig(s){
   const o=s.o;if(o.stage==='egg')return null;
-  const sc=VW.scale*Life.growScale(o);
-  if(!s.rig||s.rs!==sc){let x=s.x,y=0,hd=0;if(s.rig){const c=Rig.center(s.rig);x=c[0];y=c[1];hd=s.rig.headingDes||0;}
+  const sc=s.fixScale||VW.scale*Life.growScale(o);
+  if(!s.rig||s.rs!==sc){let x=s.x,y=s.y||0,hd=0;if(s.rig){const c=Rig.center(s.rig);x=c[0];y=c[1];hd=s.rig.headingDes||0;}
     s.rig=Rig.create(s.model||VW.model,{scale:sc,x,y,heading:hd,env:envFn,groundZ:()=>groundZ(),water:()=>VW.env==='water'?0:null,teleportDist:1e9});s.rs=sc;}
   return s.rig;
 }
@@ -521,7 +573,7 @@ function viewerFrame(dt){
     const R=subjectRig(s);
     const fast=VW.act==='flee',moving=VW.act==='walk'||fast;
     if(moving&&R.mode!=='plant'){const rad=Math.max(60,R.hipH*7),sp=fast?.6:.22,a=VW.t*sp+s.x*.01;Rig.setGoal(R,s.x+Math.cos(a)*rad,Math.sin(a)*rad);}
-    else Rig.setGoal(R,s.x,0);
+    else Rig.setGoal(R,s.x,s.y||0);
     R.vmax=Math.max(8,Rig.maxSpeed(R))*(fast?2.2:1);
     Rig.step(R,dt,8);
     const c=Rig.center(R),juv=o.stage==='juv'?Math.max(0,1-o.dev):0,hide=VW.act==='hide';
@@ -538,11 +590,18 @@ function viewerFrame(dt){
   if(n){cx/=n;cy/=n;cz/=n;}
   if(VW.mode==='lineup')ext=(VW.subjects.length-1)*0.5*VW.adultExt*2.4+VW.adultExt;
   if(VW.mode==='evo')ext=4*VW.adultExt*2.3+VW.adultExt;
+  if(VW.mode==='zoo'){ext=200;cx=0;cy=0;cz=0;}
   const target=ext*(VW.mode==='single'?3.0:VW.mode==='evo'?1.85:1.9);VW.dist=VW.dist?VW.dist+(target*(VW.zoom||1)-VW.dist)*Math.min(1,dt*3):target;
   const d=VW.dist;vcam.aspect=w/h;vcam.updateProjectionMatrix();
   vcam.position.set(cx+Math.sin(VW.yaw)*Math.cos(VW.pitch)*d,cz+Math.sin(VW.pitch)*d,-cy+Math.cos(VW.yaw)*Math.cos(VW.pitch)*d);vcam.lookAt(cx,cz,-cy);
   vsun.position.set(cx+300,cz+600,-cy+250);vsun.target.position.set(cx,cz,-cy);
   vr.render(vscene,vcam);
+  // 図鑑: 体制の名前を各個体の上に表示
+  const lb=document.getElementById('v-labels');
+  if(VW.mode==='zoo'){if(lb.childElementCount!==VW.subjects.length){lb.innerHTML=VW.subjects.map(x=>'<span style="position:absolute;transform:translate(-50%,-100%);color:#fff;background:rgba(0,0,0,.45);padding:0 4px;border-radius:3px;white-space:nowrap">'+x.label+'</span>').join('');}
+    VW.subjects.forEach((x,i)=>{const R=x.rig;if(!R)return;const c=Rig.center(R),v=new THREE.Vector3(c[0],c[2]+12,-c[1]).project(vcam),el=lb.children[i];
+      el.style.left=((v.x*.5+.5)*w)+'px';el.style.top=((-v.y*.5+.5)*h)+'px';el.style.display=v.z<1?'block':'none';});}
+  else if(lb.childElementCount)lb.innerHTML='';
   renderViewerInfo();
 }
 function bar(label,v,adult,fmt){const mx=Math.max(adult,1e-3)*1.15;return `<div class="bar"><span>${label}</span><i><em style="width:${Math.min(100,v/mx*100)}%"></em><s style="left:${Math.min(100,adult/mx*100)}%"></s></i><span>${fmt(v)} / ${fmt(adult)}</span></div>`;}
@@ -555,11 +614,12 @@ function renderViewerInfo(){
   const SK=['湿った皮膚','鱗','毛皮','甲板/キチン','樹皮'];
   const BM={seed:'🌰種子',fission:'🦠分裂',egg:'🥚卵生',live:'🤱胎生'};
   document.getElementById('v-info').innerHTML=`
-   <div>栄養: <b>${trophic(g)}</b>　形態: <b>${VW.model?CreatureEngine.PLAN_NAMES[VW.model.plan]||VW.model.plan:''}</b></div>
+   <div>栄養: <b>${trophic(g)}</b>　体制: <b>${VW.model?CreatureEngine.PLAN_NAMES[VW.model.plan]||VW.model.plan:''}</b>${VW.model&&VW.model.canFly?' ✈':''}</div>
    <div>繁殖: <b>${BM[Life.birthMode(g)]}</b>　成熟まで: <b>${Life.devTime(g).toFixed(1)}秒</b></div>
    <div>段階: <b>${Life.stageLabel(o)}</b> ${o.stage==='juv'?'成熟'+Math.round(o.dev*100)+'%':o.stage==='egg'?'発生'+Math.round((o._prog||0)*100)+'%':''}　体格×<b>${Life.growScale(o).toFixed(2)}</b></div>
    <div>戦略: <b>${Life.STRAT_JP[Life.chooseStrategy(o)]}</b>（成体: ${Life.STRAT_JP[Life.chooseStrategy(ad)]}）</div>
    <div>皮膚: <b>${typeof sk==='number'?sk+' '+SK[sk]:sk}</b></div>
+   ${VW.mode==='zoo'?'<div style="margin-top:4px">図鑑（左上→右下）: '+Object.values(CreatureEngine.ARCH).map(a=>a.name).join('・')+'</div>':''}
    ${VW.mode==='evo'?'<div style="margin-top:4px">進化の並び（左→右）: '+Evo.GRADES.slice(0,9).map((G,k)=>k+' '+G.name).join(' → ')+'</div>':VW.grade!=='none'?'<div>進化段階: <b>'+Evo.label(+VW.grade,g)+'</b><br><span style="color:var(--dim)">次の条件: '+(Evo.nextReqText(+VW.grade,g)||'—')+'</span></div>':''}
    <div style="margin-top:6px;color:var(--dim);font-size:11px">現在値 / 成体値（黄線）${VW.mode==='lineup'?' — 2体目（生まれたて）の値':''}</div>
    ${bar('💨逃げ足',Life.fleePow(o),Life.fleePow(ad),f)}${bar('⚔戦闘力',Life.attackPow(o),Life.attackPow(ad),f)}
@@ -581,6 +641,8 @@ function setupViewer(){
   seg('v-stage','stage',()=>{VW.play=false;updPlay();VW.prog=VW.stage==='adult'?1:VW.stage==='egg'?.3:.15;reset();});
   seg('v-act','act');seg('v-env','env',()=>VW.subjects.forEach(s=>s.rig=null));
   document.getElementById('v-skin').onchange=e=>VW.skin=e.target.value;
+  const as=document.getElementById('v-arch');Object.keys(CreatureEngine.ARCH).forEach(k=>{const op=document.createElement('option');op.value=k;op.textContent=CreatureEngine.ARCH[k].name;as.appendChild(op);});
+  as.onchange=()=>{VW.arch=as.value;VW.play=false;updPlay();reset();};
   const gs=document.getElementById('v-grade');Evo.GRADES.forEach((G,k)=>{const op=document.createElement('option');op.value=k;op.textContent=k+' '+G.name;gs.appendChild(op);});
   gs.onchange=()=>{VW.grade=gs.value;VW.play=false;updPlay();reset();};
   const prog=document.getElementById('v-prog');prog.oninput=()=>{VW.play=false;updPlay();const v=+prog.value;VW.prog=v;

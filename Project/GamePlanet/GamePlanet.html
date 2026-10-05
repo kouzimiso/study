@@ -1838,7 +1838,7 @@ const GENE_NAMES=['外皮','筋肉','装甲','接着','神経','神経維持','�
 // statusValue → LifeGfx.statusValue 委譲済み（後段ラッパーで定義）
 function renderNSStatus(g){
   const sv=statusValue(g), tr=traits(g), tc=trophic(g);
-  const PLAN_NAMES={microbe:'微生物',worm:'蠕虫',arthropod:'節足動物',swimmer:'遊泳生物',predator:'捕食者',radialoid:'放射対称',plant:'植物型'};
+  const PLAN_NAMES=CreatureEngine.PLAN_NAMES;   // 体制（クラゲ・魚・カニ・カエル・トカゲ・鳥…）の名前
   const m=buildBody3D(g);
   const planLabel=PLAN_NAMES[m.plan]||m.plan;
   // ns-plan ラベルに体型を出す
@@ -3181,7 +3181,7 @@ function drawRegion(){
   const ci=Math.floor(col.u*N)%N,cj=Math.floor(col.v*N)%N;
   document.getElementById('rv-info').innerHTML=col.name+' — 生命:'+live.length+' 🌿'+np+' 🦌'+nh+' 🦁'+nc+' 微生物:<span>'+(MB[cj*N+ci]*100).toFixed(0)+'%</span>';
 }
-const PLAN_NAMES_RIG={microbe:'微生物',seaweed:'海藻',grass:'草',plant:'植物',radialoid:'放射体',arthropod:'節足動物',swimmer:'遊泳者',predator:'捕食者',worm:'蠕虫'};
+const PLAN_NAMES_RIG=CreatureEngine.PLAN_NAMES;   // 体制の名前（CreatureEngine の ARCH と共通）
 function rigSummary(R){
   if(R.mode==='plant')return '固着（風で揺れる）';
   if(R.mode==='chain')return '体の波打ち＋異方性摩擦で前進';
@@ -3880,7 +3880,7 @@ function lifeHtml(o,row){
 function renderDetailStats(o) {
   const g = o.g, tr = traits(g), tc = trophic(g);
   const TNAMES={plant:'🌿植物',herbivore:'🦌草食',carnivore:'🦁肉食',omnivore:'◎雑食',detritivore:'🍂腐食'};
-  const PLAN_NAMES={microbe:'微生物',worm:'蠕虫',arthropod:'節足動物',swimmer:'遊泳生物',predator:'捕食者',radialoid:'放射対称生物',plant:'植物型'};
+  const PLAN_NAMES=CreatureEngine.PLAN_NAMES;
   const m = o.body3d || buildBody3D(g,o.grade);
   const ti=Math.floor(o.u*N)%N, tj=Math.floor(o.v*N)%N, idx=tj*N+ti;
   const chem = Terrain.chemistryAt(idx);

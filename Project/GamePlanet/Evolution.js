@@ -9,7 +9,8 @@
  *     そのうえで繁殖のたびに小さな確率で革新が起きる（主要な進化的移行: Maynard Smith & Szathmáry 1995）
  *   ・段階ごとに遺伝子の上限（体の大きさ・神経・筋肉・装甲…）があり、上限を超える形質は生まれない
  *     → その段階に達するまで魚・トカゲ・ネズミのような生物は現れない
- *   ・見た目（形態）も段階で制限する。CreatureEngine に渡す遺伝子を段階に合わせて調整する（phenotype）
+ *   ・見た目（形態）も段階で制限する。微生物・植物の遺伝子を段階に合わせて調整し（phenotype）、
+ *     動物の体制（クラゲ・魚・カニ・カエル・トカゲ・鳥…）は段階を渡して CreatureEngine が選ぶ
  *
  * 依存（呼び出し時に参照）: CreatureEngine（形態生成）、trophic(g)（植物かどうかの判定）
  * 公開: Evo.GRADES / Evo.world / assign / canAdvance / constrain / phenotype / build / label / colonyCells / onAdvance
@@ -114,26 +115,11 @@ function phenotype(g,grade){
     return n;
   }
   if(grade<=2){lo(n,16,grade===0?.05:.1);n[27]=0;lo(n,1,.25);lo(n,20,.4);return n;}     // 単細胞（群体は描画側で複数並べる）
-  // ここから動物の体
-  n[30]=0;n[31]=0;                                                   // 角は有羊膜類まで出さない
-  if(grade===3){                                                     // 海綿・平板動物型: 眼も口も肢もない柔らかい体
-    n[16]=Math.max(.32,Math.min(n[16],.4));n[24]=0;n[28]=.15;lo(n,4,.15);lo(n,7,.15);lo(n,22,.1);lo(n,2,.1);lo(n,17,.25);n[20]=.3;n[27]=.1;lo(n,1,.3);
-  }else if(grade===4){                                               // 刺胞動物型: 放射相称・触手・神経網（眼なし）
-    hi(n,16,.3);n[28]=.75;n[29]=.3+n[29]*.4;n[24]=0;lo(n,4,.2);lo(n,7,.2);lo(n,22,.2);lo(n,2,.2);n[20]=.3;
-  }else if(grade===5){                                               // 左右相称の蠕虫
-    hi(n,16,.3);lo(n,28,.1);n[24]=0;lo(n,22,.3);lo(n,2,.25);n[20]=.3;
-  }else if(grade===6){                                               // カンブリア紀: 節足動物 または 顎のない原始的な魚
-    hi(n,16,.3);lo(n,28,.1);
-    if(g[2]>=.35){n[24]=Math.max(.65,n[24]);hi(n,0,.3);hi(n,2,.35);hi(n,20,.8);}
-    else{n[24]=0;hi(n,20,.85);lo(n,22,.35);}
-  }else if(grade===7){                                               // 肉鰭類〜初期四肢動物: 4本の太い肢と水辺の体
-    hi(n,16,.35);lo(n,28,.1);n[24]=Math.max(.3,Math.min(n[24],.4));n[20]=.62;lo(n,17,.55);lo(n,4,.6);lo(n,7,.5);lo(n,22,.6);hi(n,0,.5);
-  }else{                                                             // 有羊膜類: 陸上の四足、鱗のある皮膚、羽毛・体毛はまだない
-    hi(n,16,.35);lo(n,28,.1);n[24]=Math.max(.3,Math.min(n[24],.45));lo(n,20,.3);lo(n,17,.6);lo(n,4,.65);hi(n,0,.55);
-  }
+  // ここから動物の体。体制（クラゲ・魚・カニ・カエル・トカゲ…）は CreatureEngine が段階に応じて選ぶ
+  n[30]=0;n[31]=0;                                                   // 角は多様化（段階9）まで出さない
   return n;
 }
-function build(g,grade){const m=CreatureEngine.build(phenotype(g,grade));m.grade=grade;return m;}
+function build(g,grade){const m=CreatureEngine.build(phenotype(g,grade),{grade:grade==null?null:Math.min(grade,MAXG)});m.grade=grade;return m;}
 // 段階が上がるほどエネルギーの使い方がうまくなる（餌から得るエネルギーの倍率）
 //   真核化: ミトコンドリアで遺伝子あたりのエネルギーが桁違いに増えた（Lane & Martin 2010）。好気呼吸なので酸素が要る
 //   多細胞化以降: 分業・大きな体・効率のよい採餌（Grosberg & Strathmann 2007）

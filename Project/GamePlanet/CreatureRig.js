@@ -69,7 +69,7 @@ function build(model,opts){
   const sc=opts.scale||1, env=opts.env;
   const S=pt=>({p:[pt.p[0]*sc,pt.p[1]*sc,pt.p[2]*sc],r:pt.r*sc,rw:(pt.rw||pt.r)*sc,rh:(pt.rh||pt.r)*sc});
   const strokes=model.strokes.map(st=>Object.assign({},st,{P:st.pts.map(S)}));
-  const organs=model.organs.map(o=>({type:o.type,p:mul(o.p,sc),dir:o.dir.slice(),size:o.size*sc,col:o.col}));
+  const organs=model.organs.map(o=>({type:o.type,p:mul(o.p,sc),dir:o.dir.slice(),size:o.size*sc,col:o.col,flap:o.flap,dorsal:o.dorsal}));
   const g=model.g;
   const R={model,scale:sc,g,color:model.color,strokes,organs,particles:[],cons:[],legs:[],renderStrokes:[],
     t:0,cycle:0,heading:opts.heading||0,goal:null,vDes:[0,0,0],stats:{},flipT:0};
@@ -237,7 +237,7 @@ function buildRigid(R,body,supLegs,arms){
     const nodes=s.P.map(p=>({a:nearestAnchor(R,p.p,s.decorTo),r:p.r,rw:p.rw,rh:p.rh}));
     R.renderStrokes.push({kind:s.kind,group:s.group||'decor',nodes,ellipse:s.group==='body'||s.group==='belly'});
   });
-  R.organs.forEach(o=>{o.a=nearestAnchor(R,o.p,null);o.dirL=dirToLocal(R,o.a,o.dir);});
+  R.organs.forEach(o=>{o.a=organAnchor(R,o);o.dirL=dirToLocal(R,o.a,o.dir);});
   // 脚の総合指標（表示用）
   R.totalMass=M+R.particles.reduce((a,p)=>a+p.m,0);
   R.stats.legs=R.legs.length;R.stats.mass=R.totalMass;
@@ -273,6 +273,9 @@ function nearestAnchor(R,p,forceParticle){
   R.particles.forEach((q,i)=>{const d=len(sub(p,q.rest));if(d<bd){bd=d;best={t:'P',i,l:toLocal(restFrame(R,i),sub(p,q.rest))};}});
   return best||{t:'T',l:sub(p,R.restCom||[0,0,0])};
 }
+// 翼・甲羅・殻などは胴体に付ける（脚の関節に付くと脚の向きで回ってしまう）
+const BODY_ORGANS={wing:1,membrane:1,carapace:1,shell:1,bell:1,cap:1};
+function organAnchor(R,o){return BODY_ORGANS[o.type]&&R.tb?{t:'T',l:sub(o.p,R.restCom)}:nearestAnchor(R,o.p,null);}
 function dirToLocal(R,a,dir){if(a.t==='T')return dir.slice();return toLocal(restFrame(R,a.i),dir);}
 // 質点の休息フレーム（チェーン接線基準）
 function restFrame(R,i){const q=R.particles[i];
@@ -294,7 +297,7 @@ function buildChain(R,body){
   R.renderStrokes.push({kind:'muscle',group:'body',nodes:pts.map((p,k)=>({a:{t:'P',i:k,l:[0,0,0]},r:p.r,rw:p.rw,rh:p.rh})),ellipse:true});
   R.strokes.forEach(s=>{if(s===body)return;
     R.renderStrokes.push({kind:s.kind,group:s.group||'decor',nodes:s.P.map(p=>({a:nearestAnchor(R,p.p,null),r:p.r,rw:p.rw,rh:p.rh})),ellipse:s.group==='belly'});});
-  R.organs.forEach(o=>{o.a=nearestAnchor(R,o.p,null);o.dirL=dirToLocal(R,o.a,o.dir);});
+  R.organs.forEach(o=>{o.a=organAnchor(R,o);o.dirL=dirToLocal(R,o.a,o.dir);});
   R.totalMass=R.particles.reduce((a,p)=>a+p.m,0);
   R.hipH=Math.max(1,pts.reduce((a,p)=>Math.max(a,p.r),0));
   R.stats={legs:0,mass:R.totalMass,supportRatio:0};

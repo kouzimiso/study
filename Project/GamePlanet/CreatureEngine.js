@@ -145,32 +145,158 @@ function classifyFormLabel(sessility,aquaticOnly,radiality,isMicro,jaw,armor,leg
 }
 const PLAN_NAMES={microbe:'微生物',seaweed:'海藻',grass:'草',plant:'植物',radialoid:'放射体',
   arthropod:'節足動物',swimmer:'遊泳者',predator:'捕食者',worm:'蠕虫'};
+// 体制（アーキタイプ）の名前も同じ表で引けるようにする（後で ARCH から追加）
+
+/* ============================================================
+   体制（アーキタイプ）— 遺伝子の組み合わせと進化段階から、実在の動植物群に対応する姿を選ぶ
+   ・grade（Evolution.js の進化段階）を渡すと、その段階で現れうる体制だけから選ぶ
+     （刺胞動物は段階4、カンブリアの魚・節足動物・軟体動物・棘皮動物は6、陸の両生類・昆虫・クモは7、
+       最初の有羊膜類＝トカゲ型は8、ヘビ・カメ・ワニ・鳥・哺乳類は9）
+   ・grade を省略すると制限なし（遺伝子だけで選ぶ）
+   ============================================================ */
+const ARCH={
+  microbe:{name:'微生物'},
+  sponge:{name:'海綿・平板動物'},
+  jellyfish:{name:'クラゲ'},anemone:{name:'イソギンチャク'},coral:{name:'サンゴ'},
+  worm:{name:'蠕虫'},
+  fish:{name:'魚'},shark:{name:'サメ'},crab:{name:'カニ・エビ'},snail:{name:'巻貝'},octopus:{name:'タコ'},starfish:{name:'ヒトデ'},
+  insect:{name:'昆虫'},spider:{name:'クモ'},frog:{name:'カエル'},salamander:{name:'イモリ・サンショウウオ'},
+  lizard:{name:'トカゲ'},snake:{name:'ヘビ'},turtle:{name:'カメ'},crocodile:{name:'ワニ'},bird:{name:'鳥'},mammal:{name:'哺乳類'},
+  seaweed:{name:'海藻'},grass:{name:'草'},fern:{name:'シダ'},tree:{name:'樹木'},flower:{name:'花'},cactus:{name:'サボテン'},mushroom:{name:'キノコ'},
+};
+function geneFeatures(g){
+  return{photo:g[13],motor:g[17],size:g[16],aqua:g[20],armor:g[0]*0.6+g[2]*0.4,jaw:g[22],
+    neural:g[4]*0.5+g[7]*0.5,radial:g[28],limbs:g[24],seg:g[27],tox:g[11],heat:g[18],fec:g[21],stem:g[9],
+    wood:g[3]*0.7+g[16]*0.4,
+    // 分解者（菌類）: 消化が強く、光合成も捕食もしない
+    decomp:g[8]>0.6&&g[13]<0.35&&g[22]<0.45&&g[10]<0.55,
+    // 植物かどうかはゲーム本体の栄養段階（LifeGfx.trophic）と同じ基準にそろえる
+    plant:(g[13]+g[14])>0.9||((g[13]+g[14])>0.5&&(g[12]+g[22])<0.6)};
+}
+function chooseArch(g,grade){
+  const f=geneFeatures(g),any=grade==null;
+  const microScale=Math.max(0,Math.min(1,0.85-g[16]*0.9-Math.max(2,Math.floor(2+g[27]*7+g[1]*3))*0.02));
+  // 段階を渡されたときは段階で決める（段階3以上の多細胞生物は、小さくても微生物の姿にしない）
+  // 段階なしのときは、小さくて多細胞化の遺伝子（接着・幹細胞）が低いものを微生物とする（rStage と同じ基準）
+  if(any?(microScale>0.55&&(g[3]+g[9])*0.5<0.35):grade<=2)return 'microbe';
+  // 植物
+  if(f.plant){
+    if(f.aqua>0.55||(!any&&grade<7))return 'seaweed';
+    if(f.heat>0.62&&(any||grade>=9))return 'cactus';
+    if(f.fec>0.62&&(any||grade>=9))return 'flower';
+    if(f.wood>0.55&&f.size>0.4)return 'tree';
+    if(f.stem>0.55)return 'fern';
+    return 'grass';
+  }
+  // 菌類
+  if(f.decomp&&f.motor<0.3&&(any||grade>=3))return 'mushroom';
+  const G=any?null:grade;
+  // 段階ごとの候補
+  if(G===3)return 'sponge';
+  const cnid=()=>f.motor<0.3?(f.armor>0.45?'coral':'anemone'):'jellyfish';
+  if(G===4)return cnid();
+  if(G===5)return 'worm';
+  const marine=()=>{
+    if(f.armor>0.4&&f.motor<0.45)return f.neural<0.4?'starfish':'snail';
+    if(f.neural>0.55&&f.armor<0.3&&f.limbs>0.5)return 'octopus';
+    if(g[2]>=0.35)return 'crab';
+    if(f.jaw>0.45&&f.size>0.5)return 'shark';
+    return 'fish';};
+  if(G===6)return marine();
+  // 節足動物: 外骨格（装甲）があり小型。外骨格と気管呼吸が体の大きさを制限する（Harrison et al. 2010）
+  const arthro=()=>g[2]>=0.35&&f.size<0.55?(f.aqua>0.55?'crab':f.jaw>0.5?'spider':'insect'):null;
+  if(G===7)return arthro()||(f.seg>0.55||(f.size<0.4&&f.motor<0.5)?'salamander':'frog');
+  if(G===8)return arthro()||'lizard';
+  // 段階9以上（制限なし）
+  const amniote=()=>{
+    if(f.motor>0.8&&f.size<0.45&&f.neural>0.45)return 'bird';              // 飛ぶには非常に高い運動能力が要る
+    if(f.neural>0.45&&g[5]>0.55)return 'mammal';                    // 内温性（神経維持が高い）は哺乳類
+    if(f.armor>0.6&&f.motor<0.5)return 'turtle';
+    if(f.jaw>0.5&&f.size>0.55&&f.aqua>0.35)return 'crocodile';
+    if(f.limbs<0.22||(f.seg>0.72&&f.size<0.6))return 'snake';
+    return 'lizard';};
+  if(!any)return arthro()||amniote();
+  // 制限なし: 遺伝子だけで、水中・放射・節足・両生・脊椎動物を選び分ける
+  if(f.radial>0.45||(f.aqua>0.6&&f.neural<0.3&&f.armor<0.35))return cnid();
+  if(f.limbs<0.15&&f.neural<0.35&&f.armor<0.35)return 'worm';
+  if(f.aqua>0.7)return marine();
+  const ar=arthro();if(ar)return ar;
+  if(f.aqua>0.38)return f.seg>0.55?'salamander':'frog';
+  return amniote();
+}
 
 /* ============================================================
    本体：ゲノム → 3D生物モデル
    ============================================================ */
 // 物理リグ用：直前の growBranch 呼び出しで追加されたストロークに部位グループを付与
 function tagStrokes(out,from,group,extra){for(let k=from;k<out.strokes.length;k++){const st=out.strokes[k];if(!st.group)st.group=group;if(extra)Object.assign(st,extra);}}
-function buildModelMorpho(g){
+function buildModelMorpho(g,opt){
+  opt=opt||{};
   const clamp=Genome.clamp;
   const cellCounts=cellCountsOf(g),dominantCell=dominantCellOf(cellCounts);
   const cellSizeMul=k=>0.7+Math.min(1,(cellCounts[k]||0)*8)*0.7;
-  const rng=mulberry32(hashGenome(g)),size=3+g[16]*9,col=LifeGfx.color(g);
-  const radiality=g[28];
+  const rng=mulberry32(hashGenome(g)),size=3+g[16]*9;let col=LifeGfx.color(g);
+  // 体制（アーキタイプ）: 遺伝子と進化段階から選ぶ
+  const A=opt.arch||chooseArch(g,opt.grade);
+  let radiality=g[28];
   const bilateral=radiality<0.5;
-  const segN=Math.max(2,Math.floor(2+g[27]*7+g[1]*3));
+  let segN=Math.max(2,Math.floor(2+g[27]*7+g[1]*3));
   const armor=g[0]*0.6+g[2]*0.4,jaw=g[22],photo=g[13],toxin=g[11],
         neural=g[4]*0.5+g[7]*0.5,motor=g[17];
 
   // 連続派生フラグ（離散plan判定の置き換え）
-  const sessility=clamp(photo*0.8-motor*0.55+0.12);
-  const aquaticOnly=clamp(g[20]*1.35-0.4);
-  const woodiness=clamp(g[3]*0.7+g[16]*0.4-sessility*0.15);
-  const elongation=clamp(1-g[16]*0.65);
+  let sessility=clamp(photo*0.8-motor*0.55+0.12);
+  let aquaticOnly=clamp(g[20]*1.35-0.4);
+  let woodiness=clamp(g[3]*0.7+g[16]*0.4-sessility*0.15);
+  let elongation=clamp(1-g[16]*0.65);
   const microScale=clamp(0.5-g[16]*0.9-segN*0.02+0.35);
-  const limbPairsEst=Math.round(g[24]*5*(1-sessility)*(1-radiality*0.6));
-  const uprightness=clamp(motor*0.55+neural*0.45-Math.min(1,limbPairsEst*0.22)-radiality*0.3);
-  const parasagittalBias=clamp(neural*0.5+motor*0.35-armor*0.3-radiality*0.4);
+  let limbPairsEst=Math.round(g[24]*5*(1-sessility)*(1-radiality*0.6));
+  let uprightness=clamp(motor*0.55+neural*0.45-Math.min(1,limbPairsEst*0.22)-radiality*0.3);
+  let parasagittalBias=clamp(neural*0.5+motor*0.35-armor*0.3-radiality*0.4);
+
+  // ---- 体制ごとの骨格の調整（F: 頭部・尾・肢・体表の作り分け） ----
+  const F={noTail:0,noEars:0,noTeeth:0,noHead:0,noWhisker:1,integ:null,skipDiv:0,tailLen:1,hindMul:1,legLenMul:1,legRMul:1,
+    shape:null,bodyZ:1,armsN:null,armR:1,fins:0,fly:0,skin:null};
+  const hrng=mulberry32((hashGenome(g)^0x2c1b3c6d)>>>0),h1=hrng(),h2=hrng();
+  const sprawl=()=>{parasagittalBias=0;};
+  switch(A){
+    case'sponge':sessility=0.8;radiality=0.25;woodiness=0;F.skin=4;col=hsl2rgb(38+h1*20,0.55,0.5+h2*0.12);break;
+    case'anemone':sessility=0.85;radiality=0.1;woodiness=0;F.skin=0;col=hsl2rgb([350,20,140,300][Math.floor(h1*4)],0.6,0.5);break;
+    case'coral':sessility=0.95;radiality=0.1;woodiness=0.3;F.skin=1;col=hsl2rgb([5,20,330,280,45][Math.floor(h1*5)],0.62,0.55);break;
+    case'mushroom':sessility=0.9;radiality=0;woodiness=0;F.skin=0;col=toxin>0.5?[0.82,0.12,0.08]:hsl2rgb(28+h1*14,0.35,0.42+h2*0.25);break;
+    case'seaweed':case'grass':case'fern':case'flower':sessility=Math.max(sessility,0.75);if(photo<0.5)col=hsl2rgb(95+h1*40,0.45,0.32+h2*0.1);break;
+    case'tree':sessility=Math.max(sessility,0.85);woodiness=Math.max(woodiness,0.7);F.skin=4;if(photo<0.5)col=hsl2rgb(95+h1*40,0.45,0.32+h2*0.1);break;
+    case'cactus':sessility=0.9;woodiness=0.15;col=hsl2rgb(105+h1*25,0.4,0.36);F.skin=0;break;
+    case'worm':sessility=0;limbPairsEst=0;radiality=0;elongation=Math.max(elongation,0.85);uprightness=0;F.noEars=1;F.noTeeth=1;F.skipDiv=1;F.skin=0;break;
+    case'fish':case'shark':sessility=0;aquaticOnly=Math.max(aquaticOnly,0.75);limbPairsEst=0;radiality=0;uprightness=0;F.noEars=1;F.fins=1;F.skipDiv=1;
+      F.integ=A==='fish'?'scale':'none';F.skin=A==='fish'?1:0;F.shape=A;if(A==='shark'){elongation=Math.max(elongation,0.65);col=hsl2rgb(205+h1*15,0.12+h2*0.1,0.42+h1*0.1);}break;
+    case'crab':sessility=0;radiality=0;limbPairsEst=4;uprightness=0;elongation=0.15;F.noTail=1;F.noEars=1;F.noTeeth=1;F.shape='flat';F.skipDiv=1;F.integ='none';F.skin=3;F.legRMul=0.6;sprawl();
+      if(aquaticOnly>0.55)col=hsl2rgb(8+h1*20,0.6,0.42);break;
+    case'snail':sessility=0;radiality=0;limbPairsEst=0;uprightness=0;elongation=0.45;F.noTail=1;F.noEars=1;F.noTeeth=1;F.shape='foot';F.bodyZ=0.45;F.skipDiv=1;F.integ='none';F.skin=0;
+      col=hsl2rgb(30+h1*15,0.18,0.48);break;
+    case'octopus':sessility=0;radiality=0.6;F.armsN=8;F.armR=1.5;limbPairsEst=0;uprightness=0;elongation=0.1;F.noTail=1;F.noEars=1;F.noTeeth=1;F.shape='mantle';F.skipDiv=1;F.integ='none';F.skin=0;
+      col=hsl2rgb(h1<0.5?8+h2*20:290+h2*30,0.5,0.45);break;
+    case'starfish':sessility=0;radiality=0.7;F.armsN=5;F.armR=1.9;limbPairsEst=0;uprightness=0;elongation=0;F.noTail=1;F.noHead=1;F.shape='disc';F.bodyZ=0.4;F.skipDiv=1;F.integ='none';F.skin=1;
+      col=hsl2rgb([18,32,280,350][Math.floor(h1*4)],0.65,0.5);break;
+    case'insect':sessility=0;radiality=0;limbPairsEst=3;uprightness=0.05;elongation=0.55;F.noTail=1;F.noEars=1;F.noTeeth=1;F.shape='insect';F.skipDiv=1;F.integ='none';F.skin=3;
+      F.legRMul=0.4;F.legLenMul=0.95;sprawl();F.fly=motor>0.5;break;
+    case'spider':sessility=0;radiality=0;limbPairsEst=4;uprightness=0;elongation=0.45;F.noTail=1;F.noEars=1;F.noTeeth=1;F.shape='spider';F.skipDiv=1;F.integ='none';F.skin=2;
+      F.legRMul=0.35;F.legLenMul=1.45;sprawl();col=hsl2rgb(25+h1*20,0.25,0.22+h2*0.15);break;
+    case'frog':sessility=0;radiality=0;limbPairsEst=2;uprightness=0.25;elongation=0.25;aquaticOnly=Math.min(aquaticOnly,0.3);F.noTail=1;F.noEars=1;F.noTeeth=1;F.shape='frog';F.integ='none';F.skin=0;
+      F.hindMul=1.8;sprawl();if(toxin<=0.55)col=hsl2rgb(80+h1*45,0.45,0.36+h2*0.12);break;
+    case'salamander':F.shape='long';sessility=0;radiality=0;limbPairsEst=2;uprightness=0;elongation=Math.max(elongation,0.85);aquaticOnly=Math.min(aquaticOnly,0.3);F.noEars=1;F.noTeeth=1;F.integ='none';F.skin=0;
+      F.legRMul=0.7;F.legLenMul=0.55;F.tailLen=1.4;sprawl();break;
+    case'lizard':F.shape='long';sessility=0;radiality=0;limbPairsEst=2;uprightness=0;elongation=Math.max(elongation,0.7);aquaticOnly=Math.min(aquaticOnly,0.3);F.noEars=1;F.integ='scale';F.skin=1;
+      F.legLenMul=0.65;F.tailLen=1.6;sprawl();break;
+    case'snake':F.shape='thin';sessility=0;radiality=0;limbPairsEst=0;uprightness=0;elongation=1;segN=Math.max(segN,10);aquaticOnly=Math.min(aquaticOnly,0.3);F.noEars=1;F.integ='scale';F.skin=1;F.tailLen=1.3;F.skipDiv=1;break;
+    case'turtle':sessility=0;radiality=0;limbPairsEst=2;uprightness=0;elongation=0.15;F.noEars=1;F.noTeeth=1;F.integ='none';F.skin=1;F.legLenMul=0.5;F.legRMul=1.25;F.tailLen=0.35;F.shape='turtle';F.skipDiv=1;sprawl();break;
+    case'crocodile':F.shape='long';sessility=0;radiality=0;limbPairsEst=2;uprightness=0;elongation=Math.max(elongation,0.75);F.noEars=1;F.integ='none';F.skin=3;F.legLenMul=0.5;F.tailLen=1.7;F.skipDiv=1;sprawl();
+      col=hsl2rgb(75+h1*20,0.25,0.26+h2*0.08);break;
+    case'bird':F.shape='bird';sessility=0;radiality=0;limbPairsEst=1;uprightness=0.75;elongation=0.35;aquaticOnly=Math.min(aquaticOnly,0.3);F.noEars=1;F.noTeeth=1;F.integ='feather';F.skin=2;F.legRMul=0.5;F.legLenMul=1.05;F.tailLen=0.45;F.skipDiv=1;
+      F.fly=motor>0.55&&g[16]<0.6;break;
+    case'mammal':sessility=0;radiality=0;limbPairsEst=2;uprightness=Math.min(uprightness,0.35);parasagittalBias=Math.max(parasagittalBias,0.7);aquaticOnly=Math.min(aquaticOnly,0.3);F.integ='hair';F.noWhisker=0;F.skin=2;break;
+    case'jellyfish':col=hsl2rgb([200,320,280,30][Math.floor(h1*4)],0.45,0.72);F.skin=0;break;
+  }
 
   let legCount=0,legPower=0;
   const out={strokes:[],organs:[]},mg={nodes:[]},S={rng,P:null,g,size,budget:260},L=size;
@@ -178,12 +304,23 @@ function buildModelMorpho(g){
   const spikeCol=toxin>0.6?[0.92,0.8,0.16]:[0.52,0.45,0.36];
   const spikeTip={type:'spike',prob:Math.min(1,toxin*1.2),size:0.7*cellSizeMul('toxin'),col:spikeCol};
 
-  const builtAsMicrobe=microScale>0.55;
-  const axisLen=L*(0.9+elongation*1.6+g[16]*1.4+sessility*0.6);
-  const axisR=size*(0.32+sessility*0.28);
+  const builtAsMicrobe=A==='microbe'||(microScale>0.55&&!ARCH[A]);
+  const axisLen=L*(0.9+elongation*1.6+g[16]*1.4+sessility*0.6)*(A==='anemone'||A==='mushroom'?0.45:A==='cactus'?0.8:A==='sponge'?0.55:A==='snake'?1.7:A==='crocodile'?1.2:A==='bird'?0.65:A==='shark'?1.25:1);
+  const axisR=size*(0.32+sessility*0.28)*(A==='cactus'?1.9:A==='anemone'?1.5:A==='sponge'?1.4:A==='mushroom'?0.6:1);
   const bodyPts=[];
 
-  if(builtAsMicrobe){
+  if(A==='jellyfish'){
+    // クラゲ: 半透明の傘と、傘の縁から垂れる触手（浮遊。物理は微生物と同じ浮遊モード）
+    const bellZ=size*1.6,nT=8+Math.round(g[29]*8);
+    out.organs.push({type:'bell',p:[0,0,bellZ],dir:[0,0,1],size:size*1.05,depth:0,free:1});
+    out.organs.push({type:'core',p:[0,0,bellZ-size*0.1],dir:[0,0,1],size:size*0.35,depth:0,free:1});
+    S.P={maxDepth:0,branchAlong:false,branchProb:0,branchCount:0,branchAngle:0,branchRatio:0.6,lenRatio:0.6,taper:0.75,minR:size*0.02,
+      fiber:1,wiggle:0.45,photo:0,gravity:0.9,apical:false,apicalR:0.8,apicalLen:0.7,phyllo:1,strokeKind:'soft',tips:[]};
+    for(let k=0;k<nT;k++){const a=k/nT*6.283,b0=out.strokes.length;
+      growBranch(S,[Math.cos(a)*size*0.85,Math.sin(a)*size*0.85,bellZ-size*0.3],[Math.cos(a)*0.08,Math.sin(a)*0.08,-1],size*0.05,L*(1.4+motor),0,out,null,'limb',mg);tagStrokes(out,b0,'cilia');}
+    for(let k=0;k<4;k++){const a=k/4*6.283+0.4,b0=out.strokes.length;   // 口腕
+      growBranch(S,[Math.cos(a)*size*0.2,Math.sin(a)*size*0.2,bellZ-size*0.35],[Math.cos(a)*0.15,Math.sin(a)*0.15,-1],size*0.16,L*0.9,0,out,null,'limb',mg);tagStrokes(out,b0,'cilia');}
+  }else if(builtAsMicrobe){
     const cilia=Math.max(3,Math.round(4+motor*10*microScale));
     S.P={maxDepth:0,branchAlong:false,branchProb:0,branchCount:0,branchAngle:0,branchRatio:0.6,
       lenRatio:0.6,taper:0.5,minR:size*0.1,fiber:1,wiggle:0.35,photo:0,gravity:0,apical:false,
@@ -206,10 +343,24 @@ function buildModelMorpho(g){
       const neckT=clamp((t-0.78)/0.22),pelvisT=clamp((0.18-t)/0.18);
       const regionMul=(1-neckT*neckT*0.5)*(1-pelvisT*pelvisT*0.35);
       rw*=regionMul;rh*=regionMul;
+      // 体制ごとの体の断面
+      if(F.shape==='flat'){rw*=1.7;rh*=0.5;}                                   // カニ: 平たく幅広い甲
+      else if(F.shape==='foot'){rw*=0.85;rh*=0.4;}                             // 巻貝: 這う足
+      else if(F.shape==='disc'){rw*=0.5;rh*=0.3;}                              // ヒトデ: 平たい中心盤
+      else if(F.shape==='mantle'){const m=0.55+1.3*Math.pow(t,1.4);rw*=m;rh*=m*1.15;}   // タコ: 頭側の大きな外套膜
+      else if(F.shape==='insect'){const pinch=x=>0.35+0.65*clamp(Math.abs(t-x)/0.07);rw*=pinch(0.4)*pinch(0.75)*(t<0.4?1.25:1);rh*=pinch(0.4)*pinch(0.75);}   // 頭・胸・腹
+      else if(F.shape==='spider'){const p=0.3+0.7*clamp(Math.abs(t-0.5)/0.08);rw*=p*(t<0.5?1.45:0.85);rh*=p*(t<0.5?1.35:0.8);}   // 頭胸部と大きな腹部
+      else if(F.shape==='frog'){rw*=1.35;rh*=0.85;}
+      else if(F.shape==='turtle'){rw*=1.2;rh*=0.75;}
+      else if(F.shape==='long'){rw*=0.36;rh*=0.36;}                            // トカゲ・イモリ・ワニ: 細長く低い胴
+      else if(F.shape==='thin'){rw*=0.3;rh*=0.28;}                             // ヘビ: 細いひも状
+      else if(F.shape==='fish'){rw*=0.42;rh*=0.72;}                            // 魚: 左右に平たく背が高い
+      else if(F.shape==='shark'){rw*=0.5;rh*=0.55;}                            // サメ: 紡錘形
+      else if(F.shape==='bird'){rw*=0.62;rh*=0.7;}                             // 鳥: 小さくまとまった胴
       const bendPrimary=Math.sin(t*3.1+(g[1]-0.5)*4),bendSecondary=Math.sin(t*6.2+(g[1]-0.5)*4+Math.PI);
       const bend=(bendPrimary*(1-uprightness*0.6)+bendSecondary*uprightness*0.6)*size*0.5*g[1]*(1-radiality*0.7);
       const dx=(t-0.5)*axisLen-pivotX;
-      bodyPts.push({p:[pivotX+dx*csA,bend,pivotZ+dx*snA],r:(rw+rh)*0.5,rw,rh});
+      bodyPts.push({p:[pivotX+dx*csA,bend,pivotZ*F.bodyZ+dx*snA],r:(rw+rh)*0.5,rw,rh});
     }
     out.strokes.push({pts:bodyPts,fiber:Math.max(1,Math.round((g[1]*0.6+g[0]*0.4)*6+1)),depth:0,kind:'muscle',group:'body'});
     // countershading：腹側(肢側)に淡いストロークを並走
@@ -231,14 +382,43 @@ function buildModelMorpho(g){
       apicalLen:0.72+sessility*0.2,phyllo:1.1+sessility*1.3,strokeKind:woodiness>0.55?'wood':'soft',
       tips:[{type:'leaf',prob:Math.min(1,photo*1.3),size:(1.1+g[16]*1.8)*cellSizeMul('photo')},
             {type:'fruit',prob:g[21]*0.45,size:0.85},spikeTip]};
-    for(let st=0;st<stemN;st++){
+    // 固着生物の体制ごとの作り分け
+    let nStem=stemN;
+    if(A==='anemone'||A==='mushroom'){Object.assign(S.P,{maxDepth:0,apical:false,taper:A==='mushroom'?0.05:0.1,wiggle:0.04,tips:[],strokeKind:'soft'});nStem=1;}
+    else if(A==='sponge'){Object.assign(S.P,{maxDepth:0,apical:false,taper:-0.15,wiggle:0.08,tips:[],strokeKind:'soft'});nStem=1+Math.round(g[9]*2);}
+    else if(A==='coral'){Object.assign(S.P,{maxDepth:3,branchAlong:true,branchProb:0.45,branchCount:2,branchAngle:0.6,taper:0.25,wiggle:0.2,
+      strokeKind:'soft',apical:false,tips:[{type:'polyp',prob:1,size:1.2,col:[Math.min(1,col[0]+0.25),Math.min(1,col[1]+0.25),Math.min(1,col[2]+0.25)]}]});}
+    else if(A==='tree'){Object.assign(S.P,{maxDepth:3,strokeKind:'wood',tips:[{type:'foliage',prob:0.85,size:3.2},{type:'fruit',prob:g[21]*0.3,size:0.85}]});nStem=1;}
+    else if(A==='fern'){Object.assign(S.P,{maxDepth:2,branchAlong:true,branchProb:0.85,branchCount:2,branchAngle:1.0,apical:false,lenRatio:0.42,strokeKind:'soft',
+      tips:[{type:'leaf',prob:1,size:1.1}]});nStem=3+Math.round(g[9]*3);}
+    else if(A==='flower'){S.P.tips=[{type:'flower',prob:0.9,size:1.8,col:hsl2rgb([0,45,280,330,55,210][Math.floor(h1*6)],0.75,0.62)},{type:'leaf',prob:0.5,size:1.3}];}
+    else if(A==='cactus'){Object.assign(S.P,{maxDepth:1,branchAlong:true,branchProb:0.25,branchCount:1,branchAngle:1.1,apical:false,taper:0.05,photo:2.5,wiggle:0.02,
+      strokeKind:'soft',tips:[{type:'flower',prob:g[21],size:1.0,col:hsl2rgb(330+h2*60,0.7,0.6)}]});nStem=1;}
+    for(let st=0;st<nStem;st++){
       const ang=(st/stemN)*6.283+rng()*0.5,b0=out.strokes.length;
-      const dir=radiality>0.3?[Math.cos(ang)*(0.3+radiality*0.7),Math.sin(ang)*(0.3+radiality*0.7),1-radiality*0.75]:[0,0,1];
+      const dir=radiality>0.3?[Math.cos(ang)*(0.3+radiality*0.7),Math.sin(ang)*(0.3+radiality*0.7),1-radiality*0.75]:
+        (A==='fern'||A==='sponge')&&nStem>1?[Math.cos(ang)*0.45,Math.sin(ang)*0.45,1]:[0,0,1];
       growBranch(S,[Math.cos(ang)*size*0.12*radiality,Math.sin(ang)*size*0.12*radiality,0],
         dir,axisR*(0.9+g[16]*0.4),axisLen*(0.55+sessility*0.35),0,out,null,'axis',mg);
       tagStrokes(out,b0,'plant',{stem:st});
     }
     if(radiality>0.4)out.organs.push({type:'core',p:[0,0,size*0.3],dir:[0,0,1],size:size*(0.55+radiality*0.4),depth:0});
+    const topZ=()=>{let z=0,p=[0,0,0];out.strokes.forEach(st=>st.pts.forEach(q=>{if(q.p[2]>z){z=q.p[2];p=q.p;}}));return p;};
+    if(A==='anemone'){   // 口のまわりの触手の冠
+      const tp=topZ(),nT=10+Math.round(g[29]*10);
+      S.P={maxDepth:0,branchAlong:false,branchProb:0,branchCount:0,branchAngle:0,branchRatio:0.6,lenRatio:0.6,taper:0.6,minR:size*0.03,fiber:1,wiggle:0.25,
+        photo:0.4,gravity:0,apical:false,apicalR:0.8,apicalLen:0.7,phyllo:1,strokeKind:'soft',tips:[]};
+      for(let k=0;k<nT;k++){const a=k/nT*6.283,b0=out.strokes.length;
+        growBranch(S,[tp[0]+Math.cos(a)*axisR*0.7,tp[1]+Math.sin(a)*axisR*0.7,tp[2]],[Math.cos(a)*0.7,Math.sin(a)*0.7,0.8],size*0.07,L*0.75,0,out,null,'limb',mg);tagStrokes(out,b0,'plant');}
+    }else if(A==='mushroom'){   // 傘とひだ。有毒なら赤い傘に白い斑点
+      const tp=topZ(),cs=size*(0.9+g[16]*0.6);
+      out.organs.push({type:'cap',p:[tp[0],tp[1],tp[2]+cs*0.1],dir:[0,0,1],size:cs,depth:0,free:1});
+      if(toxin>0.5)for(let k=0;k<9;k++){const a=k*2.4,r=cs*(0.25+0.45*((k*0.37)%1));
+        out.organs.push({type:'marking',p:[tp[0]+Math.cos(a)*r,tp[1]+Math.sin(a)*r,tp[2]+cs*0.38],dir:[0,0,1],size:cs*0.16,depth:1,col:[0.96,0.94,0.9],free:1});}
+    }else if(A==='cactus'){   // 刺の列
+      out.strokes.filter(st=>st.group==='plant').forEach(st=>st.pts.forEach((q,i)=>{for(let k=0;k<5;k++){const a=k/5*6.283+i;
+        out.organs.push({type:'spike',p:[q.p[0]+Math.cos(a)*q.r,q.p[1]+Math.sin(a)*q.r,q.p[2]],dir:[Math.cos(a),Math.sin(a),0.2],size:size*0.12,depth:1,col:[0.92,0.88,0.72]});}}));
+    }
   }
 
   /* ---- 肢（脚/腕）：前後/操作役割分化・関節屈曲・直下型/側方投出 ---- */
@@ -257,7 +437,7 @@ function buildModelMorpho(g){
       const frontness=1-frac;
       const manip=clamp(uprightness*frontness*frontness);
       const legRoleTag=manip>0.45?'manipulator':(frac<0.5?'front':'back');
-      const legR=legRBase*(1-manip*0.45);
+      const legR=legRBase*(1-manip*0.45)*F.legRMul;
       const jointDepth=Math.max(1,Math.round(jointDepthBase+(manip-0.3)*2));
       const digitN=Math.max(1,Math.round(digitNBase+manip*3));
       const legSegCount=Math.max(2,Math.min(4,2+Math.round(g[25]*2)+(manip>0.5?1:0)));
@@ -275,7 +455,7 @@ function buildModelMorpho(g){
       [-1,1].forEach(sd=>{
         const before=out.strokes.length;
         growBranch(S,[base.p[0],base.p[1]+sd*base.r*0.7,base.p[2]],
-          [0,sd*legLat,legDown],legR,L*(1.0+motor*1.4)*(1-manip*0.25),1,out,null,'limb',mg);
+          [0,sd*legLat,legDown],legR,L*(1.0+motor*1.4)*(1-manip*0.25)*F.legLenMul*(frac>=0.5?F.hindMul:1),1,out,null,'limb',mg);
         // 物理リグ用タグ：depth1=脚本体 / depth2=指（指は脚より先にpushされる）
         let legK=-1;for(let k=before;k<out.strokes.length;k++)if(out.strokes[k].depth===1){legK=k;break;}
         for(let k=before;k<out.strokes.length;k++){const st=out.strokes[k];
@@ -300,33 +480,35 @@ function buildModelMorpho(g){
   }
 
   /* ---- 放射腕（放射相称寄り） ---- */
-  if(radiality>0.15){
-    const arms=Math.max(0,Math.round(radiality*(3+g[29]*7)));
+  if(radiality>0.15&&A!=='jellyfish'){
+    const arms=F.armsN!=null?F.armsN:Math.max(0,Math.round(radiality*(3+g[29]*7)));
     if(arms>0){
-      S.P={maxDepth:Math.max(1,Math.round(1+g[25]*2)),branchAlong:false,branchProb:0.55,
+      S.P={maxDepth:F.armsN!=null?1:Math.max(1,Math.round(1+g[25]*2)),branchAlong:false,branchProb:0.55,
         branchCount:Math.max(1,Math.round(1+g[26]*2)),branchAngle:0.5,branchRatio:0.7,lenRatio:0.62,
         taper:0.3,minR:size*0.05,fiber:2,wiggle:0.2,photo:0,gravity:0.12,apical:false,apicalR:0.8,
         apicalLen:0.7,phyllo:2.0,strokeKind:'soft',
         tips:[{type:'tentacle',prob:0.55,size:0.6},spikeTip]};
       const baseZ=bodyPts.length?bodyPts[Math.floor(bodyPts.length/2)].p[2]:size*0.5;
       for(let a=0;a<arms;a++){const ang=a/arms*6.283,b0=out.strokes.length;
-        growBranch(S,[0,0,baseZ],[Math.cos(ang),Math.sin(ang),0.2],
-          size*0.14,L*(0.8+radiality*0.6),1,out,null,'limb',mg);tagStrokes(out,b0,'arm',{armAng:ang});}
+        growBranch(S,[0,0,baseZ],[Math.cos(ang),Math.sin(ang),A==='starfish'?-0.05:0.2],
+          size*0.14*F.armR,L*(0.8+radiality*0.6)*(A==='octopus'?1.5:A==='starfish'?1.8:1),1,out,null,'limb',mg);tagStrokes(out,b0,'arm',{armAng:ang});}
       legCount=Math.max(legCount,arms);
     }
   }
 
   /* ---- 頭部・目・顎・体表・尾（動物寄り体軸がある場合） ---- */
-  if(bodyPts.length){
+  if(bodyPts.length&&!F.noHead){
     const headP=bodyPts[bodyPts.length-1].p,tailP=bodyPts[0].p;
-    out.organs.push({type:'head',p:headP.slice(),dir:[1,0,0],size:size*0.46,depth:0});
-    const eN=neural>0.9?2:(neural>0.4?1:0);
+    out.organs.push({type:'head',p:headP.slice(),dir:[1,0,0],size:size*0.46*(A==='turtle'?0.7:A==='snake'?0.8:A==='frog'?1.25:1),depth:0});
+    // 眼: 脊椎動物・頭足類・節足動物は一対、蠕虫などは神経しだい
+    const pairEyed=['fish','shark','frog','salamander','lizard','snake','turtle','crocodile','bird','mammal','octopus','insect','crab'].includes(A);
+    const eN=pairEyed?2:(neural>0.9?2:(neural>0.4?1:0));
     for(let e=0;e<eN;e++){const yy=eN===1?0:(e?1:-1);
       out.organs.push({type:'eye',p:[headP[0]+size*0.32,headP[1]+yy*size*0.28,headP[2]+size*0.22],
         dir:[1,0,0],size:size*0.145*cellSizeMul('sensor'),depth:0});}
     // 異歯性
-    if(jaw>0.35){
-      const jn=2+Math.floor(jaw*4);
+    if((jaw>0.35&&!F.noTeeth)||A==='crocodile'||A==='shark'){
+      const jn=A==='crocodile'?7:A==='shark'?6:2+Math.floor(jaw*4);
       for(let k=0;k<jn;k++){
         const ay=(k/(jn-1)-0.5),rowPos=jn>1?k/(jn-1):0.5,centerness=1-Math.abs(rowPos-0.5)*2;
         const toothSize=(0.35+centerness*0.35)*(0.6+jaw*0.6);
@@ -340,17 +522,17 @@ function buildModelMorpho(g){
     }
     const flightBias=clamp((motor-0.5)*2-(g[16]-0.3)*3);
     // 耳（鳥類は外耳なし）
-    const earBias=clamp(neural*0.6+g[7]*0.4-aquaticOnly*0.5-radiality*0.4-flightBias*1.3);
+    const earBias=F.noEars?0:clamp(neural*0.6+g[7]*0.4-aquaticOnly*0.5-radiality*0.4-flightBias*1.3);
     if(earBias>0.35)[-1,1].forEach(sd=>out.organs.push({type:'ear',
       p:[headP[0]-size*0.05,headP[1]+sd*size*0.42,headP[2]+size*0.4],
       dir:[-0.3,sd*0.8,0.6],size:size*(0.18+earBias*0.22),depth:0}));
     // 吻部
-    const muzzleBias=clamp(jaw*0.5+g[9]*0.2-uprightness*0.5);
-    if(muzzleBias>0.2)out.organs.push({type:'muzzle',p:[headP[0]+size*0.35,headP[1],headP[2]+size*0.1],
-      dir:[1,0,-0.15],size:size*(0.22+muzzleBias*0.35),depth:0});
+    const muzzleBias=A==='crocodile'?1:['bird','frog','turtle','snake','insect','spider','crab','snail','octopus','fish','shark'].includes(A)?0:clamp(jaw*0.5+g[9]*0.2-uprightness*0.5);
+    if(muzzleBias>0.2)out.organs.push({type:A==='crocodile'?'snout':'muzzle',p:[headP[0]+size*0.35,headP[1],headP[2]+size*0.1],
+      dir:[1,0,-0.15],size:size*(0.22+muzzleBias*0.35)*(A==='crocodile'?1.5:1),depth:0});
     // 髭（鳥類には生えない）
     const whiskerBias=clamp(neural*0.5+(cellCounts.sensor||0)*3-uprightness*0.3-flightBias*0.7);
-    if(whiskerBias>0.45){
+    if(whiskerBias>0.45&&(!F.noWhisker||!ARCH[A])){
       const wN=2+Math.round(whiskerBias*2);
       for(let w=0;w<wN;w++){const rowT=wN>1?w/(wN-1)-0.5:0;
         [-1,1].forEach(sd=>out.organs.push({type:'whisker',
@@ -362,9 +544,10 @@ function buildModelMorpho(g){
     const featherW=clamp(flightBias*0.9+neural*0.15-g[0]*0.2-aquaticOnly*0.3);
     const hairW=clamp((neural*0.45+uprightness*0.3+earBias*0.25-aquaticOnly*0.4-g[0]*0.25)*(1-flightBias));
     const integMax=Math.max(scaleW,featherW,hairW);
-    const integType=integMax<0.22?null:(integMax===scaleW?'scale':(integMax===featherW?'feather':'hair'));
+    let integType=integMax<0.22?null:(integMax===scaleW?'scale':(integMax===featherW?'feather':'hair'));
+    if(F.integ)integType=F.integ==='none'?null:F.integ;
     if(integType){
-      const integDensity=Math.min(1,integMax),integCount=Math.round(24+integDensity*54);
+      const integDensity=F.integ?0.75:Math.min(1,integMax),integCount=Math.round(24+integDensity*54);
       const baseSize=size*(integType==='scale'?0.14:integType==='feather'?0.15:0.11);
       const lastB=bodyPts.length-1;
       const spineTan=bi=>{const a=bodyPts[Math.max(0,bi-1)].p,b=bodyPts[Math.min(lastB,bi+1)].p;
@@ -429,17 +612,63 @@ function buildModelMorpho(g){
     S.P={maxDepth:1,branchAlong:false,branchProb:1,branchCount:1,branchAngle:0.15,branchRatio:0.78,
       lenRatio:0.62,taper:0.3,minR:size*0.07,fiber:Math.max(1,Math.round(1+g[1]*3)),wiggle:0.1,photo:0,
       gravity:0.3,apical:false,apicalR:0.8,apicalLen:0.7,phyllo:0.9,strokeKind:'limb',
-      tips:[aquaticOnly>0.5?{type:'fin',prob:1,size:1.6+aquaticOnly*0.8}:spikeTip]};
-    {const b0=out.strokes.length;growBranch(S,tailP.slice(),[-1,0,0],size*0.3,L*(0.8+g[23]*1.2),1,out,null,'tail',mg);tagStrokes(out,b0,'tail');}
-    if(aquaticOnly>0.55){
+      tips:[aquaticOnly>0.5?{type:'fin',prob:1,size:1.6+aquaticOnly*0.8}:A==='bird'?{type:'feather',prob:0,size:1}:spikeTip]};
+    if(!F.noTail){const b0=out.strokes.length;growBranch(S,tailP.slice(),[-1,0,A==='bird'?0.25:0],size*0.3*(A==='snake'?0.9:1),L*(0.8+g[23]*1.2)*F.tailLen,1,out,null,'tail',mg);tagStrokes(out,b0,'tail');}
+    if(aquaticOnly>0.55&&!ARCH[A]){
       const mid=bodyPts[Math.floor(bodyPts.length/2)];
       S.P.tips=[{type:'fin',prob:1,size:2.2+aquaticOnly*0.6}];
       {const b0=out.strokes.length;growBranch(S,[mid.p[0],mid.p[1],mid.p[2]+mid.r],[0,0,1],size*0.16,L*(0.6+aquaticOnly*0.5),1,out,null,'fin',mg);tagStrokes(out,b0,'fin');}
     }
   }
 
+  /* ---- 体制ごとの専用パーツ ---- */
+  if(bodyPts.length){
+    const nb=bodyPts.length-1,at=t=>bodyPts[Math.max(0,Math.min(nb,Math.round(t*nb)))],hd=bodyPts[nb];
+    const push=o=>out.organs.push(Object.assign({depth:0},o));
+    switch(A){
+      case'snail':{   // 背中の巻貝（対数らせん）と、目のついた触角
+        const c=at(0.4),R0=size*0.75,n=11;
+        for(let k=0;k<n;k++){const th=k*0.62,r=R0*Math.exp(-0.17*k);
+          push({type:'shell',p:[c.p[0]-Math.cos(th)*r*0.9,c.p[1],c.p[2]+c.rh+R0*0.85+Math.sin(th)*r*0.9],dir:[-Math.sin(th),0,Math.cos(th)],size:r*0.72,free:1,col:hsl2rgb(30+h2*25,0.45,0.42+0.2*((k%3)/2))});}
+        [-1,1].forEach(sd=>{push({type:'tentacle',p:[hd.p[0]+size*0.25,hd.p[1]+sd*size*0.18,hd.p[2]+size*0.35],dir:[0.6,sd*0.3,1],size:size*0.1});
+          push({type:'eye',p:[hd.p[0]+size*0.35,hd.p[1]+sd*size*0.22,hd.p[2]+size*0.62],dir:[1,0,0.3],size:size*0.1});});break;}
+      case'crab':{   // はさみと、柄の上の眼
+        [-1,1].forEach(sd=>{push({type:'pincer',p:[hd.p[0]+size*0.6,hd.p[1]+sd*hd.rw*0.9,hd.p[2]],dir:[1,sd*0.35,0.15],size:size*(0.45+armor*0.3)});
+          push({type:'tentacle',p:[hd.p[0]+size*0.3,hd.p[1]+sd*size*0.25,hd.p[2]+hd.rh],dir:[0.3,0,1],size:size*0.07});});break;}
+      case'fish':case'shark':{   // 胸びれ・背びれ
+        const m=at(0.55),f=at(0.75);
+        [-1,1].forEach(sd=>push({type:'fin',p:[f.p[0],f.p[1]+sd*f.rw,f.p[2]-f.rh*0.3],dir:[-0.4,sd,-0.3],size:size*(A==='shark'?0.7:0.45)}));
+        push({type:'fin',p:[m.p[0],m.p[1],m.p[2]+m.rh],dir:[-0.35,0,1],size:size*(A==='shark'?1.0:0.55),dorsal:1});break;}
+      case'insect':{   // 触角・翅・大あご
+        [-1,1].forEach(sd=>push({type:'antenna',p:[hd.p[0]+size*0.2,hd.p[1]+sd*size*0.12,hd.p[2]+size*0.15],dir:[1,sd*0.45,0.6],size:size*(0.55+neural*0.4)}));
+        if(F.fly){const th=at(0.62),n2=g[25]>0.5?2:1;for(let w=0;w<n2;w++)[-1,1].forEach(sd=>push({type:'membrane',p:[th.p[0]-w*size*0.25,th.p[1]+sd*th.rw*0.5,th.p[2]+th.rh*0.9],
+          dir:[-0.75,sd*0.45,0.12],size:size*(0.95-w*0.2),free:1,flap:1}));}
+        if(jaw>0.4)[-1,1].forEach(sd=>push({type:'claw',p:[hd.p[0]+size*0.3,hd.p[1]+sd*size*0.1,hd.p[2]-size*0.05],dir:[1,-sd*0.4,-0.2],size:size*0.18}));break;}
+      case'spider':{   // 多数の単眼と牙
+        for(let k=0;k<8;k++){const a=(k%4)/3-0.5,row=k<4?0:1;push({type:'eye',p:[hd.p[0]+size*0.28,hd.p[1]+a*size*0.35,hd.p[2]+size*(0.18+row*0.1)],dir:[1,a*0.3,0.2],size:size*(row?0.05:0.07)});}
+        [-1,1].forEach(sd=>push({type:'tooth',p:[hd.p[0]+size*0.35,hd.p[1]+sd*size*0.08,hd.p[2]-size*0.1],dir:[0.4,0,-1],size:size*0.18}));break;}
+      case'frog':{   // 頭の上に飛び出した大きな眼
+        out.organs=out.organs.filter(o=>o.type!=='eye');
+        [-1,1].forEach(sd=>push({type:'eye',p:[hd.p[0]+size*0.1,hd.p[1]+sd*size*0.32,hd.p[2]+size*0.42],dir:[0.5,sd*0.6,0.6],size:size*0.2}));break;}
+      case'snake':{   // 二股の舌
+        [-1,1].forEach(sd=>push({type:'tongue',p:[hd.p[0]+size*0.55,hd.p[1]+sd*size*0.03,hd.p[2]-size*0.05],dir:[1,sd*0.25,-0.05],size:size*0.35}));break;}
+      case'turtle':{   // 甲羅（背甲）と甲板の模様
+        const c=at(0.5),R0=Math.max(c.rw,c.rh)*0.92;
+        push({type:'carapace',p:[c.p[0],c.p[1],c.p[2]+c.rh*0.35],dir:[0,0,1],size:R0,free:1,col:hsl2rgb(30+h1*30,0.35,0.3+h2*0.1)});
+        for(let k=0;k<7;k++){const a=k/7*6.283,r=k?R0*0.55:0,dz=Math.sqrt(Math.max(0,1-(r/R0/1.15)**2))*R0*0.45;
+          push({type:'marking',p:[c.p[0]+Math.cos(a)*r,c.p[1]+Math.sin(a)*r,c.p[2]+c.rh*0.35+dz],dir:[Math.cos(a)*r/R0,Math.sin(a)*r/R0,1],size:R0*0.26,depth:1,free:1,col:hsl2rgb(35+h1*30,0.3,0.2)});}break;}
+      case'crocodile':{   // 背中の鱗板の列
+        for(let k=0;k<14;k++){const p=at(0.08+0.8*k/13);[-1,1].forEach(sd=>push({type:'spike',p:[p.p[0],p.p[1]+sd*p.rw*0.35,p.p[2]+p.rh*0.95],dir:[0,sd*0.2,1],size:p.r*0.28,col:[col[0]*0.7,col[1]*0.7,col[2]*0.7]}));}break;}
+      case'bird':{   // くちばし・翼・尾羽
+        out.organs=out.organs.filter(o=>o.type!=='muzzle');
+        push({type:'beak',p:[hd.p[0]+size*0.35,hd.p[1],hd.p[2]],dir:[1,0,-0.15],size:size*(0.4+jaw*0.35),col:jaw>0.55?[0.25,0.22,0.2]:[0.95,0.72,0.25]});
+        const sh=at(0.72);[-1,1].forEach(sd=>push({type:'wing',p:[sh.p[0],sh.p[1]+sd*sh.rw*0.9,sh.p[2]+sh.rh*0.4],dir:[-0.55,sd*0.85,0.1],size:size*(0.55+motor*0.3),free:1,flap:1}));
+        const tl=at(0);for(let k=0;k<5;k++){const a=(k/4-0.5)*0.9;push({type:'feather',p:[tl.p[0],tl.p[1],tl.p[2]],dir:[-1,Math.sin(a),0.25],size:size*0.55,free:1});}break;}
+    }
+  }
+
   /* ---- 多様性フィーチャー（体制に合うものだけをゲート） ---- */
-  (function(){
+  if(!F.skipDiv)(function(){
     const ms=out.strokes.reduce((a,b)=>(b.pts&&(!a||b.pts.length>a.pts.length))?b:a,null);
     if(!ms||!ms.pts||!ms.pts.length)return;
     const Ps=ms.pts,N=Ps.length,at=f=>Ps[Math.max(0,Math.min(N-1,Math.round(f*(N-1))))];
@@ -468,8 +697,8 @@ function buildModelMorpho(g){
     if(g[4]>0.6&&radiality>0.35){const h=at(1),en=1+Math.floor(g[4]*4);for(let k=0;k<en;k++){const a=k/en*6.283;
       out.organs.push({type:'eye',p:[h.p[0]+size*0.2,h.p[1]+Math.cos(a)*h.r*0.7,h.p[2]+h.r*0.5+Math.sin(a)*h.r*0.5],
         dir:[1,0,0.3],size:size*0.18,depth:0});}}
-    // 尾端装飾
-    if(g[23]>0.5){const tl=at(0);out.organs.push({type:g[22]>0.5?'spike':'core',
+    // 尾端装飾（体制が決まっている動物には、球状の飾りは付けない）
+    if(g[23]>0.5&&(g[22]>0.5||!ARCH[A]||A==='mammal')){const tl=at(0);out.organs.push({type:g[22]>0.5?'spike':'core',
       p:[tl.p[0],tl.p[1],tl.p[2]],dir:[-1,0,0],size:size*(0.3+g[23]*0.5),depth:0});}
     // 実状の瘤（植物寄りのみ）
     if(g[14]>0.55&&(sessility>0.3||photo>0.4)){const n=3+Math.floor(g[14]*5);for(let k=0;k<n;k++){
@@ -482,6 +711,7 @@ function buildModelMorpho(g){
     const pts=[];out.strokes.forEach(s=>s.pts.forEach(p=>pts.push(p)));
     if(!pts.length)return;
     out.organs.forEach(o=>{
+      if(o.free)return;                       // 甲羅・翼・傘などは体から離れた位置に置く
       let best=Infinity,bp=null;
       for(let i=0;i<pts.length;i++){const p=pts[i];
         const dd=Math.hypot(o.p[0]-p.p[0],o.p[1]-p.p[1],o.p[2]-p.p[2]);if(dd<best){best=dd;bp=p;}}
@@ -497,8 +727,8 @@ function buildModelMorpho(g){
   out.organs.forEach(o=>viewR=Math.max(viewR,Math.hypot(o.p[0],o.p[1],o.p[2])));
   const eyeCount=out.organs.filter(o=>o.type==='eye').length;
   const formLabel=classifyFormLabel(sessility,aquaticOnly,radiality,builtAsMicrobe,jaw,armor,legCount);
-  return {plan:formLabel,formLabel,color:col,size:Math.max(3,viewR/3.0),bilateral,segN,legCount,legPower,
-    eyeCount,armor,jaw,photo,toxin,neural,motor,muscle:g[1],g,canFly:g[17]>0.68&&g[16]<0.35,
+  return {plan:A,arch:A,archName:(ARCH[A]||{}).name,skin:F.skin,formLabel,color:col,size:Math.max(3,viewR/3.0),bilateral,segN,legCount,legPower,
+    eyeCount,armor,jaw,photo,toxin,neural,motor,muscle:g[1],g,canFly:!!F.fly,
     strokes:out.strokes,organs:out.organs,cellCounts,dominantCell,
     sessility,aquaticOnly,radiality,elongation,microScale,woodiness,uprightness};
 }
@@ -531,8 +761,11 @@ function drawSegM(cx,p,rc){
     cx.beginPath();cx.moveTo(p.ax+px*oA,p.ay+py*oA);cx.lineTo(p.bx+px*oB,p.by+py*oB);cx.stroke();}
 }
 
+// 体制ごとの新しい器官は、2D では似た形の既存器官で描く
+const ORGAN_2D={snout:'muzzle',wing:'feather',membrane:'fin',petal:'leaf',beak:'claw',pincer:'claw',antenna:'whisker',tongue:'whisker',
+  polyp:'fruit',foliage:'leaf',shell:'core',carapace:'core',cap:'core',bell:'core',flower:'fruit'};
 function drawOrganM(cx,p,rc){
-  const[r,g,b]=p.col,s=Math.max(1,p.size),k=p.kind,R=v=>rc(v);
+  const[r,g,b]=p.col,s=Math.max(1,p.size),k=ORGAN_2D[p.kind]||p.kind,R=v=>rc(v);
   if(k==='eye'){
     cx.beginPath();cx.arc(p.x,p.y,s,0,6.283);cx.fillStyle='rgba(235,228,214,.9)';cx.fill();
     const ix=p.x+Math.cos(p.ang)*s*.32,iy=p.y+Math.sin(p.ang)*s*.32;
@@ -643,11 +876,13 @@ function padGenome(g){
   n[33]=c(0.5+ (jit(33)-0.5)*0.4);                                 // 肢位置バイアス
   return n;
 }
-function build(g){ return buildModelMorpho(padGenome(g)); }
+// opt: {grade: 進化段階（体制の候補を絞る）, arch: 体制を直接指定}
+function build(g,opt){ return buildModelMorpho(padGenome(g),opt); }
+for(const k in ARCH)PLAN_NAMES[k]=ARCH[k].name;
 
   return {
     build, draw: drawCreatureMorpho, complexity:(g)=>complexityMorpho(padGenome(g)),
     color:(g)=>LifeGfx.color(padGenome(g)), padGenome,
-    PLAN_NAMES, GC, buildRaw: buildModelMorpho
+    PLAN_NAMES, GC, buildRaw: buildModelMorpho, ARCH, chooseArch
   };
 })();

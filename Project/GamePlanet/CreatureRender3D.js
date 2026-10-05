@@ -138,7 +138,7 @@ const v3={add:(a,b)=>[a[0]+b[0],a[1]+b[1],a[2]+b[2]],sub:(a,b)=>[a[0]-b[0],a[1]-
 function perpFrame(dir,up){let y=v3.norm(dir);let x=v3.cross(up,y);if(v3.len(x)<1e-5)x=v3.cross([1,0,0],y);if(v3.len(x)<1e-5)x=v3.cross([0,1,0],y);x=v3.norm(x);const z=v3.cross(x,y);return[x,y,z];}
 function strokeCol(col,kind){let[r,g,b]=col;
   if(kind==='wood'){r=r*0.4+0.34;g=g*0.35+0.22;b=b*0.3+0.1;}
-  else if(kind==='muscle'){r=Math.min(1,r*0.7+0.28);g=g*0.55;b=b*0.5;}
+  else if(kind==='muscle'){r=Math.min(1,r*0.95+0.03);g=g*0.92;b=b*0.88;}   // 胴体は体色そのまま（わずかに暖色）
   else if(kind==='belly'){r=Math.min(1,r*0.5+0.42);g=Math.min(1,g*0.5+0.4);b=Math.min(1,b*0.45+0.38);}
   return[r,g,b];}
 // sRGB→リニア（InstancedMeshの色はリニア空間で解釈されるため）
@@ -160,12 +160,23 @@ function organColor(o,col){const[r,g,b]=col,k=o.type;
     case'scale':return[r*.6+.15,g*.65+.15,b*.5+.1];
     case'marking':case'stripe':return o.col||[r*.3,g*.3,b*.3];
     case'core':return[b,g*.6,r*.5];
+    case'shell':case'carapace':case'cap':case'petal':case'flower':case'polyp':return o.col||[r*.8,g*.7,b*.5];
+    case'bell':return[Math.min(1,r*1.1+.1),Math.min(1,g*1.1+.1),Math.min(1,b*1.1+.12)];
+    case'wing':return[r*.85,g*.85,b*.85];
+    case'membrane':return[.82,.86,.9];
+    case'beak':return o.col||[.95,.72,.25];
+    case'antenna':return[r*.35,g*.3,b*.28];
+    case'tongue':return[.78,.15,.25];
+    case'pincer':return[Math.min(1,r*.9+.08),g*.75,b*.7];
+    case'foliage':return[r*.55,Math.min(1,g*.8+.1),b*.4];
+    case'snout':return[r*.9,g*.9,b*.85];
     case'tentacle':return[r,g,b];
     default:return[r,g,b];
   }}
 
 // 形質 → 皮膚の種類（0=湿った皮膚 1=鱗 2=毛皮 3=キチン/甲板 4=樹皮）
 function skinKind(R){const g=R.g||[];
+  if(R.model&&R.model.skin!=null)return R.model.skin;   // 体制（アーキタイプ）が指定する皮膚
   if(R.mode==='plant')return 4;
   if(R.mode==='float')return 0;
   if((g[20]||0)>.55)return 0;                 // 水棲: ぬめりのある皮膚
@@ -310,6 +321,26 @@ class CreatureLayer{
         case'hair':put(this.cone,s*.12,s*.6,s*.12);break;
         case'feather':put(this.flat,s*.35,s*1.05,s*.06,s*.5);break;
         case'digit':put(this.ellip,s*.35,s*.55,s*.3);break;
+        // ---- 体制ごとの器官 ----
+        case'shell':this.setSkin([3,0,freq*1.6,.15]);put(this.ellip,s,s*.95,s);this.setSkin([sk,0,freq*1.4,wet]);break;          // 巻貝の殻（らせんの一巻き）
+        case'carapace':this.setSkin([3,0,freq*.9,0]);put(this.ellip,s*1.0,s*.45,s*1.2);this.setSkin([sk,0,freq*1.4,wet]);break;  // カメの背甲（低いドーム）
+        case'cap':put(this.ellip,s*1.0,s*.42,s*1.0,s*.15);put(this.ellip,s*.92,s*.08,s*.92,-s*.02);break;                       // キノコの傘とひだ
+        case'bell':this.jelly.push(T3(v3.mul(B[0],s)),T3(v3.mul(B[1],s*.75)),T3(v3.mul(B[2],s)),T3(p),col);break;              // クラゲの傘（半透明）
+        case'wing':case'membrane':{   // 翼・翅: 飛べる個体は羽ばたく
+          const fl=o.flap&&R.canFly?Math.sin(t*(o.type==='membrane'?26:9)+seed*6.283)*.55:0;
+          const d2=v3.norm(v3.add(dirW,v3.mul(upRef,fl))),B2=perpFrame(d2,upRef);
+          const pool=this.flat,ws=o.type==='wing'?[s*.32,s*1.35,s*.05]:[s*.28,s*1.1,s*.02];
+          pool.push(T3(v3.mul(B2[0],ws[0])),T3(v3.mul(B2[1],ws[1])),T3(v3.mul(B2[2],ws[2])),T3(v3.add(p,v3.mul(d2,ws[1]*.9))),col);break;}
+        case'beak':put(this.cone,s*.3,s*1.05,s*.26);break;
+        case'snout':put(this.ellip,s*.3,s*1.1,s*.17,s*.9);break;   // ワニの細長い吻
+        case'antenna':put(this.cone,s*.035,s*1.5,s*.035);break;
+        case'tongue':put(this.cone,s*.03,s*1.0,s*.03);break;
+        case'pincer':put(this.ellip,s*.42,s*.7,s*.32,s*.45);put(this.cone,s*.16,s*.9,s*.14,s*.9);break;   // はさみ（掌と指）
+        case'polyp':put(this.ball,s*.45,s*.45,s*.45);break;
+        case'foliage':this.setSkin([0,0,freq*.6,.1]);put(this.ellip,s*1.1,s*.9,s*1.0);this.setSkin([sk,0,freq*1.4,wet]);break;   // 樹冠の葉むら
+        case'flower':{for(let k=0;k<5;k++){const a=k/5*6.283,dd=v3.norm(v3.add(v3.mul(B[0],Math.cos(a)),v3.mul(B[2],Math.sin(a)))),Bp=perpFrame(dd,dirW);
+            this.flat.push(T3(v3.mul(Bp[0],s*.32)),T3(v3.mul(Bp[1],s*.62)),T3(v3.mul(Bp[2],s*.05)),T3(v3.add(p,v3.mul(dd,s*.55))),col);}
+          this.ball.push(T3(v3.mul(B[0],s*.25)),T3(v3.mul(B[1],s*.25)),T3(v3.mul(B[2],s*.25)),T3(p),lin([.95,.8,.2]));break;}
         default:put(this.ellip,s*.5,s*.5,s*.5);
       }
     });
